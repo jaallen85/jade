@@ -19,11 +19,17 @@
  */
 
 #include "MainWindow.h"
+#include "MainToolBox.h"
 
 MainWindow::MainWindow() : QMainWindow()
 {
 	mDrawingWidget = new DrawingWidget();
 	setCentralWidget(mDrawingWidget);
+
+	createMainToolBox();
+	createPropertiesWidget();
+	createStatusBar();
+
 
 	createActions();
 	createMenus();
@@ -35,61 +41,6 @@ MainWindow::MainWindow() : QMainWindow()
 }
 
 MainWindow::~MainWindow() { }
-
-//==================================================================================================
-
-/*void MainWindow::setModeFromAction(QAction* action)
-{
-	QList<QAction*> actions = MainWindow::actions();
-
-	if (action == actions[DefaultModeAction]) mDrawingWidget->setDefaultMode();
-	else if (action == actions[ScrollModeAction]) mDrawingWidget->setScrollMode();
-	else if (action == actions[ZoomModeAction]) mDrawingWidget->setZoomMode();
-	else if (action == actions[PlaceLineAction]) mDrawingWidget->setPlaceMode(new DrawingLineItem());
-	else if (action == actions[PlaceArcAction]) mDrawingWidget->setPlaceMode(new DrawingArcItem());
-	else if (action == actions[PlacePolylineAction]) mDrawingWidget->setPlaceMode(new DrawingPolylineItem());
-	else if (action == actions[PlaceCurveAction]) mDrawingWidget->setPlaceMode(new DrawingCurveItem());
-	else if (action == actions[PlaceRectAction]) mDrawingWidget->setPlaceMode(new DrawingRectItem());
-	else if (action == actions[PlaceEllipseAction]) mDrawingWidget->setPlaceMode(new DrawingEllipseItem());
-	else if (action == actions[PlacePolygonAction]) mDrawingWidget->setPlaceMode(new DrawingPolygonItem());
-	else if (action == actions[PlaceTextAction]) mDrawingWidget->setPlaceMode(new DrawingTextItem());
-	else if (action == actions[PlacePathAction])
-	{
-		QPainterPath path;
-		path.moveTo(-200, 0);
-		path.lineTo(-150, 0);
-		path.moveTo(-150, 0);
-		path.lineTo(-125, -50);
-		path.moveTo(-125, -50);
-		path.lineTo(-75, 50);
-		path.moveTo(-75, 50);
-		path.lineTo(-25, -50);
-		path.moveTo(-25, -50);
-		path.lineTo(25, 50);
-		path.moveTo(25, 50);
-		path.lineTo(75, -50);
-		path.moveTo(75, -50);
-		path.lineTo(125, 50);
-		path.moveTo(125, 50);
-		path.lineTo(150, 0);
-		path.moveTo(150, 0);
-		path.lineTo(200, 0);
-
-		DrawingPathItem* pathItem = new DrawingPathItem();
-		pathItem->setPath(path, QRectF(-200, -50, 400, 100));
-		pathItem->setRect(-200, -50, 400, 100);
-		pathItem->addConnectionPoint(QPointF(-200, 0));
-		pathItem->addConnectionPoint(QPointF(200, 0));
-		pathItem->addConnectionPoint(QPointF(75, -50));
-		mDrawingWidget->setPlaceMode(pathItem);
-	}
-}
-
-void MainWindow::updateMode(DrawingWidget::Mode mode)
-{
-	if (mode == DrawingWidget::DefaultMode && !actions()[DefaultModeAction]->isChecked())
-		actions()[DefaultModeAction]->setChecked(true);
-}*/
 
 //==================================================================================================
 
@@ -113,28 +64,38 @@ void MainWindow::hideEvent(QHideEvent* event)
 
 //==================================================================================================
 
+void MainWindow::createMainToolBox()
+{
+	mMainToolBox = new MainToolBox();
+	mMainToolBoxDock = new QDockWidget("Tools");
+	mMainToolBoxDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+	mMainToolBoxDock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
+	mMainToolBoxDock->setWidget(mMainToolBox);
+	addDockWidget(Qt::LeftDockWidgetArea, mMainToolBoxDock, Qt::Vertical);
+
+	connect(mMainToolBox, SIGNAL(defaultModeTriggered()), mDrawingWidget, SLOT(setDefaultMode()));
+	connect(mMainToolBox, SIGNAL(scrollModeTriggered()), mDrawingWidget, SLOT(setScrollMode()));
+	connect(mMainToolBox, SIGNAL(zoomModeTriggered()), mDrawingWidget, SLOT(setZoomMode()));
+	connect(mMainToolBox, SIGNAL(placeModeTriggered(DrawingItem*)), mDrawingWidget, SLOT(setPlaceMode(DrawingItem*)));
+	connect(mMainToolBox, SIGNAL(propertiesTriggered()), mDrawingWidget, SLOT(properties()));
+	connect(mDrawingWidget, SIGNAL(modeChanged(DrawingWidget::Mode)), mMainToolBox, SLOT(updateMode(DrawingWidget::Mode)));
+}
+
+void MainWindow::createPropertiesWidget()
+{
+
+}
+
+void MainWindow::createStatusBar()
+{
+
+}
+
+//==================================================================================================
+
 void MainWindow::createActions()
 {
 	addAction("Exit", this, SLOT(close()), ":/icons/oxygen/application-exit.png");
-
-	/*mModeActionGroup = new QActionGroup(this);
-	connect(mModeActionGroup, SIGNAL(triggered(QAction*)), this, SLOT(setModeFromAction(QAction*)));
-	connect(mDrawingWidget, SIGNAL(modeChanged(DrawingWidget::Mode)), this, SLOT(updateMode(DrawingWidget::Mode)));
-
-	addModeAction("Select Mode", ":/icons/oxygen/edit-select.png", "Escape");
-	addModeAction("Scroll Mode", ":/icons/oxygen/transform-move.png", "");
-	addModeAction("Zoom Mode", ":/icons/oxygen/page-zoom.png", "");
-	addModeAction("Place Line", ":/icons/oxygen/draw-line.png", "");
-	addModeAction("Place Arc", ":/icons/oxygen/draw-arc.png", "");
-	addModeAction("Place Polyline", ":/icons/oxygen/draw-polyline.png", "");
-	addModeAction("Place Curve", ":/icons/oxygen/draw-curve.png", "");
-	addModeAction("Place Rect", ":/icons/oxygen/draw-rectangle.png", "");
-	addModeAction("Place Ellipse", ":/icons/oxygen/draw-ellipse.png", "");
-	addModeAction("Place Polygon", ":/icons/oxygen/draw-polygon.png", "");
-	addModeAction("Place Text", ":/icons/oxygen/draw-text.png", "");
-	addModeAction("Place Path", ":/icons/oxygen/resistor1.png", "");
-
-	actions()[DefaultModeAction]->setChecked(true);*/
 }
 
 void MainWindow::createMenus()
@@ -220,16 +181,3 @@ void MainWindow::addAction(const QString& text, QObject* slotObj, const char* sl
 
 	QMainWindow::addAction(action);
 }
-
-/*void MainWindow::addModeAction(const QString& text, const QString& iconPath, const QString& shortcut)
-{
-	QAction* action = new QAction(text, this);
-
-	if (!iconPath.isEmpty()) action->setIcon(QIcon(iconPath));
-	if (!shortcut.isEmpty()) action->setShortcut(QKeySequence(shortcut));
-
-	action->setCheckable(true);
-	action->setActionGroup(mModeActionGroup);
-
-	QMainWindow::addAction(action);
-}*/

@@ -28,6 +28,7 @@ SOURCES += \
 	source/DrawingUndo.cpp \
 	source/DrawingWidget.cpp \
 	\
+	source/MainToolBox.cpp \
 	source/MainWindow.cpp \
 	source/main.cpp
 
@@ -43,6 +44,7 @@ HEADERS += \
 	source/DrawingUndo.h \
 	source/DrawingWidget.h \
 	\
+	source/MainToolBox.h \
 	source/MainWindow.h
 
 RESOURCES += icons/icons.qrc

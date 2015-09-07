@@ -1,4 +1,4 @@
-/* DemoWindow.cpp
+/* MainToolBox.cpp
  *
  * Copyright (C) 2013-2015 Jason Allen
  *
@@ -18,46 +18,43 @@
  * along with libdrawing.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#ifndef DEMOWINDOW_H
-#define DEMOWINDOW_H
+#ifndef MAINTOOLBOX_H
+#define MAINTOOLBOX_H
 
-#include <QtWidgets>
+#include <DrawingWidget.h>
 
-class DrawingWidget;
-class MainToolBox;
-
-class MainWindow : public QMainWindow
+class MainToolBox : public QFrame
 {
 	Q_OBJECT
 
-public:
-	enum ActionIndex { ExitAction, NumberOfActions };
-
 private:
-	DrawingWidget* mDrawingWidget;
-
-	QDockWidget* mMainToolBoxDock;
-	MainToolBox* mMainToolBox;
-
-	QByteArray mWindowState;
+	QActionGroup* mModeActionGroup;
 
 public:
-	MainWindow();
-	~MainWindow();
+	MainToolBox();
+	~MainToolBox();
+
+	QSize sizeHint() const;
+
+public slots:
+	void updateMode(DrawingWidget::Mode mode);
+
+private slots:
+	//void setModeFromAction(QAction* action);
+
+signals:
+	void defaultModeTriggered();
+	void zoomModeTriggered();
+	void scrollModeTriggered();
+	void placeModeTriggered(DrawingItem* item);
+	void propertiesTriggered();
 
 private:
-	void showEvent(QShowEvent* event);
-	void hideEvent(QHideEvent* event);
-
-	void createMainToolBox();
-	void createPropertiesWidget();
-	void createStatusBar();
-
-	void createActions();
-	void createMenus();
-	void createToolBars();
 	void addAction(const QString& text, QObject* slotObj, const char* slotFunction,
 		const QString& iconPath = QString(), const QString& shortcut = QString());
+	void addModeAction(const QString& text,
+		const QString& iconPath = QString(), const QString& shortcut = QString());
+	QToolButton* createButton(QAction* action);
 };
 
 #endif

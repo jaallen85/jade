@@ -1,0 +1,27 @@
+<RCC>
+    <qresource prefix="/icons">
+		<file>jade/diagram.png</file>
+		<file>jade/diagram_document.png</file>
+		<file>oxygen/edit-copy.png</file>
+        <file>oxygen/edit-cut.png</file>
+        <file>oxygen/edit-delete.png</file>
+        <file>oxygen/edit-paste.png</file>
+        <file>oxygen/edit-redo.png</file>
+        <file>oxygen/edit-select.png</file>
+        <file>oxygen/edit-select-all.png</file>
+        <file>oxygen/edit-undo.png</file>
+        <file>oxygen/games-config-board.png</file>
+        <file>oxygen/merge.png</file>
+        <file>oxygen/object-bring-forward.png</file>
+        <file>oxygen/object-bring-to-front.png</file>
+        <file>oxygen/object-flip-horizontal.png</file>
+        <file>oxygen/object-rotate-left.png</file>
+        <file>oxygen/object-rotate-right.png</file>
+        <file>oxygen/object-send-backward.png</file>
+        <file>oxygen/object-send-to-back.png</file>
+        <file>oxygen/split.png</file>
+        <file>oxygen/zoom-fit-best.png</file>
+        <file>oxygen/zoom-in.png</file>
+        <file>oxygen/zoom-out.png</file>
+    </qresource>
+</RCC>
