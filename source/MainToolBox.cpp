@@ -25,33 +25,17 @@ MainToolBox::MainToolBox() : QFrame()
 	mModeActionGroup = new QActionGroup(this);
 	connect(mModeActionGroup, SIGNAL(triggered(QAction*)), this, SLOT(setModeFromAction(QAction*)));
 
-	addModeAction("Select Mode", ":/icons/oxygen/edit-select.png", "Escape");
-	addModeAction("Scroll Mode", ":/icons/oxygen/transform-move.png", "");
-	addModeAction("Zoom Mode", ":/icons/oxygen/page-zoom.png", "");
-
-
-	QList<QAction*> actions = mModeActionGroup->actions();
-	actions[0]->setChecked(true);
-
-	QDialogButtonBox* buttonBox = new QDialogButtonBox();
-	buttonBox->setCenterButtons(true);
-
-	buttonBox->addButton(createButton(actions[0]), QDialogButtonBox::ActionRole);
-	buttonBox->addButton(createButton(actions[1]), QDialogButtonBox::ActionRole);
-	buttonBox->addButton(createButton(actions[2]), QDialogButtonBox::ActionRole);
-	//buttonBox->addButton(createButton(
-	//	mDiagramView->actions()[DiagramView::PropertiesAction]), QDialogButtonBox::ActionRole);
-
 	QVBoxLayout* vLayout = new QVBoxLayout();
-	vLayout->addWidget(buttonBox);
-	vLayout->addWidget(new QWidget(), 100);
+	vLayout->addWidget(createButtonBox());
+	vLayout->addWidget(createTreeWidget(), 100);
 	setLayout(vLayout);
 	setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
 }
 
 MainToolBox::~MainToolBox()
 {
-
+	QList<DrawingItem*> items = mPlaceItemsMap.values();
+	while (!items.isEmpty()) delete items.takeFirst();
 }
 
 //==================================================================================================
@@ -65,29 +49,91 @@ QSize MainToolBox::sizeHint() const
 
 void MainToolBox::updateMode(DrawingWidget::Mode mode)
 {
-
+	QList<QAction*> modeActions = mModeActionGroup->actions();
+	if (mode == DrawingWidget::DefaultMode && ! modeActions[0]->isChecked())
+		modeActions[0]->setChecked(true);
 }
 
-/*
-
-addModeAction("Select Mode", ":/icons/oxygen/edit-select.png", "Escape");
-addModeAction("Scroll Mode", ":/icons/oxygen/transform-move.png", "");
-addModeAction("Zoom Mode", ":/icons/oxygen/page-zoom.png", "");
-addModeAction("Place Line", ":/icons/oxygen/draw-line.png", "");
-addModeAction("Place Arc", ":/icons/oxygen/draw-arc.png", "");
-addModeAction("Place Polyline", ":/icons/oxygen/draw-polyline.png", "");
-addModeAction("Place Curve", ":/icons/oxygen/draw-curve.png", "");
-addModeAction("Place Rect", ":/icons/oxygen/draw-rectangle.png", "");
-addModeAction("Place Ellipse", ":/icons/oxygen/draw-ellipse.png", "");
-addModeAction("Place Polygon", ":/icons/oxygen/draw-polygon.png", "");
-addModeAction("Place Text", ":/icons/oxygen/draw-text.png", "");
-addModeAction("Place Path", ":/icons/oxygen/resistor1.png", "");
-
-actions()[DefaultModeAction]->setChecked(true);*/
+void MainToolBox::setModeFromAction(QAction* action)
+{
+	if (action->text() == "Select Mode") emit defaultModeTriggered();
+	else if (action->text() == "Scroll Mode") emit scrollModeTriggered();
+	else if (action->text() == "Zoom Mode") emit zoomModeTriggered();
+	else emit defaultModeTriggered();
+}
 
 //==================================================================================================
 
-void MainToolBox::addAction(const QString& text, QObject* slotObj, const char* slotFunction,
+QDialogButtonBox* MainToolBox::createButtonBox()
+{
+	QAction* defaultModeAction = addModeAction("Select Mode", ":/icons/oxygen/edit-select.png", "Escape");
+	QAction* scrollModeAction = addModeAction("Scroll Mode", ":/icons/oxygen/transform-move.png", "");
+	QAction* zoomModeAction = addModeAction("Zoom Mode", ":/icons/oxygen/page-zoom.png", "");
+	QAction* propertiesAction = addAction("Properties...", this, SIGNAL(propertiesTriggered()), ":/icons/oxygen/games-config-board.png");
+
+	int buttonSize = 1.8 * QFontMetrics(font()).height();
+	QDialogButtonBox* buttonBox = new QDialogButtonBox();
+	buttonBox->setCenterButtons(true);
+
+	mDefaultModeButton = new QToolButton();
+	mDefaultModeButton->setDefaultAction(defaultModeAction);
+	mDefaultModeButton->setToolTip(defaultModeAction->text());
+	mDefaultModeButton->setIconSize(QSize(buttonSize, buttonSize));
+
+	mScrollModeButton = new QToolButton();
+	mScrollModeButton->setDefaultAction(scrollModeAction);
+	mScrollModeButton->setToolTip(scrollModeAction->text());
+	mScrollModeButton->setIconSize(QSize(buttonSize, buttonSize));
+
+	mZoomModeButton = new QToolButton();
+	mZoomModeButton->setDefaultAction(zoomModeAction);
+	mZoomModeButton->setToolTip(zoomModeAction->text());
+	mZoomModeButton->setIconSize(QSize(buttonSize, buttonSize));
+
+	mPropertiesButton = new QToolButton();
+	mPropertiesButton->setDefaultAction(propertiesAction);
+	mPropertiesButton->setToolTip(propertiesAction->text());
+	mPropertiesButton->setIconSize(QSize(buttonSize, buttonSize));
+
+	buttonBox->addButton(mDefaultModeButton, QDialogButtonBox::ActionRole);
+	buttonBox->addButton(mScrollModeButton, QDialogButtonBox::ActionRole);
+	buttonBox->addButton(mZoomModeButton, QDialogButtonBox::ActionRole);
+	buttonBox->addButton(mPropertiesButton, QDialogButtonBox::ActionRole);
+
+	defaultModeAction->setChecked(true);
+
+	return buttonBox;
+}
+
+QTreeWidget* MainToolBox::createTreeWidget()
+{
+	mPlaceItemsWidget = new QTreeWidget();
+	mPlaceItemsWidget->setHeaderHidden(true);
+	mPlaceItemsWidget->setIndentation(6);
+
+	/*addModeAction("Place Line", ":/icons/oxygen/draw-line.png", "");
+	addModeAction("Place Arc", ":/icons/oxygen/draw-arc.png", "");
+	addModeAction("Place Polyline", ":/icons/oxygen/draw-polyline.png", "");
+	addModeAction("Place Curve", ":/icons/oxygen/draw-curve.png", "");
+	addModeAction("Place Rect", ":/icons/oxygen/draw-rectangle.png", "");
+	addModeAction("Place Ellipse", ":/icons/oxygen/draw-ellipse.png", "");
+	addModeAction("Place Polygon", ":/icons/oxygen/draw-polygon.png", "");
+	addModeAction("Place Text", ":/icons/oxygen/draw-text.png", "");
+	addModeAction("Place Path", ":/icons/oxygen/resistor1.png", "");*/
+
+	//mPlaceItemsMap
+
+	//connect(mPlaceItemsWidget, SIGNAL(itemActivated(QTreeWidgetItem*,int)),
+	//	this, SLOT(triggerAction(QTreeWidgetItem*,int)));
+
+	mPlaceItemsWidget->expandAll();
+
+	return mPlaceItemsWidget;
+}
+
+//==================================================================================================
+
+QAction* MainToolBox::addAction(const QString& text, QObject* slotObj, const char* slotFunction,
 	const QString& iconPath, const QString& shortcut)
 {
 	QAction* action = new QAction(text, this);
@@ -97,9 +143,10 @@ void MainToolBox::addAction(const QString& text, QObject* slotObj, const char* s
 	if (!shortcut.isEmpty()) action->setShortcut(QKeySequence(shortcut));
 
 	QFrame::addAction(action);
+	return action;
 }
 
-void MainToolBox::addModeAction(const QString& text, const QString& iconPath, const QString& shortcut)
+QAction* MainToolBox::addModeAction(const QString& text, const QString& iconPath, const QString& shortcut)
 {
 	QAction* action = new QAction(text, this);
 
@@ -108,16 +155,6 @@ void MainToolBox::addModeAction(const QString& text, const QString& iconPath, co
 
 	action->setCheckable(true);
 	action->setActionGroup(mModeActionGroup);
-}
 
-QToolButton* MainToolBox::createButton(QAction* action)
-{
-	int size = 1.8 * QFontMetrics(font()).height();
-
-	QToolButton* newButton = new QToolButton();
-	newButton->setDefaultAction(action);
-	newButton->setToolTip(action->text());
-	newButton->setIconSize(QSize(size, size));
-
-	return newButton;
+	return action;
 }

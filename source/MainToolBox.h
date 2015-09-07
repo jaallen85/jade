@@ -28,6 +28,14 @@ class MainToolBox : public QFrame
 	Q_OBJECT
 
 private:
+	QToolButton* mDefaultModeButton;
+	QToolButton* mScrollModeButton;
+	QToolButton* mZoomModeButton;
+	QToolButton* mPropertiesButton;
+
+	QTreeWidget* mPlaceItemsWidget;
+	QMap<QTreeWidgetItem*,DrawingItem*> mPlaceItemsMap;
+
 	QActionGroup* mModeActionGroup;
 
 public:
@@ -39,9 +47,6 @@ public:
 public slots:
 	void updateMode(DrawingWidget::Mode mode);
 
-private slots:
-	//void setModeFromAction(QAction* action);
-
 signals:
 	void defaultModeTriggered();
 	void zoomModeTriggered();
@@ -49,12 +54,17 @@ signals:
 	void placeModeTriggered(DrawingItem* item);
 	void propertiesTriggered();
 
+private slots:
+	void setModeFromAction(QAction* action);
+
 private:
-	void addAction(const QString& text, QObject* slotObj, const char* slotFunction,
+	QDialogButtonBox* createButtonBox();
+	QTreeWidget* createTreeWidget();
+
+	QAction* addAction(const QString& text, QObject* slotObj, const char* slotFunction,
 		const QString& iconPath = QString(), const QString& shortcut = QString());
-	void addModeAction(const QString& text,
+	QAction* addModeAction(const QString& text,
 		const QString& iconPath = QString(), const QString& shortcut = QString());
-	QToolButton* createButton(QAction* action);
 };
 
 #endif

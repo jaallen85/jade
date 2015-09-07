@@ -1,8 +1,8 @@
 <RCC>
     <qresource prefix="/icons">
-		<file>jade/diagram.png</file>
-		<file>jade/diagram_document.png</file>
-		<file>oxygen/edit-copy.png</file>
+        <file>jade/diagram.png</file>
+        <file>jade/diagram_document.png</file>
+        <file>oxygen/edit-copy.png</file>
         <file>oxygen/edit-cut.png</file>
         <file>oxygen/edit-delete.png</file>
         <file>oxygen/edit-paste.png</file>
@@ -23,5 +23,7 @@
         <file>oxygen/zoom-fit-best.png</file>
         <file>oxygen/zoom-in.png</file>
         <file>oxygen/zoom-out.png</file>
+        <file>oxygen/page-zoom.png</file>
+        <file>oxygen/transform-move.png</file>
     </qresource>
 </RCC>
