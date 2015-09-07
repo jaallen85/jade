@@ -58,6 +58,9 @@ DrawingWidget::DrawingWidget() : QAbstractScrollArea()
 	mPanTimer.setInterval(16);
 	connect(&mPanTimer, SIGNAL(timeout()), this, SLOT(mousePanEvent()));
 	mConsecutivePastes = 0;
+
+	addActions();
+	createContextMenus();
 }
 
 DrawingWidget::~DrawingWidget()
@@ -593,18 +596,6 @@ void DrawingWidget::setPlaceMode(DrawingItem* item)
 	else setDefaultMode();
 }
 
-void DrawingWidget::setUserMode()
-{
-	mMode = UserMode;
-	setCursor(Qt::ArrowCursor);
-
-	clearSelection();
-	setNewItem(nullptr);
-
-	emit modeChanged(mMode);
-	viewport()->update();
-}
-
 //==================================================================================================
 
 void DrawingWidget::undo()
@@ -947,9 +938,6 @@ void DrawingWidget::mousePressEvent(QMouseEvent* event)
 		case PlaceMode:
 			placeModeMousePressEvent(&mMouseEvent);
 			break;
-		case UserMode:
-			userModeMousePressEvent(&mMouseEvent);
-			break;
 		default:
 			defaultMousePressEvent(&mMouseEvent);
 			break;
@@ -993,9 +981,6 @@ void DrawingWidget::mouseMoveEvent(QMouseEvent* event)
 	case PlaceMode:
 		placeModeMouseMoveEvent(&mMouseEvent);
 		break;
-	case UserMode:
-		userModeMouseMoveEvent(&mMouseEvent);
-		break;
 	default:
 		defaultMouseMoveEvent(&mMouseEvent);
 		break;
@@ -1029,9 +1014,6 @@ void DrawingWidget::mouseReleaseEvent(QMouseEvent* event)
 			break;
 		case PlaceMode:
 			placeModeMouseReleaseEvent(&mMouseEvent);
-			break;
-		case UserMode:
-			userModeMouseReleaseEvent(&mMouseEvent);
 			break;
 		default:
 			defaultMouseReleaseEvent(&mMouseEvent);
@@ -1286,23 +1268,6 @@ void DrawingWidget::placeModeMouseDoubleClickEvent(DrawingMouseEvent* event)
 			if (!mNewItem->newItemCopyEvent()) setDefaultMode();
 		}
 	}
-}
-
-//==================================================================================================
-
-void DrawingWidget::userModeMousePressEvent(DrawingMouseEvent* event)
-{
-	Q_UNUSED(event);
-}
-
-void DrawingWidget::userModeMouseMoveEvent(DrawingMouseEvent* event)
-{
-	Q_UNUSED(event);
-}
-
-void DrawingWidget::userModeMouseReleaseEvent(DrawingMouseEvent* event)
-{
-	Q_UNUSED(event);
 }
 
 //==================================================================================================
@@ -2119,4 +2084,109 @@ void DrawingWidget::recalculateContentSize(const QRectF& targetSceneRect)
 	mViewportTransform.scale(mScale, mScale);
 
 	mSceneTransform = mViewportTransform.inverted();
+}
+
+//==================================================================================================
+
+void DrawingWidget::addActions()
+{
+	addAction("Undo", this, SLOT(undo()), ":/icons/oxygen/edit-undo.png", "Ctrl+Z");
+	addAction("Redo", this, SLOT(redo()), ":/icons/oxygen/edit-redo.png", "Ctrl+Shift+Z");
+	addAction("Cut", this, SLOT(cut()), ":/icons/oxygen/edit-cut.png", "Ctrl+X");
+	addAction("Copy", this, SLOT(copy()), ":/icons/oxygen/edit-copy.png", "Ctrl+C");
+	addAction("Paste", this, SLOT(paste()), ":/icons/oxygen/edit-paste.png", "Ctrl+V");
+	addAction("Delete", this, SLOT(deleteSelection()), ":/icons/oxygen/edit-delete.png", "Delete");
+	addAction("Select All", this, SLOT(selectAll()), ":/icons/oxygen/edit-select-all.png", "Ctrl+A");
+	addAction("Select None", this, SLOT(selectNone()), "", "Ctrl+Shift+A");
+
+	addAction("Rotate", this, SLOT(rotateSelection()), ":/icons/oxygen/object-rotate-right.png", "R");
+	addAction("Rotate Back", this, SLOT(rotateBackSelection()), ":/icons/oxygen/object-rotate-left.png", "Shift+R");
+	addAction("Flip", this, SLOT(flipSelection()), ":/icons/oxygen/object-flip-horizontal.png", "F");
+
+	addAction("Bring Forward", this, SLOT(bringForward()), ":/icons/oxygen/object-bring-forward.png");
+	addAction("Send Backward", this, SLOT(sendBackward()), ":/icons/oxygen/object-send-backward.png");
+	addAction("Bring to Front", this, SLOT(bringToFront()), ":/icons/oxygen/object-bring-to-front.png");
+	addAction("Send to Back", this, SLOT(sendToBack()), ":/icons/oxygen/object-send-to-back.png");
+
+	addAction("Insert Point", this, SLOT(insertItemPoint()), "");
+	addAction("Remove Point", this, SLOT(removeItemPoint()), "");
+
+	addAction("Group", this, SLOT(group()), ":/icons/oxygen/merge.png", "Ctrl+G");
+	addAction("Ungroup", this, SLOT(ungroup()), ":/icons/oxygen/split.png", "Ctrl+Shift+G");
+
+	addAction("Zoom In", this, SLOT(zoomIn()), ":/icons/oxygen/zoom-in.png", ".");
+	addAction("Zoom Out", this, SLOT(zoomOut()), ":/icons/oxygen/zoom-out.png", ",");
+	addAction("Zoom Fit", this, SLOT(zoomFit()), ":/icons/oxygen/zoom-fit-best.png", "/");
+
+	addAction("Properties...", this, SLOT(properties()), ":/icons/oxygen/games-config-board.png");
+}
+
+void DrawingWidget::createContextMenus()
+{
+	QList<QAction*> actions = DrawingWidget::actions();
+
+	mSingleItemContextMenu.addAction(actions[PropertiesAction]);
+	mSingleItemContextMenu.addSeparator();
+	mSingleItemContextMenu.addAction(actions[RotateAction]);
+	mSingleItemContextMenu.addAction(actions[RotateBackAction]);
+	mSingleItemContextMenu.addAction(actions[FlipAction]);
+	mSingleItemContextMenu.addAction(actions[DeleteAction]);
+	mSingleItemContextMenu.addSeparator();
+	mSingleItemContextMenu.addAction(actions[CutAction]);
+	mSingleItemContextMenu.addAction(actions[CopyAction]);
+	mSingleItemContextMenu.addAction(actions[PasteAction]);
+
+	mSinglePolyItemContextMenu.addAction(actions[PropertiesAction]);
+	mSinglePolyItemContextMenu.addSeparator();
+	mSinglePolyItemContextMenu.addAction(actions[InsertPointAction]);
+	mSinglePolyItemContextMenu.addAction(actions[RemovePointAction]);
+	mSinglePolyItemContextMenu.addSeparator();
+	mSinglePolyItemContextMenu.addAction(actions[RotateAction]);
+	mSinglePolyItemContextMenu.addAction(actions[RotateBackAction]);
+	mSinglePolyItemContextMenu.addAction(actions[FlipAction]);
+	mSinglePolyItemContextMenu.addAction(actions[DeleteAction]);
+	mSinglePolyItemContextMenu.addSeparator();
+	mSinglePolyItemContextMenu.addAction(actions[CutAction]);
+	mSinglePolyItemContextMenu.addAction(actions[CopyAction]);
+	mSinglePolyItemContextMenu.addAction(actions[PasteAction]);
+
+	mMultipleItemContextMenu.addAction(actions[PropertiesAction]);
+	mMultipleItemContextMenu.addSeparator();
+	mMultipleItemContextMenu.addAction(actions[RotateAction]);
+	mMultipleItemContextMenu.addAction(actions[RotateBackAction]);
+	mMultipleItemContextMenu.addAction(actions[FlipAction]);
+	mMultipleItemContextMenu.addAction(actions[DeleteAction]);
+	mMultipleItemContextMenu.addSeparator();
+	mMultipleItemContextMenu.addAction(actions[GroupAction]);
+	mMultipleItemContextMenu.addAction(actions[UngroupAction]);
+	mMultipleItemContextMenu.addSeparator();
+	mMultipleItemContextMenu.addAction(actions[CutAction]);
+	mMultipleItemContextMenu.addAction(actions[CopyAction]);
+	mMultipleItemContextMenu.addAction(actions[PasteAction]);
+
+	mDrawingContextMenu.addAction(actions[PropertiesAction]);
+	mDrawingContextMenu.addSeparator();
+	mDrawingContextMenu.addAction(actions[UndoAction]);
+	mDrawingContextMenu.addAction(actions[RedoAction]);
+	mDrawingContextMenu.addSeparator();
+	mDrawingContextMenu.addAction(actions[CutAction]);
+	mDrawingContextMenu.addAction(actions[CopyAction]);
+	mDrawingContextMenu.addAction(actions[PasteAction]);
+	mDrawingContextMenu.addSeparator();
+	mDrawingContextMenu.addAction(actions[ZoomInAction]);
+	mDrawingContextMenu.addAction(actions[ZoomOutAction]);
+	mDrawingContextMenu.addAction(actions[ZoomFitAction]);
+}
+
+QAction* DrawingWidget::addAction(const QString& text, QObject* slotObj, const char* slotFunction,
+	const QString& iconPath, const QString& shortcut)
+{
+	QAction* action = new QAction(text, this);
+	if (slotObj) connect(action, SIGNAL(triggered()), slotObj, slotFunction);
+
+	if (!iconPath.isEmpty()) action->setIcon(QIcon(iconPath));
+	if (!shortcut.isEmpty()) action->setShortcut(QKeySequence(shortcut));
+
+	QAbstractScrollArea::addAction(action);
+	return action;
 }

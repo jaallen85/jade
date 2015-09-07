@@ -30,7 +30,12 @@ class DrawingWidget : public QAbstractScrollArea
 	friend class DrawingReorderItemsCommand;
 
 public:
-	enum Mode { DefaultMode, ScrollMode, ZoomMode, PlaceMode, UserMode, NumberOfModes };
+	enum Mode { DefaultMode, ScrollMode, ZoomMode, PlaceMode, NumberOfModes };
+	enum ActionIndex { UndoAction, RedoAction, CutAction, CopyAction, PasteAction, DeleteAction,
+		SelectAllAction, SelectNoneAction, RotateAction, RotateBackAction, FlipAction,
+		BringForwardAction, SendBackwardAction, BringToFrontAction, SendToBackAction,
+		InsertPointAction, RemovePointAction, GroupAction, UngroupAction,
+		ZoomInAction, ZoomOutAction, ZoomFitAction, PropertiesAction, NumberOfActions };
 
 private:
 	enum MouseState { MouseReady, MouseSelect, MouseMoveItems, MouseResizeItem, MouseRubberBand };
@@ -71,6 +76,11 @@ private:
 	QTimer mPanTimer;
 	int mConsecutivePastes;
 	QPointF mSelectionCenter;
+
+	QMenu mSingleItemContextMenu;
+	QMenu mSinglePolyItemContextMenu;
+	QMenu mMultipleItemContextMenu;
+	QMenu mDrawingContextMenu;
 
 public:
 	DrawingWidget();
@@ -154,7 +164,6 @@ public slots:
 	void setScrollMode();
 	void setZoomMode();
 	void setPlaceMode(DrawingItem* newItem);
-	void setUserMode();
 
 	void undo();
 	void redo();
@@ -213,10 +222,6 @@ protected:
 	virtual void placeModeMouseReleaseEvent(DrawingMouseEvent* event);
 	virtual void placeModeMouseDoubleClickEvent(DrawingMouseEvent* event);
 
-	virtual void userModeMousePressEvent(DrawingMouseEvent* event);
-	virtual void userModeMouseMoveEvent(DrawingMouseEvent* event);
-	virtual void userModeMouseReleaseEvent(DrawingMouseEvent* event);
-
 	virtual void keyPressEvent(QKeyEvent* event);
 	virtual void keyReleaseEvent(QKeyEvent* event);
 
@@ -265,6 +270,11 @@ protected:
 	bool itemMatchesRect(DrawingItem* item, const QRectF& rect, Qt::ItemSelectionMode mode) const;
 
 	void recalculateContentSize(const QRectF& targetSceneRect = QRectF());
+
+	void addActions();
+	void createContextMenus();
+	QAction* addAction(const QString& text, QObject* slotObj, const char* slotFunction,
+		const QString& iconPath = QString(), const QString& shortcut = QString());
 };
 
 #endif

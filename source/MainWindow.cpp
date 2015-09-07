@@ -19,37 +19,18 @@
  */
 
 #include "MainWindow.h"
-#include <DrawingPathItem.h>
-#include <DrawingShapeItems.h>
-#include <DrawingTextItem.h>
-#include <DrawingTwoPointItems.h>
 
 MainWindow::MainWindow() : QMainWindow()
 {
 	mDrawingWidget = new DrawingWidget();
 	setCentralWidget(mDrawingWidget);
 
-	DrawingLineItem* lineItem = new DrawingLineItem();
-	lineItem->setLine(0, 0, 400, 800);
-	mDrawingWidget->addItem(lineItem);
-
-	DrawingRectItem* rectItem = new DrawingRectItem();
-	rectItem->setRect(800, 0, 400, 800);
-	mDrawingWidget->addItem(rectItem);
-
-	DrawingTextItem* textItem = new DrawingTextItem();
-	textItem->setPos(1600, 0);
-	mDrawingWidget->addItem(textItem);
-
-	DrawingEllipseItem* ellipseItem = new DrawingEllipseItem();
-	ellipseItem->setRect(-800, 0, 400, 800);
-	mDrawingWidget->addItem(ellipseItem);
-
 	createActions();
 	createMenus();
 	createToolBars();
 
-	setWindowTitle("libdrawing Demo");
+	setWindowTitle("Jade");
+	setWindowIcon(QIcon(":/icons/jade/diagram.png"));
 	resize(1019, 790);
 }
 
@@ -57,7 +38,7 @@ MainWindow::~MainWindow() { }
 
 //==================================================================================================
 
-void MainWindow::setModeFromAction(QAction* action)
+/*void MainWindow::setModeFromAction(QAction* action)
 {
 	QList<QAction*> actions = MainWindow::actions();
 
@@ -108,7 +89,7 @@ void MainWindow::updateMode(DrawingWidget::Mode mode)
 {
 	if (mode == DrawingWidget::DefaultMode && !actions()[DefaultModeAction]->isChecked())
 		actions()[DefaultModeAction]->setChecked(true);
-}
+}*/
 
 //==================================================================================================
 
@@ -136,35 +117,7 @@ void MainWindow::createActions()
 {
 	addAction("Exit", this, SLOT(close()), ":/icons/oxygen/application-exit.png");
 
-	addAction("Undo", mDrawingWidget, SLOT(undo()), ":/icons/oxygen/edit-undo.png", "Ctrl+Z");
-	addAction("Redo", mDrawingWidget, SLOT(redo()), ":/icons/oxygen/edit-redo.png", "Ctrl+Shift+Z");
-	addAction("Cut", mDrawingWidget, SLOT(cut()), ":/icons/oxygen/edit-cut.png", "Ctrl+X");
-	addAction("Copy", mDrawingWidget, SLOT(copy()), ":/icons/oxygen/edit-copy.png", "Ctrl+C");
-	addAction("Paste", mDrawingWidget, SLOT(paste()), ":/icons/oxygen/edit-paste.png", "Ctrl+V");
-	addAction("Delete", mDrawingWidget, SLOT(deleteSelection()), ":/icons/oxygen/edit-delete.png", "Delete");
-	addAction("Select All", mDrawingWidget, SLOT(selectAll()), ":/icons/oxygen/edit-select-all.png", "Ctrl+A");
-	addAction("Select None", mDrawingWidget, SLOT(selectNone()), "", "Ctrl+Shift+A");
-
-	addAction("Rotate", mDrawingWidget, SLOT(rotateSelection()), ":/icons/oxygen/object-rotate-right.png", "R");
-	addAction("Rotate Back", mDrawingWidget, SLOT(rotateBackSelection()), ":/icons/oxygen/object-rotate-left.png", "Shift+R");
-	addAction("Flip", mDrawingWidget, SLOT(flipSelection()), ":/icons/oxygen/object-flip-horizontal.png", "F");
-
-	addAction("Bring Forward", mDrawingWidget, SLOT(bringForward()), ":/icons/oxygen/object-bring-forward.png");
-	addAction("Send Backward", mDrawingWidget, SLOT(sendBackward()), ":/icons/oxygen/object-send-backward.png");
-	addAction("Bring to Front", mDrawingWidget, SLOT(bringToFront()), ":/icons/oxygen/object-bring-to-front.png");
-	addAction("Send to Back", mDrawingWidget, SLOT(sendToBack()), ":/icons/oxygen/object-send-to-back.png");
-
-	addAction("Insert Point", mDrawingWidget, SLOT(insertItemPoint()), "");
-	addAction("Remove Point", mDrawingWidget, SLOT(removeItemPoint()), "");
-
-	addAction("Group", mDrawingWidget, SLOT(group()), ":/icons/oxygen/merge.png", "Ctrl+G");
-	addAction("Ungroup", mDrawingWidget, SLOT(ungroup()), ":/icons/oxygen/split.png", "Ctrl+Shift+G");
-
-	addAction("Zoom In", mDrawingWidget, SLOT(zoomIn()), ":/icons/oxygen/zoom-in.png", ".");
-	addAction("Zoom Out", mDrawingWidget, SLOT(zoomOut()), ":/icons/oxygen/zoom-out.png", ",");
-	addAction("Zoom Fit", mDrawingWidget, SLOT(zoomFit()), ":/icons/oxygen/zoom-fit-best.png", "/");
-
-	mModeActionGroup = new QActionGroup(this);
+	/*mModeActionGroup = new QActionGroup(this);
 	connect(mModeActionGroup, SIGNAL(triggered(QAction*)), this, SLOT(setModeFromAction(QAction*)));
 	connect(mDrawingWidget, SIGNAL(modeChanged(DrawingWidget::Mode)), this, SLOT(updateMode(DrawingWidget::Mode)));
 
@@ -181,109 +134,78 @@ void MainWindow::createActions()
 	addModeAction("Place Text", ":/icons/oxygen/draw-text.png", "");
 	addModeAction("Place Path", ":/icons/oxygen/resistor1.png", "");
 
-	actions()[DefaultModeAction]->setChecked(true);
+	actions()[DefaultModeAction]->setChecked(true);*/
 }
 
 void MainWindow::createMenus()
 {
 	QList<QAction*> actions = MainWindow::actions();
+	QList<QAction*> drawingActions = mDrawingWidget->actions();
 	QMenu* menu;
 
 	menu = menuBar()->addMenu("File");
 	menu->addAction(actions[ExitAction]);
 
 	menu = menuBar()->addMenu("Edit");
-	menu->addAction(actions[UndoAction]);
-	menu->addAction(actions[RedoAction]);
+	menu->addAction(drawingActions[DrawingWidget::UndoAction]);
+	menu->addAction(drawingActions[DrawingWidget::RedoAction]);
 	menu->addSeparator();
-	menu->addAction(actions[CutAction]);
-	menu->addAction(actions[CopyAction]);
-	menu->addAction(actions[PasteAction]);
-	menu->addAction(actions[DeleteAction]);
+	menu->addAction(drawingActions[DrawingWidget::CutAction]);
+	menu->addAction(drawingActions[DrawingWidget::CopyAction]);
+	menu->addAction(drawingActions[DrawingWidget::PasteAction]);
+	menu->addAction(drawingActions[DrawingWidget::DeleteAction]);
 	menu->addSeparator();
-	menu->addAction(actions[SelectAllAction]);
-	menu->addAction(actions[SelectNoneAction]);
-
-	menu = menuBar()->addMenu("Place");
-	menu->addAction(actions[DefaultModeAction]);
-	menu->addAction(actions[ScrollModeAction]);
-	menu->addAction(actions[ZoomModeAction]);
-	menu->addSeparator();
-	menu->addAction(actions[PlaceLineAction]);
-	menu->addAction(actions[PlaceArcAction]);
-	menu->addAction(actions[PlacePolylineAction]);
-	menu->addAction(actions[PlaceCurveAction]);
-	menu->addAction(actions[PlaceRectAction]);
-	menu->addAction(actions[PlaceEllipseAction]);
-	menu->addAction(actions[PlacePolygonAction]);
-	menu->addAction(actions[PlaceTextAction]);
-	menu->addAction(actions[PlacePathAction]);
+	menu->addAction(drawingActions[DrawingWidget::SelectAllAction]);
+	menu->addAction(drawingActions[DrawingWidget::SelectNoneAction]);
 
 	menu = menuBar()->addMenu("Object");
-	menu->addAction(actions[RotateAction]);
-	menu->addAction(actions[RotateBackAction]);
-	menu->addAction(actions[FlipAction]);
+	menu->addAction(drawingActions[DrawingWidget::RotateAction]);
+	menu->addAction(drawingActions[DrawingWidget::RotateBackAction]);
+	menu->addAction(drawingActions[DrawingWidget::FlipAction]);
 	menu->addSeparator();
-	menu->addAction(actions[InsertPointAction]);
-	menu->addAction(actions[RemovePointAction]);
+	menu->addAction(drawingActions[DrawingWidget::InsertPointAction]);
+	menu->addAction(drawingActions[DrawingWidget::RemovePointAction]);
 	menu->addSeparator();
-	menu->addAction(actions[GroupAction]);
-	menu->addAction(actions[UngroupAction]);
+	menu->addAction(drawingActions[DrawingWidget::GroupAction]);
+	menu->addAction(drawingActions[DrawingWidget::UngroupAction]);
 	menu->addSeparator();
-	menu->addAction(actions[BringForwardAction]);
-	menu->addAction(actions[SendBackwardAction]);
-	menu->addAction(actions[BringToFrontAction]);
-	menu->addAction(actions[SendToBackAction]);
+	menu->addAction(drawingActions[DrawingWidget::BringForwardAction]);
+	menu->addAction(drawingActions[DrawingWidget::SendBackwardAction]);
+	menu->addAction(drawingActions[DrawingWidget::BringToFrontAction]);
+	menu->addAction(drawingActions[DrawingWidget::SendToBackAction]);
 
 	menu = menuBar()->addMenu("View");
-	menu->addAction(actions[ZoomInAction]);
-	menu->addAction(actions[ZoomOutAction]);
-	menu->addAction(actions[ZoomFitAction]);
+	menu->addAction(drawingActions[DrawingWidget::ZoomInAction]);
+	menu->addAction(drawingActions[DrawingWidget::ZoomOutAction]);
+	menu->addAction(drawingActions[DrawingWidget::ZoomFitAction]);
 }
 
 void MainWindow::createToolBars()
 {
 	QList<QAction*> actions = MainWindow::actions();
+	QList<QAction*> drawingActions = mDrawingWidget->actions();
 	QToolBar* toolBar;
 	int size = QFontMetrics(font()).height() * 1.5;
-
-	toolBar = new QToolBar("Place");
-	toolBar->setObjectName("PlaceToolBar");
-	toolBar->setIconSize(QSize(size, size));
-	toolBar->addAction(actions[DefaultModeAction]);
-	toolBar->addAction(actions[ScrollModeAction]);
-	toolBar->addAction(actions[ZoomModeAction]);
-	toolBar->addSeparator();
-	toolBar->addAction(actions[PlaceLineAction]);
-	toolBar->addAction(actions[PlaceArcAction]);
-	toolBar->addAction(actions[PlacePolylineAction]);
-	toolBar->addAction(actions[PlaceCurveAction]);
-	toolBar->addAction(actions[PlaceRectAction]);
-	toolBar->addAction(actions[PlaceEllipseAction]);
-	toolBar->addAction(actions[PlacePolygonAction]);
-	toolBar->addAction(actions[PlaceTextAction]);
-	toolBar->addAction(actions[PlacePathAction]);
-	addToolBar(toolBar);
 
 	toolBar = new QToolBar("Diagram");
 	toolBar->setObjectName("DiagramToolBar");
 	toolBar->setIconSize(QSize(size, size));
-	toolBar->addAction(actions[RotateAction]);
-	toolBar->addAction(actions[RotateBackAction]);
-	toolBar->addAction(actions[FlipAction]);
+	toolBar->addAction(drawingActions[DrawingWidget::RotateAction]);
+	toolBar->addAction(drawingActions[DrawingWidget::RotateBackAction]);
+	toolBar->addAction(drawingActions[DrawingWidget::FlipAction]);
 	toolBar->addSeparator();
-	toolBar->addAction(actions[BringForwardAction]);
-	toolBar->addAction(actions[SendBackwardAction]);
-	toolBar->addAction(actions[BringToFrontAction]);
-	toolBar->addAction(actions[SendToBackAction]);
+	toolBar->addAction(drawingActions[DrawingWidget::BringForwardAction]);
+	toolBar->addAction(drawingActions[DrawingWidget::SendBackwardAction]);
+	toolBar->addAction(drawingActions[DrawingWidget::BringToFrontAction]);
+	toolBar->addAction(drawingActions[DrawingWidget::SendToBackAction]);
 	addToolBar(toolBar);
 
 	toolBar = new QToolBar("View");
 	toolBar->setObjectName("ViewToolBar");
 	toolBar->setIconSize(QSize(size, size));
-	toolBar->addAction(actions[ZoomInAction]);
-	toolBar->addAction(actions[ZoomOutAction]);
-	toolBar->addAction(actions[ZoomFitAction]);
+	toolBar->addAction(drawingActions[DrawingWidget::ZoomInAction]);
+	toolBar->addAction(drawingActions[DrawingWidget::ZoomOutAction]);
+	toolBar->addAction(drawingActions[DrawingWidget::ZoomFitAction]);
 	addToolBar(toolBar);
 }
 
@@ -299,7 +221,7 @@ void MainWindow::addAction(const QString& text, QObject* slotObj, const char* sl
 	QMainWindow::addAction(action);
 }
 
-void MainWindow::addModeAction(const QString& text, const QString& iconPath, const QString& shortcut)
+/*void MainWindow::addModeAction(const QString& text, const QString& iconPath, const QString& shortcut)
 {
 	QAction* action = new QAction(text, this);
 
@@ -310,4 +232,4 @@ void MainWindow::addModeAction(const QString& text, const QString& iconPath, con
 	action->setActionGroup(mModeActionGroup);
 
 	QMainWindow::addAction(action);
-}
+}*/

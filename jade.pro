@@ -45,5 +45,7 @@ HEADERS += \
 	\
 	source/MainWindow.h
 
-#RESOURCES += \
-#	icons/icons.qrc
+RESOURCES += icons/icons.qrc
+
+RC_FILE = icons/icons.rc
+OTHER_FILES += icons/icons.rc

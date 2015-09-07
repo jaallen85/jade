@@ -28,21 +28,11 @@ class MainWindow : public QMainWindow
 	Q_OBJECT
 
 public:
-	enum ActionIndex { ExitAction,
-		UndoAction, RedoAction, CutAction, CopyAction, PasteAction, DeleteAction,
-		SelectAllAction, SelectNoneAction, RotateAction, RotateBackAction, FlipAction,
-		BringForwardAction, SendBackwardAction, BringToFrontAction, SendToBackAction,
-		InsertPointAction, RemovePointAction, GroupAction, UngroupAction,
-		ZoomInAction, ZoomOutAction, ZoomFitAction,
-		DefaultModeAction, ScrollModeAction, ZoomModeAction,
-		PlaceLineAction, PlaceArcAction, PlacePolylineAction, PlaceCurveAction,
-		PlaceRectAction, PlaceEllipseAction, PlacePolygonAction, PlaceTextAction,
-		PlacePathAction, NumberOfActions };
+	enum ActionIndex { ExitAction, NumberOfActions };
 
 private:
 	DrawingWidget* mDrawingWidget;
 
-	QActionGroup* mModeActionGroup;
 	QByteArray mWindowState;
 
 public:
@@ -50,8 +40,8 @@ public:
 	~MainWindow();
 
 private slots:
-	void setModeFromAction(QAction* action);
-	void updateMode(DrawingWidget::Mode mode);
+	//void setModeFromAction(QAction* action);
+	//void updateMode(DrawingWidget::Mode mode);
 
 private:
 	void showEvent(QShowEvent* event);
@@ -62,8 +52,8 @@ private:
 	void createToolBars();
 	void addAction(const QString& text, QObject* slotObj, const char* slotFunction,
 		const QString& iconPath = QString(), const QString& shortcut = QString());
-	void addModeAction(const QString& text,
-		const QString& iconPath = QString(), const QString& shortcut = QString());
+	//void addModeAction(const QString& text,
+	//	const QString& iconPath = QString(), const QString& shortcut = QString());
 };
 
 #endif
