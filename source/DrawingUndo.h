@@ -29,7 +29,8 @@ public:
 	enum Type { AddItemsType, RemoveItemsType, MoveItemsType,
 		RotateItemsType, RotateBackItemsType, FlipItemsType, ItemResizeType,
 		ReorderItemsType, InsertItemPointType, RemoveItemPointType,
-		PointConnectType, PointDisconnectType, NumberOfCommands };
+		PointConnectType, PointDisconnectType,
+		UpdateItemPropertiesType, UpdatePropertiesType, NumberOfCommands };
 
 public:
 	DrawingUndoCommand(const QString& title = QString(), QUndoCommand* parent = nullptr);
@@ -68,7 +69,7 @@ private:
 	DrawingWidget* mDrawing;
 	QList<DrawingItem*> mItems;
 	bool mUndone;
-	QHash<DrawingItem*,int> mItemIndex;
+	QMap<DrawingItem*,int> mItemIndex;
 
 public:
 	DrawingRemoveItemsCommand(DrawingWidget* drawing, DrawingItem* item, QUndoCommand* parent = nullptr);
@@ -87,15 +88,15 @@ class DrawingMoveItemsCommand : public DrawingUndoCommand
 {
 private:
 	QList<DrawingItem*> mItems;
-	QHash<DrawingItem*,QPointF> mScenePos;
-	QHash<DrawingItem*,QPointF> mOriginalScenePos;
+	QMap<DrawingItem*,QPointF> mScenePos;
+	QMap<DrawingItem*,QPointF> mOriginalScenePos;
 	bool mFinalMove;
 
 public:
 	DrawingMoveItemsCommand(DrawingItem* item, const QPointF& newPos,
 		const QPointF& initialPos, bool final, QUndoCommand* parent = nullptr);
-	DrawingMoveItemsCommand(const QList<DrawingItem*>& items, const QHash<DrawingItem*,QPointF>& newPos,
-		const QHash<DrawingItem*,QPointF>& initialPos, bool final, QUndoCommand* parent = nullptr);
+	DrawingMoveItemsCommand(const QList<DrawingItem*>& items, const QMap<DrawingItem*,QPointF>& newPos,
+		const QMap<DrawingItem*,QPointF>& initialPos, bool final, QUndoCommand* parent = nullptr);
 	~DrawingMoveItemsCommand();
 
 	int id() const;
@@ -286,6 +287,61 @@ public:
 	DrawingItemPointDisconnectCommand(const DrawingItemPointDisconnectCommand& command,
 		QUndoCommand* parent = NULL);
 	~DrawingItemPointDisconnectCommand();
+
+	int id() const;
+
+	void redo();
+	void undo();
+};
+
+//==================================================================================================
+
+class DrawingUpdateItemPropertiesCommand : public DrawingUndoCommand
+{
+private:
+	QList<DrawingItem*> mItems;
+	QMap<QString,QVariant> mProperties;
+	QMap<DrawingItem*, QMap<QString,QVariant>> mOriginalProperties;
+
+public:
+	DrawingUpdateItemPropertiesCommand(const QList<DrawingItem*>& items,
+		const QMap<QString,QVariant>& newProperties, QUndoCommand* parent = nullptr);
+	~DrawingUpdateItemPropertiesCommand();
+
+	int id() const;
+
+	void redo();
+	void undo();
+};
+
+//==================================================================================================
+
+class DrawingUpdatePropertiesCommand : public DrawingUndoCommand
+{
+private:
+	DrawingWidget* mDrawing;
+
+	QRectF mSceneRect;
+	qreal mGrid;
+	QBrush mBackgroundBrush;
+	DrawingGridStyle mGridStyle;
+	QBrush mGridBrush;
+	int mGridSpacingMajor;
+	int mGridSpacingMinor;
+
+	QRectF mOriginalSceneRect;
+	qreal mOriginalGrid;
+	QBrush mOriginalBackgroundBrush;
+	DrawingGridStyle mOriginalGridStyle;
+	QBrush mOriginalGridBrush;
+	int mOriginalGridSpacingMajor;
+	int mOriginalGridSpacingMinor;
+
+public:
+	DrawingUpdatePropertiesCommand(DrawingWidget* drawing, const QRectF& sceneRect, qreal grid,
+		const QBrush& backgroundBrush, DrawingGridStyle gridStyle, const QBrush& gridBrush,
+		int gridSpacingMajor, int gridSpacingMinor, QUndoCommand* parent = nullptr);
+	~DrawingUpdatePropertiesCommand();
 
 	int id() const;
 

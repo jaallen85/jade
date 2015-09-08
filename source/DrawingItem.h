@@ -40,7 +40,7 @@ private:
 	bool mSelected;
 	bool mVisible;
 
-	QHash<QString, QVariant> mProperties;
+	QMap<QString, QVariant> mProperties;
 
 	QList<DrawingItemPoint*> mPoints;
 	DrawingItemPoint* mSelectedPoint;
@@ -121,12 +121,12 @@ public:
 	virtual void flipItem(const QPointF& scenePos);
 	virtual int insertItemPoint(DrawingItemPoint* itemPoint);
 	virtual bool removeItemPoint(DrawingItemPoint* itemPoint);
+	virtual void updateProperties(const QMap<QString,QVariant>& properties);
 
 protected:
 	virtual void mousePressEvent(DrawingMouseEvent* event);
 	virtual void mouseMoveEvent(DrawingMouseEvent* event);
 	virtual void mouseReleaseEvent(DrawingMouseEvent* event);
-	virtual void mouseDoubleClickEvent(DrawingMouseEvent* event);
 
 	virtual void keyPressEvent(QKeyEvent* event);
 	virtual void keyReleaseEvent(QKeyEvent* event);

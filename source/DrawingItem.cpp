@@ -414,6 +414,15 @@ bool DrawingItem::removeItemPoint(DrawingItemPoint* itemPoint)
 	return false;
 }
 
+void DrawingItem::updateProperties(const QMap<QString,QVariant>& properties)
+{
+	QStringList keys = properties.keys();
+	for(auto keyIter = keys.begin(); keyIter != keys.end(); keyIter++)
+	{
+		if (mProperties.contains(*keyIter)) mProperties[*keyIter] = properties[*keyIter];
+	}
+}
+
 //==================================================================================================
 
 void DrawingItem::mousePressEvent(DrawingMouseEvent* event)
@@ -430,11 +439,6 @@ void DrawingItem::mouseMoveEvent(DrawingMouseEvent* event)
 void DrawingItem::mouseReleaseEvent(DrawingMouseEvent* event)
 {
 	mSelectedPoint = nullptr;
-	Q_UNUSED(event);
-}
-
-void DrawingItem::mouseDoubleClickEvent(DrawingMouseEvent* event)
-{
 	Q_UNUSED(event);
 }
 

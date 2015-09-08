@@ -25,6 +25,7 @@
 
 class DrawingWidget;
 class MainToolBox;
+class PropertiesWidget;
 
 class MainWindow : public QMainWindow
 {
@@ -38,6 +39,9 @@ private:
 
 	QDockWidget* mMainToolBoxDock;
 	MainToolBox* mMainToolBox;
+
+	QDockWidget* mPropertiesWidgetDock;
+	PropertiesWidget* mPropertiesWidget;
 
 	QByteArray mWindowState;
 

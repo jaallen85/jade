@@ -66,7 +66,7 @@ private:
 	QUndoStack mUndoStack;
 	DrawingMouseEvent mMouseEvent;
 	MouseState mMouseState;
-	QHash<DrawingItem*,QPointF> mInitialPositions;
+	QMap<DrawingItem*,QPointF> mInitialPositions;
 	QRect mRubberBandRect;
 	int mScrollButtonDownHorizontalScrollValue;
 	int mScrollButtonDownVerticalScrollValue;
@@ -176,9 +176,12 @@ public slots:
 	void selectAll();
 	void selectNone();
 
+	void moveSelection(const QPointF& newPos);
+	void resizeSelection(DrawingItemPoint* itemPoint, const QPointF& scenePos);
 	void rotateSelection();
 	void rotateBackSelection();
 	void flipSelection();
+	void updateSelectionProperties(const QMap<QString,QVariant>& properties);
 
 	void bringForward();
 	void sendBackward();
@@ -191,6 +194,10 @@ public slots:
 	void group();
 	void ungroup();
 
+	void properties();
+	void updateProperties(const QRectF& sceneRect, qreal grid, const QBrush& backgroundBrush,
+		DrawingGridStyle gridStyle, const QBrush& gridBrush, int gridSpacingMajor, int gridSpacingMinor);
+
 signals:
 	void scaleChanged(qreal scale);
 	void modeChanged(DrawingWidget::Mode mode);
@@ -199,8 +206,11 @@ signals:
 	void canUndoChanged(bool canUndo);
 	void canRedoChanged(bool canRedo);
 
-	void selectionChanged();
-	void itemsChanged();
+	void propertiesTriggered();
+	void selectionChanged(const QList<DrawingItem*>& items);
+	void newItemChanged(DrawingItem* item);
+	void itemsChanged(const QList<DrawingItem*>& items);
+	void itemChanged(DrawingItem* item);
 
 protected:
 	virtual void mousePressEvent(QMouseEvent* event);
@@ -239,9 +249,9 @@ protected:
 	void removeItems(const QList<DrawingItem*>& items, QUndoCommand* command = nullptr);
 	void removeItems(DrawingItem* item, QUndoCommand* command = nullptr);
 
-	void moveItems(const QList<DrawingItem*>& items, const QHash<DrawingItem*,QPointF>& newPos,
-		const QHash<DrawingItem*,QPointF>& initialPos, bool place, QUndoCommand* command = nullptr);
-	void moveItems(const QList<DrawingItem*>& items, const QHash<DrawingItem*,QPointF>& newPos,
+	void moveItems(const QList<DrawingItem*>& items, const QMap<DrawingItem*,QPointF>& newPos,
+		const QMap<DrawingItem*,QPointF>& initialPos, bool place, QUndoCommand* command = nullptr);
+	void moveItems(const QList<DrawingItem*>& items, const QMap<DrawingItem*,QPointF>& newPos,
 		bool place, QUndoCommand* command = nullptr);
 	void moveItems(DrawingItem* item, const QPointF& newPos, bool place, QUndoCommand* command = nullptr);
 	void resizeItem(DrawingItemPoint* itemPoint, const QPointF& scenePos,
@@ -265,6 +275,10 @@ protected:
 	void connectItemPoints(DrawingItemPoint* point0, DrawingItemPoint* point1, QUndoCommand* command = nullptr);
 	void disconnectItemPoints(DrawingItemPoint* point0, DrawingItemPoint* point1, QUndoCommand* command = nullptr);
 
+	void updateItemProperties(const QList<DrawingItem*>& items, const QMap<QString,QVariant>& properties,
+		QUndoCommand* command = nullptr);
+
+protected:
 	bool itemMatchesPoint(DrawingItem* item, const QPointF& scenePos) const;
 	bool itemMatchesRect(DrawingItem* item, const QRectF& rect, Qt::ItemSelectionMode mode) const;
 

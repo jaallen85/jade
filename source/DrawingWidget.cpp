@@ -50,7 +50,7 @@ DrawingWidget::DrawingWidget() : QAbstractScrollArea()
 	connect(&mUndoStack, SIGNAL(cleanChanged(bool)), this, SIGNAL(cleanChanged(bool)));
 	connect(&mUndoStack, SIGNAL(canRedoChanged(bool)), this, SIGNAL(canRedoChanged(bool)));
 	connect(&mUndoStack, SIGNAL(canUndoChanged(bool)), this, SIGNAL(canUndoChanged(bool)));
-	connect(this, SIGNAL(selectionChanged()), this, SLOT(updateSelectionCenter()));
+	connect(this, SIGNAL(selectionChanged(const QList<DrawingItem*>&)), this, SLOT(updateSelectionCenter()));
 
 	mMouseState = MouseReady;
 	mScrollButtonDownHorizontalScrollValue = 0;
@@ -61,7 +61,7 @@ DrawingWidget::DrawingWidget() : QAbstractScrollArea()
 
 	addActions();
 	createContextMenu();
-	connect(this, SIGNAL(selectionChanged()), this, SLOT(updateActionsFromSelection()));
+	connect(this, SIGNAL(selectionChanged(const QList<DrawingItem*>&)), this, SLOT(updateActionsFromSelection()));
 }
 
 DrawingWidget::~DrawingWidget()
@@ -553,6 +553,7 @@ void DrawingWidget::setDefaultMode()
 	clearSelection();
 	setNewItem(nullptr);
 
+	emit selectionChanged(mSelectedItems);
 	emit modeChanged(mMode);
 	viewport()->update();
 }
@@ -565,6 +566,7 @@ void DrawingWidget::setScrollMode()
 	clearSelection();
 	setNewItem(nullptr);
 
+	emit selectionChanged(mSelectedItems);
 	emit modeChanged(mMode);
 	viewport()->update();
 }
@@ -577,6 +579,7 @@ void DrawingWidget::setZoomMode()
 	clearSelection();
 	setNewItem(nullptr);
 
+	emit selectionChanged(mSelectedItems);
 	emit modeChanged(mMode);
 	viewport()->update();
 }
@@ -592,6 +595,7 @@ void DrawingWidget::setPlaceMode(DrawingItem* item)
 		setNewItem(item);
 		item->setPos(mapToScene(mapFromGlobal(QCursor::pos())));
 
+		emit newItemChanged(item);
 		emit modeChanged(mMode);
 		viewport()->update();
 	}
@@ -602,14 +606,22 @@ void DrawingWidget::setPlaceMode(DrawingItem* item)
 
 void DrawingWidget::undo()
 {
-	mUndoStack.undo();
-	viewport()->update();
+	if (mMode == DefaultMode)
+	{
+		mUndoStack.undo();
+		viewport()->update();
+	}
+	else setDefaultMode();
 }
 
 void DrawingWidget::redo()
 {
-	mUndoStack.redo();
-	viewport()->update();
+	if (mMode == DefaultMode)
+	{
+		mUndoStack.redo();
+		viewport()->update();
+	}
+	else setDefaultMode();
 }
 
 void DrawingWidget::setClean()
@@ -633,7 +645,7 @@ void DrawingWidget::copy()
 
 void DrawingWidget::paste()
 {
-
+	//emit selectionChanged(mSelectedItems);
 }
 
 void DrawingWidget::deleteSelection()
@@ -642,7 +654,7 @@ void DrawingWidget::deleteSelection()
 	{
 		if (!mSelectedItems.isEmpty()) removeItems(mSelectedItems);
 
-		emit selectionChanged();
+		emit selectionChanged(mSelectedItems);
 		viewport()->update();
 	}
 	else setDefaultMode();
@@ -657,7 +669,7 @@ void DrawingWidget::selectAll()
 		clearSelection();
 		for(auto itemIter = mItems.begin(); itemIter != mItems.end(); itemIter++) selectItem(*itemIter);
 
-		emit selectionChanged();
+		emit selectionChanged(mSelectedItems);
 		viewport()->update();
 	}
 }
@@ -668,23 +680,57 @@ void DrawingWidget::selectNone()
 	{
 		clearSelection();
 
-		emit selectionChanged();
+		emit selectionChanged(mSelectedItems);
 		viewport()->update();
 	}
 }
 
 //==================================================================================================
 
+void DrawingWidget::moveSelection(const QPointF& newPos)
+{
+	if (mMode == PlaceMode && mNewItem)
+	{
+		mNewItem->moveItem(newPos);
+		emit itemChanged(mNewItem);
+		viewport()->update();
+	}
+	else if (mMode == DefaultMode && mSelectedItems.size() == 1 )
+	{
+		moveItems(mSelectedItems.first(), newPos, true);
+		emit itemsChanged(mSelectedItems);
+		viewport()->update();
+	}
+}
+
+void DrawingWidget::resizeSelection(DrawingItemPoint* itemPoint, const QPointF& scenePos)
+{
+	if (mMode == PlaceMode && mNewItem && mNewItem->points().contains(itemPoint))
+	{
+		mNewItem->resizeItem(itemPoint, scenePos);
+		emit itemChanged(mNewItem);
+		viewport()->update();
+	}
+	else if (mMode == DefaultMode && mSelectedItems.size() == 1 && mSelectedItems.first()->points().contains(itemPoint))
+	{
+		resizeItem(itemPoint, scenePos, true, true);
+		emit itemsChanged(mSelectedItems);
+		viewport()->update();
+	}
+}
+
 void DrawingWidget::rotateSelection()
 {
 	if (mMode == PlaceMode && mNewItem)
 	{
 		mNewItem->rotateItem(mNewItem->pos());
+		emit itemChanged(mNewItem);
 		viewport()->update();
 	}
 	else if (mMode == DefaultMode && !mSelectedItems.isEmpty())
 	{
 		rotateItems(mSelectedItems, roundToGrid(mSelectionCenter));
+		emit itemsChanged(mSelectedItems);
 		viewport()->update();
 	}
 }
@@ -694,11 +740,13 @@ void DrawingWidget::rotateBackSelection()
 	if (mMode == PlaceMode && mNewItem)
 	{
 		mNewItem->rotateBackItem(mNewItem->pos());
+		emit itemChanged(mNewItem);
 		viewport()->update();
 	}
 	else if (mMode == DefaultMode && !mSelectedItems.isEmpty())
 	{
 		rotateBackItems(mSelectedItems, roundToGrid(mSelectionCenter));
+		emit itemsChanged(mSelectedItems);
 		viewport()->update();
 	}
 }
@@ -708,11 +756,29 @@ void DrawingWidget::flipSelection()
 	if (mMode == PlaceMode && mNewItem)
 	{
 		mNewItem->flipItem(mNewItem->pos());
+		emit itemChanged(mNewItem);
 		viewport()->update();
 	}
 	else if (mMode == DefaultMode && !mSelectedItems.isEmpty())
 	{
 		flipItems(mSelectedItems, roundToGrid(mSelectionCenter));
+		emit itemsChanged(mSelectedItems);
+		viewport()->update();
+	}
+}
+
+void DrawingWidget::updateSelectionProperties(const QMap<QString,QVariant>& properties)
+{
+	if (mMode == PlaceMode && mNewItem)
+	{
+		mNewItem->updateProperties(properties);
+		emit itemChanged(mNewItem);
+		viewport()->update();
+	}
+	else if (mMode == DefaultMode && !mSelectedItems.isEmpty())
+	{
+		updateItemProperties(mSelectedItems, properties);
+		emit itemsChanged(mSelectedItems);
 		viewport()->update();
 	}
 }
@@ -885,10 +951,9 @@ void DrawingWidget::group()
 		removeItems(mSelectedItems, command);
 		addItems(itemGroup, false, command);
 		mUndoStack.push(command);
-		emit itemsChanged();
 
 		selectItem(itemGroup);
-		emit selectionChanged();
+		emit selectionChanged(mSelectedItems);
 
 		viewport()->update();
 	}
@@ -910,14 +975,29 @@ void DrawingWidget::ungroup()
 			removeItems(itemGroup, command);
 			addItems(items, false, command);
 			mUndoStack.push(command);
-			emit itemsChanged();
 
 			for(auto iter = items.begin(); iter != items.end(); iter++)	selectItem(*iter);
-			emit selectionChanged();
+			emit selectionChanged(mSelectedItems);
 		}
 
 		viewport()->update();
 	}
+}
+
+//==================================================================================================
+
+void DrawingWidget::properties()
+{
+	emit propertiesTriggered();
+}
+
+void DrawingWidget::updateProperties(const QRectF& sceneRect, qreal grid, const QBrush& backgroundBrush,
+	DrawingGridStyle gridStyle, const QBrush& gridBrush, int gridSpacingMajor, int gridSpacingMinor)
+{
+	DrawingUpdatePropertiesCommand* propertiesCommand = new DrawingUpdatePropertiesCommand(this,
+		sceneRect, grid, backgroundBrush, gridStyle, gridBrush, gridSpacingMajor, gridSpacingMinor);
+
+	mUndoStack.push(propertiesCommand);
 }
 
 //==================================================================================================
@@ -1027,10 +1107,6 @@ void DrawingWidget::mouseReleaseEvent(QMouseEvent* event)
 		if (mMode == DefaultMode)
 		{
 			DrawingItem* mouseDownItem = itemAt(mapToScene(event->pos()));
-			//if (mouseDownItem == nullptr) clearSelection();
-
-			//mContextMenu.popup(event->globalPos() + QPoint(2, 2));
-
 
 			if (mouseDownItem && mouseDownItem->isSelected() && mSelectedItems.size() == 1)
 			{
@@ -1110,7 +1186,7 @@ void DrawingWidget::defaultMousePressEvent(DrawingMouseEvent* event)
 
 void DrawingWidget::defaultMouseMoveEvent(DrawingMouseEvent* event)
 {
-	QHash<DrawingItem*,QPointF> newPositions;
+	QMap<DrawingItem*,QPointF> newPositions;
 
 	if (event->buttons() & Qt::LeftButton)
 	{
@@ -1137,11 +1213,16 @@ void DrawingWidget::defaultMouseMoveEvent(DrawingMouseEvent* event)
 					roundToGrid(event->scenePos() - event->buttonDownScenePos());
 			}
 
-			if (!newPositions.isEmpty()) moveItems(newPositions.keys(), newPositions, mInitialPositions, false);
+			if (!newPositions.isEmpty())
+			{
+				moveItems(newPositions.keys(), newPositions, mInitialPositions, false);
+				emit itemsChanged(mSelectedItems);
+			}
 			break;
 
 		case MouseResizeItem:
 			resizeItem(mMouseDownItem->selectedPoint(), roundToGrid(event->scenePos()), false, true);
+			emit itemsChanged(mSelectedItems);
 			break;
 
 		case MouseRubberBand:
@@ -1160,7 +1241,7 @@ void DrawingWidget::defaultMouseMoveEvent(DrawingMouseEvent* event)
 void DrawingWidget::defaultMouseReleaseEvent(DrawingMouseEvent* event)
 {
 	bool controlDown = ((event->modifiers() & Qt::ControlModifier) != 0);
-	QHash<DrawingItem*,QPointF> newPositions;
+	QMap<DrawingItem*,QPointF> newPositions;
 
 	switch (mMouseState)
 	{
@@ -1171,7 +1252,7 @@ void DrawingWidget::defaultMouseReleaseEvent(DrawingMouseEvent* event)
 			if (controlDown && mMouseDownItem->isSelected()) deselectItem(mMouseDownItem);
 			else selectItem(mMouseDownItem);
 
-			emit selectionChanged();
+			emit selectionChanged(mSelectedItems);
 		}
 		break;
 
@@ -1182,18 +1263,23 @@ void DrawingWidget::defaultMouseReleaseEvent(DrawingMouseEvent* event)
 				roundToGrid(event->scenePos() - event->buttonDownScenePos());
 		}
 
-		if (!newPositions.isEmpty()) moveItems(newPositions.keys(), newPositions, mInitialPositions, true);
+		if (!newPositions.isEmpty())
+		{
+			moveItems(newPositions.keys(), newPositions, mInitialPositions, true);
+			emit itemsChanged(mSelectedItems);
+		}
 		break;
 
 	case MouseResizeItem:
 		resizeItem(mMouseDownItem->selectedPoint(), roundToGrid(event->scenePos()), true, true);
+		emit itemsChanged(mSelectedItems);
 		break;
 
 	case MouseRubberBand:
 		if (!controlDown) clearSelection();
 		selectItems(mapToScene(mRubberBandRect), Qt::ContainsItemBoundingRect);
 		mRubberBandRect = QRect();
-		emit selectionChanged();
+		emit selectionChanged(mSelectedItems);
 		break;
 
 	default:
@@ -1223,13 +1309,10 @@ void DrawingWidget::defaultMouseDoubleClickEvent(DrawingMouseEvent* event)
 			for(auto itemIter = mSelectedItems.begin(); itemIter != mSelectedItems.end(); itemIter++)
 				mInitialPositions[*itemIter] = (*itemIter)->pos();
 
-			if (mMouseDownItem->isSelected() && mSelectedItems.size() == 1)
-				mMouseDownItem->mouseDoubleClickEvent(event);
+			emit propertiesTriggered();
 		}
 
 		mFocusItem = mMouseDownItem;
-
-		event->accept();
 	}
 }
 
@@ -1237,12 +1320,20 @@ void DrawingWidget::defaultMouseDoubleClickEvent(DrawingMouseEvent* event)
 
 void DrawingWidget::placeModeMousePressEvent(DrawingMouseEvent* event)
 {
-	if (mNewItem) mNewItem->newMousePressEvent(event);
+	if (mNewItem)
+	{
+		mNewItem->newMousePressEvent(event);
+		emit itemChanged(mNewItem);
+	}
 }
 
 void DrawingWidget::placeModeMouseMoveEvent(DrawingMouseEvent* event)
 {
-	if (mNewItem) mNewItem->newMouseMoveEvent(event);
+	if (mNewItem)
+	{
+		mNewItem->newMouseMoveEvent(event);
+		emit itemChanged(mNewItem);
+	}
 }
 
 void DrawingWidget::placeModeMouseReleaseEvent(DrawingMouseEvent* event)
@@ -1259,6 +1350,8 @@ void DrawingWidget::placeModeMouseReleaseEvent(DrawingMouseEvent* event)
 			mNewItem->mDrawing = this;
 			mNewItem->recalculateTransform();
 			mNewItem->setPos(roundToGrid(event->scenePos()));
+			emit newItemChanged(mNewItem);
+
 			if (!mNewItem->newItemCopyEvent()) setDefaultMode();
 		}
 	}
@@ -1279,6 +1372,8 @@ void DrawingWidget::placeModeMouseDoubleClickEvent(DrawingMouseEvent* event)
 			mNewItem->mDrawing = this;
 			mNewItem->recalculateTransform();
 			mNewItem->setPos(roundToGrid(event->scenePos()));
+			emit newItemChanged(mNewItem);
+
 			if (!mNewItem->newItemCopyEvent()) setDefaultMode();
 		}
 	}
@@ -1646,26 +1741,14 @@ void DrawingWidget::addItems(const QList<DrawingItem*>& items, bool place, QUndo
 	if (place) placeItems(items, addCommand);
 	addCommand->undo();
 
-	if (!command)
-	{
-		mUndoStack.push(addCommand);
-		emit itemsChanged();
-	}
+	if (!command) mUndoStack.push(addCommand);
 }
 
 void DrawingWidget::addItems(DrawingItem* item, bool place, QUndoCommand* command)
 {
-	DrawingAddItemsCommand* addCommand = new DrawingAddItemsCommand(this, item, command);
-
-	addCommand->redo();
-	if (place) placeItems(item, addCommand);
-	addCommand->undo();
-
-	if (!command)
-	{
-		mUndoStack.push(addCommand);
-		emit itemsChanged();
-	}
+	QList<DrawingItem*> items;
+	items.append(item);
+	addItems(items, place, command);
 }
 
 void DrawingWidget::removeItems(const QList<DrawingItem*>& items, QUndoCommand* command)
@@ -1676,32 +1759,20 @@ void DrawingWidget::removeItems(const QList<DrawingItem*>& items, QUndoCommand* 
 	unplaceItems(items, removeCommand);
 	removeCommand->undo();
 
-	if (!command)
-	{
-		mUndoStack.push(removeCommand);
-		emit itemsChanged();
-	}
+	if (!command) mUndoStack.push(removeCommand);
 }
 
 void DrawingWidget::removeItems(DrawingItem* item, QUndoCommand* command)
 {
-	DrawingRemoveItemsCommand* removeCommand = new DrawingRemoveItemsCommand(this, item, command);
-
-	removeCommand->redo();
-	unplaceItems(item, removeCommand);
-	removeCommand->undo();
-
-	if (!command)
-	{
-		mUndoStack.push(removeCommand);
-		emit itemsChanged();
-	}
+	QList<DrawingItem*> items;
+	items.append(item);
+	removeItems(items, command);
 }
 
 //==================================================================================================
 
-void DrawingWidget::moveItems(const QList<DrawingItem*>& items, const QHash<DrawingItem*,QPointF>& newPos,
-	const QHash<DrawingItem*,QPointF>& initialPos, bool place, QUndoCommand* command)
+void DrawingWidget::moveItems(const QList<DrawingItem*>& items, const QMap<DrawingItem*,QPointF>& newPos,
+	const QMap<DrawingItem*,QPointF>& initialPos, bool place, QUndoCommand* command)
 {
 	DrawingMoveItemsCommand* moveCommand =
 		new DrawingMoveItemsCommand(items, newPos, initialPos, place, command);
@@ -1711,17 +1782,13 @@ void DrawingWidget::moveItems(const QList<DrawingItem*>& items, const QHash<Draw
 	if (place) placeItems(items, moveCommand);
 	moveCommand->undo();
 
-	if (!command)
-	{
-		mUndoStack.push(moveCommand);
-		emit itemsChanged();
-	}
+	if (!command) mUndoStack.push(moveCommand);
 }
 
-void DrawingWidget::moveItems(const QList<DrawingItem*>& items, const QHash<DrawingItem*,QPointF>& newPos,
+void DrawingWidget::moveItems(const QList<DrawingItem*>& items, const QMap<DrawingItem*,QPointF>& newPos,
 	bool place, QUndoCommand* command)
 {
-	QHash<DrawingItem*,QPointF> initialPos;
+	QMap<DrawingItem*,QPointF> initialPos;
 	for(auto itemIter = items.begin(); itemIter != items.end(); itemIter++)
 		initialPos[*itemIter] = (*itemIter)->pos();
 
@@ -1733,28 +1800,17 @@ void DrawingWidget::moveItems(const QList<DrawingItem*>& items, const QHash<Draw
 	if (place) placeItems(items, moveCommand);
 	moveCommand->undo();
 
-	if (!command)
-	{
-		mUndoStack.push(moveCommand);
-		emit itemsChanged();
-	}
+	if (!command) mUndoStack.push(moveCommand);
 }
 
 void DrawingWidget::moveItems(DrawingItem* item, const QPointF& newPos, bool place, QUndoCommand* command)
 {
-	DrawingMoveItemsCommand* moveCommand =
-		new DrawingMoveItemsCommand(item, newPos, item->pos(), place, command);
+	QList<DrawingItem*> items;
+	QMap<DrawingItem*,QPointF> newPosMap;
+	items.append(item);
+	newPosMap[item] = newPos;
 
-	moveCommand->redo();
-	tryToMaintainConnections(item, true, true, nullptr, moveCommand);
-	if (place) placeItems(item, moveCommand);
-	moveCommand->undo();
-
-	if (!command)
-	{
-		mUndoStack.push(moveCommand);
-		emit itemsChanged();
-	}
+	moveItems(items, newPosMap, place, command);
 }
 
 void DrawingWidget::resizeItem(DrawingItemPoint* itemPoint, const QPointF& scenePos,
@@ -1771,11 +1827,7 @@ void DrawingWidget::resizeItem(DrawingItemPoint* itemPoint, const QPointF& scene
 		if (place) placeItems(itemPoint->item(), resizeCommand);
 		resizeCommand->undo();
 
-		if (!command)
-		{
-			mUndoStack.push(resizeCommand);
-			emit itemsChanged();
-		}
+		if (!command) mUndoStack.push(resizeCommand);
 	}
 }
 
@@ -1790,11 +1842,7 @@ void DrawingWidget::rotateItems(const QList<DrawingItem*>& items, const QPointF&
 	tryToMaintainConnections(items, true, true, nullptr, rotateCommand);
 	rotateCommand->undo();
 
-	if (!command)
-	{
-		mUndoStack.push(rotateCommand);
-		emit itemsChanged();
-	}
+	if (!command) mUndoStack.push(rotateCommand);
 }
 
 void DrawingWidget::rotateBackItems(const QList<DrawingItem*>& items, const QPointF& scenePos, QUndoCommand* command)
@@ -1806,11 +1854,7 @@ void DrawingWidget::rotateBackItems(const QList<DrawingItem*>& items, const QPoi
 	tryToMaintainConnections(items, true, true, nullptr, rotateCommand);
 	rotateCommand->undo();
 
-	if (!command)
-	{
-		mUndoStack.push(rotateCommand);
-		emit itemsChanged();
-	}
+	if (!command) mUndoStack.push(rotateCommand);
 }
 
 void DrawingWidget::flipItems(const QList<DrawingItem*>& items, const QPointF& scenePos, QUndoCommand* command)
@@ -1822,11 +1866,7 @@ void DrawingWidget::flipItems(const QList<DrawingItem*>& items, const QPointF& s
 	tryToMaintainConnections(items, true, true, nullptr, flipCommand);
 	flipCommand->undo();
 
-	if (!command)
-	{
-		mUndoStack.push(flipCommand);
-		emit itemsChanged();
-	}
+	if (!command) mUndoStack.push(flipCommand);
 }
 
 //==================================================================================================
@@ -1981,11 +2021,7 @@ void DrawingWidget::connectItemPoints(DrawingItemPoint* point0, DrawingItemPoint
 			resizeItem(point0, point1Pos, false, true, connectCommand);
 	}
 
-	if (!command)
-	{
-		mUndoStack.push(connectCommand);
-		emit itemsChanged();
-	}
+	if (!command) mUndoStack.push(connectCommand);
 }
 
 void DrawingWidget::disconnectItemPoints(DrawingItemPoint* point0, DrawingItemPoint* point1, QUndoCommand* command)
@@ -1993,11 +2029,18 @@ void DrawingWidget::disconnectItemPoints(DrawingItemPoint* point0, DrawingItemPo
 	DrawingItemPointDisconnectCommand* disconnectCommand =
 		new DrawingItemPointDisconnectCommand(point0, point1, command);
 
-	if (!command)
-	{
-		mUndoStack.push(disconnectCommand);
-		emit itemsChanged();
-	}
+	if (!command) mUndoStack.push(disconnectCommand);
+}
+
+//==================================================================================================
+
+void DrawingWidget::updateItemProperties(const QList<DrawingItem*>& items,
+	const QMap<QString,QVariant>& properties, QUndoCommand* command)
+{
+	DrawingUpdateItemPropertiesCommand* propertiesCommand =
+		new DrawingUpdateItemPropertiesCommand(items, properties, command);
+
+	if (!command) mUndoStack.push(propertiesCommand);
 }
 
 //==================================================================================================

@@ -30,6 +30,7 @@ SOURCES += \
 	\
 	source/MainToolBox.cpp \
 	source/MainWindow.cpp \
+	source/PropertiesWidget.cpp \
 	source/main.cpp
 
 HEADERS += \
@@ -45,7 +46,8 @@ HEADERS += \
 	source/DrawingWidget.h \
 	\
 	source/MainToolBox.h \
-	source/MainWindow.h
+	source/MainWindow.h \
+	source/PropertiesWidget.h
 
 RESOURCES += icons/icons.qrc
 

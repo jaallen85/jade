@@ -20,6 +20,7 @@
 
 #include "MainWindow.h"
 #include "MainToolBox.h"
+#include "PropertiesWidget.h"
 
 MainWindow::MainWindow() : QMainWindow()
 {
@@ -37,7 +38,7 @@ MainWindow::MainWindow() : QMainWindow()
 
 	setWindowTitle("Jade");
 	setWindowIcon(QIcon(":/icons/jade/diagram.png"));
-	resize(1000, 689);
+	resize(1280, 689);
 }
 
 MainWindow::~MainWindow() { }
@@ -83,7 +84,32 @@ void MainWindow::createMainToolBox()
 
 void MainWindow::createPropertiesWidget()
 {
+	mPropertiesWidget = new PropertiesWidget();
+	mPropertiesWidgetDock = new QDockWidget("Properties");
+	mPropertiesWidgetDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+	mPropertiesWidgetDock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable | QDockWidget::DockWidgetClosable);
+	mPropertiesWidgetDock->setWidget(mPropertiesWidget);
+	addDockWidget(Qt::RightDockWidgetArea, mPropertiesWidgetDock, Qt::Vertical);
 
+	connect(mDrawingWidget, SIGNAL(propertiesTriggered()), mPropertiesWidgetDock, SLOT(show()));
+	connect(mDrawingWidget, SIGNAL(selectionChanged(const QList<DrawingItem*>&)),
+		mPropertiesWidget, SLOT(setFromItems(const QList<DrawingItem*>&)));
+	connect(mDrawingWidget, SIGNAL(newItemChanged(DrawingItem*)),
+		mPropertiesWidget, SLOT(setFromItem(DrawingItem*)));
+
+	connect(mDrawingWidget, SIGNAL(itemsChanged(const QList<DrawingItem*>&)),
+		mPropertiesWidget, SLOT(updateItems(const QList<DrawingItem*>&)));
+	connect(mDrawingWidget, SIGNAL(itemChanged(DrawingItem*)),
+		mPropertiesWidget, SLOT(updateItem(DrawingItem*)));
+
+	connect(mPropertiesWidget, SIGNAL(itemPositionUpdated(const QPointF&)),
+		mDrawingWidget, SLOT(moveSelection(const QPointF&)));
+	connect(mPropertiesWidget, SIGNAL(itemPointPositionUpdated(DrawingItemPoint*, const QPointF&)),
+		mDrawingWidget, SLOT(resizeSelection(DrawingItemPoint*, const QPointF&)));
+	connect(mPropertiesWidget, SIGNAL(itemPropertiesUpdated(const QMap<QString,QVariant>&)),
+		mDrawingWidget, SLOT(updateSelectionProperties(const QMap<QString,QVariant>&)));
+	connect(mPropertiesWidget, SIGNAL(drawingPropertiesUpdated(const QRectF&, qreal, const QBrush&, DrawingGridStyle, const QBrush&, int, int)),
+		mDrawingWidget, SLOT(updateProperties(const QRectF&, qreal, const QBrush&, DrawingGridStyle, const QBrush&, int, int)));
 }
 
 void MainWindow::createStatusBar()
