@@ -37,9 +37,11 @@ public:
 	QSize sizeHint() const;
 
 public slots:
+	// Show/hide widgets as needed
 	void setFromItems(const QList<DrawingItem*>& items);
 	void setFromItem(DrawingItem* item);
 
+	// Just update widget values
 	void updateItems(const QList<DrawingItem*>& items);
 	void updateItem(DrawingItem* item);
 

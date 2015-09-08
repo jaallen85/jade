@@ -20,6 +20,7 @@
 
 #include "MainWindow.h"
 #include "MainToolBox.h"
+#include "MainStatusBar.h"
 #include "PropertiesWidget.h"
 
 MainWindow::MainWindow() : QMainWindow()
@@ -114,7 +115,17 @@ void MainWindow::createPropertiesWidget()
 
 void MainWindow::createStatusBar()
 {
+	mMainStatusBar = new MainStatusBar();
+	setStatusBar(mMainStatusBar);
 
+	connect(mDrawingWidget, SIGNAL(modeChanged(DrawingWidget::Mode)),
+		mMainStatusBar, SLOT(updateMode(DrawingWidget::Mode)));
+	connect(mDrawingWidget, SIGNAL(cleanChanged(bool)),
+		mMainStatusBar, SLOT(updateClean(bool)));
+	connect(mDrawingWidget, SIGNAL(numberOfItemsChanged(int)),
+		mMainStatusBar, SLOT(updateNumberOfItems(int)));
+	connect(mDrawingWidget, SIGNAL(mouseInfoChanged(const QString&)),
+		mMainStatusBar, SLOT(updateMouseInfo(const QString&)));
 }
 
 //==================================================================================================

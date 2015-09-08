@@ -24,6 +24,7 @@
 #include <QtWidgets>
 
 class DrawingWidget;
+class MainStatusBar;
 class MainToolBox;
 class PropertiesWidget;
 
@@ -42,6 +43,8 @@ private:
 
 	QDockWidget* mPropertiesWidgetDock;
 	PropertiesWidget* mPropertiesWidget;
+
+	MainStatusBar* mMainStatusBar;
 
 	QByteArray mWindowState;
 

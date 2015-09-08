@@ -211,6 +211,9 @@ signals:
 	void newItemChanged(DrawingItem* item);
 	void itemsChanged(const QList<DrawingItem*>& items);
 	void itemChanged(DrawingItem* item);
+	void numberOfItemsChanged(int itemCount);
+
+	void mouseInfoChanged(const QString& infoText);
 
 protected:
 	virtual void mousePressEvent(QMouseEvent* event);
@@ -283,6 +286,9 @@ protected:
 	bool itemMatchesRect(DrawingItem* item, const QRectF& rect, Qt::ItemSelectionMode mode) const;
 
 	void recalculateContentSize(const QRectF& targetSceneRect = QRectF());
+
+	void updateMouseInfo(const QPointF& pos);
+	void updateMouseInfo(const QPointF& p1, const QPointF& p2);
 
 	void addActions();
 	void createContextMenu();
