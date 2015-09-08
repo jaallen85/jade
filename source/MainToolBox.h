@@ -34,7 +34,8 @@ private:
 	QToolButton* mPropertiesButton;
 
 	QTreeWidget* mPlaceItemsWidget;
-	QMap<QTreeWidgetItem*,DrawingItem*> mPlaceItemsMap;
+	QMap<QTreeWidgetItem*,QAction*> mPlaceActionsMap;
+	QMap<QAction*,DrawingItem*> mPlaceItemsMap;
 
 	QActionGroup* mModeActionGroup;
 
@@ -56,6 +57,7 @@ signals:
 
 private slots:
 	void setModeFromAction(QAction* action);
+	void triggerAction(QTreeWidgetItem* item, int column);
 
 private:
 	QDialogButtonBox* createButtonBox();
@@ -65,6 +67,8 @@ private:
 		const QString& iconPath = QString(), const QString& shortcut = QString());
 	QAction* addModeAction(const QString& text,
 		const QString& iconPath = QString(), const QString& shortcut = QString());
+	void addItem(DrawingItem* item, const QString& section, const QString& text,
+		const QString& iconPath = "");
 };
 
 #endif

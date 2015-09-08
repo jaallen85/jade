@@ -60,7 +60,8 @@ DrawingWidget::DrawingWidget() : QAbstractScrollArea()
 	mConsecutivePastes = 0;
 
 	addActions();
-	createContextMenus();
+	createContextMenu();
+	connect(this, SIGNAL(selectionChanged()), this, SLOT(updateActionsFromSelection()));
 }
 
 DrawingWidget::~DrawingWidget()
@@ -493,8 +494,8 @@ void DrawingWidget::centerOnCursor(const QPointF& scenePos)
 
 void DrawingWidget::fitToView(const QRectF& sceneRect)
 {
-	qreal scaleX = (maximumViewportSize().width() - 2) / sceneRect.width();
-	qreal scaleY = (maximumViewportSize().height() - 2) / sceneRect.height();
+	qreal scaleX = (maximumViewportSize().width() - 5) / sceneRect.width();
+	qreal scaleY = (maximumViewportSize().height() - 5) / sceneRect.height();
 
 	mScale = qMin(scaleX, scaleY);
 
@@ -589,6 +590,7 @@ void DrawingWidget::setPlaceMode(DrawingItem* item)
 
 		clearSelection();
 		setNewItem(item);
+		item->setPos(mapToScene(mapFromGlobal(QCursor::pos())));
 
 		emit modeChanged(mMode);
 		viewport()->update();
@@ -1020,7 +1022,35 @@ void DrawingWidget::mouseReleaseEvent(QMouseEvent* event)
 			break;
 		}
 	}
-	else if (event->button() == Qt::RightButton && mMode != DefaultMode) setDefaultMode();
+	else if (event->button() == Qt::RightButton)
+	{
+		if (mMode == DefaultMode)
+		{
+			DrawingItem* mouseDownItem = itemAt(mapToScene(event->pos()));
+			//if (mouseDownItem == nullptr) clearSelection();
+
+			//mContextMenu.popup(event->globalPos() + QPoint(2, 2));
+
+
+			if (mouseDownItem && mouseDownItem->isSelected() && mSelectedItems.size() == 1)
+			{
+				if (actions()[InsertPointAction]->isEnabled())
+					mSinglePolyItemContextMenu.popup(event->globalPos() + QPoint(2, 2));
+				else
+					mSingleItemContextMenu.popup(event->globalPos() + QPoint(2, 2));
+			}
+			else if (mouseDownItem && mouseDownItem->isSelected())
+			{
+				mMultipleItemContextMenu.popup(event->globalPos() + QPoint(2, 2));
+			}
+			else
+			{
+				if (mouseDownItem == nullptr) clearSelection();
+				mDrawingContextMenu.popup(event->globalPos() + QPoint(2, 2));
+			}
+		}
+		else setDefaultMode();
+	}
 
 	if (mPanTimer.isActive())
 	{
@@ -1038,16 +1068,6 @@ void DrawingWidget::mouseDoubleClickEvent(QMouseEvent* event)
 	if (mMode == PlaceMode) placeModeMouseDoubleClickEvent(&mMouseEvent);
 	else if (mMode != DefaultMode) setDefaultMode();
 	else defaultMouseDoubleClickEvent(&mMouseEvent);
-
-	viewport()->update();
-}
-
-void DrawingWidget::contextMenuEvent(QContextMenuEvent* event)
-{
-	mContextMenuEvent.setFromEvent(event, this);
-
-	if (mMode != DefaultMode) setDefaultMode();
-	else defaultContextMenuEvent(&mContextMenuEvent);
 
 	viewport()->update();
 }
@@ -1213,12 +1233,6 @@ void DrawingWidget::defaultMouseDoubleClickEvent(DrawingMouseEvent* event)
 	}
 }
 
-void DrawingWidget::defaultContextMenuEvent(DrawingContextMenuEvent* event)
-{
-	if (mMouseDownItem && mMouseDownItem->isSelected() && mSelectedItems.size() == 1)
-		mMouseDownItem->contextMenuEvent(event);
-}
-
 //==================================================================================================
 
 void DrawingWidget::placeModeMousePressEvent(DrawingMouseEvent* event)
@@ -1373,7 +1387,7 @@ void DrawingWidget::drawBackground(QPainter* painter)
 	painter->restore();
 
 	// Draw border
-	QPen borderPen((mBackgroundBrush == Qt::black) ? Qt::white : Qt::black, devicePixelRatio());
+	QPen borderPen((mBackgroundBrush == Qt::black) ? Qt::white : Qt::black, devicePixelRatio() * 2);
 	borderPen.setCosmetic(true);
 
 	painter->setBrush(Qt::transparent);
@@ -1585,6 +1599,8 @@ void DrawingWidget::mousePanEvent()
 	}
 }
 
+//==================================================================================================
+
 void DrawingWidget::updateSelectionCenter()
 {
 	mSelectionCenter = QPointF();
@@ -1596,6 +1612,28 @@ void DrawingWidget::updateSelectionCenter()
 
 		mSelectionCenter /= mSelectedItems.size();
 	}
+}
+
+void DrawingWidget::updateActionsFromSelection()
+{
+	QList<QAction*> actions = DrawingWidget::actions();
+
+	bool canInsertRemovePoints = false;
+	bool canGroup = (mSelectedItems.size() > 1);
+	bool canUngroup = false;
+
+	if (mSelectedItems.size() == 1)
+	{
+		QString typeName = QString(typeid(*mSelectedItems.first()).name());
+
+		canInsertRemovePoints = (typeName == "class DrawingPolygonItem" || typeName == "class DrawingPolylineItem");
+		canUngroup = (typeName == "class DrawingItemGroup");
+	}
+
+	actions[InsertPointAction]->setEnabled(canInsertRemovePoints);
+	actions[RemovePointAction]->setEnabled(canInsertRemovePoints);
+	actions[GroupAction]->setEnabled(canGroup);
+	actions[UngroupAction]->setEnabled(canUngroup);
 }
 
 //==================================================================================================
@@ -2121,7 +2159,7 @@ void DrawingWidget::addActions()
 	addAction("Properties...", this, SLOT(properties()), ":/icons/oxygen/games-config-board.png");
 }
 
-void DrawingWidget::createContextMenus()
+void DrawingWidget::createContextMenu()
 {
 	QList<QAction*> actions = DrawingWidget::actions();
 
@@ -2131,6 +2169,9 @@ void DrawingWidget::createContextMenus()
 	mSingleItemContextMenu.addAction(actions[RotateBackAction]);
 	mSingleItemContextMenu.addAction(actions[FlipAction]);
 	mSingleItemContextMenu.addAction(actions[DeleteAction]);
+	mSingleItemContextMenu.addSeparator();
+	mSingleItemContextMenu.addAction(actions[GroupAction]);
+	mSingleItemContextMenu.addAction(actions[UngroupAction]);
 	mSingleItemContextMenu.addSeparator();
 	mSingleItemContextMenu.addAction(actions[CutAction]);
 	mSingleItemContextMenu.addAction(actions[CopyAction]);

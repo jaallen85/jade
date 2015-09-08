@@ -37,7 +37,7 @@ MainWindow::MainWindow() : QMainWindow()
 
 	setWindowTitle("Jade");
 	setWindowIcon(QIcon(":/icons/jade/diagram.png"));
-	resize(1019, 790);
+	resize(1000, 689);
 }
 
 MainWindow::~MainWindow() { }

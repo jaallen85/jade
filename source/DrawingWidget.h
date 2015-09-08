@@ -65,7 +65,6 @@ private:
 
 	QUndoStack mUndoStack;
 	DrawingMouseEvent mMouseEvent;
-	DrawingContextMenuEvent mContextMenuEvent;
 	MouseState mMouseState;
 	QHash<DrawingItem*,QPointF> mInitialPositions;
 	QRect mRubberBandRect;
@@ -208,14 +207,12 @@ protected:
 	virtual void mouseMoveEvent(QMouseEvent* event);
 	virtual void mouseReleaseEvent(QMouseEvent* event);
 	virtual void mouseDoubleClickEvent(QMouseEvent* event);
-	virtual void contextMenuEvent(QContextMenuEvent* event);
 	virtual void wheelEvent(QWheelEvent* event);
 
 	virtual void defaultMousePressEvent(DrawingMouseEvent* event);
 	virtual void defaultMouseMoveEvent(DrawingMouseEvent* event);
 	virtual void defaultMouseReleaseEvent(DrawingMouseEvent* event);
 	virtual void defaultMouseDoubleClickEvent(DrawingMouseEvent* event);
-	virtual void defaultContextMenuEvent(DrawingContextMenuEvent* event);
 
 	virtual void placeModeMousePressEvent(DrawingMouseEvent* event);
 	virtual void placeModeMouseMoveEvent(DrawingMouseEvent* event);
@@ -231,8 +228,10 @@ protected:
 	virtual void drawForeground(QPainter* painter);
 
 protected slots:
-	virtual void mousePanEvent();
+	void mousePanEvent();
+
 	void updateSelectionCenter();
+	void updateActionsFromSelection();
 
 protected:
 	void addItems(const QList<DrawingItem*>& items, bool place, QUndoCommand* command = nullptr);
@@ -272,7 +271,7 @@ protected:
 	void recalculateContentSize(const QRectF& targetSceneRect = QRectF());
 
 	void addActions();
-	void createContextMenus();
+	void createContextMenu();
 	QAction* addAction(const QString& text, QObject* slotObj, const char* slotFunction,
 		const QString& iconPath = QString(), const QString& shortcut = QString());
 };

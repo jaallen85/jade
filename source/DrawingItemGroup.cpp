@@ -77,7 +77,7 @@ QPainterPath DrawingItemGroup::shape() const
 		for(auto itemIter = mItems.begin(); itemIter != mItems.end(); itemIter++)
 		{
 			if ((*itemIter)->isVisible())
-				shape = shape.united(mapFromScene((*itemIter)->mapToScene((*itemIter)->shape())));
+				shape = shape.united((*itemIter)->mapToScene((*itemIter)->shape()));
 		}
 	}
 

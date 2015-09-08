@@ -65,26 +65,4 @@ public:
 	bool isDragged() const;
 };
 
-//==================================================================================================
-
-class DrawingContextMenuEvent : public QEvent
-{
-private:
-	QPoint mGlobalPos;
-	QPoint mPos;
-	QPointF mScenePos;
-
-	QContextMenuEvent::Reason mReason;
-
-public:
-	DrawingContextMenuEvent();
-	~DrawingContextMenuEvent();
-
-	void setFromEvent(QContextMenuEvent* event, DrawingWidget* widget);
-	QPoint globalPos() const;
-	QPoint pos() const;
-	QPointF scenePos() const;
-	QContextMenuEvent::Reason reason() const;
-};
-
 #endif

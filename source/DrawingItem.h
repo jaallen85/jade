@@ -127,7 +127,6 @@ protected:
 	virtual void mouseMoveEvent(DrawingMouseEvent* event);
 	virtual void mouseReleaseEvent(DrawingMouseEvent* event);
 	virtual void mouseDoubleClickEvent(DrawingMouseEvent* event);
-	virtual void contextMenuEvent(DrawingContextMenuEvent* event);
 
 	virtual void keyPressEvent(QKeyEvent* event);
 	virtual void keyReleaseEvent(QKeyEvent* event);

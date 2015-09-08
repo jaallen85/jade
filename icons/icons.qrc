@@ -25,5 +25,14 @@
         <file>oxygen/zoom-out.png</file>
         <file>oxygen/page-zoom.png</file>
         <file>oxygen/transform-move.png</file>
+        <file>oxygen/draw-arc.png</file>
+        <file>oxygen/draw-curve.png</file>
+        <file>oxygen/draw-ellipse.png</file>
+        <file>oxygen/draw-image.png</file>
+        <file>oxygen/draw-line.png</file>
+        <file>oxygen/draw-polygon.png</file>
+        <file>oxygen/draw-polyline.png</file>
+        <file>oxygen/draw-rectangle.png</file>
+        <file>oxygen/draw-text.png</file>
     </qresource>
 </RCC>

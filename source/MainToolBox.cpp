@@ -19,6 +19,10 @@
  */
 
 #include "MainToolBox.h"
+#include <DrawingPathItem.h>
+#include <DrawingShapeItems.h>
+#include <DrawingTextItem.h>
+#include <DrawingTwoPointItems.h>
 
 MainToolBox::MainToolBox() : QFrame()
 {
@@ -54,12 +58,21 @@ void MainToolBox::updateMode(DrawingWidget::Mode mode)
 		modeActions[0]->setChecked(true);
 }
 
+//==================================================================================================
+
 void MainToolBox::setModeFromAction(QAction* action)
 {
 	if (action->text() == "Select Mode") emit defaultModeTriggered();
 	else if (action->text() == "Scroll Mode") emit scrollModeTriggered();
 	else if (action->text() == "Zoom Mode") emit zoomModeTriggered();
+	else if (mPlaceItemsMap.contains(action)) emit placeModeTriggered(mPlaceItemsMap[action]->copy());
 	else emit defaultModeTriggered();
+}
+
+void MainToolBox::triggerAction(QTreeWidgetItem* item, int column)
+{
+	Q_UNUSED(column);
+	if (mPlaceActionsMap.contains(item)) mPlaceActionsMap[item]->trigger();
 }
 
 //==================================================================================================
@@ -111,20 +124,19 @@ QTreeWidget* MainToolBox::createTreeWidget()
 	mPlaceItemsWidget->setHeaderHidden(true);
 	mPlaceItemsWidget->setIndentation(6);
 
-	/*addModeAction("Place Line", ":/icons/oxygen/draw-line.png", "");
-	addModeAction("Place Arc", ":/icons/oxygen/draw-arc.png", "");
-	addModeAction("Place Polyline", ":/icons/oxygen/draw-polyline.png", "");
-	addModeAction("Place Curve", ":/icons/oxygen/draw-curve.png", "");
-	addModeAction("Place Rect", ":/icons/oxygen/draw-rectangle.png", "");
-	addModeAction("Place Ellipse", ":/icons/oxygen/draw-ellipse.png", "");
-	addModeAction("Place Polygon", ":/icons/oxygen/draw-polygon.png", "");
-	addModeAction("Place Text", ":/icons/oxygen/draw-text.png", "");
-	addModeAction("Place Path", ":/icons/oxygen/resistor1.png", "");*/
+	addItem(new DrawingLineItem(), "Basic Items", "Line", ":/icons/oxygen/draw-line.png");
+	addItem(new DrawingArcItem(), "Basic Items", "Arc", ":/icons/oxygen/draw-arc.png");
+	addItem(new DrawingPolylineItem(), "Basic Items", "Polyline", ":/icons/oxygen/draw-polyline.png");
+	addItem(new DrawingCurveItem(), "Basic Items", "Curve", ":/icons/oxygen/draw-curve.png");
+	addItem(new DrawingRectItem(), "Basic Items", "Rectangle", ":/icons/oxygen/draw-rectangle.png");
+	addItem(new DrawingEllipseItem(), "Basic Items", "Ellipse", ":/icons/oxygen/draw-ellipse.png");
+	addItem(new DrawingPolygonItem(), "Basic Items", "Polygon", ":/icons/oxygen/draw-polygon.png");
+	addItem(new DrawingTextItem(), "Basic Items", "Text", ":/icons/oxygen/draw-text.png");
 
-	//mPlaceItemsMap
-
-	//connect(mPlaceItemsWidget, SIGNAL(itemActivated(QTreeWidgetItem*,int)),
-	//	this, SLOT(triggerAction(QTreeWidgetItem*,int)));
+	connect(mPlaceItemsWidget, SIGNAL(itemActivated(QTreeWidgetItem*,int)),
+		this, SLOT(triggerAction(QTreeWidgetItem*,int)));
+	connect(mPlaceItemsWidget, SIGNAL(itemClicked(QTreeWidgetItem*,int)),
+		this, SLOT(triggerAction(QTreeWidgetItem*,int)));
 
 	mPlaceItemsWidget->expandAll();
 
@@ -157,4 +169,32 @@ QAction* MainToolBox::addModeAction(const QString& text, const QString& iconPath
 	action->setActionGroup(mModeActionGroup);
 
 	return action;
+}
+
+void MainToolBox::addItem(DrawingItem* item, const QString& section, const QString& text, const QString& iconPath)
+{
+	QTreeWidgetItem* newItem = nullptr;
+	QTreeWidgetItem* sectionItem = nullptr;
+
+	for(int i = 0; !sectionItem && i < mPlaceItemsWidget->topLevelItemCount(); i++)
+	{
+		if (mPlaceItemsWidget->topLevelItem(i)->text(0) == section)
+			sectionItem = mPlaceItemsWidget->topLevelItem(i);
+	}
+
+	if (!sectionItem)
+	{
+		sectionItem = new QTreeWidgetItem();
+		sectionItem->setText(0, section);
+		sectionItem->setBackground(0, palette().brush(QPalette::Button));
+		mPlaceItemsWidget->addTopLevelItem(sectionItem);
+	}
+
+	newItem = new QTreeWidgetItem(sectionItem);
+	newItem->setText(0, text);
+	if (!iconPath.isEmpty()) newItem->setIcon(0, QIcon(iconPath));
+
+	QAction* newAction = addModeAction("Place " + text, iconPath, "");
+	mPlaceActionsMap[newItem] = newAction;
+	mPlaceItemsMap[newAction] = item;
 }

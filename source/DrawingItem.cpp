@@ -438,11 +438,6 @@ void DrawingItem::mouseDoubleClickEvent(DrawingMouseEvent* event)
 	Q_UNUSED(event);
 }
 
-void DrawingItem::contextMenuEvent(DrawingContextMenuEvent* event)
-{
-	Q_UNUSED(event);
-}
-
 //==================================================================================================
 
 void DrawingItem::keyPressEvent(QKeyEvent* event)
