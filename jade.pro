@@ -28,6 +28,7 @@ SOURCES += \
 	source/DrawingUndo.cpp \
 	source/DrawingWidget.cpp \
 	\
+	source/ColorButton.cpp \
 	source/MainStatusBar.cpp \
 	source/MainToolBox.cpp \
 	source/MainWindow.cpp \
@@ -46,6 +47,7 @@ HEADERS += \
 	source/DrawingUndo.h \
 	source/DrawingWidget.h \
 	\
+	source/ColorButton.h \
 	source/MainStatusBar.h \
 	source/MainToolBox.h \
 	source/MainWindow.h \

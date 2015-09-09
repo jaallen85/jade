@@ -28,7 +28,18 @@ class PropertiesWidget : public QFrame
 	Q_OBJECT
 
 private:
+	// Item properties
+	/*QLineEdit* mStartPosXEdit;
+	QLineEdit* mStartPosYEdit;
+	QComboBox* mStartArrowStyleCombo;
+	QLineEdit* mStartArrowSizeEdit;
 
+	QLineEdit* mEndPosXEdit;
+	QLineEdit* mEndPosYEdit;
+	QComboBox* mEndArrowStyleCombo;
+	QLineEdit* mEndArrowSizeEdit;*/
+
+	// Drawing properties
 
 public:
 	PropertiesWidget();
@@ -51,6 +62,81 @@ signals:
 	void itemPropertiesUpdated(const QMap<QString,QVariant>& properties);
 	void drawingPropertiesUpdated(const QRectF& sceneRect, qreal grid, const QBrush& backgroundBrush,
 		DrawingGridStyle gridStyle, const QBrush& gridBrush, int gridSpacingMajor, int gridSpacingMinor);
+};
+
+//==================================================================================================
+
+class ColorPushButton;
+
+class ItemPropertiesWidget : public QWidget
+{
+	Q_OBJECT
+
+private:
+	QGroupBox* mPositionGroup;
+	QLineEdit* mPosXEdit;
+	QLineEdit* mPosYEdit;
+
+	QGroupBox* mRectGroup;
+	QLineEdit* mRectLeftEdit;
+	QLineEdit* mRectTopEdit;
+	QLineEdit* mRectRightEdit;
+	QLineEdit* mRectBottomEdit;
+	QLineEdit* mRectCornerRadiusXEdit;
+	QLineEdit* mRectCornerRadiusYEdit;
+
+	QGroupBox* mStartPointGroup;
+	QLineEdit* mStartPosXEdit;
+	QLineEdit* mStartPosYEdit;
+	QComboBox* mStartArrowStyleCombo;
+	QLineEdit* mStartArrowSizeEdit;
+
+	QGroupBox* mEndPointGroup;
+	QLineEdit* mEndPosXEdit;
+	QLineEdit* mEndPosYEdit;
+	QComboBox* mEndArrowStyleCombo;
+	QLineEdit* mEndArrowSizeEdit;
+
+	QGroupBox* mPenBrushGroup;
+	QComboBox* mPenStyleCombo;
+	QLineEdit* mPenWidthEdit;
+	ColorPushButton* mPenColorButton;
+	ColorPushButton* mBrushColorButton;
+
+	QGroupBox* mTextGroup;
+	QFontComboBox* mFontFamilyCombo;
+	QLineEdit* mFontSizeEdit;
+	QWidget* mFontStyleWidget;
+	QToolButton* mFontBoldButton;
+	QToolButton* mFontItalicButton;
+	QToolButton* mFontUnderlineButton;
+	QToolButton* mFontOverlineButton;
+	QToolButton* mFontStrikeOutButton;
+	QComboBox* mTextAlignmentHorizontalCombo;
+	QComboBox* mTextAlignmentVerticalCombo;
+	ColorPushButton* mTextColorButton;
+	QTextEdit* mCaptionEdit;
+
+	//QGroupBox* mControlPointsGroup;
+	//PointsListWidget* mControlPointsWidget;
+
+	//QGroupBox* mPolyPointsGroup;
+	//PointsListWidget* mPolyPointsWidget;
+
+public:
+	ItemPropertiesWidget(DrawingItem* item);
+	ItemPropertiesWidget(const QList<DrawingItem*>& items);
+	~ItemPropertiesWidget();
+
+private:
+	QGroupBox* createPositionGroup();
+	QGroupBox* createRectGroup();
+	QGroupBox* createStartPointGroup();
+	QGroupBox* createEndPointGroup();
+	QGroupBox* createPenBrushGroup();
+	QGroupBox* createTextGroup();
+	//QGroupBox* createControlPointsGroup();
+	//QGroupBox* createPolyPointsGroup();
 };
 
 #endif

@@ -22,7 +22,12 @@
 
 PropertiesWidget::PropertiesWidget() : QFrame()
 {
+	QCheckBox* check = new QCheckBox("Check Me!");
+	QVBoxLayout* layout = new QVBoxLayout();
+	layout->addWidget(check);
+	setLayout(layout);
 
+	check->setCheckable(false);
 }
 
 PropertiesWidget::~PropertiesWidget() { }
