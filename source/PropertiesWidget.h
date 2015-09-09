@@ -23,23 +23,16 @@
 
 #include <DrawingTypes.h>
 
+class ItemPropertiesWidget;
+
 class PropertiesWidget : public QFrame
 {
 	Q_OBJECT
 
 private:
-	// Item properties
-	/*QLineEdit* mStartPosXEdit;
-	QLineEdit* mStartPosYEdit;
-	QComboBox* mStartArrowStyleCombo;
-	QLineEdit* mStartArrowSizeEdit;
-
-	QLineEdit* mEndPosXEdit;
-	QLineEdit* mEndPosYEdit;
-	QComboBox* mEndArrowStyleCombo;
-	QLineEdit* mEndArrowSizeEdit;*/
-
-	// Drawing properties
+	ItemPropertiesWidget* mItemWidget;
+	// ScenePropertiesWidget
+	// ItemDefaultPropertiesWidget
 
 public:
 	PropertiesWidget();
@@ -73,11 +66,9 @@ class ItemPropertiesWidget : public QWidget
 	Q_OBJECT
 
 private:
-	QGroupBox* mPositionGroup;
 	QLineEdit* mPosXEdit;
 	QLineEdit* mPosYEdit;
 
-	QGroupBox* mRectGroup;
 	QLineEdit* mRectLeftEdit;
 	QLineEdit* mRectTopEdit;
 	QLineEdit* mRectRightEdit;
@@ -85,25 +76,21 @@ private:
 	QLineEdit* mRectCornerRadiusXEdit;
 	QLineEdit* mRectCornerRadiusYEdit;
 
-	QGroupBox* mStartPointGroup;
 	QLineEdit* mStartPosXEdit;
 	QLineEdit* mStartPosYEdit;
 	QComboBox* mStartArrowStyleCombo;
 	QLineEdit* mStartArrowSizeEdit;
 
-	QGroupBox* mEndPointGroup;
 	QLineEdit* mEndPosXEdit;
 	QLineEdit* mEndPosYEdit;
 	QComboBox* mEndArrowStyleCombo;
 	QLineEdit* mEndArrowSizeEdit;
 
-	QGroupBox* mPenBrushGroup;
 	QComboBox* mPenStyleCombo;
 	QLineEdit* mPenWidthEdit;
 	ColorPushButton* mPenColorButton;
 	ColorPushButton* mBrushColorButton;
 
-	QGroupBox* mTextGroup;
 	QFontComboBox* mFontFamilyCombo;
 	QLineEdit* mFontSizeEdit;
 	QWidget* mFontStyleWidget;
@@ -117,14 +104,13 @@ private:
 	ColorPushButton* mTextColorButton;
 	QTextEdit* mCaptionEdit;
 
-	//QGroupBox* mControlPointsGroup;
 	//PointsListWidget* mControlPointsWidget;
 
-	//QGroupBox* mPolyPointsGroup;
 	//PointsListWidget* mPolyPointsWidget;
 
+	QList<DrawingItem*> mItems;
+
 public:
-	ItemPropertiesWidget(DrawingItem* item);
 	ItemPropertiesWidget(const QList<DrawingItem*>& items);
 	~ItemPropertiesWidget();
 
@@ -137,6 +123,10 @@ private:
 	QGroupBox* createTextGroup();
 	//QGroupBox* createControlPointsGroup();
 	//QGroupBox* createPolyPointsGroup();
+
+	bool checkAllItemsForProperty(const QString& propertyName, bool& propertiesMatch, QVariant& propertyValue);
+	void addWidget(QFormLayout*& formLayout, const QString& label, QWidget* widget, bool checked);
+	int labelWidth() const;
 };
 
 #endif

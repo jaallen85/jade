@@ -19,15 +19,15 @@
  */
 
 #include "PropertiesWidget.h"
+#include "ColorButton.h"
+#include <DrawingItem.h>
 
 PropertiesWidget::PropertiesWidget() : QFrame()
 {
-	QCheckBox* check = new QCheckBox("Check Me!");
+	mItemWidget = new ItemPropertiesWidget(QList<DrawingItem*>());
 	QVBoxLayout* layout = new QVBoxLayout();
-	layout->addWidget(check);
+	layout->addWidget(mItemWidget);
 	setLayout(layout);
-
-	check->setCheckable(false);
 }
 
 PropertiesWidget::~PropertiesWidget() { }
@@ -64,5 +64,189 @@ void PropertiesWidget::updateItem(DrawingItem* item)
 
 QSize PropertiesWidget::sizeHint() const
 {
-	return QSize(280, 400);
+	return QSize(260, 400);
+}
+
+//==================================================================================================
+//==================================================================================================
+//==================================================================================================
+
+ItemPropertiesWidget::ItemPropertiesWidget(const QList<DrawingItem*>& items)
+{
+	mItems = items;
+
+	mPosXEdit = nullptr;
+	mPosYEdit = nullptr;
+	mRectLeftEdit = nullptr;
+	mRectTopEdit = nullptr;
+	mRectRightEdit = nullptr;
+	mRectBottomEdit = nullptr;
+	mRectCornerRadiusXEdit = nullptr;
+	mRectCornerRadiusYEdit = nullptr;
+	mStartPosXEdit = nullptr;
+	mStartPosYEdit = nullptr;
+	mStartArrowStyleCombo = nullptr;
+	mStartArrowSizeEdit = nullptr;
+	mEndPosXEdit = nullptr;
+	mEndPosYEdit = nullptr;
+	mEndArrowStyleCombo = nullptr;
+	mEndArrowSizeEdit = nullptr;
+	mPenStyleCombo = nullptr;
+	mPenWidthEdit = nullptr;
+	mPenColorButton = nullptr;
+	mBrushColorButton = nullptr;
+	mFontFamilyCombo = nullptr;
+	mFontSizeEdit = nullptr;
+	mFontStyleWidget = nullptr;
+	mFontBoldButton = nullptr;
+	mFontItalicButton = nullptr;
+	mFontUnderlineButton = nullptr;
+	mFontOverlineButton = nullptr;
+	mFontStrikeOutButton = nullptr;
+	mTextAlignmentHorizontalCombo = nullptr;
+	mTextAlignmentVerticalCombo = nullptr;
+	mTextColorButton = nullptr;
+	mCaptionEdit = nullptr;
+	//mControlPointsWidget = nullptr;
+	//mPolyPointsWidget = nullptr;
+
+	//QGroupBox* positionGroup = createPositionGroup();
+	//QGroupBox* rectGroup = createRectGroup();
+	//QGroupBox* startPointGroup = createStartPointGroup();
+	//QGroupBox* endPointGroup = createEndPointGroup();
+	QGroupBox* penBrushGroup = createPenBrushGroup();
+	//QGroupBox* textGroup = createTextGroup();
+	//QGroupBox* controlPointsGroup = createControlPointsGroup();
+	//QGroupBox* polyPointsGroup = createPolyPointsGroup();
+
+	QVBoxLayout* vLayout = new QVBoxLayout();
+	//if (positionGroup) vLayout->addWidget(positionGroup);
+	//if (rectGroup) vLayout->addWidget(rectGroup);
+	//if (startPointGroup) vLayout->addWidget(startPointGroup);
+	//if (endPointGroup) vLayout->addWidget(endPointGroup);
+	if (penBrushGroup) vLayout->addWidget(penBrushGroup);
+	//if (textGroup) vLayout->addWidget(textGroup);
+	//if (controlPointsGroup) vLayout->addWidget(controlPointsGroup);
+	//if (polyPointsGroup) vLayout->addWidget(polyPointsGroup);
+	vLayout->setContentsMargins(0, 0, 0, 0);
+	setLayout(vLayout);
+}
+
+ItemPropertiesWidget::~ItemPropertiesWidget() { }
+
+//==================================================================================================
+
+QGroupBox* ItemPropertiesWidget::createPenBrushGroup()
+{
+	QGroupBox* penBrushGroup = nullptr;
+	QFormLayout* penBrushLayout = nullptr;
+	bool propertiesMatch = false;
+	QVariant propertyValue;
+
+	if (checkAllItemsForProperty("Pen Style", propertiesMatch, propertyValue))
+	{
+		mPenStyleCombo = new QComboBox();
+		mPenStyleCombo->addItem(QIcon(":/icons/penstyle/pen_none.png"), "No Pen");
+		mPenStyleCombo->addItem(QIcon(":/icons/penstyle/pen_solid.png"), "Solid Line");
+		mPenStyleCombo->addItem(QIcon(":/icons/penstyle/pen_dashed.png"), "Dashed Line");
+		mPenStyleCombo->addItem(QIcon(":/icons/penstyle/pen_dotted.png"), "Dotted Line");
+		mPenStyleCombo->addItem(QIcon(":/icons/penstyle/pen_dash_dotted.png"), "Dash-Dotted Line");
+		mPenStyleCombo->addItem(QIcon(":/icons/penstyle/pen_dash_dot_dotted.png"), "Dash-Dot-Dotted Line");
+
+		if (propertyValue.isValid()) mPenStyleCombo->setCurrentIndex(propertyValue.toUInt());
+
+		addWidget(penBrushLayout, "Pen Style: ", mPenStyleCombo, propertiesMatch);
+	}
+
+	if (checkAllItemsForProperty("Pen Width", propertiesMatch, propertyValue))
+	{
+		mPenWidthEdit = new QLineEdit();
+		mPenWidthEdit->setValidator(new QDoubleValidator(0, std::numeric_limits<qreal>::max(), 6));
+
+		if (propertyValue.isValid()) mPenWidthEdit->setText(QString::number(propertyValue.toDouble()));
+
+		addWidget(penBrushLayout, "Pen Width: ", mPenWidthEdit, propertiesMatch);
+	}
+
+	if (checkAllItemsForProperty("Pen Color", propertiesMatch, propertyValue))
+	{
+		mPenColorButton = new ColorPushButton();
+
+		if (propertyValue.isValid()) mPenColorButton->setColor(propertyValue.value<QColor>());
+
+		addWidget(penBrushLayout, "Pen Color: ", mPenColorButton, propertiesMatch);
+	}
+
+	if (checkAllItemsForProperty("Brush Color", propertiesMatch, propertyValue))
+	{
+		mBrushColorButton = new ColorPushButton();
+
+		if (propertyValue.isValid()) mBrushColorButton->setColor(propertyValue.value<QColor>());
+
+		addWidget(penBrushLayout, "Brush Color: ", mBrushColorButton, propertiesMatch);
+	}
+
+	if (penBrushLayout)
+	{
+		penBrushGroup = new QGroupBox("Pen and Brush");
+		penBrushGroup->setLayout(penBrushLayout);
+	}
+
+	return penBrushGroup;
+}
+
+//==================================================================================================
+
+bool ItemPropertiesWidget::checkAllItemsForProperty(const QString& propertyName, bool& propertiesMatch, QVariant& propertyValue)
+{
+	bool allItemsHaveProperty = true;
+
+	propertiesMatch = true;
+	propertyValue = QVariant();
+
+	for(auto itemIter = mItems.begin(); allItemsHaveProperty && itemIter != mItems.end(); itemIter++)
+	{
+		allItemsHaveProperty = (*itemIter)->hasProperty(propertyName);
+		if (allItemsHaveProperty)
+		{
+			if (!propertyValue.isValid()) propertyValue = (*itemIter)->property(propertyName);
+			else propertiesMatch = (propertiesMatch && propertyValue == (*itemIter)->property(propertyName));
+		}
+	}
+
+	return allItemsHaveProperty;
+}
+
+void ItemPropertiesWidget::addWidget(QFormLayout*& formLayout, const QString& label, QWidget* widget, bool checked)
+{
+	if (formLayout == nullptr)
+	{
+		formLayout = new QFormLayout();
+		formLayout->setRowWrapPolicy(QFormLayout::DontWrapRows);
+		formLayout->setLabelAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+		formLayout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+	}
+
+	if (mItems.size() > 1)
+	{
+		QCheckBox* checkBox = new QCheckBox(label);
+		checkBox->setChecked(checked);
+		widget->setEnabled(checked);
+		connect(checkBox, SIGNAL(toggled(bool)), widget, SLOT(setEnabled(bool)));
+
+		formLayout->addRow(checkBox, widget);
+	}
+	else
+	{
+		formLayout->addRow(label, widget);
+	}
+
+	if (formLayout->rowCount() == 1)
+		formLayout->itemAt(0, QFormLayout::LabelRole)->widget()->setMinimumWidth(labelWidth());
+}
+
+int ItemPropertiesWidget::labelWidth() const
+{
+	QFontMetrics fontMetrics(font());
+	return fontMetrics.width("Corner Radius:") + ((mItems.size() > 1) ? 20 : 4);
 }
