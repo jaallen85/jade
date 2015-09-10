@@ -52,7 +52,37 @@ public:
 
 //==================================================================================================
 
-class DrawingRectItem : public DrawingShapeItem
+class DrawingRectResizeItem : public DrawingShapeItem
+{
+public:
+	DrawingRectResizeItem();
+	DrawingRectResizeItem(const DrawingRectResizeItem& item);
+	virtual ~DrawingRectResizeItem();
+
+	// Selectors
+	void setRect(const QRectF& rect);
+	void setRect(qreal left, qreal top, qreal width, qreal height);
+	QRectF rect() const;
+
+	// Description
+	virtual QRectF boundingRect() const;
+	virtual bool isValid() const;
+
+	// Slots
+	virtual void resizeItem(DrawingItemPoint* itemPoint, const QPointF& scenePos);
+
+protected:
+	virtual bool newItemCopyEvent();
+	virtual void newMousePressEvent(DrawingMouseEvent* event);
+	virtual void newMouseMoveEvent(DrawingMouseEvent* event);
+	virtual bool newMouseReleaseEvent(DrawingMouseEvent* event);
+
+	QRectF itemRect() const;
+};
+
+//==================================================================================================
+
+class DrawingRectItem : public DrawingRectResizeItem
 {
 public:
 	DrawingRectItem();
@@ -62,34 +92,19 @@ public:
 	virtual DrawingItem* copy() const;
 
 	// Selectors
-	void setRect(const QRectF& rect);
-	void setRect(qreal left, qreal top, qreal width, qreal height);
-	QRectF rect() const;
-
 	void setCornerRadii(qreal cornerRadiusX, qreal cornerRadiusY);
 	qreal cornerRadiusX() const;
 	qreal cornerRadiusY() const;
 
 	// Description
-	virtual QRectF boundingRect() const;
 	virtual QPainterPath shape() const;
-	virtual bool isValid() const;
 
 	virtual void paint(QPainter* painter);
-
-	// Slots
-	virtual void resizeItem(DrawingItemPoint* itemPoint, const QPointF& scenePos);
-
-protected:
-	virtual bool newItemCopyEvent();
-	virtual void newMousePressEvent(DrawingMouseEvent* event);
-	virtual void newMouseMoveEvent(DrawingMouseEvent* event);
-	virtual bool newMouseReleaseEvent(DrawingMouseEvent* event);
 };
 
 //==================================================================================================
 
-class DrawingEllipseItem : public DrawingShapeItem
+class DrawingEllipseItem : public DrawingRectResizeItem
 {
 public:
 	DrawingEllipseItem();
@@ -98,26 +113,10 @@ public:
 
 	virtual DrawingItem* copy() const;
 
-	// Selectors
-	void setRect(const QRectF& rect);
-	void setRect(qreal left, qreal top, qreal width, qreal height);
-	QRectF rect() const;
-
 	// Description
-	virtual QRectF boundingRect() const;
 	virtual QPainterPath shape() const;
-	virtual bool isValid() const;
 
 	virtual void paint(QPainter* painter);
-
-	// Slots
-	virtual void resizeItem(DrawingItemPoint* itemPoint, const QPointF& scenePos);
-
-protected:
-	virtual bool newItemCopyEvent();
-	virtual void newMousePressEvent(DrawingMouseEvent* event);
-	virtual void newMouseMoveEvent(DrawingMouseEvent* event);
-	virtual bool newMouseReleaseEvent(DrawingMouseEvent* event);
 };
 
 //==================================================================================================

@@ -22,20 +22,19 @@
 #include "DrawingWidget.h"
 #include "DrawingItemPoint.h"
 
-DrawingPathItem::DrawingPathItem() : DrawingShapeItem()
+DrawingPathItem::DrawingPathItem() : DrawingRectResizeItem()
 {
 	setName("Path");
 
-	for(int i = 0; i < 8; i++)
-		addPoint(new DrawingItemPoint(QPointF(0, 0), DrawingItemPoint::Control));
+	QList<DrawingItemPoint*> points = DrawingPathItem::points();
+	for(int i = 0; i < points.size(); i++) points[i]->setFlags(DrawingItemPoint::Control);
 }
 
-DrawingPathItem::DrawingPathItem(const DrawingPathItem& item) : DrawingShapeItem(item)
+DrawingPathItem::DrawingPathItem(const DrawingPathItem& item) : DrawingRectResizeItem(item)
 {
 	mName = item.mName;
 	mPath = item.mPath;
 	mPathRect = item.mPathRect;
-	setItemRect(item.itemRect());
 
 	QList<DrawingItemPoint*> points = DrawingPathItem::points();
 	QList<DrawingItemPoint*> otherItemPoints = item.points();
@@ -62,48 +61,6 @@ void DrawingPathItem::setName(const QString& name)
 QString DrawingPathItem::name() const
 {
 	return mName;
-}
-
-//==================================================================================================
-
-void DrawingPathItem::setRect(const QRectF& rect)
-{
-	QList<DrawingItemPoint*> points = DrawingPathItem::points();
-
-	if (points.size() >= 8)
-	{
-		QRectF mapRect = mapFromScene(rect);
-
-		points[0]->setPos(mapRect.left(), mapRect.top());
-		points[1]->setPos(mapRect.center().x(), mapRect.top());
-		points[2]->setPos(mapRect.right(), mapRect.top());
-		points[3]->setPos(mapRect.right(), mapRect.center().y());
-		points[4]->setPos(mapRect.right(), mapRect.bottom());
-		points[5]->setPos(mapRect.center().x(), mapRect.bottom());
-		points[6]->setPos(mapRect.left(), mapRect.bottom());
-		points[7]->setPos(mapRect.left(), mapRect.center().y());
-	}
-}
-
-void DrawingPathItem::setRect(qreal left, qreal top, qreal width, qreal height)
-{
-	setRect(QRectF(left, top, width, height));
-}
-
-QRectF DrawingPathItem::rect() const
-{
-	QRectF rect;
-
-	QList<DrawingItemPoint*> points = DrawingPathItem::points();
-	if (points.size() >= 5)
-	{
-		QPointF p1 = mapToScene(points[0]->pos());
-		QPointF p2 = mapToScene(points[4]->pos());
-
-		rect = QRectF(qMin(p1.x(), p2.x()), qMin(p1.y(), p2.y()), qAbs(p1.x() - p2.x()), qAbs(p1.y() - p2.y()));
-	}
-
-	return rect;
 }
 
 //==================================================================================================
@@ -238,13 +195,6 @@ QPainterPath DrawingPathItem::transformedPath() const
 
 //==================================================================================================
 
-QRectF DrawingPathItem::boundingRect() const
-{
-	QRectF rect;
-	if (isValid()) rect = itemRect();
-	return rect;
-}
-
 QPainterPath DrawingPathItem::shape() const
 {
 	QPainterPath shape;
@@ -265,7 +215,7 @@ QPainterPath DrawingPathItem::shape() const
 
 bool DrawingPathItem::isValid() const
 {
-	return (!itemRect().isNull() && !mPathRect.isNull() && !mPath.isEmpty());
+	return (DrawingRectResizeItem::isValid() && !mPathRect.isNull() && !mPath.isEmpty());
 }
 
 //==================================================================================================
@@ -296,77 +246,8 @@ void DrawingPathItem::paint(QPainter* painter)
 
 void DrawingPathItem::resizeItem(DrawingItemPoint* itemPoint, const QPointF& pos)
 {
-	DrawingItem::resizeItem(itemPoint, pos);
-
-	QList<DrawingItemPoint*> points = DrawingShapeItem::points();
-	if (points.size() >= 8)
-	{
-		QRectF rect(points[0]->pos(), points[4]->pos());
-		int pointIndex = points.indexOf(itemPoint);
-
-		if (0 <= pointIndex && pointIndex < 8)
-		{
-			switch (pointIndex)
-			{
-			case 0:	rect.setTopLeft(itemPoint->pos()); break;
-			case 1:	rect.setTop(itemPoint->y()); break;
-			case 2:	rect.setTopRight(itemPoint->pos()); break;
-			case 3:	rect.setRight(itemPoint->x()); break;
-			case 4:	rect.setBottomRight(itemPoint->pos()); break;
-			case 5:	rect.setBottom(itemPoint->y()); break;
-			case 6:	rect.setBottomLeft(itemPoint->pos()); break;
-			case 7:	rect.setLeft(itemPoint->x()); break;
-			default: break;
-			}
-
-			points[0]->setPos(rect.left(), rect.top());
-			points[1]->setPos(rect.center().x(), rect.top());
-			points[2]->setPos(rect.right(), rect.top());
-			points[3]->setPos(rect.right(), rect.center().y());
-			points[4]->setPos(rect.right(), rect.bottom());
-			points[5]->setPos(rect.center().x(), rect.bottom());
-			points[6]->setPos(rect.left(), rect.bottom());
-			points[7]->setPos(rect.left(), rect.center().y());
-		}
-	}
+	DrawingRectResizeItem::resizeItem(itemPoint, pos);
 
 	for(auto keyIter = mPathConnectionPoints.begin(); keyIter != mPathConnectionPoints.end(); keyIter++)
 		keyIter.key()->setPos(mapFromPath(keyIter.value()));
-}
-
-//==================================================================================================
-
-void DrawingPathItem::setItemRect(const QRectF& rect)
-{
-	QList<DrawingItemPoint*> points = DrawingPathItem::points();
-
-	if (points.size() >= 8)
-	{
-		QRectF mapRect = rect;
-
-		points[0]->setPos(mapRect.left(), mapRect.top());
-		points[1]->setPos(mapRect.center().x(), mapRect.top());
-		points[2]->setPos(mapRect.right(), mapRect.top());
-		points[3]->setPos(mapRect.right(), mapRect.center().y());
-		points[4]->setPos(mapRect.right(), mapRect.bottom());
-		points[5]->setPos(mapRect.center().x(), mapRect.bottom());
-		points[6]->setPos(mapRect.left(), mapRect.bottom());
-		points[7]->setPos(mapRect.left(), mapRect.center().y());
-	}
-}
-
-QRectF DrawingPathItem::itemRect() const
-{
-	QRectF rect;
-
-	QList<DrawingItemPoint*> points = DrawingPathItem::points();
-	if (points.size() >= 5)
-	{
-		QPointF p1 = points[0]->pos();
-		QPointF p2 = points[4]->pos();
-
-		rect = QRectF(p1, p2);
-	}
-
-	return rect;
 }

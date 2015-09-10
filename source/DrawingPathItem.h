@@ -23,7 +23,7 @@
 
 #include <DrawingShapeItems.h>
 
-class DrawingPathItem : public DrawingShapeItem
+class DrawingPathItem : public DrawingRectResizeItem
 {
 private:
 	QString mName;
@@ -42,10 +42,6 @@ public:
 	void setName(const QString& name);
 	QString name() const;
 
-	void setRect(const QRectF& rect);
-	void setRect(qreal left, qreal top, qreal width, qreal height);
-	QRectF rect() const;
-
 	void setPath(const QPainterPath& path, const QRectF& rect);
 	QPainterPath path() const;
 	QRectF pathRect() const;
@@ -62,7 +58,6 @@ public:
 	QPainterPath transformedPath() const;
 
 	// Description
-	virtual QRectF boundingRect() const;
 	virtual QPainterPath shape() const;
 	virtual bool isValid() const;
 
@@ -70,10 +65,6 @@ public:
 
 	// Slots
 	virtual void resizeItem(DrawingItemPoint* itemPoint, const QPointF& pos);
-
-private:
-	void setItemRect(const QRectF& rect);
-	QRectF itemRect() const;
 };
 
 #endif

@@ -124,15 +124,166 @@ QColor DrawingShapeItem::brushColor() const
 //==================================================================================================
 //==================================================================================================
 
-DrawingRectItem::DrawingRectItem() : DrawingShapeItem()
+DrawingRectResizeItem::DrawingRectResizeItem() : DrawingShapeItem()
 {
-	setCornerRadii(0, 0);
-
 	DrawingItemPoint::Flags flags = (DrawingItemPoint::Control | DrawingItemPoint::Connection);
 	for(int i = 0; i < 8; i++) addPoint(new DrawingItemPoint(QPointF(0, 0), flags));
 }
 
-DrawingRectItem::DrawingRectItem(const DrawingRectItem& item) : DrawingShapeItem(item) { }
+DrawingRectResizeItem::DrawingRectResizeItem(const DrawingRectResizeItem& item) : DrawingShapeItem(item) { }
+
+DrawingRectResizeItem::~DrawingRectResizeItem() { }
+
+//==================================================================================================
+
+void DrawingRectResizeItem::setRect(const QRectF& rect)
+{
+	QRectF itemRect = mapFromScene(rect);
+	QList<DrawingItemPoint*> points = DrawingRectResizeItem::points();
+
+	if (points.size() >= 8)
+	{
+		QRectF mapRect = rect;
+
+		points[0]->setPos(itemRect.left(), itemRect.top());
+		points[1]->setPos(itemRect.center().x(), itemRect.top());
+		points[2]->setPos(itemRect.right(), itemRect.top());
+		points[3]->setPos(itemRect.right(), itemRect.center().y());
+		points[4]->setPos(itemRect.right(), itemRect.bottom());
+		points[5]->setPos(itemRect.center().x(), itemRect.bottom());
+		points[6]->setPos(itemRect.left(), itemRect.bottom());
+		points[7]->setPos(itemRect.left(), itemRect.center().y());
+	}
+}
+
+void DrawingRectResizeItem::setRect(qreal left, qreal top, qreal width, qreal height)
+{
+	setRect(QRectF(left, top, width, height));
+}
+
+QRectF DrawingRectResizeItem::rect() const
+{
+	return mapToScene(itemRect());
+}
+
+//==================================================================================================
+
+QRectF DrawingRectResizeItem::boundingRect() const
+{
+	QRectF rect;
+
+	if (isValid())
+	{
+		QRectF itemRect = DrawingRectResizeItem::itemRect();
+		QPointF p1 = itemRect.topLeft();
+		QPointF p2 = itemRect.bottomRight();
+
+		rect = QRectF(qMin(p1.x(), p2.x()), qMin(p1.y(), p2.y()), qAbs(p1.x() - p2.x()), qAbs(p1.y() - p2.y()));
+	}
+
+	return rect;
+}
+
+bool DrawingRectResizeItem::isValid() const
+{
+	QList<DrawingItemPoint*> points = DrawingRectResizeItem::points();
+	return (points.size() >= 8 && points[0]->pos() != points[4]->pos());
+}
+
+//==================================================================================================
+
+void DrawingRectResizeItem::resizeItem(DrawingItemPoint* itemPoint, const QPointF& scenePos)
+{
+	DrawingShapeItem::resizeItem(itemPoint, scenePos);
+
+	QList<DrawingItemPoint*> points = DrawingShapeItem::points();
+	if (points.size() >= 8)
+	{
+		QRectF rect = DrawingRectResizeItem::itemRect();
+		int pointIndex = points.indexOf(itemPoint);
+
+		if (0 <= pointIndex && pointIndex < 8)
+		{
+			switch (pointIndex)
+			{
+			case 0:	rect.setTopLeft(itemPoint->pos()); break;
+			case 1:	rect.setTop(itemPoint->y()); break;
+			case 2:	rect.setTopRight(itemPoint->pos()); break;
+			case 3:	rect.setRight(itemPoint->x()); break;
+			case 4:	rect.setBottomRight(itemPoint->pos()); break;
+			case 5:	rect.setBottom(itemPoint->y()); break;
+			case 6:	rect.setBottomLeft(itemPoint->pos()); break;
+			case 7:	rect.setLeft(itemPoint->x()); break;
+			default: break;
+			}
+
+			points[0]->setPos(rect.left(), rect.top());
+			points[1]->setPos(rect.center().x(), rect.top());
+			points[2]->setPos(rect.right(), rect.top());
+			points[3]->setPos(rect.right(), rect.center().y());
+			points[4]->setPos(rect.right(), rect.bottom());
+			points[5]->setPos(rect.center().x(), rect.bottom());
+			points[6]->setPos(rect.left(), rect.bottom());
+			points[7]->setPos(rect.left(), rect.center().y());
+		}
+	}
+}
+
+//==================================================================================================
+
+bool DrawingRectResizeItem::newItemCopyEvent()
+{
+	QList<DrawingItemPoint*> points = DrawingShapeItem::points();
+
+	for(auto pointIter = points.begin(); pointIter != points.end(); pointIter++)
+		(*pointIter)->setPos(0, 0);
+
+	return true;
+}
+
+void DrawingRectResizeItem::newMousePressEvent(DrawingMouseEvent* event)
+{
+	DrawingItem::newMousePressEvent(event);
+}
+
+void DrawingRectResizeItem::newMouseMoveEvent(DrawingMouseEvent* event)
+{
+	QList<DrawingItemPoint*> points = DrawingRectResizeItem::points();
+
+	if ((event->buttons() & Qt::LeftButton) && points[4])
+	{
+		QPointF newPos = event->scenePos();
+		if (drawing()) newPos = drawing()->roundToGrid(newPos);
+
+		resizeItem(points[4], newPos);
+	}
+	else DrawingItem::newMouseMoveEvent(event);
+}
+
+bool DrawingRectResizeItem::newMouseReleaseEvent(DrawingMouseEvent* event)
+{
+	Q_UNUSED(event);
+	return isValid();
+}
+
+//==================================================================================================
+
+QRectF DrawingRectResizeItem::itemRect() const
+{
+	QList<DrawingItemPoint*> points = DrawingShapeItem::points();
+	return (isValid()) ? QRectF(points[0]->pos(), points[4]->pos()) : QRectF();
+}
+
+//==================================================================================================
+//==================================================================================================
+//==================================================================================================
+
+DrawingRectItem::DrawingRectItem() : DrawingRectResizeItem()
+{
+	setCornerRadii(0, 0);
+}
+
+DrawingRectItem::DrawingRectItem(const DrawingRectItem& item) : DrawingRectResizeItem(item) { }
 
 DrawingRectItem::~DrawingRectItem() { }
 
@@ -141,48 +292,6 @@ DrawingRectItem::~DrawingRectItem() { }
 DrawingItem* DrawingRectItem::copy() const
 {
 	return new DrawingRectItem(*this);
-}
-
-//==================================================================================================
-
-void DrawingRectItem::setRect(const QRectF& rect)
-{
-	QList<DrawingItemPoint*> points = DrawingRectItem::points();
-
-	if (points.size() >= 8)
-	{
-		QRectF mapRect = mapFromScene(rect);
-
-		points[0]->setPos(mapRect.left(), mapRect.top());
-		points[1]->setPos(mapRect.center().x(), mapRect.top());
-		points[2]->setPos(mapRect.right(), mapRect.top());
-		points[3]->setPos(mapRect.right(), mapRect.center().y());
-		points[4]->setPos(mapRect.right(), mapRect.bottom());
-		points[5]->setPos(mapRect.center().x(), mapRect.bottom());
-		points[6]->setPos(mapRect.left(), mapRect.bottom());
-		points[7]->setPos(mapRect.left(), mapRect.center().y());
-	}
-}
-
-void DrawingRectItem::setRect(qreal left, qreal top, qreal width, qreal height)
-{
-	setRect(QRectF(left, top, width, height));
-}
-
-QRectF DrawingRectItem::rect() const
-{
-	QRectF rect;
-
-	QList<DrawingItemPoint*> points = DrawingRectItem::points();
-	if (points.size() >= 5)
-	{
-		QPointF p1 = mapToScene(points[0]->pos());
-		QPointF p2 = mapToScene(points[4]->pos());
-
-		rect = QRectF(qMin(p1.x(), p2.x()), qMin(p1.y(), p2.y()), qAbs(p1.x() - p2.x()), qAbs(p1.y() - p2.y()));
-	}
-
-	return rect;
 }
 
 //==================================================================================================
@@ -205,22 +314,6 @@ qreal DrawingRectItem::cornerRadiusY() const
 
 //==================================================================================================
 
-QRectF DrawingRectItem::boundingRect() const
-{
-	QRectF rect;
-
-	if (isValid())
-	{
-		QList<DrawingItemPoint*> points = DrawingRectItem::points();
-		QPointF p1 = points[0]->pos();
-		QPointF p2 = points[4]->pos();
-
-		rect = QRectF(qMin(p1.x(), p2.x()), qMin(p1.y(), p2.y()), qAbs(p1.x() - p2.x()), qAbs(p1.y() - p2.y()));
-	}
-
-	return rect;
-}
-
 QPainterPath DrawingRectItem::shape() const
 {
 	QPainterPath shape;
@@ -231,7 +324,7 @@ QPainterPath DrawingRectItem::shape() const
 		QPen pen = DrawingRectItem::pen();
 
 		// Add rect
-		drawPath.addRoundedRect(boundingRect(), cornerRadiusX(), cornerRadiusY());
+		drawPath.addRoundedRect(itemRect(), cornerRadiusX(), cornerRadiusY());
 
 		// Determine outline path
 		pen.setWidthF(qMax(pen.widthF(), qAbs(points().first()->itemRect().width())));
@@ -241,12 +334,6 @@ QPainterPath DrawingRectItem::shape() const
 	}
 
 	return shape;
-}
-
-bool DrawingRectItem::isValid() const
-{
-	QList<DrawingItemPoint*> points = DrawingRectItem::points();
-	return (points.size() >= 8 && points[0]->pos() != points[4]->pos());
 }
 
 //==================================================================================================
@@ -261,7 +348,7 @@ void DrawingRectItem::paint(QPainter* painter)
 		// Draw rect
 		painter->setBrush(brush());
 		painter->setPen(pen());
-		painter->drawRoundedRect(boundingRect(), cornerRadiusX(), cornerRadiusY());
+		painter->drawRoundedRect(itemRect(), cornerRadiusX(), cornerRadiusY());
 
 		painter->setBrush(sceneBrush);
 		painter->setPen(scenePen);
@@ -274,98 +361,16 @@ void DrawingRectItem::paint(QPainter* painter)
 }
 
 //==================================================================================================
-
-void DrawingRectItem::resizeItem(DrawingItemPoint* itemPoint, const QPointF& scenePos)
-{
-	DrawingShapeItem::resizeItem(itemPoint, scenePos);
-
-	QList<DrawingItemPoint*> points = DrawingShapeItem::points();
-	if (points.size() >= 8)
-	{
-		QRectF rect(points[0]->pos(), points[4]->pos());
-		int pointIndex = points.indexOf(itemPoint);
-
-		if (0 <= pointIndex && pointIndex < 8)
-		{
-			switch (pointIndex)
-			{
-			case 0:	rect.setTopLeft(itemPoint->pos()); break;
-			case 1:	rect.setTop(itemPoint->y()); break;
-			case 2:	rect.setTopRight(itemPoint->pos()); break;
-			case 3:	rect.setRight(itemPoint->x()); break;
-			case 4:	rect.setBottomRight(itemPoint->pos()); break;
-			case 5:	rect.setBottom(itemPoint->y()); break;
-			case 6:	rect.setBottomLeft(itemPoint->pos()); break;
-			case 7:	rect.setLeft(itemPoint->x()); break;
-			default: break;
-			}
-
-			points[0]->setPos(rect.left(), rect.top());
-			points[1]->setPos(rect.center().x(), rect.top());
-			points[2]->setPos(rect.right(), rect.top());
-			points[3]->setPos(rect.right(), rect.center().y());
-			points[4]->setPos(rect.right(), rect.bottom());
-			points[5]->setPos(rect.center().x(), rect.bottom());
-			points[6]->setPos(rect.left(), rect.bottom());
-			points[7]->setPos(rect.left(), rect.center().y());
-		}
-	}
-}
-
-//==================================================================================================
-
-bool DrawingRectItem::newItemCopyEvent()
-{
-	QList<DrawingItemPoint*> points = DrawingShapeItem::points();
-
-	for(auto pointIter = points.begin(); pointIter != points.end(); pointIter++)
-		(*pointIter)->setPos(0, 0);
-
-	return true;
-}
-
-void DrawingRectItem::newMousePressEvent(DrawingMouseEvent* event)
-{
-	DrawingItem::newMousePressEvent(event);
-}
-
-void DrawingRectItem::newMouseMoveEvent(DrawingMouseEvent* event)
-{
-	QList<DrawingItemPoint*> points = DrawingRectItem::points();
-
-	if ((event->buttons() & Qt::LeftButton) && points[4])
-	{
-		QPointF newPos = event->scenePos();
-		if (drawing()) newPos = drawing()->roundToGrid(newPos);
-
-		resizeItem(points[4], newPos);
-	}
-	else DrawingItem::newMouseMoveEvent(event);
-}
-
-bool DrawingRectItem::newMouseReleaseEvent(DrawingMouseEvent* event)
-{
-	Q_UNUSED(event);
-	return isValid();
-}
-
-//==================================================================================================
 //==================================================================================================
 //==================================================================================================
 
-DrawingEllipseItem::DrawingEllipseItem() : DrawingShapeItem()
+DrawingEllipseItem::DrawingEllipseItem() : DrawingRectResizeItem()
 {
-	addPoint(new DrawingItemPoint(QPointF(0, 0), DrawingItemPoint::Control));
-	addPoint(new DrawingItemPoint(QPointF(0, 0), (DrawingItemPoint::Control | DrawingItemPoint::Connection)));
-	addPoint(new DrawingItemPoint(QPointF(0, 0), DrawingItemPoint::Control));
-	addPoint(new DrawingItemPoint(QPointF(0, 0), (DrawingItemPoint::Control | DrawingItemPoint::Connection)));
-	addPoint(new DrawingItemPoint(QPointF(0, 0), DrawingItemPoint::Control));
-	addPoint(new DrawingItemPoint(QPointF(0, 0), (DrawingItemPoint::Control | DrawingItemPoint::Connection)));
-	addPoint(new DrawingItemPoint(QPointF(0, 0), DrawingItemPoint::Control));
-	addPoint(new DrawingItemPoint(QPointF(0, 0), (DrawingItemPoint::Control | DrawingItemPoint::Connection)));
+	QList<DrawingItemPoint*> points = DrawingEllipseItem::points();
+	for(int i = 0; i < points.size(); i += 2) points[i]->setFlags(DrawingItemPoint::Control);
 }
 
-DrawingEllipseItem::DrawingEllipseItem(const DrawingEllipseItem& item) : DrawingShapeItem(item) { }
+DrawingEllipseItem::DrawingEllipseItem(const DrawingEllipseItem& item) : DrawingRectResizeItem(item) { }
 
 DrawingEllipseItem::~DrawingEllipseItem() { }
 
@@ -378,64 +383,6 @@ DrawingItem* DrawingEllipseItem::copy() const
 
 //==================================================================================================
 
-void DrawingEllipseItem::setRect(const QRectF& rect)
-{
-	QList<DrawingItemPoint*> points = DrawingEllipseItem::points();
-
-	if (points.size() >= 8)
-	{
-		QRectF mapRect = mapFromScene(rect);
-
-		points[0]->setPos(mapRect.left(), mapRect.top());
-		points[1]->setPos(mapRect.center().x(), mapRect.top());
-		points[2]->setPos(mapRect.right(), mapRect.top());
-		points[3]->setPos(mapRect.right(), mapRect.center().y());
-		points[4]->setPos(mapRect.right(), mapRect.bottom());
-		points[5]->setPos(mapRect.center().x(), mapRect.bottom());
-		points[6]->setPos(mapRect.left(), mapRect.bottom());
-		points[7]->setPos(mapRect.left(), mapRect.center().y());
-	}
-}
-
-void DrawingEllipseItem::setRect(qreal left, qreal top, qreal width, qreal height)
-{
-	setRect(QRectF(left, top, width, height));
-}
-
-QRectF DrawingEllipseItem::rect() const
-{
-	QRectF rect;
-
-	QList<DrawingItemPoint*> points = DrawingEllipseItem::points();
-	if (points.size() >= 5)
-	{
-		QPointF p1 = mapToScene(points[0]->pos());
-		QPointF p2 = mapToScene(points[4]->pos());
-
-		rect = QRectF(qMin(p1.x(), p2.x()), qMin(p1.y(), p2.y()), qAbs(p1.x() - p2.x()), qAbs(p1.y() - p2.y()));
-	}
-
-	return rect;
-}
-
-//==================================================================================================
-
-QRectF DrawingEllipseItem::boundingRect() const
-{
-	QRectF rect;
-
-	if (isValid())
-	{
-		QList<DrawingItemPoint*> points = DrawingEllipseItem::points();
-		QPointF p1 = points[0]->pos();
-		QPointF p2 = points[4]->pos();
-
-		rect = QRectF(qMin(p1.x(), p2.x()), qMin(p1.y(), p2.y()), qAbs(p1.x() - p2.x()), qAbs(p1.y() - p2.y()));
-	}
-
-	return rect;
-}
-
 QPainterPath DrawingEllipseItem::shape() const
 {
 	QPainterPath shape;
@@ -446,7 +393,7 @@ QPainterPath DrawingEllipseItem::shape() const
 		QPen pen = DrawingEllipseItem::pen();
 
 		// Add rect
-		drawPath.addEllipse(boundingRect());
+		drawPath.addEllipse(itemRect());
 
 		// Determine outline path
 		pen.setWidthF(qMax(pen.widthF(), qAbs(points().first()->itemRect().width())));
@@ -456,12 +403,6 @@ QPainterPath DrawingEllipseItem::shape() const
 	}
 
 	return shape;
-}
-
-bool DrawingEllipseItem::isValid() const
-{
-	QList<DrawingItemPoint*> points = DrawingEllipseItem::points();
-	return (points.size() >= 8 && points[0]->pos() != points[4]->pos());
 }
 
 //==================================================================================================
@@ -476,7 +417,7 @@ void DrawingEllipseItem::paint(QPainter* painter)
 		// Draw rect
 		painter->setBrush(brush());
 		painter->setPen(pen());
-		painter->drawEllipse(boundingRect());
+		painter->drawEllipse(itemRect());
 
 		painter->setBrush(sceneBrush);
 		painter->setPen(scenePen);
@@ -486,82 +427,6 @@ void DrawingEllipseItem::paint(QPainter* painter)
 	//painter->setBrush(QColor(255, 0, 255, 128));
 	//painter->setPen(QPen(painter->brush(), 1));
 	//painter->drawPath(shape());
-}
-
-//==================================================================================================
-
-void DrawingEllipseItem::resizeItem(DrawingItemPoint* itemPoint, const QPointF& scenePos)
-{
-	DrawingShapeItem::resizeItem(itemPoint, scenePos);
-
-	QList<DrawingItemPoint*> points = DrawingShapeItem::points();
-	if (points.size() >= 8)
-	{
-		QRectF rect(points[0]->pos(), points[4]->pos());
-		int pointIndex = points.indexOf(itemPoint);
-
-		if (0 <= pointIndex && pointIndex < 8)
-		{
-			switch (pointIndex)
-			{
-			case 0:	rect.setTopLeft(itemPoint->pos()); break;
-			case 1:	rect.setTop(itemPoint->y()); break;
-			case 2:	rect.setTopRight(itemPoint->pos()); break;
-			case 3:	rect.setRight(itemPoint->x()); break;
-			case 4:	rect.setBottomRight(itemPoint->pos()); break;
-			case 5:	rect.setBottom(itemPoint->y()); break;
-			case 6:	rect.setBottomLeft(itemPoint->pos()); break;
-			case 7:	rect.setLeft(itemPoint->x()); break;
-			default: break;
-			}
-
-			points[0]->setPos(rect.left(), rect.top());
-			points[1]->setPos(rect.center().x(), rect.top());
-			points[2]->setPos(rect.right(), rect.top());
-			points[3]->setPos(rect.right(), rect.center().y());
-			points[4]->setPos(rect.right(), rect.bottom());
-			points[5]->setPos(rect.center().x(), rect.bottom());
-			points[6]->setPos(rect.left(), rect.bottom());
-			points[7]->setPos(rect.left(), rect.center().y());
-		}
-	}
-}
-
-//==================================================================================================
-
-bool DrawingEllipseItem::newItemCopyEvent()
-{
-	QList<DrawingItemPoint*> points = DrawingShapeItem::points();
-
-	for(auto pointIter = points.begin(); pointIter != points.end(); pointIter++)
-		(*pointIter)->setPos(0, 0);
-
-	return true;
-}
-
-void DrawingEllipseItem::newMousePressEvent(DrawingMouseEvent* event)
-{
-	DrawingItem::newMousePressEvent(event);
-}
-
-void DrawingEllipseItem::newMouseMoveEvent(DrawingMouseEvent* event)
-{
-	QList<DrawingItemPoint*> points = DrawingEllipseItem::points();
-
-	if ((event->buttons() & Qt::LeftButton) && points[4])
-	{
-		QPointF newPos = event->scenePos();
-		if (drawing()) newPos = drawing()->roundToGrid(newPos);
-
-		resizeItem(points[4], newPos);
-	}
-	else DrawingItem::newMouseMoveEvent(event);
-}
-
-bool DrawingEllipseItem::newMouseReleaseEvent(DrawingMouseEvent* event)
-{
-	Q_UNUSED(event);
-	return isValid();
 }
 
 //==================================================================================================
