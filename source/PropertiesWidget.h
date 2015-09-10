@@ -60,29 +60,32 @@ signals:
 //==================================================================================================
 
 class ColorPushButton;
+class PositionWidget;
 
 class ItemPropertiesWidget : public QWidget
 {
 	Q_OBJECT
 
 private:
-	QLineEdit* mPosXEdit;
-	QLineEdit* mPosYEdit;
+	QGroupBox* mPositionGroup;
+	QFormLayout* mPositionLayout;
+	PositionWidget* mPositionWidget;
 
-	QLineEdit* mRectLeftEdit;
-	QLineEdit* mRectTopEdit;
-	QLineEdit* mRectRightEdit;
-	QLineEdit* mRectBottomEdit;
-	QLineEdit* mRectCornerRadiusXEdit;
-	QLineEdit* mRectCornerRadiusYEdit;
+	QGroupBox* mRectGroup;
+	QFormLayout* mRectLayout;
+	PositionWidget* mRectTopLeftWidget;
+	PositionWidget* mRectBottomRightWidget;
+	PositionWidget* mCornerRadiusWidget;
 
-	QLineEdit* mStartPosXEdit;
-	QLineEdit* mStartPosYEdit;
+	QGroupBox* mStartPointGroup;
+	QFormLayout* mStartPointLayout;
+	PositionWidget* mStartPosWidget;
 	QComboBox* mStartArrowStyleCombo;
 	QLineEdit* mStartArrowSizeEdit;
 
-	QLineEdit* mEndPosXEdit;
-	QLineEdit* mEndPosYEdit;
+	QGroupBox* mEndPointGroup;
+	QFormLayout* mEndPointLayout;
+	PositionWidget* mEndPosWidget;
 	QComboBox* mEndArrowStyleCombo;
 	QLineEdit* mEndArrowSizeEdit;
 
@@ -93,6 +96,8 @@ private:
 	ColorPushButton* mPenColorButton;
 	ColorPushButton* mBrushColorButton;
 
+	QGroupBox* mTextGroup;
+	QFormLayout* mTextLayout;
 	QFontComboBox* mFontFamilyCombo;
 	QLineEdit* mFontSizeEdit;
 	QWidget* mFontStyleWidget;
@@ -137,5 +142,40 @@ private:
 	void addWidget(QFormLayout*& formLayout, const QString& label, QWidget* widget, bool checked);
 	int labelWidth() const;
 };
+
+//==================================================================================================
+
+class PositionWidget : public QWidget
+{
+	Q_OBJECT
+
+private:
+	QLineEdit* mXEdit;
+	QLineEdit* mYEdit;
+
+public:
+	PositionWidget(QWidget* parent = nullptr);
+	PositionWidget(const QPointF& pos, QWidget* parent = nullptr);
+	~PositionWidget();
+
+	QPointF pos() const;
+	qreal x() const;
+	qreal y() const;
+
+public slots:
+	void setPos(const QPointF& pos);
+	void setX(qreal x);
+	void setY(qreal y);
+
+signals:
+	void positionChanged(const QPointF& pos);
+
+private slots:
+	void handleEditingFinished();
+
+private:
+	void setupWidget();
+};
+
 
 #endif
