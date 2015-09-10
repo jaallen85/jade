@@ -34,5 +34,11 @@
         <file>oxygen/draw-polyline.png</file>
         <file>oxygen/draw-rectangle.png</file>
         <file>oxygen/draw-text.png</file>
+        <file>penstyle/pen_dash_dot_dotted.png</file>
+        <file>penstyle/pen_dash_dotted.png</file>
+        <file>penstyle/pen_dashed.png</file>
+        <file>penstyle/pen_dotted.png</file>
+        <file>penstyle/pen_none.png</file>
+        <file>penstyle/pen_solid.png</file>
     </qresource>
 </RCC>

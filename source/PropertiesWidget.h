@@ -86,6 +86,8 @@ private:
 	QComboBox* mEndArrowStyleCombo;
 	QLineEdit* mEndArrowSizeEdit;
 
+	QGroupBox* mPenBrushGroup;
+	QFormLayout* mPenBrushLayout;
 	QComboBox* mPenStyleCombo;
 	QLineEdit* mPenWidthEdit;
 	ColorPushButton* mPenColorButton;
@@ -114,6 +116,12 @@ public:
 	ItemPropertiesWidget(const QList<DrawingItem*>& items);
 	~ItemPropertiesWidget();
 
+signals:
+	void propertiesUpdated(const QMap<QString,QVariant>& properties);
+
+private slots:
+	void handlePropertyChange();
+
 private:
 	QGroupBox* createPositionGroup();
 	QGroupBox* createRectGroup();
@@ -124,6 +132,7 @@ private:
 	//QGroupBox* createControlPointsGroup();
 	//QGroupBox* createPolyPointsGroup();
 
+	bool isSender(QObject* sender, QWidget* widget, QFormLayout* layout);
 	bool checkAllItemsForProperty(const QString& propertyName, bool& propertiesMatch, QVariant& propertyValue);
 	void addWidget(QFormLayout*& formLayout, const QString& label, QWidget* widget, bool checked);
 	int labelWidth() const;

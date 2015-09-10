@@ -77,24 +77,31 @@ ItemPropertiesWidget::ItemPropertiesWidget(const QList<DrawingItem*>& items)
 
 	mPosXEdit = nullptr;
 	mPosYEdit = nullptr;
+
 	mRectLeftEdit = nullptr;
 	mRectTopEdit = nullptr;
 	mRectRightEdit = nullptr;
 	mRectBottomEdit = nullptr;
 	mRectCornerRadiusXEdit = nullptr;
 	mRectCornerRadiusYEdit = nullptr;
+
 	mStartPosXEdit = nullptr;
 	mStartPosYEdit = nullptr;
 	mStartArrowStyleCombo = nullptr;
 	mStartArrowSizeEdit = nullptr;
+
 	mEndPosXEdit = nullptr;
 	mEndPosYEdit = nullptr;
 	mEndArrowStyleCombo = nullptr;
 	mEndArrowSizeEdit = nullptr;
+
+	mPenBrushGroup = nullptr;
+	mPenBrushLayout = nullptr;
 	mPenStyleCombo = nullptr;
 	mPenWidthEdit = nullptr;
 	mPenColorButton = nullptr;
 	mBrushColorButton = nullptr;
+
 	mFontFamilyCombo = nullptr;
 	mFontSizeEdit = nullptr;
 	mFontStyleWidget = nullptr;
@@ -107,6 +114,7 @@ ItemPropertiesWidget::ItemPropertiesWidget(const QList<DrawingItem*>& items)
 	mTextAlignmentVerticalCombo = nullptr;
 	mTextColorButton = nullptr;
 	mCaptionEdit = nullptr;
+
 	//mControlPointsWidget = nullptr;
 	//mPolyPointsWidget = nullptr;
 
@@ -136,10 +144,26 @@ ItemPropertiesWidget::~ItemPropertiesWidget() { }
 
 //==================================================================================================
 
+void ItemPropertiesWidget::handlePropertyChange()
+{
+	QMap<QString,QVariant> newProperties;
+
+	if (isSender(sender(), mPenStyleCombo, mPenBrushLayout))
+		newProperties["Pen Style"] = QVariant((quint32)mPenStyleCombo->currentIndex());
+	else if (isSender(sender(), mPenWidthEdit, mPenBrushLayout))
+		newProperties["Pen Width"] = QVariant(mPenWidthEdit->text());
+	else if (isSender(sender(), mPenColorButton, mPenBrushLayout))
+		newProperties["Pen Color"] = QVariant(mPenColorButton->color());
+	else if (isSender(sender(), mBrushColorButton, mPenBrushLayout))
+		newProperties["Brush Color"] = QVariant(mBrushColorButton->color());
+
+	if (!newProperties.isEmpty()) emit propertiesUpdated(newProperties);
+}
+
+//==================================================================================================
+
 QGroupBox* ItemPropertiesWidget::createPenBrushGroup()
 {
-	QGroupBox* penBrushGroup = nullptr;
-	QFormLayout* penBrushLayout = nullptr;
 	bool propertiesMatch = false;
 	QVariant propertyValue;
 
@@ -154,8 +178,9 @@ QGroupBox* ItemPropertiesWidget::createPenBrushGroup()
 		mPenStyleCombo->addItem(QIcon(":/icons/penstyle/pen_dash_dot_dotted.png"), "Dash-Dot-Dotted Line");
 
 		if (propertyValue.isValid()) mPenStyleCombo->setCurrentIndex(propertyValue.toUInt());
+		connect(mPenStyleCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(handlePropertyChange()));
 
-		addWidget(penBrushLayout, "Pen Style: ", mPenStyleCombo, propertiesMatch);
+		addWidget(mPenBrushLayout, "Pen Style: ", mPenStyleCombo, propertiesMatch);
 	}
 
 	if (checkAllItemsForProperty("Pen Width", propertiesMatch, propertyValue))
@@ -164,8 +189,9 @@ QGroupBox* ItemPropertiesWidget::createPenBrushGroup()
 		mPenWidthEdit->setValidator(new QDoubleValidator(0, std::numeric_limits<qreal>::max(), 6));
 
 		if (propertyValue.isValid()) mPenWidthEdit->setText(QString::number(propertyValue.toDouble()));
+		connect(mPenWidthEdit, SIGNAL(editingFinished()), this, SLOT(handlePropertyChange()));
 
-		addWidget(penBrushLayout, "Pen Width: ", mPenWidthEdit, propertiesMatch);
+		addWidget(mPenBrushLayout, "Pen Width: ", mPenWidthEdit, propertiesMatch);
 	}
 
 	if (checkAllItemsForProperty("Pen Color", propertiesMatch, propertyValue))
@@ -173,8 +199,9 @@ QGroupBox* ItemPropertiesWidget::createPenBrushGroup()
 		mPenColorButton = new ColorPushButton();
 
 		if (propertyValue.isValid()) mPenColorButton->setColor(propertyValue.value<QColor>());
+		connect(mPenColorButton, SIGNAL(colorChanged(const QColor&)), this, SLOT(handlePropertyChange()));
 
-		addWidget(penBrushLayout, "Pen Color: ", mPenColorButton, propertiesMatch);
+		addWidget(mPenBrushLayout, "Pen Color: ", mPenColorButton, propertiesMatch);
 	}
 
 	if (checkAllItemsForProperty("Brush Color", propertiesMatch, propertyValue))
@@ -182,22 +209,30 @@ QGroupBox* ItemPropertiesWidget::createPenBrushGroup()
 		mBrushColorButton = new ColorPushButton();
 
 		if (propertyValue.isValid()) mBrushColorButton->setColor(propertyValue.value<QColor>());
+		connect(mBrushColorButton, SIGNAL(colorChanged(const QColor&)), this, SLOT(handlePropertyChange()));
 
-		addWidget(penBrushLayout, "Brush Color: ", mBrushColorButton, propertiesMatch);
+		addWidget(mPenBrushLayout, "Brush Color: ", mBrushColorButton, propertiesMatch);
 	}
 
-	if (penBrushLayout)
+	if (mPenBrushLayout)
 	{
-		penBrushGroup = new QGroupBox("Pen and Brush");
-		penBrushGroup->setLayout(penBrushLayout);
+		mPenBrushGroup = new QGroupBox("Pen and Brush");
+		mPenBrushGroup->setLayout(mPenBrushLayout);
 	}
 
-	return penBrushGroup;
+	return mPenBrushGroup;
 }
 
 //==================================================================================================
 
-bool ItemPropertiesWidget::checkAllItemsForProperty(const QString& propertyName, bool& propertiesMatch, QVariant& propertyValue)
+bool ItemPropertiesWidget::isSender(QObject* sender, QWidget* widget, QFormLayout* layout)
+{
+	return (widget && (sender == widget ||
+		(layout && sender == layout->labelForField(widget) && widget->isEnabled())));
+}
+
+bool ItemPropertiesWidget::checkAllItemsForProperty(const QString& propertyName,
+	bool& propertiesMatch, QVariant& propertyValue)
 {
 	bool allItemsHaveProperty = true;
 
@@ -217,7 +252,8 @@ bool ItemPropertiesWidget::checkAllItemsForProperty(const QString& propertyName,
 	return allItemsHaveProperty;
 }
 
-void ItemPropertiesWidget::addWidget(QFormLayout*& formLayout, const QString& label, QWidget* widget, bool checked)
+void ItemPropertiesWidget::addWidget(QFormLayout*& formLayout, const QString& label,
+	QWidget* widget, bool checked)
 {
 	if (formLayout == nullptr)
 	{
@@ -233,6 +269,7 @@ void ItemPropertiesWidget::addWidget(QFormLayout*& formLayout, const QString& la
 		checkBox->setChecked(checked);
 		widget->setEnabled(checked);
 		connect(checkBox, SIGNAL(toggled(bool)), widget, SLOT(setEnabled(bool)));
+		connect(checkBox, SIGNAL(toggled(bool)), this, SLOT(handlePropertyChange()));
 
 		formLayout->addRow(checkBox, widget);
 	}
