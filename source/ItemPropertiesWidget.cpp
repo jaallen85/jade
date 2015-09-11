@@ -170,22 +170,60 @@ void ItemPropertiesWidget::updateGeometry()
 
 void ItemPropertiesWidget::handlePositionChange()
 {
-	//mPositionWidget
+	emit positionUpdated(mPositionWidget->pos());
 }
 
 void ItemPropertiesWidget::handleRectResize()
 {
-	//mRectTopLeftWidget
-	//mRectBottomRightWidget
+	if (mItems.size() > 0)
+	{
+		DrawingRectResizeItem* rectItem = dynamic_cast<DrawingRectResizeItem*>(mItems.first());
+
+		if (rectItem)
+		{
+			if (sender() == mRectTopLeftWidget)
+				emit pointPositionUpdated(rectItem->topLeftPoint(), mRectTopLeftWidget->pos());
+			else if (sender() == mRectBottomRightWidget)
+				emit pointPositionUpdated(rectItem->bottomRightPoint(), mRectBottomRightWidget->pos());
+		}
+	}
 }
 
 void ItemPropertiesWidget::handlePointResize()
 {
-	//mStartPosWidget
-	//mStartControlPosWidget
-	//mEndPosWidget
-	//mEndtControlPosWidget
-	//mPointPosWidgets
+	if (mItems.size() > 0)
+	{
+		DrawingTwoPointItem* twoPointItem = dynamic_cast<DrawingTwoPointItem*>(mItems.first());
+		DrawingCurveItem* curveItem = dynamic_cast<DrawingCurveItem*>(mItems.first());
+		DrawingPolylineItem* polylineItem = dynamic_cast<DrawingPolylineItem*>(mItems.first());
+		DrawingPolygonItem* polygonItem = dynamic_cast<DrawingPolygonItem*>(mItems.first());
+
+		if (twoPointItem)
+		{
+			if (sender() == mStartPosWidget)
+				emit pointPositionUpdated(twoPointItem->startPoint(), mStartPosWidget->pos());
+			else if (sender() == mEndPosWidget)
+				emit pointPositionUpdated(twoPointItem->endPoint(), mEndPosWidget->pos());
+		}
+
+		if (curveItem)
+		{
+			if (sender() == mStartControlPosWidget)
+				emit pointPositionUpdated(curveItem->startControlPoint(), mStartControlPosWidget->pos());
+			else if (sender() == mEndControlPosWidget)
+				emit pointPositionUpdated(curveItem->endControlPoint(), mEndControlPosWidget->pos());
+		}
+
+		if (polylineItem || polygonItem)
+		{
+			QList<DrawingItemPoint*> points = mItems.first()->points();
+			for(int i = 0; i < mPointPosWidgets.size() && i < points.size(); i++)
+			{
+				if (sender() == mPointPosWidgets[i])
+					emit pointPositionUpdated(points[i], mPointPosWidgets[i]->pos());
+			}
+		}
+	}
 }
 
 void ItemPropertiesWidget::handlePropertyChange()

@@ -64,6 +64,9 @@ public:
 	void setRect(qreal left, qreal top, qreal width, qreal height);
 	QRectF rect() const;
 
+	DrawingItemPoint* topLeftPoint() const;
+	DrawingItemPoint* bottomRightPoint() const;
+
 	// Description
 	virtual QRectF boundingRect() const;
 	virtual bool isValid() const;

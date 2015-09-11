@@ -97,6 +97,8 @@ public slots:
 	void updateGeometry();
 
 signals:
+	void positionUpdated(const QPointF& pos);
+	void pointPositionUpdated(DrawingItemPoint* itemPoint, const QPointF& pos);
 	void propertiesUpdated(const QMap<QString,QVariant>& properties);
 
 private slots:

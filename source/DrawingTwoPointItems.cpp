@@ -834,6 +834,20 @@ QPointF DrawingCurveItem::curveEndPos() const
 
 //==================================================================================================
 
+DrawingItemPoint* DrawingCurveItem::startControlPoint() const
+{
+	QList<DrawingItemPoint*> points = DrawingCurveItem::points();
+	return (points.size() >= 4) ? points[1] : nullptr;
+}
+
+DrawingItemPoint* DrawingCurveItem::endControlPoint() const
+{
+	QList<DrawingItemPoint*> points = DrawingCurveItem::points();
+	return (points.size() >= 4) ? points[2] : nullptr;
+}
+
+//==================================================================================================
+
 QRectF DrawingCurveItem::boundingRect() const
 {
 	QPainterPath drawPath;

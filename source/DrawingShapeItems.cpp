@@ -168,6 +168,20 @@ QRectF DrawingRectResizeItem::rect() const
 
 //==================================================================================================
 
+DrawingItemPoint* DrawingRectResizeItem::topLeftPoint() const
+{
+	QList<DrawingItemPoint*> points = DrawingRectResizeItem::points();
+	return (points.size() >= 8) ? points[0] : nullptr;
+}
+
+DrawingItemPoint* DrawingRectResizeItem::bottomRightPoint() const
+{
+	QList<DrawingItemPoint*> points = DrawingRectResizeItem::points();
+	return (points.size() >= 8) ? points[4] : nullptr;
+}
+
+//==================================================================================================
+
 QRectF DrawingRectResizeItem::boundingRect() const
 {
 	QRectF rect;

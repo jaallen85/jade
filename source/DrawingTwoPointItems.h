@@ -148,6 +148,9 @@ public:
 	QPointF curveEndControlPos() const;
 	QPointF curveEndPos() const;
 
+	DrawingItemPoint* startControlPoint() const;
+	DrawingItemPoint* endControlPoint() const;
+
 	// Description
 	virtual QRectF boundingRect() const;
 	virtual QPainterPath shape() const;
