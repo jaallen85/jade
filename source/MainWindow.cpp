@@ -98,10 +98,10 @@ void MainWindow::createPropertiesWidget()
 	connect(mDrawingWidget, SIGNAL(newItemChanged(DrawingItem*)),
 		mPropertiesWidget, SLOT(setFromItem(DrawingItem*)));
 
-	connect(mDrawingWidget, SIGNAL(itemsChanged(const QList<DrawingItem*>&)),
-		mPropertiesWidget, SLOT(updateItems(const QList<DrawingItem*>&)));
-	connect(mDrawingWidget, SIGNAL(itemChanged(DrawingItem*)),
-		mPropertiesWidget, SLOT(updateItem(DrawingItem*)));
+	connect(mDrawingWidget, SIGNAL(itemsGeometryChanged(const QList<DrawingItem*>&)),
+		mPropertiesWidget, SLOT(updateItemGeometry()));
+	connect(mDrawingWidget, SIGNAL(itemGeometryChanged(DrawingItem*)),
+		mPropertiesWidget, SLOT(updateItemGeometry()));
 
 	connect(mPropertiesWidget, SIGNAL(itemPositionUpdated(const QPointF&)),
 		mDrawingWidget, SLOT(moveSelection(const QPointF&)));

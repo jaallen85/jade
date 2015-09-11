@@ -42,7 +42,7 @@ PropertiesWidget::~PropertiesWidget()
 
 QSize PropertiesWidget::sizeHint() const
 {
-	return QSize(300, -1);
+	return QSize(320, -1);
 }
 
 //==================================================================================================
@@ -52,6 +52,7 @@ void PropertiesWidget::setFromItems(const QList<DrawingItem*>& items)
 	while (count() > 0)
 	{
 		QWidget* w = widget(0);
+		w->disconnect();
 		removeWidget(w);
 		delete w;
 	}
@@ -69,13 +70,7 @@ void PropertiesWidget::setFromItem(DrawingItem* item)
 
 //==================================================================================================
 
-void PropertiesWidget::updateItems(const QList<DrawingItem*>& items)
+void PropertiesWidget::updateItemGeometry()
 {
-
+	if (mItemWidget) mItemWidget->updateGeometry();
 }
-
-void PropertiesWidget::updateItem(DrawingItem* item)
-{
-
-}
-

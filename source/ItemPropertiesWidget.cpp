@@ -93,18 +93,36 @@ ItemPropertiesWidget::ItemPropertiesWidget(const QList<DrawingItem*>& items)
 	createTextGroup();
 	createPolyGroup();
 
-	QVBoxLayout* vLayout = new QVBoxLayout();
-	if (mPositionGroup) vLayout->addWidget(mPositionGroup);
-	if (mRectGroup) vLayout->addWidget(mRectGroup);
-	if (mPolyGroup) vLayout->addWidget(mPolyGroup);
-	if (mStartPointGroup) vLayout->addWidget(mStartPointGroup);
-	if (mEndPointGroup) vLayout->addWidget(mEndPointGroup);
-	if (mPenBrushGroup) vLayout->addWidget(mPenBrushGroup);
-	if (mTextGroup) vLayout->addWidget(mTextGroup);
-	vLayout->addWidget(new QWidget(), 100);
-	setLayout(vLayout);
+	if (mItems.size() > 0)
+	{
+		QVBoxLayout* vLayout = new QVBoxLayout();
+		if (mPositionGroup) vLayout->addWidget(mPositionGroup);
+		if (mRectGroup) vLayout->addWidget(mRectGroup);
+		if (mPolyGroup) vLayout->addWidget(mPolyGroup);
+		if (mStartPointGroup) vLayout->addWidget(mStartPointGroup);
+		if (mEndPointGroup) vLayout->addWidget(mEndPointGroup);
+		if (mPenBrushGroup) vLayout->addWidget(mPenBrushGroup);
+		if (mTextGroup) vLayout->addWidget(mTextGroup);
+		vLayout->addWidget(new QWidget(), 100);
+		setLayout(vLayout);
+	}
+	else
+	{
+		QVBoxLayout* vLayout = new QVBoxLayout();
+		if (mPositionGroup) vLayout->addWidget(mPositionGroup);
+		if (mRectGroup) vLayout->addWidget(mRectGroup);
+		if (mPolyGroup) vLayout->addWidget(mPolyGroup);
+		if (mPenBrushGroup) vLayout->addWidget(mPenBrushGroup);
+		if (mTextGroup) vLayout->addWidget(mTextGroup);
+		if (mStartPointGroup) vLayout->addWidget(mStartPointGroup);
+		if (mEndPointGroup) vLayout->addWidget(mEndPointGroup);
+		vLayout->addWidget(new QWidget(), 100);
+		setLayout(vLayout);
+	}
 
 	setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Preferred);
+
+	updateGeometry();
 }
 
 ItemPropertiesWidget::~ItemPropertiesWidget() { }
@@ -113,7 +131,39 @@ ItemPropertiesWidget::~ItemPropertiesWidget() { }
 
 QSize ItemPropertiesWidget::sizeHint() const
 {
-	return QSize(280, layout()->sizeHint().height());
+	return QSize(300, layout()->sizeHint().height());
+}
+
+//==================================================================================================
+
+void ItemPropertiesWidget::updateGeometry()
+{
+	if (mItems.size() > 0)
+	{
+		DrawingTwoPointItem* twoPointItem = dynamic_cast<DrawingTwoPointItem*>(mItems.first());
+		DrawingRectResizeItem* rectItem = dynamic_cast<DrawingRectResizeItem*>(mItems.first());
+		DrawingCurveItem* curveItem = dynamic_cast<DrawingCurveItem*>(mItems.first());
+		DrawingPolylineItem* polylineItem = dynamic_cast<DrawingPolylineItem*>(mItems.first());
+		DrawingPolygonItem* polygonItem = dynamic_cast<DrawingPolygonItem*>(mItems.first());
+
+		if (mPositionWidget) mPositionWidget->setPos(mItems.first()->pos());
+
+		if (mRectTopLeftWidget && rectItem) mRectTopLeftWidget->setPos(rectItem->rect().topLeft());
+		if (mRectBottomRightWidget && rectItem) mRectBottomRightWidget->setPos(rectItem->rect().bottomRight());
+
+		if (mStartPosWidget && twoPointItem) mStartPosWidget->setPos(twoPointItem->mapToScene(twoPointItem->startPoint()->pos()));
+		if (mEndPosWidget && twoPointItem) mEndPosWidget->setPos(twoPointItem->mapToScene(twoPointItem->endPoint()->pos()));
+
+		if (mStartControlPosWidget && curveItem) mStartControlPosWidget->setPos(curveItem->curveStartControlPos());
+		if (mEndControlPosWidget && curveItem) mEndControlPosWidget->setPos(curveItem->curveEndControlPos());
+
+		if (polylineItem || polygonItem)
+		{
+			QList<DrawingItemPoint*> points = mItems.first()->points();
+			for(int i = 0; i < mPointPosWidgets.size() && i < points.size(); i++)
+				mPointPosWidgets[i]->setPos(mItems.first()->mapToScene(points[i]->pos()));
+		}
+	}
 }
 
 //==================================================================================================
@@ -195,10 +245,7 @@ QGroupBox* ItemPropertiesWidget::createPositionGroup()
 		if (polylineItem || polygonItem || !(rectItem || twoPointItem))
 		{
 			mPositionWidget = new PositionWidget();
-
-			mPositionWidget->setPos(mItems.first()->pos());
 			connect(mPositionWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handlePositionChange()));
-
 			addWidget(mPositionLayout, "Position: ", mPositionWidget, true);
 		}
 	}
@@ -228,19 +275,17 @@ QGroupBox* ItemPropertiesWidget::createRectGroup()
 			QRectF rect = rectItem->rect();
 
 			mRectTopLeftWidget = new PositionWidget();
-			mRectBottomRightWidget = new PositionWidget();
-
-			mRectTopLeftWidget->setPos(rect.topLeft());
-			mRectBottomRightWidget->setPos(rect.bottomRight());
 			connect(mRectTopLeftWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleRectResize()));
-			connect(mRectBottomRightWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleRectResize()));
-
 			addWidget(mRectLayout, "Top Left: ", mRectTopLeftWidget, true);
+
+			mRectBottomRightWidget = new PositionWidget();
+			connect(mRectBottomRightWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleRectResize()));
 			addWidget(mRectLayout, "Bottom Right: ", mRectBottomRightWidget, true);
 		}
 	}
 
-	if (checkAllItemsForProperty("Corner Radius X", cornerRadiusXMatch, cornerRadiusXValue) &&
+	if (mItems.size() > 0 &&
+		checkAllItemsForProperty("Corner Radius X", cornerRadiusXMatch, cornerRadiusXValue) &&
 		checkAllItemsForProperty("Corner Radius Y", cornerRadiusYMatch, cornerRadiusYValue))
 	{
 		mCornerRadiusWidget = new PositionWidget();
@@ -276,10 +321,7 @@ QGroupBox* ItemPropertiesWidget::createStartPointGroup()
 		if (twoPointItem && !polylineItem)
 		{
 			mStartPosWidget = new PositionWidget();
-
-			mStartPosWidget->setPos(twoPointItem->mapToScene(twoPointItem->startPoint()->pos()));
 			connect(mStartPosWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handlePointResize()));
-
 			addWidget(mStartPointLayout, "Start Point: ", mStartPosWidget, true);
 		}
 
@@ -288,10 +330,7 @@ QGroupBox* ItemPropertiesWidget::createStartPointGroup()
 		if (curveItem)
 		{
 			mStartControlPosWidget = new PositionWidget();
-
-			mStartControlPosWidget->setPos(curveItem->curveStartControlPos());
 			connect(mStartControlPosWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handlePointResize()));
-
 			addWidget(mStartPointLayout, "Control Point: ", mStartControlPosWidget, true);
 		}
 	}
@@ -333,7 +372,7 @@ QGroupBox* ItemPropertiesWidget::createStartPointGroup()
 
 	if (mStartPointLayout)
 	{
-		mStartPointGroup = new QGroupBox("Start Point");
+		mStartPointGroup = new QGroupBox(mStartPosWidget ? "Start Point" : "Start Arrow");
 		mStartPointGroup->setLayout(mStartPointLayout);
 	}
 
@@ -355,10 +394,7 @@ QGroupBox* ItemPropertiesWidget::createEndPointGroup()
 		if (twoPointItem && !polylineItem)
 		{
 			mEndPosWidget = new PositionWidget();
-
-			mEndPosWidget->setPos(twoPointItem->mapToScene(twoPointItem->endPoint()->pos()));
 			connect(mEndPosWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handlePointResize()));
-
 			addWidget(mEndPointLayout, "End Point: ", mEndPosWidget, true);
 		}
 
@@ -367,10 +403,7 @@ QGroupBox* ItemPropertiesWidget::createEndPointGroup()
 		if (curveItem)
 		{
 			mEndControlPosWidget = new PositionWidget();
-
-			mEndControlPosWidget->setPos(curveItem->curveEndControlPos());
 			connect(mEndControlPosWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handlePointResize()));
-
 			addWidget(mEndPointLayout, "Control Point: ", mEndControlPosWidget, true);
 		}
 	}
@@ -412,7 +445,7 @@ QGroupBox* ItemPropertiesWidget::createEndPointGroup()
 
 	if (mEndPointLayout)
 	{
-		mEndPointGroup = new QGroupBox("End Point");
+		mEndPointGroup = new QGroupBox(mEndPosWidget ? "End Point" : "End Arrow");
 		mEndPointGroup->setLayout(mEndPointLayout);
 	}
 
@@ -735,8 +768,6 @@ QGroupBox* ItemPropertiesWidget::createPolyGroup()
 				for(auto pointIter = points.begin(); pointIter != points.end(); pointIter++)
 				{
 					posWidget = new PositionWidget();
-
-					posWidget->setPos(item->mapToScene((*pointIter)->pos()));
 					connect(posWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handlePointResize()));
 
 					if (pointIter == points.begin()) label = "First Point:";

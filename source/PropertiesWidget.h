@@ -47,8 +47,7 @@ public slots:
 	void setFromItem(DrawingItem* item);
 
 	// Just update widget values
-	void updateItems(const QList<DrawingItem*>& items);
-	void updateItem(DrawingItem* item);
+	void updateItemGeometry();
 
 signals:
 	void itemPositionUpdated(const QPointF& pos);

@@ -93,6 +93,9 @@ public:
 
 	QSize sizeHint() const;
 
+public slots:
+	void updateGeometry();
+
 signals:
 	void propertiesUpdated(const QMap<QString,QVariant>& properties);
 

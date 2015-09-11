@@ -704,13 +704,13 @@ void DrawingWidget::moveSelection(const QPointF& newPos)
 	if (mMode == PlaceMode && mNewItem)
 	{
 		mNewItem->moveItem(newPos);
-		emit itemChanged(mNewItem);
+		emit itemGeometryChanged(mNewItem);
 		viewport()->update();
 	}
 	else if (mMode == DefaultMode && mSelectedItems.size() == 1 )
 	{
 		moveItems(mSelectedItems.first(), newPos, true);
-		emit itemsChanged(mSelectedItems);
+		emit itemsGeometryChanged(mSelectedItems);
 		viewport()->update();
 	}
 }
@@ -720,13 +720,13 @@ void DrawingWidget::resizeSelection(DrawingItemPoint* itemPoint, const QPointF& 
 	if (mMode == PlaceMode && mNewItem && mNewItem->points().contains(itemPoint))
 	{
 		mNewItem->resizeItem(itemPoint, scenePos);
-		emit itemChanged(mNewItem);
+		emit itemGeometryChanged(mNewItem);
 		viewport()->update();
 	}
 	else if (mMode == DefaultMode && mSelectedItems.size() == 1 && mSelectedItems.first()->points().contains(itemPoint))
 	{
 		resizeItem(itemPoint, scenePos, true, true);
-		emit itemsChanged(mSelectedItems);
+		emit itemsGeometryChanged(mSelectedItems);
 		viewport()->update();
 	}
 }
@@ -736,13 +736,13 @@ void DrawingWidget::rotateSelection()
 	if (mMode == PlaceMode && mNewItem)
 	{
 		mNewItem->rotateItem(mNewItem->pos());
-		emit itemChanged(mNewItem);
+		emit itemGeometryChanged(mNewItem);
 		viewport()->update();
 	}
 	else if (mMode == DefaultMode && !mSelectedItems.isEmpty())
 	{
 		rotateItems(mSelectedItems, roundToGrid(mSelectionCenter));
-		emit itemsChanged(mSelectedItems);
+		emit itemsGeometryChanged(mSelectedItems);
 		viewport()->update();
 	}
 }
@@ -752,13 +752,13 @@ void DrawingWidget::rotateBackSelection()
 	if (mMode == PlaceMode && mNewItem)
 	{
 		mNewItem->rotateBackItem(mNewItem->pos());
-		emit itemChanged(mNewItem);
+		emit itemGeometryChanged(mNewItem);
 		viewport()->update();
 	}
 	else if (mMode == DefaultMode && !mSelectedItems.isEmpty())
 	{
 		rotateBackItems(mSelectedItems, roundToGrid(mSelectionCenter));
-		emit itemsChanged(mSelectedItems);
+		emit itemsGeometryChanged(mSelectedItems);
 		viewport()->update();
 	}
 }
@@ -768,13 +768,13 @@ void DrawingWidget::flipSelection()
 	if (mMode == PlaceMode && mNewItem)
 	{
 		mNewItem->flipItem(mNewItem->pos());
-		emit itemChanged(mNewItem);
+		emit itemGeometryChanged(mNewItem);
 		viewport()->update();
 	}
 	else if (mMode == DefaultMode && !mSelectedItems.isEmpty())
 	{
 		flipItems(mSelectedItems, roundToGrid(mSelectionCenter));
-		emit itemsChanged(mSelectedItems);
+		emit itemsGeometryChanged(mSelectedItems);
 		viewport()->update();
 	}
 }
@@ -784,13 +784,11 @@ void DrawingWidget::updateSelectionProperties(const QMap<QString,QVariant>& prop
 	if (mMode == PlaceMode && mNewItem)
 	{
 		mNewItem->updateProperties(properties);
-		emit itemChanged(mNewItem);
 		viewport()->update();
 	}
 	else if (mMode == DefaultMode && !mSelectedItems.isEmpty())
 	{
 		updateItemProperties(mSelectedItems, properties);
-		emit itemsChanged(mSelectedItems);
 		viewport()->update();
 	}
 }
@@ -921,7 +919,7 @@ void DrawingWidget::insertItemPoint()
 			else
 				delete itemPoint;
 
-			emit itemsChanged(mSelectedItems);
+			emit itemsGeometryChanged(mSelectedItems);
 			emit selectionChanged(mSelectedItems);
 		}
 
@@ -942,7 +940,7 @@ void DrawingWidget::removeItemPoint()
 			if (item->removeItemPoint(itemPoint))
 				mUndoStack.push(new DrawingItemRemovePointCommand(item, itemPoint));
 
-			emit itemsChanged(mSelectedItems);
+			emit itemsGeometryChanged(mSelectedItems);
 			emit selectionChanged(mSelectedItems);
 		}
 
@@ -1243,14 +1241,14 @@ void DrawingWidget::defaultMouseMoveEvent(DrawingMouseEvent* event)
 			if (!newPositions.isEmpty())
 			{
 				moveItems(newPositions.keys(), newPositions, mInitialPositions, false);
-				emit itemsChanged(mSelectedItems);
+				emit itemsGeometryChanged(mSelectedItems);
 			}
 			updateMouseInfo(roundToGrid(mMouseEvent.buttonDownScenePos()), roundToGrid(mMouseEvent.scenePos()));
 			break;
 
 		case MouseResizeItem:
 			resizeItem(mMouseDownItem->selectedPoint(), roundToGrid(event->scenePos()), false, true);
-			emit itemsChanged(mSelectedItems);
+			emit itemsGeometryChanged(mSelectedItems);
 			updateMouseInfo(roundToGrid(mMouseEvent.buttonDownScenePos()), roundToGrid(mMouseEvent.scenePos()));
 			break;
 
@@ -1298,13 +1296,13 @@ void DrawingWidget::defaultMouseReleaseEvent(DrawingMouseEvent* event)
 		if (!newPositions.isEmpty())
 		{
 			moveItems(newPositions.keys(), newPositions, mInitialPositions, true);
-			emit itemsChanged(mSelectedItems);
+			emit itemsGeometryChanged(mSelectedItems);
 		}
 		break;
 
 	case MouseResizeItem:
 		resizeItem(mMouseDownItem->selectedPoint(), roundToGrid(event->scenePos()), true, true);
-		emit itemsChanged(mSelectedItems);
+		emit itemsGeometryChanged(mSelectedItems);
 		break;
 
 	case MouseRubberBand:
@@ -1355,7 +1353,7 @@ void DrawingWidget::placeModeMousePressEvent(DrawingMouseEvent* event)
 	if (mNewItem)
 	{
 		mNewItem->newMousePressEvent(event);
-		emit itemChanged(mNewItem);
+		emit itemGeometryChanged(mNewItem);
 	}
 }
 
@@ -1364,7 +1362,7 @@ void DrawingWidget::placeModeMouseMoveEvent(DrawingMouseEvent* event)
 	if (mNewItem)
 	{
 		mNewItem->newMouseMoveEvent(event);
-		emit itemChanged(mNewItem);
+		emit itemGeometryChanged(mNewItem);
 
 		if (event->buttons() & Qt::LeftButton)
 			updateMouseInfo(roundToGrid(mMouseEvent.buttonDownScenePos()), roundToGrid(mMouseEvent.scenePos()));
