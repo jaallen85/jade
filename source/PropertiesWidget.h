@@ -55,6 +55,7 @@ signals:
 	void itemPropertiesUpdated(const QMap<QString,QVariant>& properties);
 	void drawingPropertiesUpdated(const QRectF& sceneRect, qreal grid, const QBrush& backgroundBrush,
 		DrawingGridStyle gridStyle, const QBrush& gridBrush, int gridSpacingMajor, int gridSpacingMinor);
+	void defaultItemPropertiesUpdated(const QMap<QString,QVariant>& properties);
 };
 
 #endif

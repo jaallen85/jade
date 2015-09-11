@@ -28,6 +28,8 @@ class MainToolBox : public QFrame
 	Q_OBJECT
 
 private:
+	QMap<QString,QVariant> mDefaultItemProperties;
+
 	QToolButton* mDefaultModeButton;
 	QToolButton* mScrollModeButton;
 	QToolButton* mZoomModeButton;
@@ -47,6 +49,7 @@ public:
 
 public slots:
 	void updateMode(DrawingWidget::Mode mode);
+	void updateDefaultItemProperties(const QMap<QString,QVariant>& properties);
 
 signals:
 	void defaultModeTriggered();

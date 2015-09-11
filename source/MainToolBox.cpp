@@ -26,6 +26,24 @@
 
 MainToolBox::MainToolBox() : QFrame()
 {
+	mDefaultItemProperties["Pen Style"] = QVariant((unsigned int)Qt::SolidLine);
+	mDefaultItemProperties["Pen Width"] = QVariant(12.0);
+	mDefaultItemProperties["Pen Color"] = QVariant(QColor(0, 0, 0));
+	mDefaultItemProperties["Brush Color"] = QVariant(QColor(255, 255, 255));
+	mDefaultItemProperties["Font Family"] = QVariant("Arial");
+	mDefaultItemProperties["Font Size"] = QVariant(100.0);
+	mDefaultItemProperties["Font Bold"] = QVariant(false);
+	mDefaultItemProperties["Font Italic"] = QVariant(false);
+	mDefaultItemProperties["Font Underline"] = QVariant(false);
+	mDefaultItemProperties["Font Strike-Out"] = QVariant(false);
+	mDefaultItemProperties["Text Horizontal Alignment"] = QVariant((unsigned int)Qt::AlignHCenter);
+	mDefaultItemProperties["Text Vertical Alignment"] = QVariant((unsigned int)Qt::AlignVCenter);
+	mDefaultItemProperties["Text Color"] = QVariant(QColor(0, 0, 0));
+	mDefaultItemProperties["Start Arrow Style"] = QVariant((unsigned int)ArrowNone);
+	mDefaultItemProperties["Start Arrow Size"] = QVariant(100.0);
+	mDefaultItemProperties["End Arrow Style"] = QVariant((unsigned int)ArrowNone);
+	mDefaultItemProperties["End Arrow Size"] = QVariant(100.0);
+
 	mModeActionGroup = new QActionGroup(this);
 	connect(mModeActionGroup, SIGNAL(triggered(QAction*)), this, SLOT(setModeFromAction(QAction*)));
 
@@ -58,6 +76,15 @@ void MainToolBox::updateMode(DrawingWidget::Mode mode)
 		modeActions[0]->setChecked(true);
 }
 
+void MainToolBox::updateDefaultItemProperties(const QMap<QString,QVariant>& properties)
+{
+	for(auto iter = properties.begin(); iter != properties.end(); iter++)
+	{
+		if (mDefaultItemProperties.contains(iter.key()))
+			mDefaultItemProperties[iter.key()] = iter.value();
+	}
+}
+
 //==================================================================================================
 
 void MainToolBox::setModeFromAction(QAction* action)
@@ -65,7 +92,18 @@ void MainToolBox::setModeFromAction(QAction* action)
 	if (action->text() == "Select Mode") emit defaultModeTriggered();
 	else if (action->text() == "Scroll Mode") emit scrollModeTriggered();
 	else if (action->text() == "Zoom Mode") emit zoomModeTriggered();
-	else if (mPlaceItemsMap.contains(action)) emit placeModeTriggered(mPlaceItemsMap[action]->copy());
+	else if (mPlaceItemsMap.contains(action))
+	{
+		DrawingItem* newItem = mPlaceItemsMap[action]->copy();
+
+		for(auto iter = mDefaultItemProperties.begin(); iter != mDefaultItemProperties.end(); iter++)
+		{
+			if (newItem->hasProperty(iter.key()))
+				newItem->setProperty(iter.key(), iter.value());
+		}
+
+		emit placeModeTriggered(newItem);
+	}
 	else emit defaultModeTriggered();
 }
 
