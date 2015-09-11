@@ -29,9 +29,11 @@ SOURCES += \
 	source/DrawingWidget.cpp \
 	\
 	source/ColorButton.cpp \
+	source/ItemPropertiesWidget.cpp \
 	source/MainStatusBar.cpp \
 	source/MainToolBox.cpp \
 	source/MainWindow.cpp \
+	source/PositionWidget.cpp \
 	source/PropertiesWidget.cpp \
 	source/main.cpp
 
@@ -48,9 +50,11 @@ HEADERS += \
 	source/DrawingWidget.h \
 	\
 	source/ColorButton.h \
+	source/ItemPropertiesWidget.h \
 	source/MainStatusBar.h \
 	source/MainToolBox.h \
 	source/MainWindow.h \
+	source/PositionWidget.h \
 	source/PropertiesWidget.h
 
 RESOURCES += icons/icons.qrc

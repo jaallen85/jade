@@ -143,32 +143,32 @@ QString DrawingTextItem::fontFamily() const
 
 qreal DrawingTextItem::fontSize() const
 {
-	return hasProperty("Font Family") ? property("Font Size").toDouble() : 0;
+	return hasProperty("Font Size") ? property("Font Size").toDouble() : 0;
 }
 
 bool DrawingTextItem::isFontBold() const
 {
-	return hasProperty("Font Family") ? property("Font Bold").toBool() : false;
+	return hasProperty("Font Bold") ? property("Font Bold").toBool() : false;
 }
 
 bool DrawingTextItem::isFontItalic() const
 {
-	return hasProperty("Font Family") ? property("Font Italic").toBool() : false;
+	return hasProperty("Font Italic") ? property("Font Italic").toBool() : false;
 }
 
 bool DrawingTextItem::isFontUnderline() const
 {
-	return hasProperty("Font Family") ? property("Font Underline").toBool() : false;
+	return hasProperty("Font Underline") ? property("Font Underline").toBool() : false;
 }
 
 bool DrawingTextItem::isFontOverline() const
 {
-	return hasProperty("Font Family") ? property("Font Overline").toBool() : false;
+	return hasProperty("Font Overline") ? property("Font Overline").toBool() : false;
 }
 
 bool DrawingTextItem::isFontStrikeOut() const
 {
-	return hasProperty("Font Family") ? property("Font Strike-Out").toBool() : false;
+	return hasProperty("Font Strike-Out") ? property("Font Strike-Out").toBool() : false;
 }
 
 //==================================================================================================

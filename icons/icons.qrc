@@ -40,5 +40,29 @@
         <file>penstyle/pen_dotted.png</file>
         <file>penstyle/pen_none.png</file>
         <file>penstyle/pen_solid.png</file>
+        <file>oxygen/format-text-bold.png</file>
+        <file>oxygen/format-text-italic.png</file>
+        <file>oxygen/format-text-strikethrough.png</file>
+        <file>oxygen/format-text-underline.png</file>
+        <file>oxygen/align-horizontal-center.png</file>
+        <file>oxygen/align-horizontal-left.png</file>
+        <file>oxygen/align-horizontal-right.png</file>
+        <file>oxygen/align-vertical-bottom.png</file>
+        <file>oxygen/align-vertical-center.png</file>
+        <file>oxygen/align-vertical-top.png</file>
+        <file>arrow/arrow_circle.png</file>
+        <file>arrow/arrow_circle_filled.png</file>
+        <file>arrow/arrow_concave.png</file>
+        <file>arrow/arrow_concave_filled.png</file>
+        <file>arrow/arrow_diamond.png</file>
+        <file>arrow/arrow_diamond_filled.png</file>
+        <file>arrow/arrow_harpoon.png</file>
+        <file>arrow/arrow_harpoon_mirrored.png</file>
+        <file>arrow/arrow_none.png</file>
+        <file>arrow/arrow_normal.png</file>
+        <file>arrow/arrow_reverse.png</file>
+        <file>arrow/arrow_triangle.png</file>
+        <file>arrow/arrow_triangle_filled.png</file>
+        <file>arrow/arrow_x.png</file>
     </qresource>
 </RCC>

@@ -37,11 +37,18 @@ ColorPushButton::ColorPushButton() : QPushButton()
 	mMenu->setLayout(vLayout);
 	setMenu(mMenu);
 
-	//QFontMetrics fontMetrics(font());
-	//setMaximumWidth(fontMetrics.width("#88888888") * 1.5 + 32);
+	setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 }
 
 ColorPushButton::~ColorPushButton() { }
+
+//==================================================================================================
+
+QSize ColorPushButton::sizeHint() const
+{
+	QFontMetrics fontMetrics(font());
+	return QSize(fontMetrics.width("#88888888") + fontMetrics.height() + 32, fontMetrics.height() + 12);
+}
 
 //==================================================================================================
 

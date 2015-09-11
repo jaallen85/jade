@@ -40,6 +40,8 @@ public:
 	ColorPushButton();
 	~ColorPushButton();
 
+	QSize sizeHint() const;
+
 	void setColor(const QColor& color);
 	QColor color() const;
 
