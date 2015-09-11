@@ -49,12 +49,22 @@ QSize PropertiesWidget::sizeHint() const
 
 void PropertiesWidget::setFromItems(const QList<DrawingItem*>& items)
 {
+	while (count() > 0)
+	{
+		QWidget* w = widget(0);
+		removeWidget(w);
+		delete w;
+	}
 
+	mItemWidget = new ItemPropertiesWidget(items);
+	addWidget(mItemWidget);
 }
 
 void PropertiesWidget::setFromItem(DrawingItem* item)
 {
-
+	QList<DrawingItem*> items;
+	items.append(item);
+	setFromItems(items);
 }
 
 //==================================================================================================

@@ -72,13 +72,18 @@ ItemPropertiesWidget::ItemPropertiesWidget(const QList<DrawingItem*>& items)
 	mFontItalicButton = nullptr;
 	mFontUnderlineButton = nullptr;
 	mFontStrikeOutButton = nullptr;
-	mTextAlignWidget = nullptr;
-	mTextAlignmentHorizontalButton = nullptr;
-	mTextAlignmentVerticalButton = nullptr;
+	mTextAlignmentWidget = nullptr;
+	mLeftAlignButton = nullptr;
+	mHCenterAlignButton = nullptr;
+	mRightAlignButton = nullptr;
+	mTopAlignButton = nullptr;
+	mVCenterAlignButton = nullptr;
+	mBottomAlignButton = nullptr;
 	mTextColorButton = nullptr;
 	mCaptionEdit = nullptr;
 
-	//mPolyPointsWidget = nullptr;
+	mPolyGroup = nullptr;
+	mPolyLayout = nullptr;
 
 	createPositionGroup();
 	createRectGroup();
@@ -86,18 +91,17 @@ ItemPropertiesWidget::ItemPropertiesWidget(const QList<DrawingItem*>& items)
 	createEndPointGroup();
 	createPenBrushGroup();
 	createTextGroup();
-	//createPolyPointsGroup();
+	createPolyGroup();
 
 	QVBoxLayout* vLayout = new QVBoxLayout();
 	if (mPositionGroup) vLayout->addWidget(mPositionGroup);
 	if (mRectGroup) vLayout->addWidget(mRectGroup);
+	if (mPolyGroup) vLayout->addWidget(mPolyGroup);
 	if (mStartPointGroup) vLayout->addWidget(mStartPointGroup);
 	if (mEndPointGroup) vLayout->addWidget(mEndPointGroup);
 	if (mPenBrushGroup) vLayout->addWidget(mPenBrushGroup);
 	if (mTextGroup) vLayout->addWidget(mTextGroup);
-	//if (polyPointsGroup) vLayout->addWidget(polyPointsGroup);
 	vLayout->addWidget(new QWidget(), 100);
-	//vLayout->setContentsMargins(0, 0, 0, 0);
 	setLayout(vLayout);
 
 	setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Preferred);
@@ -113,6 +117,26 @@ QSize ItemPropertiesWidget::sizeHint() const
 }
 
 //==================================================================================================
+
+void ItemPropertiesWidget::handlePositionChange()
+{
+	//mPositionWidget
+}
+
+void ItemPropertiesWidget::handleRectResize()
+{
+	//mRectTopLeftWidget
+	//mRectBottomRightWidget
+}
+
+void ItemPropertiesWidget::handlePointResize()
+{
+	//mStartPosWidget
+	//mStartControlPosWidget
+	//mEndPosWidget
+	//mEndtControlPosWidget
+	//mPointPosWidgets
+}
 
 void ItemPropertiesWidget::handlePropertyChange()
 {
@@ -144,9 +168,13 @@ void ItemPropertiesWidget::handlePropertyChange()
 	QToolButton* mFontItalicButton;
 	QToolButton* mFontUnderlineButton;
 	QToolButton* mFontStrikeOutButton;
-	QWidget* mTextAlignWidget;
-	QToolButton* mTextAlignmentHorizontalButton;
-	QToolButton* mTextAlignmentVerticalButton;
+	QWidget* mTextAlignmentWidget;
+	QToolButton* mLeftAlignButton;
+	QToolButton* mHCenterAlignButton;
+	QToolButton* mRightAlignButton;
+	QToolButton* mTopAlignButton;
+	QToolButton* mVCenterAlignButton;
+	QToolButton* mBottomAlignButton;
 	ColorPushButton* mTextColorButton;
 	QTextEdit* mCaptionEdit;*/
 
@@ -159,12 +187,20 @@ QGroupBox* ItemPropertiesWidget::createPositionGroup()
 {
 	if (mItems.size() == 1)
 	{
-		mPositionWidget = new PositionWidget();
+		DrawingRectResizeItem* rectItem = dynamic_cast<DrawingRectResizeItem*>(mItems.first());
+		DrawingTwoPointItem* twoPointItem = dynamic_cast<DrawingTwoPointItem*>(mItems.first());
+		DrawingPolylineItem* polylineItem = dynamic_cast<DrawingPolylineItem*>(mItems.first());
+		DrawingPolygonItem* polygonItem = dynamic_cast<DrawingPolygonItem*>(mItems.first());
 
-		mPositionWidget->setPos(mItems.first()->pos());
-		connect(mPositionWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handlePositionChange()));
+		if (polylineItem || polygonItem || !(rectItem || twoPointItem))
+		{
+			mPositionWidget = new PositionWidget();
 
-		addWidget(mPositionLayout, "Position: ", mPositionWidget, true);
+			mPositionWidget->setPos(mItems.first()->pos());
+			connect(mPositionWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handlePositionChange()));
+
+			addWidget(mPositionLayout, "Position: ", mPositionWidget, true);
+		}
 	}
 
 	if (mPositionLayout)
@@ -235,8 +271,9 @@ QGroupBox* ItemPropertiesWidget::createStartPointGroup()
 	if (mItems.size() == 1)
 	{
 		DrawingTwoPointItem* twoPointItem = dynamic_cast<DrawingTwoPointItem*>(mItems.first());
+		DrawingPolylineItem* polylineItem = dynamic_cast<DrawingPolylineItem*>(mItems.first());
 
-		if (twoPointItem)
+		if (twoPointItem && !polylineItem)
 		{
 			mStartPosWidget = new PositionWidget();
 
@@ -252,7 +289,7 @@ QGroupBox* ItemPropertiesWidget::createStartPointGroup()
 		{
 			mStartControlPosWidget = new PositionWidget();
 
-			mStartControlPosWidget->setPos(curveItem->mapToScene(curveItem->curveStartControlPos()));
+			mStartControlPosWidget->setPos(curveItem->curveStartControlPos());
 			connect(mStartControlPosWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handlePointResize()));
 
 			addWidget(mStartPointLayout, "Control Point: ", mStartControlPosWidget, true);
@@ -313,8 +350,9 @@ QGroupBox* ItemPropertiesWidget::createEndPointGroup()
 	if (mItems.size() == 1)
 	{
 		DrawingTwoPointItem* twoPointItem = dynamic_cast<DrawingTwoPointItem*>(mItems.first());
+		DrawingPolylineItem* polylineItem = dynamic_cast<DrawingPolylineItem*>(mItems.first());
 
-		if (twoPointItem)
+		if (twoPointItem && !polylineItem)
 		{
 			mEndPosWidget = new PositionWidget();
 
@@ -330,10 +368,10 @@ QGroupBox* ItemPropertiesWidget::createEndPointGroup()
 		{
 			mEndControlPosWidget = new PositionWidget();
 
-			mEndControlPosWidget->setPos(curveItem->mapToScene(curveItem->curveEndControlPos()));
+			mEndControlPosWidget->setPos(curveItem->curveEndControlPos());
 			connect(mEndControlPosWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handlePointResize()));
 
-			addWidget(mStartPointLayout, "Control Point: ", mEndControlPosWidget, true);
+			addWidget(mEndPointLayout, "Control Point: ", mEndControlPosWidget, true);
 		}
 	}
 
@@ -450,9 +488,11 @@ QGroupBox* ItemPropertiesWidget::createPenBrushGroup()
 QGroupBox* ItemPropertiesWidget::createTextGroup()
 {
 	bool propertiesMatch = false;
-	bool boldMatch = false, italicMatch = false, underlineMatch = false, overlineMatch = false, strikeOutMatch;
+	bool boldMatch = false, italicMatch = false, underlineMatch = false, strikeOutMatch = false;
 	bool horizontalAlignMatch = false, verticalAlignMatch = false;
 	QVariant propertyValue;
+	QWidget* horizontalAlignWidget = nullptr;
+	QWidget* verticalAlignWidget = nullptr;
 
 	if (checkAllItemsForProperty("Font Family", propertiesMatch, propertyValue))
 	{
@@ -533,48 +573,115 @@ QGroupBox* ItemPropertiesWidget::createTextGroup()
 		fontStyleLayout->setContentsMargins(0, 0, 0, 0);
 		mFontStyleWidget->setLayout(fontStyleLayout);
 
-		addWidget(mTextLayout, "Font Style: ", mFontStyleWidget, (boldMatch && italicMatch && underlineMatch && overlineMatch && strikeOutMatch));
+		addWidget(mTextLayout, "Font Style: ", mFontStyleWidget, ((!mFontBoldButton || boldMatch) &&
+			(!mFontItalicButton || italicMatch) && (!mFontUnderlineButton || underlineMatch) && (!mFontStrikeOutButton || strikeOutMatch)));
 	}
 
 	if (checkAllItemsForProperty("Text Horizontal Alignment", horizontalAlignMatch, propertyValue))
 	{
-		mTextAlignmentHorizontalButton = new QToolButton();
+		mLeftAlignButton = new QToolButton();
+		mHCenterAlignButton = new QToolButton();
+		mRightAlignButton = new QToolButton();
 
-		/*mTextAlignmentHorizontalCombo = new QComboBox();
-		mTextAlignmentHorizontalCombo->addItem(QIcon(":/icons/oxygen/align-horizontal-left.png"), "Left");
-		mTextAlignmentHorizontalCombo->addItem(QIcon(":/icons/oxygen/align-horizontal-center.png"), "Center");
-		mTextAlignmentHorizontalCombo->addItem(QIcon(":/icons/oxygen/align-horizontal-right.png"), "Right");
+		mLeftAlignButton->setIcon(QIcon(":/icons/oxygen/align-horizontal-left.png"));
+		mLeftAlignButton->setToolTip("Align Left");
+		mLeftAlignButton->setCheckable(true);
+		mLeftAlignButton->setAutoExclusive(true);
+		mHCenterAlignButton->setIcon(QIcon(":/icons/oxygen/align-horizontal-center.png"));
+		mHCenterAlignButton->setToolTip("Align Center");
+		mHCenterAlignButton->setCheckable(true);
+		mHCenterAlignButton->setAutoExclusive(true);
+		mRightAlignButton->setIcon(QIcon(":/icons/oxygen/align-horizontal-right.png"));
+		mRightAlignButton->setToolTip("Align Right");
+		mRightAlignButton->setCheckable(true);
+		mRightAlignButton->setAutoExclusive(true);
 
-		//if (propertyValue.isValid()) mTextAlignmentHorizontalCombo->setCurrentText(propertyValue.toString());
-		connect(mTextAlignmentHorizontalCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(handlePropertyChange()));*/
+		connect(mLeftAlignButton, SIGNAL(toggled(bool)), this, SLOT(handlePropertyChange()));
+		connect(mHCenterAlignButton, SIGNAL(toggled(bool)), this, SLOT(handlePropertyChange()));
+		connect(mRightAlignButton, SIGNAL(toggled(bool)), this, SLOT(handlePropertyChange()));
+
+		if (propertyValue.isValid())
+		{
+			Qt::Alignment align = (Qt::Alignment)propertyValue.toUInt();
+			if (align & Qt::AlignHCenter) mHCenterAlignButton->setChecked(true);
+			else if (align & Qt::AlignRight) mRightAlignButton->setChecked(true);
+			else mLeftAlignButton->setChecked(true);
+		}
+		else mLeftAlignButton->setChecked(true);
+
+		horizontalAlignWidget = new QWidget();
+		QHBoxLayout* horizontalAlignLayout = new QHBoxLayout();
+		horizontalAlignLayout->addWidget(mLeftAlignButton);
+		horizontalAlignLayout->addWidget(mHCenterAlignButton);
+		horizontalAlignLayout->addWidget(mRightAlignButton);
+		horizontalAlignLayout->setSpacing(2);
+		horizontalAlignLayout->setContentsMargins(0, 0, 0, 0);
+		horizontalAlignWidget->setLayout(horizontalAlignLayout);
 	}
 
 	if (checkAllItemsForProperty("Text Vertical Alignment", verticalAlignMatch, propertyValue))
 	{
-		mTextAlignmentVerticalButton = new QToolButton();
+		mTopAlignButton = new QToolButton();
+		mVCenterAlignButton = new QToolButton();
+		mBottomAlignButton = new QToolButton();
 
-		/*mTextAlignmentVerticalCombo = new QComboBox();
-		mTextAlignmentVerticalCombo->addItem(QIcon(":/icons/oxygen/align-vertical-top.png"), "Top");
-		mTextAlignmentVerticalCombo->addItem(QIcon(":/icons/oxygen/align-vertical-center.png"), "Center");
-		mTextAlignmentVerticalCombo->addItem(QIcon(":/icons/oxygen/align-vertical-bottom.png"), "Bottom");
+		mTopAlignButton->setIcon(QIcon(":/icons/oxygen/align-vertical-top.png"));
+		mTopAlignButton->setToolTip("Align Top");
+		mTopAlignButton->setCheckable(true);
+		mTopAlignButton->setAutoExclusive(true);
+		mVCenterAlignButton->setIcon(QIcon(":/icons/oxygen/align-vertical-center.png"));
+		mVCenterAlignButton->setToolTip("Align Center");
+		mVCenterAlignButton->setCheckable(true);
+		mVCenterAlignButton->setAutoExclusive(true);
+		mBottomAlignButton->setIcon(QIcon(":/icons/oxygen/align-vertical-bottom.png"));
+		mBottomAlignButton->setToolTip("Align Bottom");
+		mBottomAlignButton->setCheckable(true);
+		mBottomAlignButton->setAutoExclusive(true);
+		connect(mTopAlignButton, SIGNAL(toggled(bool)), this, SLOT(handlePropertyChange()));
+		connect(mVCenterAlignButton, SIGNAL(toggled(bool)), this, SLOT(handlePropertyChange()));
+		connect(mBottomAlignButton, SIGNAL(toggled(bool)), this, SLOT(handlePropertyChange()));
 
-		//if (propertyValue.isValid()) mTextAlignmentVerticalCombo->setCurrentText(propertyValue.toString());
-		connect(mTextAlignmentVerticalCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(handlePropertyChange()));*/
+		if (propertyValue.isValid())
+		{
+			Qt::Alignment align = (Qt::Alignment)propertyValue.toUInt();
+			if (align & Qt::AlignVCenter) mVCenterAlignButton->setChecked(true);
+			else if (align & Qt::AlignBottom) mBottomAlignButton->setChecked(true);
+			else mTopAlignButton->setChecked(true);
+		}
+		else mTopAlignButton->setChecked(true);
+
+		verticalAlignWidget = new QWidget();
+		QHBoxLayout* verticalAlignLayout = new QHBoxLayout();
+		verticalAlignLayout->addWidget(mTopAlignButton);
+		verticalAlignLayout->addWidget(mVCenterAlignButton);
+		verticalAlignLayout->addWidget(mBottomAlignButton);
+		verticalAlignLayout->setSpacing(2);
+		verticalAlignLayout->setContentsMargins(0, 0, 0, 0);
+		verticalAlignWidget->setLayout(verticalAlignLayout);
 	}
 
-	if (mTextAlignmentHorizontalButton || mTextAlignmentVerticalButton)
+	if (horizontalAlignWidget || verticalAlignWidget)
 	{
-		mTextAlignWidget = new QWidget();
+		mTextAlignmentWidget = new QWidget();
 
-		QHBoxLayout* textAlignLayout = new QHBoxLayout();
-		if (mTextAlignmentHorizontalButton) textAlignLayout->addWidget(mTextAlignmentHorizontalButton);
-		if (mTextAlignmentVerticalButton) textAlignLayout->addWidget(mTextAlignmentVerticalButton);
-		textAlignLayout->addWidget(new QWidget(), 100);
-		textAlignLayout->setSpacing(2);
-		textAlignLayout->setContentsMargins(0, 0, 0, 0);
-		mTextAlignWidget->setLayout(textAlignLayout);
+		QFrame* separator = nullptr;
 
-		addWidget(mTextLayout, "Text Alignment: ", mTextAlignWidget, (horizontalAlignMatch && verticalAlignMatch));
+		if (horizontalAlignWidget && verticalAlignWidget)
+		{
+			separator = new QFrame();
+			separator->setFrameStyle(QFrame::VLine | QFrame::Raised);
+		}
+
+		QHBoxLayout* textAlignmentLayout = new QHBoxLayout();
+		if (horizontalAlignWidget) textAlignmentLayout->addWidget(horizontalAlignWidget);
+		if (separator) textAlignmentLayout->addWidget(separator);
+		if (verticalAlignWidget) textAlignmentLayout->addWidget(verticalAlignWidget);
+		textAlignmentLayout->addWidget(new QWidget(), 100);
+		textAlignmentLayout->setContentsMargins(0, 0, 0, 0);
+		mTextAlignmentWidget->setLayout(textAlignmentLayout);
+
+		addWidget(mTextLayout, "Text Alignment: ", mTextAlignmentWidget,
+			((!horizontalAlignWidget || horizontalAlignMatch) && (!verticalAlignWidget || verticalAlignMatch)));
 	}
 
 	if (checkAllItemsForProperty("Text Color", propertiesMatch, propertyValue))
@@ -588,12 +695,12 @@ QGroupBox* ItemPropertiesWidget::createTextGroup()
 		addWidget(mTextLayout, "Text Color: ", mTextColorButton, propertiesMatch);
 	}
 
-	if (/*mItems.size() == 1 &&*/ checkAllItemsForProperty("Caption", propertiesMatch, propertyValue))
+	if (mItems.size() == 1 && checkAllItemsForProperty("Caption", propertiesMatch, propertyValue))
 	{
 		mCaptionEdit = new QTextEdit();
 
 		if (propertyValue.isValid()) mCaptionEdit->setPlainText(propertyValue.toString());
-		//connect(mCaptionEdit, SIGNAL(editingFinished()), this, SLOT(handlePropertyChange()));
+		connect(mCaptionEdit, SIGNAL(textChanged()), this, SLOT(handlePropertyChange()));
 
 		addWidget(mTextLayout, "Text: ", mCaptionEdit, propertiesMatch);
 	}
@@ -605,6 +712,52 @@ QGroupBox* ItemPropertiesWidget::createTextGroup()
 	}
 
 	return mTextGroup;
+}
+
+//==================================================================================================
+
+QGroupBox* ItemPropertiesWidget::createPolyGroup()
+{
+	if (mItems.size() == 1)
+	{
+		DrawingPolylineItem* polylineItem = dynamic_cast<DrawingPolylineItem*>(mItems.first());
+		DrawingPolygonItem* polygonItem = dynamic_cast<DrawingPolygonItem*>(mItems.first());
+
+		if (polylineItem || polygonItem)
+		{
+			DrawingItem* item = mItems.first();
+			QList<DrawingItemPoint*> points = item->points();
+			PositionWidget* posWidget = nullptr;
+			QString label = "";
+
+			if (points.size() > 1)
+			{
+				for(auto pointIter = points.begin(); pointIter != points.end(); pointIter++)
+				{
+					posWidget = new PositionWidget();
+
+					posWidget->setPos(item->mapToScene((*pointIter)->pos()));
+					connect(posWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handlePointResize()));
+
+					if (pointIter == points.begin()) label = "First Point:";
+					else if (pointIter == points.end() - 1) label = "Last Point:";
+					else label = "";
+
+					addWidget(mPolyLayout, label, posWidget, true);
+					mPointPosWidgets.append(posWidget);
+				}
+
+				if (polylineItem) label = "Polyline";
+				else if (polygonItem) label = "Polygon";
+				else label = "Points";
+
+				mPolyGroup = new QGroupBox(label);
+				mPolyGroup->setLayout(mPolyLayout);
+			}
+		}
+	}
+
+	return mPolyGroup;
 }
 
 //==================================================================================================

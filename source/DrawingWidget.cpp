@@ -920,6 +920,9 @@ void DrawingWidget::insertItemPoint()
 				mUndoStack.push(new DrawingItemInsertPointCommand(item, itemPoint, index));
 			else
 				delete itemPoint;
+
+			emit itemsChanged(mSelectedItems);
+			emit selectionChanged(mSelectedItems);
 		}
 
 		viewport()->update();
@@ -938,6 +941,9 @@ void DrawingWidget::removeItemPoint()
 
 			if (item->removeItemPoint(itemPoint))
 				mUndoStack.push(new DrawingItemRemovePointCommand(item, itemPoint));
+
+			emit itemsChanged(mSelectedItems);
+			emit selectionChanged(mSelectedItems);
 		}
 
 		viewport()->update();

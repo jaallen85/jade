@@ -71,13 +71,19 @@ private:
 	QToolButton* mFontItalicButton;
 	QToolButton* mFontUnderlineButton;
 	QToolButton* mFontStrikeOutButton;
-	QWidget* mTextAlignWidget;
-	QToolButton* mTextAlignmentHorizontalButton;
-	QToolButton* mTextAlignmentVerticalButton;
+	QWidget* mTextAlignmentWidget;
+	QToolButton* mLeftAlignButton;
+	QToolButton* mHCenterAlignButton;
+	QToolButton* mRightAlignButton;
+	QToolButton* mTopAlignButton;
+	QToolButton* mVCenterAlignButton;
+	QToolButton* mBottomAlignButton;
 	ColorPushButton* mTextColorButton;
 	QTextEdit* mCaptionEdit;
 
-	//PointsListWidget* mPolyPointsWidget;
+	QGroupBox* mPolyGroup;
+	QFormLayout* mPolyLayout;
+	QList<PositionWidget*> mPointPosWidgets;
 
 	QList<DrawingItem*> mItems;
 
@@ -91,6 +97,9 @@ signals:
 	void propertiesUpdated(const QMap<QString,QVariant>& properties);
 
 private slots:
+	void handlePositionChange();
+	void handleRectResize();
+	void handlePointResize();
 	void handlePropertyChange();
 
 private:
@@ -100,8 +109,7 @@ private:
 	QGroupBox* createEndPointGroup();
 	QGroupBox* createPenBrushGroup();
 	QGroupBox* createTextGroup();
-	//QGroupBox* createControlPointsGroup();
-	//QGroupBox* createPolyPointsGroup();
+	QGroupBox* createPolyGroup();
 
 	bool isSender(QObject* sender, QWidget* widget, QFormLayout* layout);
 	bool checkAllItemsForProperty(const QString& propertyName, bool& propertiesMatch, QVariant& propertyValue);
