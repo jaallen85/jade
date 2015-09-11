@@ -197,6 +197,7 @@ void ItemPropertiesWidget::handlePropertyChange()
 		newProperties["Corner Radius X"] = QVariant(mCornerRadiusWidget->x());
 		newProperties["Corner Radius Y"] = QVariant(mCornerRadiusWidget->y());
 	}
+
 	else if (isSender(sender(), mPenStyleCombo, mPenBrushLayout))
 		newProperties["Pen Style"] = QVariant((quint32)mPenStyleCombo->currentIndex());
 	else if (isSender(sender(), mPenWidthEdit, mPenBrushLayout))
@@ -206,27 +207,66 @@ void ItemPropertiesWidget::handlePropertyChange()
 	else if (isSender(sender(), mBrushColorButton, mPenBrushLayout))
 		newProperties["Brush Color"] = QVariant(mBrushColorButton->color());
 
-	//QComboBox* mStartArrowStyleCombo;
-	//QLineEdit* mStartArrowSizeEdit;
-	//QComboBox* mEndArrowStyleCombo;
-	//QLineEdit* mEndArrowSizeEdit;
+	else if (isSender(sender(), mStartArrowStyleCombo, mStartPointLayout))
+		newProperties["Start Arrow Style"] = QVariant(mStartArrowStyleCombo->currentIndex());
+	else if (isSender(sender(), mStartArrowSizeEdit, mStartPointLayout))
+		newProperties["Start Arrow Size"] = QVariant(mStartArrowSizeEdit->text().toDouble());
+	else if (isSender(sender(), mEndArrowStyleCombo, mEndPointLayout))
+		newProperties["End Arrow Style"] = QVariant(mEndArrowStyleCombo->currentIndex());
+	else if (isSender(sender(), mEndArrowSizeEdit, mEndPointLayout))
+		newProperties["End Arrow Size"] = QVariant(mEndArrowSizeEdit->text().toDouble());
 
-	/*QFontComboBox* mFontFamilyCombo;
-	QLineEdit* mFontSizeEdit;
-	QWidget* mFontStyleWidget;
-	QToolButton* mFontBoldButton;
-	QToolButton* mFontItalicButton;
-	QToolButton* mFontUnderlineButton;
-	QToolButton* mFontStrikeOutButton;
-	QWidget* mTextAlignmentWidget;
-	QToolButton* mLeftAlignButton;
-	QToolButton* mHCenterAlignButton;
-	QToolButton* mRightAlignButton;
-	QToolButton* mTopAlignButton;
-	QToolButton* mVCenterAlignButton;
-	QToolButton* mBottomAlignButton;
-	ColorPushButton* mTextColorButton;
-	QTextEdit* mCaptionEdit;*/
+	else if (isSender(sender(), mFontFamilyCombo, mTextLayout))
+		newProperties["Font Family"] = QVariant(mFontFamilyCombo->currentFont().family());
+	else if (isSender(sender(), mFontSizeEdit, mTextLayout))
+		newProperties["Font Size"] = QVariant(mFontSizeEdit->text().toDouble());
+	else if (isSender(sender(), mFontBoldButton, mTextLayout))
+		newProperties["Font Bold"] = QVariant(mFontBoldButton->isChecked());
+	else if (isSender(sender(), mFontItalicButton, mTextLayout))
+		newProperties["Font Italic"] = QVariant(mFontItalicButton->isChecked());
+	else if (isSender(sender(), mFontUnderlineButton, mTextLayout))
+		newProperties["Font Underline"] = QVariant(mFontUnderlineButton->isChecked());
+	else if (isSender(sender(), mFontStrikeOutButton, mTextLayout))
+		newProperties["Font Strike-Out"] = QVariant(mFontStrikeOutButton->isChecked());
+	else if (isSender(sender(), mFontStyleWidget, mTextLayout))
+	{
+		if (mFontBoldButton) newProperties["Font Bold"] = QVariant(mFontBoldButton->isChecked());
+		if (mFontItalicButton) newProperties["Font Italic"] = QVariant(mFontItalicButton->isChecked());
+		if (mFontUnderlineButton) newProperties["Font Underline"] = QVariant(mFontUnderlineButton->isChecked());
+		if (mFontStrikeOutButton) newProperties["Font Strike-Out"] = QVariant(mFontStrikeOutButton->isChecked());
+	}
+	else if (isSender(sender(), mLeftAlignButton, mTextLayout) && mLeftAlignButton->isChecked())
+		newProperties["Text Horizontal Alignment"] = QVariant(Qt::AlignLeft);
+	else if (isSender(sender(), mHCenterAlignButton, mTextLayout) && mHCenterAlignButton->isChecked())
+		newProperties["Text Horizontal Alignment"] = QVariant(Qt::AlignHCenter);
+	else if (isSender(sender(), mRightAlignButton, mTextLayout) && mRightAlignButton->isChecked())
+		newProperties["Text Horizontal Alignment"] = QVariant(Qt::AlignRight);
+	else if (isSender(sender(), mTopAlignButton, mTextLayout) && mTopAlignButton->isChecked())
+		newProperties["Text Vertical Alignment"] = QVariant(Qt::AlignTop);
+	else if (isSender(sender(), mVCenterAlignButton, mTextLayout) && mVCenterAlignButton->isChecked())
+		newProperties["Text Vertical Alignment"] = QVariant(Qt::AlignVCenter);
+	else if (isSender(sender(), mBottomAlignButton, mTextLayout) && mBottomAlignButton->isChecked())
+		newProperties["Text Vertical Alignment"] = QVariant(Qt::AlignBottom);
+	else if (isSender(sender(), mTextAlignmentWidget, mTextLayout))
+	{
+		if (mLeftAlignButton && mLeftAlignButton->isChecked())
+			newProperties["Text Horizontal Alignment"] = QVariant(Qt::AlignLeft);
+		if (mHCenterAlignButton && mHCenterAlignButton->isChecked())
+			newProperties["Text Horizontal Alignment"] = QVariant(Qt::AlignHCenter);
+		if (mRightAlignButton && mRightAlignButton->isChecked())
+			newProperties["Text Horizontal Alignment"] = QVariant(Qt::AlignRight);
+
+		if (mTopAlignButton && mTopAlignButton->isChecked())
+			newProperties["Text Vertical Alignment"] = QVariant(Qt::AlignTop);
+		if (mVCenterAlignButton && mVCenterAlignButton->isChecked())
+			newProperties["Text Vertical Alignment"] = QVariant(Qt::AlignVCenter);
+		if (mBottomAlignButton && mBottomAlignButton->isChecked())
+			newProperties["Text Vertical Alignment"] = QVariant(Qt::AlignBottom);
+	}
+	else if (isSender(sender(), mTextColorButton, mTextLayout))
+		newProperties["Text Color"] = QVariant(mTextColorButton->color());
+	else if (isSender(sender(), mCaptionEdit, mTextLayout))
+		newProperties["Caption"] = QVariant(mCaptionEdit->toPlainText());
 
 	if (!newProperties.isEmpty()) emit propertiesUpdated(newProperties);
 }

@@ -209,8 +209,8 @@ signals:
 	void propertiesTriggered();
 	void selectionChanged(const QList<DrawingItem*>& items);
 	void newItemChanged(DrawingItem* item);
-	void itemsChanged(const QList<DrawingItem*>& items);
-	void itemChanged(DrawingItem* item);
+	void itemsGeometryChanged(const QList<DrawingItem*>& items);
+	void itemGeometryChanged(DrawingItem* item);
 	void numberOfItemsChanged(int itemCount);
 
 	void mouseInfoChanged(const QString& infoText);
