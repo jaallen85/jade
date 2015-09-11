@@ -59,6 +59,12 @@ void PropertiesWidget::setFromItems(const QList<DrawingItem*>& items)
 
 	mItemWidget = new ItemPropertiesWidget(items);
 	addWidget(mItemWidget);
+	connect(mItemWidget, SIGNAL(positionUpdated(const QPointF&)),
+		this, SIGNAL(itemPositionUpdated(const QPointF&)));
+	connect(mItemWidget, SIGNAL(pointPositionUpdated(DrawingItemPoint*,const QPointF&)),
+		this, SIGNAL(itemPointPositionUpdated(DrawingItemPoint*,const QPointF&)));
+	connect(mItemWidget, SIGNAL(propertiesUpdated(const QMap<QString,QVariant>&)),
+		this, SIGNAL(itemPropertiesUpdated(const QMap<QString,QVariant>&)));
 }
 
 void PropertiesWidget::setFromItem(DrawingItem* item)

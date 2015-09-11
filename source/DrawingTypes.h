@@ -29,9 +29,9 @@ class DrawingItemPoint;
 
 enum DrawingGridStyle { GridNone, GridDotted, GridLined, GridGraphPaper };
 
-enum DrawingArrowStyle { ArrowNone, ArrowNormal, ArrowTriangle, ArrowTriangleFilled,
-	ArrowCircle, ArrowCircleFilled, ArrowDiamond, ArrowDiamondFilled,
-	ArrowHarpoon, ArrowHarpoonMirrored, ArrowConcave, ArrowConcaveFilled, ArrowReverse, ArrowX };
+enum DrawingArrowStyle { ArrowNone, ArrowNormal, ArrowReverse, ArrowTriangle, ArrowTriangleFilled,
+	ArrowConcave, ArrowConcaveFilled, ArrowCircle, ArrowCircleFilled,
+	ArrowDiamond, ArrowDiamondFilled, ArrowHarpoon, ArrowHarpoonMirrored, ArrowX };
 
 //==================================================================================================
 

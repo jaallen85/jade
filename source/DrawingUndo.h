@@ -312,6 +312,8 @@ public:
 
 	void redo();
 	void undo();
+
+	bool mergeWith(const QUndoCommand* command);
 };
 
 //==================================================================================================

@@ -665,6 +665,25 @@ void DrawingUpdateItemPropertiesCommand::undo()
 		(*itemIter)->updateProperties(mOriginalProperties[*itemIter]);
 }
 
+bool DrawingUpdateItemPropertiesCommand::mergeWith(const QUndoCommand* command)
+{
+	bool mergeSuccess = false;
+
+	if (command && command->id() == UpdateItemPropertiesType)
+	{
+		const DrawingUpdateItemPropertiesCommand* propertiesCommand =
+			static_cast<const DrawingUpdateItemPropertiesCommand*>(command);
+
+		if (propertiesCommand && mProperties.keys() == propertiesCommand->mProperties.keys())
+		{
+			mProperties = propertiesCommand->mProperties;
+			mergeSuccess = true;
+		}
+	}
+
+	return mergeSuccess;
+}
+
 //==================================================================================================
 
 DrawingUpdatePropertiesCommand::DrawingUpdatePropertiesCommand(DrawingWidget* drawing,

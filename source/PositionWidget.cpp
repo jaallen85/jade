@@ -80,8 +80,8 @@ void PositionWidget::setupWidget()
 	mXEdit = new QLineEdit("0");
 	mYEdit = new QLineEdit("0");
 
-	mXEdit->setValidator(new QDoubleValidator(std::numeric_limits<qreal>::min(), std::numeric_limits<qreal>::max(), 6));
-	mYEdit->setValidator(new QDoubleValidator(std::numeric_limits<qreal>::min(), std::numeric_limits<qreal>::max(), 6));
+	mXEdit->setValidator(new QDoubleValidator(-std::numeric_limits<qreal>::max(), std::numeric_limits<qreal>::max(), 6));
+	mYEdit->setValidator(new QDoubleValidator(-std::numeric_limits<qreal>::max(), std::numeric_limits<qreal>::max(), 6));
 
 	QHBoxLayout* hLayout = new QHBoxLayout();
 	hLayout->addWidget(mXEdit);

@@ -466,7 +466,7 @@ QPainterPath DrawingLineItem::shape() const
 		QPointF p1 = points.first()->pos();
 		QPointF p2 = points.last()->pos();
 		qreal lineLength = qSqrt((p2.x() - p1.x()) * (p2.x() - p1.x()) + (p2.y() - p1.y()) * (p2.y() - p1.y()));
-		qreal lineAngle = qAtan2(p2.y() - p1.y(), p2.x() - p1.x());
+		qreal lineAngle = 180 * qAtan2(p2.y() - p1.y(), p2.x() - p1.x()) / 3.141592654;
 		QPen pen = DrawingLineItem::pen();
 
 		// Add line
@@ -477,9 +477,9 @@ QPainterPath DrawingLineItem::shape() const
 		if (pen.style() != Qt::NoPen)
 		{
 			if (lineLength > startArrowSize())
-				drawPath.addPath(arrowShape(startArrowStyle(), startArrowSize(), p1, -lineAngle));
+				drawPath.addPath(arrowShape(startArrowStyle(), startArrowSize(), p1, lineAngle));
 			if (lineLength > endArrowSize())
-				drawPath.addPath(arrowShape(endArrowStyle(), endArrowSize(), p2, 180 - lineAngle));
+				drawPath.addPath(arrowShape(endArrowStyle(), endArrowSize(), p2, 180 + lineAngle));
 		}
 
 		// Determine outline path
@@ -509,7 +509,7 @@ void DrawingLineItem::paint(QPainter* painter)
 		QPointF p1 = points.first()->pos();
 		QPointF p2 = points.last()->pos();
 		qreal lineLength = qSqrt((p2.x() - p1.x()) * (p2.x() - p1.x()) + (p2.y() - p1.y()) * (p2.y() - p1.y()));
-		qreal lineAngle = qAtan2(p2.y() - p1.y(), p2.x() - p1.x());
+		qreal lineAngle = 180 * qAtan2(p2.y() - p1.y(), p2.x() - p1.x()) / 3.141592654;
 		QPen pen = DrawingLineItem::pen();
 
 		// Draw line
@@ -521,9 +521,9 @@ void DrawingLineItem::paint(QPainter* painter)
 		if (pen.style() != Qt::NoPen)
 		{
 			if (lineLength > startArrowSize())
-				drawArrow(painter, startArrowStyle(), startArrowSize(), p1, -lineAngle, pen, sceneBrush);
+				drawArrow(painter, startArrowStyle(), startArrowSize(), p1, lineAngle, pen, sceneBrush);
 			if (lineLength > endArrowSize())
-				drawArrow(painter, endArrowStyle(), endArrowSize(), p2, 180 - lineAngle, pen, sceneBrush);
+				drawArrow(painter, endArrowStyle(), endArrowSize(), p2, 180 + lineAngle, pen, sceneBrush);
 		}
 
 		painter->setBrush(sceneBrush);
@@ -1122,8 +1122,8 @@ QPainterPath DrawingPolylineItem::shape() const
 		QPointF p3 = points[points.size()-1]->pos();
 		qreal firstLineLength = qSqrt((p1.x() - p0.x()) * (p1.x() - p0.x()) + (p1.y() - p0.y()) * (p1.y() - p0.y()));
 		qreal lastLineLength = qSqrt((p3.x() - p2.x()) * (p3.x() - p2.x()) + (p3.y() - p2.y()) * (p3.y() - p2.y()));
-		qreal firstLineAngle = qAtan2(p1.y() - p0.y(), p1.x() - p0.x());
-		qreal lastLineAngle = qAtan2(p3.y() - p2.y(), p3.x() - p2.x());
+		qreal firstLineAngle = 180 * qAtan2(p1.y() - p0.y(), p1.x() - p0.x()) / 3.141592654;
+		qreal lastLineAngle = 180 * qAtan2(p3.y() - p2.y(), p3.x() - p2.x()) / 3.141592654;
 		QPen pen = DrawingPolylineItem::pen();
 
 		// Add line
@@ -1138,9 +1138,9 @@ QPainterPath DrawingPolylineItem::shape() const
 		if (pen.style() != Qt::NoPen)
 		{
 			if (firstLineLength > startArrowSize())
-				drawPath.addPath(arrowShape(startArrowStyle(), startArrowSize(), p0, -firstLineAngle));
+				drawPath.addPath(arrowShape(startArrowStyle(), startArrowSize(), p0, firstLineAngle));
 			if (lastLineLength > endArrowSize())
-				drawPath.addPath(arrowShape(endArrowStyle(), endArrowSize(), p3, 180 - lastLineAngle));
+				drawPath.addPath(arrowShape(endArrowStyle(), endArrowSize(), p3, 180 + lastLineAngle));
 		}
 
 
@@ -1182,8 +1182,8 @@ void DrawingPolylineItem::paint(QPainter* painter)
 		QPointF p3 = points[points.size()-1]->pos();
 		qreal firstLineLength = qSqrt((p1.x() - p0.x()) * (p1.x() - p0.x()) + (p1.y() - p0.y()) * (p1.y() - p0.y()));
 		qreal lastLineLength = qSqrt((p3.x() - p2.x()) * (p3.x() - p2.x()) + (p3.y() - p2.y()) * (p3.y() - p2.y()));
-		qreal firstLineAngle = qAtan2(p1.y() - p0.y(), p1.x() - p0.x());
-		qreal lastLineAngle = qAtan2(p3.y() - p2.y(), p3.x() - p2.x());
+		qreal firstLineAngle = 180 * qAtan2(p1.y() - p0.y(), p1.x() - p0.x()) / 3.141592654;
+		qreal lastLineAngle = 180 * qAtan2(p3.y() - p2.y(), p3.x() - p2.x()) / 3.141592654;
 		QPen pen = DrawingPolylineItem::pen();
 
 		// Draw line
@@ -1202,9 +1202,9 @@ void DrawingPolylineItem::paint(QPainter* painter)
 		if (pen.style() != Qt::NoPen)
 		{
 			if (firstLineLength > startArrowSize())
-				drawArrow(painter, startArrowStyle(), startArrowSize(), p1, -firstLineAngle, pen, sceneBrush);
+				drawArrow(painter, startArrowStyle(), startArrowSize(), p0, firstLineAngle, pen, sceneBrush);
 			if (lastLineLength > endArrowSize())
-				drawArrow(painter, endArrowStyle(), endArrowSize(), p2, 180 - lastLineAngle, pen, sceneBrush);
+				drawArrow(painter, endArrowStyle(), endArrowSize(), p3, 180 + lastLineAngle, pen, sceneBrush);
 		}
 
 		painter->setBrush(sceneBrush);
