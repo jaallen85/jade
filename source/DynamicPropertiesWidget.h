@@ -1,4 +1,4 @@
-/* PropertiesWidget.cpp
+/* DynamicPropertiesWidget.cpp
  *
  * Copyright (C) 2013-2015 Jason Allen
  *
@@ -18,33 +18,36 @@
  * along with libdrawing.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#ifndef PROPERTIESWIDGET_H
-#define PROPERTIESWIDGET_H
+#ifndef DYNAMICPROPERTIESWIDGET_H
+#define DYNAMICPROPERTIESWIDGET_H
 
 #include <DrawingTypes.h>
 
+class ScenePropertiesWidget;
 class ItemPropertiesWidget;
 
-class PropertiesWidget : public QStackedWidget
+class DynamicPropertiesWidget : public QStackedWidget
 {
 	Q_OBJECT
 
 private:
 	QScrollArea* mScrollArea;
+
+	ScenePropertiesWidget* mSceneWidget;
+	ItemPropertiesWidget* mItemDefaultsWidget;
+
 	ItemPropertiesWidget* mItemWidget;
-	// ScenePropertiesWidget
-	// ItemDefaultPropertiesWidget
 
 public:
-	PropertiesWidget();
-	~PropertiesWidget();
+	DynamicPropertiesWidget();
+	~DynamicPropertiesWidget();
 
 	QSize sizeHint() const;
 
 public slots:
 	// Show/hide widgets as needed
-	void setFromItems(const QList<DrawingItem*>& items);
-	void setFromItem(DrawingItem* item);
+	void setFromItems(const QList<DrawingItem*>& items = QList<DrawingItem*>());
+	void setFromItem(DrawingItem* item = nullptr);
 
 	// Just update widget values
 	void updateItemGeometry();
@@ -56,6 +59,11 @@ signals:
 	void drawingPropertiesUpdated(const QRectF& sceneRect, qreal grid, const QBrush& backgroundBrush,
 		DrawingGridStyle gridStyle, const QBrush& gridBrush, int gridSpacingMajor, int gridSpacingMinor);
 	void defaultItemPropertiesUpdated(const QMap<QString,QVariant>& properties);
+
+private:
+	void addSceneProperties();
+	void addItemProperties(const QList<DrawingItem*>& items);
+	void clearWidgets();
 };
 
 #endif

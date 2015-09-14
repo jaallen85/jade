@@ -29,12 +29,13 @@ SOURCES += \
 	source/DrawingWidget.cpp \
 	\
 	source/ColorButton.cpp \
+	source/DynamicPropertiesWidget.cpp \
 	source/ItemPropertiesWidget.cpp \
 	source/MainStatusBar.cpp \
 	source/MainToolBox.cpp \
 	source/MainWindow.cpp \
 	source/PositionWidget.cpp \
-	source/PropertiesWidget.cpp \
+	source/ScenePropertiesWidget.cpp \
 	source/main.cpp
 
 HEADERS += \
@@ -50,12 +51,13 @@ HEADERS += \
 	source/DrawingWidget.h \
 	\
 	source/ColorButton.h \
+	source/DynamicPropertiesWidget.h \
 	source/ItemPropertiesWidget.h \
 	source/MainStatusBar.h \
 	source/MainToolBox.h \
 	source/MainWindow.h \
 	source/PositionWidget.h \
-	source/PropertiesWidget.h
+	source/ScenePropertiesWidget.h
 
 RESOURCES += icons/icons.qrc
 

@@ -26,7 +26,7 @@
 class DrawingWidget;
 class MainStatusBar;
 class MainToolBox;
-class PropertiesWidget;
+class DynamicPropertiesWidget;
 
 class MainWindow : public QMainWindow
 {
@@ -42,7 +42,7 @@ private:
 	MainToolBox* mMainToolBox;
 
 	QDockWidget* mPropertiesWidgetDock;
-	PropertiesWidget* mPropertiesWidget;
+	DynamicPropertiesWidget* mPropertiesWidget;
 
 	MainStatusBar* mMainStatusBar;
 

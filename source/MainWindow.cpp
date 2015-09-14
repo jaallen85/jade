@@ -21,7 +21,7 @@
 #include "MainWindow.h"
 #include "MainToolBox.h"
 #include "MainStatusBar.h"
-#include "PropertiesWidget.h"
+#include "DynamicPropertiesWidget.h"
 
 MainWindow::MainWindow() : QMainWindow()
 {
@@ -85,7 +85,7 @@ void MainWindow::createMainToolBox()
 
 void MainWindow::createPropertiesWidget()
 {
-	mPropertiesWidget = new PropertiesWidget();
+	mPropertiesWidget = new DynamicPropertiesWidget();
 	mPropertiesWidgetDock = new QDockWidget("Properties");
 	mPropertiesWidgetDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
 	mPropertiesWidgetDock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable | QDockWidget::DockWidgetClosable);

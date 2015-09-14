@@ -28,7 +28,7 @@
 #include <DrawingTextItem.h>
 #include <DrawingTwoPointItems.h>
 
-ItemPropertiesWidget::ItemPropertiesWidget(const QList<DrawingItem*>& items)
+ItemPropertiesWidget::ItemPropertiesWidget(const QList<DrawingItem*>& items) : QWidget()
 {
 	mItems = items;
 
