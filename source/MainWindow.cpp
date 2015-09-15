@@ -22,6 +22,8 @@
 #include "MainToolBox.h"
 #include "MainStatusBar.h"
 #include "DynamicPropertiesWidget.h"
+#include "DrawingWriter.h"
+#include "DrawingReader.h"
 
 MainWindow::MainWindow() : QMainWindow()
 {
@@ -42,6 +44,21 @@ MainWindow::MainWindow() : QMainWindow()
 }
 
 MainWindow::~MainWindow() { }
+
+//==================================================================================================
+
+void MainWindow::openDrawing()
+{
+	DrawingReader reader(mDrawingWidget);
+	if (!reader.read("test.jdm")) QMessageBox::critical(this, "Load Error", reader.errorMessage());
+}
+
+void MainWindow::saveDrawing()
+{
+	DrawingWriter writer(mDrawingWidget);
+	writer.write("test.jdm");
+	if (!writer.write("test.jdm")) QMessageBox::critical(this, "Save Error", writer.errorMessage());
+}
 
 //==================================================================================================
 
@@ -137,6 +154,8 @@ void MainWindow::createStatusBar()
 
 void MainWindow::createActions()
 {
+	addAction("Open", this, SLOT(openDrawing()), ":/icons/oxygen/document-open.png");
+	addAction("Save", this, SLOT(saveDrawing()), ":/icons/oxygen/document-save.png");
 	addAction("Exit", this, SLOT(close()), ":/icons/oxygen/application-exit.png");
 }
 
@@ -189,6 +208,13 @@ void MainWindow::createToolBars()
 	QList<QAction*> drawingActions = mDrawingWidget->actions();
 	QToolBar* toolBar;
 	int size = QFontMetrics(font()).height() * 1.5;
+
+	toolBar = new QToolBar("File");
+	toolBar->setObjectName("FileToolBar");
+	toolBar->setIconSize(QSize(size, size));
+	toolBar->addAction(actions[OpenAction]);
+	toolBar->addAction(actions[SaveAction]);
+	addToolBar(toolBar);
 
 	toolBar = new QToolBar("Diagram");
 	toolBar->setObjectName("DiagramToolBar");

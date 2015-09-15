@@ -29,6 +29,8 @@ SOURCES += \
 	source/DrawingWidget.cpp \
 	\
 	source/ColorButton.cpp \
+	source/DrawingReader.cpp \
+	source/DrawingWriter.cpp \
 	source/DynamicPropertiesWidget.cpp \
 	source/ItemPropertiesWidget.cpp \
 	source/MainStatusBar.cpp \
@@ -51,6 +53,8 @@ HEADERS += \
 	source/DrawingWidget.h \
 	\
 	source/ColorButton.h \
+	source/DrawingReader.h \
+	source/DrawingWriter.h \
 	source/DynamicPropertiesWidget.h \
 	source/ItemPropertiesWidget.h \
 	source/MainStatusBar.h \

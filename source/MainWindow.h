@@ -33,7 +33,7 @@ class MainWindow : public QMainWindow
 	Q_OBJECT
 
 public:
-	enum ActionIndex { ExitAction, NumberOfActions };
+	enum ActionIndex { OpenAction, SaveAction, ExitAction, NumberOfActions };
 
 private:
 	DrawingWidget* mDrawingWidget;
@@ -51,6 +51,10 @@ private:
 public:
 	MainWindow();
 	~MainWindow();
+
+public slots:
+	void openDrawing();
+	void saveDrawing();
 
 private:
 	void showEvent(QShowEvent* event);
