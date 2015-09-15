@@ -69,6 +69,13 @@ QSize MainToolBox::sizeHint() const
 
 //==================================================================================================
 
+QMap<QString,QVariant> MainToolBox::defaultItemProperties() const
+{
+	return mDefaultItemProperties;
+}
+
+//==================================================================================================
+
 void MainToolBox::updateMode(DrawingWidget::Mode mode)
 {
 	QList<QAction*> modeActions = mModeActionGroup->actions();

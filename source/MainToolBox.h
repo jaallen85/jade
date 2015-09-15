@@ -47,6 +47,8 @@ public:
 
 	QSize sizeHint() const;
 
+	QMap<QString,QVariant> defaultItemProperties() const;
+
 public slots:
 	void updateMode(DrawingWidget::Mode mode);
 	void updateDefaultItemProperties(const QMap<QString,QVariant>& properties);

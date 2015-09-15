@@ -112,8 +112,10 @@ void MainWindow::createPropertiesWidget()
 		mDrawingWidget, SLOT(updateSelectionProperties(const QMap<QString,QVariant>&)));
 	connect(mPropertiesWidget, SIGNAL(drawingPropertiesUpdated(const QRectF&, qreal, const QBrush&, DrawingGridStyle, const QBrush&, int, int)),
 		mDrawingWidget, SLOT(updateProperties(const QRectF&, qreal, const QBrush&, DrawingGridStyle, const QBrush&, int, int)));
+
 	connect(mPropertiesWidget, SIGNAL(defaultItemPropertiesUpdated(const QMap<QString,QVariant>&)),
 		mMainToolBox, SLOT(updateDefaultItemProperties(const QMap<QString,QVariant>&)));
+	mPropertiesWidget->setDefaultItemProperties(mMainToolBox->defaultItemProperties());
 }
 
 void MainWindow::createStatusBar()

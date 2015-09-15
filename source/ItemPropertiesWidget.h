@@ -95,6 +95,7 @@ public:
 
 public slots:
 	void updateGeometry();
+	void updateProperties(const QMap<QString,QVariant>& properties);
 
 signals:
 	void positionUpdated(const QPointF& pos);

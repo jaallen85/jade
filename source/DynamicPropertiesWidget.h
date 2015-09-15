@@ -45,16 +45,13 @@ public:
 	QSize sizeHint() const;
 
 public slots:
-	// Show/hide widgets as needed
 	void setFromItems(const QList<DrawingItem*>& items = QList<DrawingItem*>());
 	void setFromItem(DrawingItem* item = nullptr);
-
-	// Just update widget values
 	void updateItemGeometry();
 
-	// Update scene properties
 	void setDrawingProperties(const QRectF& sceneRect, qreal grid, const QBrush& backgroundBrush,
 		DrawingGridStyle gridStyle, const QBrush& gridBrush, int gridSpacingMajor, int gridSpacingMinor);
+	void setDefaultItemProperties(const QMap<QString,QVariant>& properties);
 
 signals:
 	void itemPositionUpdated(const QPointF& pos);

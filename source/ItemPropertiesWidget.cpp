@@ -166,6 +166,66 @@ void ItemPropertiesWidget::updateGeometry()
 	}
 }
 
+void ItemPropertiesWidget::updateProperties(const QMap<QString,QVariant>& properties)
+{
+	if (mCornerRadiusWidget && properties.contains("Corner Radius X"))
+		mCornerRadiusWidget->setX(properties["Corner Radius X"].toDouble());
+	if (mCornerRadiusWidget && properties.contains("Corner Radius Y"))
+		mCornerRadiusWidget->setY(properties["Corner Radius Y"].toDouble());
+
+	if (mPenStyleCombo && properties.contains("Pen Style"))
+		mPenStyleCombo->setCurrentIndex(properties["Pen Style"].toUInt());
+	if (mPenWidthEdit && properties.contains("Pen Width"))
+		mPenWidthEdit->setText(QString::number(properties["Pen Width"].toDouble()));
+	if (mPenColorButton && properties.contains("Pen Color"))
+		mPenColorButton->setColor(properties["Pen Color"].value<QColor>());
+	if (mBrushColorButton && properties.contains("Brush Color"))
+		mBrushColorButton->setColor(properties["Brush Color"].value<QColor>());
+
+	if (mStartArrowStyleCombo && properties.contains("Start Arrow Style"))
+		mStartArrowStyleCombo->setCurrentIndex(properties["Start Arrow Style"].toUInt());
+	if (mStartArrowSizeEdit && properties.contains("Start Arrow Size"))
+		mStartArrowSizeEdit->setText(QString::number(properties["Start Arrow Size"].toDouble()));
+	if (mEndArrowStyleCombo && properties.contains("End Arrow Style"))
+		mEndArrowStyleCombo->setCurrentIndex(properties["End Arrow Style"].toUInt());
+	if (mEndArrowSizeEdit && properties.contains("End Arrow Size"))
+		mEndArrowSizeEdit->setText(QString::number(properties["End Arrow Size"].toDouble()));
+
+	if (mFontFamilyCombo && properties.contains("Font Family"))
+		mFontFamilyCombo->setCurrentFont(QFont(properties["Font Family"].toString()));
+	if (mFontSizeEdit && properties.contains("Font Size"))
+		mFontSizeEdit->setText(QString::number(properties["Font Size"].toDouble()));
+	if (mFontBoldButton && properties.contains("Font Bold"))
+		mFontBoldButton->setChecked(properties["Font Bold"].toBool());
+	if (mFontItalicButton && properties.contains("Font Italic"))
+		mFontItalicButton->setChecked(properties["Font Italic"].toBool());
+	if (mFontUnderlineButton && properties.contains("Font Underline"))
+		mFontUnderlineButton->setChecked(properties["Font Underline"].toBool());
+	if (mFontStrikeOutButton && properties.contains("Font Strike-Out"))
+		mFontStrikeOutButton->setChecked(properties["Font Strike-Out"].toBool());
+
+	if (properties.contains("Text Horizontal Alignment"))
+	{
+		Qt::Alignment align = (Qt::Alignment)(properties["Text Horizontal Alignment"].toUInt() & Qt::AlignHorizontal_Mask);
+		if (mLeftAlignButton) mLeftAlignButton->setChecked(align == Qt::AlignLeft);
+		if (mRightAlignButton) mRightAlignButton->setChecked(align == Qt::AlignRight);
+		if (mHCenterAlignButton) mHCenterAlignButton->setChecked(align == Qt::AlignHCenter);
+	}
+	if (properties.contains("Text Vertical Alignment"))
+	{
+		Qt::Alignment align = (Qt::Alignment)(properties["Text Vertical Alignment"].toUInt() & Qt::AlignVertical_Mask);
+		if (mTopAlignButton) mTopAlignButton->setChecked(align == Qt::AlignTop);
+		if (mBottomAlignButton) mBottomAlignButton->setChecked(align == Qt::AlignBottom);
+		if (mVCenterAlignButton) mVCenterAlignButton->setChecked(align == Qt::AlignVCenter);
+	}
+
+	if (mTextColorButton && properties.contains("Text Color"))
+		mTextColorButton->setColor(properties["Text Color"].value<QColor>());
+
+	if (mCaptionEdit && properties.contains("Caption"))
+		mCaptionEdit->setPlainText(properties["Caption"].toString());
+}
+
 //==================================================================================================
 
 void ItemPropertiesWidget::handlePositionChange()

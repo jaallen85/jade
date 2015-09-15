@@ -98,3 +98,8 @@ void DynamicPropertiesWidget::setDrawingProperties(const QRectF& sceneRect, qrea
 	mSceneWidget->setProperties(sceneRect, grid, backgroundBrush,
 		gridStyle, gridBrush, gridSpacingMajor, gridSpacingMinor);
 }
+
+void DynamicPropertiesWidget::setDefaultItemProperties(const QMap<QString,QVariant>& properties)
+{
+	mItemDefaultsWidget->updateProperties(properties);
+}
