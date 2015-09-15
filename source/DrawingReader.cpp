@@ -21,7 +21,7 @@
 #include "DrawingReader.h"
 #include "DrawingWidget.h"
 
-DrawingReader::DrawingReader(DrawingWidget* drawing) : QObject()
+DrawingReader::DrawingReader(QIODevice* device) : QObject()
 {
 
 }
@@ -30,17 +30,7 @@ DrawingReader::~DrawingReader() { }
 
 //==================================================================================================
 
-QString DrawingReader::errorMessage() const
+void DrawingReader::read(DrawingWidget* drawing)
 {
-	return mErrorMessage;
+
 }
-
-//==================================================================================================
-
-bool DrawingReader::read(const QString& filePath)
-{
-	return true;
-}
-
-
-

@@ -21,25 +21,26 @@
 #ifndef DRAWINGWRITER_H
 #define DRAWINGWRITER_H
 
-#include <QtWidgets>
+#include <DrawingTypes.h>
 
-class DrawingWidget;
-
-class DrawingWriter : public QObject
+class DrawingWriter : public QXmlStreamWriter
 {
-	Q_OBJECT
-
 private:
-	QString mErrorMessage;
+
 
 public:
-	DrawingWriter(DrawingWidget* drawing);
+	DrawingWriter(QIODevice* device);
 	~DrawingWriter();
 
-	QString errorMessage() const;
-
 public slots:
-	bool write(const QString& filePath);
+	void write(DrawingWidget* drawing);
+	void writeItems(const QList<DrawingItem*>& items);
+
+private:
+	void writeItemElements(const QList<DrawingItem*>& items);
+
+	QString colorToString(const QColor& color) const;
+	QString gridStyleToString(DrawingGridStyle gridStyle) const;
 };
 
 #endif

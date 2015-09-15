@@ -30,16 +30,14 @@ class DrawingReader : public QObject
 	Q_OBJECT
 
 private:
-	QString mErrorMessage;
+
 
 public:
-	DrawingReader(DrawingWidget* drawing);
+	DrawingReader(QIODevice* device);
 	~DrawingReader();
 
-	QString errorMessage() const;
-
 public slots:
-	bool read(const QString& filePath);
+	void read(DrawingWidget* drawing);
 };
 
 #endif

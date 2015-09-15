@@ -49,15 +49,24 @@ MainWindow::~MainWindow() { }
 
 void MainWindow::openDrawing()
 {
-	DrawingReader reader(mDrawingWidget);
-	if (!reader.read("test.jdm")) QMessageBox::critical(this, "Load Error", reader.errorMessage());
+	QFile drawingFile("test.jdm");
+	if (drawingFile.open(QFile::ReadOnly))
+	{
+		DrawingReader reader(&drawingFile);
+		reader.read(mDrawingWidget);
+	}
+	else QMessageBox::critical(this, "Load Error", "Error opening test.jdm for reading.");
 }
 
 void MainWindow::saveDrawing()
 {
-	DrawingWriter writer(mDrawingWidget);
-	writer.write("test.jdm");
-	if (!writer.write("test.jdm")) QMessageBox::critical(this, "Save Error", writer.errorMessage());
+	QFile drawingFile("test.jdm");
+	if (drawingFile.open(QFile::WriteOnly))
+	{
+		DrawingWriter writer(&drawingFile);
+		writer.write(mDrawingWidget);
+	}
+	else QMessageBox::critical(this, "Load Error", "Error opening test.jdm for reading.");
 }
 
 //==================================================================================================
