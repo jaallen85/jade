@@ -52,6 +52,10 @@ public slots:
 	// Just update widget values
 	void updateItemGeometry();
 
+	// Update scene properties
+	void setDrawingProperties(const QRectF& sceneRect, qreal grid, const QBrush& backgroundBrush,
+		DrawingGridStyle gridStyle, const QBrush& gridBrush, int gridSpacingMajor, int gridSpacingMinor);
+
 signals:
 	void itemPositionUpdated(const QPointF& pos);
 	void itemPointPositionUpdated(DrawingItemPoint* itemPoint, const QPointF& pos);

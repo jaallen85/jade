@@ -31,7 +31,16 @@ class ScenePropertiesWidget : public QWidget
 	Q_OBJECT
 
 private:
+	PositionWidget* mTopLeftWidget;
+	QLineEdit* mWidthEdit;
+	QLineEdit* mHeightEdit;
+	ColorPushButton* mBackgroundColorButton;
 
+	QLineEdit* mGridEdit;
+	ColorPushButton* mGridColorButton;
+	QComboBox* mGridStyleCombo;
+	QSpinBox* mGridSpacingMajorSpin;
+	QSpinBox* mGridSpacingMinorSpin;
 
 public:
 	ScenePropertiesWidget();
@@ -39,9 +48,23 @@ public:
 
 	QSize sizeHint() const;
 
+public slots:
+	void setProperties(const QRectF& sceneRect, qreal grid, const QBrush& backgroundBrush,
+		DrawingGridStyle gridStyle, const QBrush& gridBrush, int gridSpacingMajor, int gridSpacingMinor);
+
 signals:
 	void propertiesUpdated(const QRectF& sceneRect, qreal grid, const QBrush& backgroundBrush,
 		DrawingGridStyle gridStyle, const QBrush& gridBrush, int gridSpacingMajor, int gridSpacingMinor);
+
+private slots:
+	void handlePropertyChange();
+
+private:
+	QGroupBox* createDrawingGroup();
+	QGroupBox* createGridGroup();
+
+	void addWidget(QFormLayout*& formLayout, const QString& label, QWidget* widget);
+	int labelWidth() const;
 };
 
 #endif

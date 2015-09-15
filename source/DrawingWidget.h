@@ -215,6 +215,9 @@ signals:
 
 	void mouseInfoChanged(const QString& infoText);
 
+	void propertiesChanged(const QRectF& sceneRect, qreal grid, const QBrush& backgroundBrush,
+		DrawingGridStyle gridStyle, const QBrush& gridBrush, int gridSpacingMajor, int gridSpacingMinor);
+
 protected:
 	virtual void mousePressEvent(QMouseEvent* event);
 	virtual void mouseMoveEvent(QMouseEvent* event);

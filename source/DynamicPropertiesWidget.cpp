@@ -89,3 +89,12 @@ void DynamicPropertiesWidget::updateItemGeometry()
 {
 	if (mItemWidget) mItemWidget->updateGeometry();
 }
+
+//==================================================================================================
+
+void DynamicPropertiesWidget::setDrawingProperties(const QRectF& sceneRect, qreal grid, const QBrush& backgroundBrush,
+	DrawingGridStyle gridStyle, const QBrush& gridBrush, int gridSpacingMajor, int gridSpacingMinor)
+{
+	mSceneWidget->setProperties(sceneRect, grid, backgroundBrush,
+		gridStyle, gridBrush, gridSpacingMajor, gridSpacingMinor);
+}

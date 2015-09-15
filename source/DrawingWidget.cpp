@@ -614,6 +614,9 @@ void DrawingWidget::undo()
 		mUndoStack.undo();
 		emit numberOfItemsChanged(mItems.size());
 
+		emit propertiesChanged(mSceneRect, mGrid, mBackgroundBrush,	mGridStyle, mGridBrush,
+			mGridSpacingMajor, mGridSpacingMinor);
+
 		viewport()->update();
 	}
 	else setDefaultMode();
@@ -628,6 +631,9 @@ void DrawingWidget::redo()
 
 		mUndoStack.redo();
 		emit numberOfItemsChanged(mItems.size());
+
+		emit propertiesChanged(mSceneRect, mGrid, mBackgroundBrush,	mGridStyle, mGridBrush,
+			mGridSpacingMajor, mGridSpacingMinor);
 
 		viewport()->update();
 	}
@@ -1016,6 +1022,7 @@ void DrawingWidget::updateProperties(const QRectF& sceneRect, qreal grid, const 
 		sceneRect, grid, backgroundBrush, gridStyle, gridBrush, gridSpacingMajor, gridSpacingMinor);
 
 	mUndoStack.push(propertiesCommand);
+	viewport()->update();
 }
 
 //==================================================================================================

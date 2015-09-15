@@ -101,6 +101,8 @@ void MainWindow::createPropertiesWidget()
 		mPropertiesWidget, SLOT(updateItemGeometry()));
 	connect(mDrawingWidget, SIGNAL(itemGeometryChanged(DrawingItem*)),
 		mPropertiesWidget, SLOT(updateItemGeometry()));
+	connect(mDrawingWidget, SIGNAL(propertiesChanged(const QRectF&, qreal, const QBrush&, DrawingGridStyle, const QBrush&, int, int)),
+		mPropertiesWidget, SLOT(setDrawingProperties(const QRectF&, qreal, const QBrush&, DrawingGridStyle, const QBrush&, int, int)));
 
 	connect(mPropertiesWidget, SIGNAL(itemPositionUpdated(const QPointF&)),
 		mDrawingWidget, SLOT(moveSelection(const QPointF&)));
