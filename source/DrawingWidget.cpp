@@ -1281,9 +1281,8 @@ void DrawingWidget::defaultMouseReleaseEvent(DrawingMouseEvent* event)
 		{
 			if (controlDown && mMouseDownItem->isSelected()) deselectItem(mMouseDownItem);
 			else selectItem(mMouseDownItem);
-
-			emit selectionChanged(mSelectedItems);
 		}
+		emit selectionChanged(mSelectedItems);
 		break;
 
 	case MouseMoveItems:

@@ -59,11 +59,6 @@ signals:
 	void drawingPropertiesUpdated(const QRectF& sceneRect, qreal grid, const QBrush& backgroundBrush,
 		DrawingGridStyle gridStyle, const QBrush& gridBrush, int gridSpacingMajor, int gridSpacingMinor);
 	void defaultItemPropertiesUpdated(const QMap<QString,QVariant>& properties);
-
-private:
-	void addSceneProperties();
-	void addItemProperties(const QList<DrawingItem*>& items);
-	void clearWidgets();
 };
 
 #endif

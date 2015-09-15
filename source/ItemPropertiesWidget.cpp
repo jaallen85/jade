@@ -131,7 +131,7 @@ ItemPropertiesWidget::~ItemPropertiesWidget() { }
 
 QSize ItemPropertiesWidget::sizeHint() const
 {
-	return QSize(300, layout()->sizeHint().height());
+	return QSize(260, layout()->sizeHint().height());
 }
 
 //==================================================================================================
@@ -255,7 +255,7 @@ void ItemPropertiesWidget::handlePropertyChange()
 		newProperties["End Arrow Size"] = QVariant(mEndArrowSizeEdit->text().toDouble());
 
 	else if (isSender(sender(), mFontFamilyCombo, mTextLayout))
-		newProperties["Font Family"] = QVariant(mFontFamilyCombo->currentFont().family());
+		newProperties["Font Family"] = QVariant(mFontFamilyCombo->currentText());
 	else if (isSender(sender(), mFontSizeEdit, mTextLayout))
 		newProperties["Font Size"] = QVariant(mFontSizeEdit->text().toDouble());
 	else if (isSender(sender(), mFontBoldButton, mTextLayout))
@@ -546,6 +546,7 @@ QGroupBox* ItemPropertiesWidget::createPenBrushGroup()
 		mPenStyleCombo->addItem(QIcon(":/icons/penstyle/pen_dotted.png"), "Dotted Line");
 		mPenStyleCombo->addItem(QIcon(":/icons/penstyle/pen_dash_dotted.png"), "Dash-Dotted Line");
 		mPenStyleCombo->addItem(QIcon(":/icons/penstyle/pen_dash_dot_dotted.png"), "Dash-Dot-Dotted Line");
+		mPenStyleCombo->setCurrentIndex(1);
 
 		if (propertyValue.isValid()) mPenStyleCombo->setCurrentIndex(propertyValue.toUInt());
 		connect(mPenStyleCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(handlePropertyChange()));
@@ -610,6 +611,8 @@ QGroupBox* ItemPropertiesWidget::createTextGroup()
 		mFontFamilyCombo = new QFontComboBox();
 
 		if (propertyValue.isValid()) mFontFamilyCombo->setCurrentFont(QFont(propertyValue.toString()));
+		else mFontFamilyCombo->setCurrentFont(QFont("Arial"));
+
 		connect(mFontFamilyCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(handlePropertyChange()));
 
 		addWidget(mTextLayout, "Font: ", mFontFamilyCombo, propertiesMatch);
@@ -718,7 +721,7 @@ QGroupBox* ItemPropertiesWidget::createTextGroup()
 			else if (align & Qt::AlignRight) mRightAlignButton->setChecked(true);
 			else mLeftAlignButton->setChecked(true);
 		}
-		else mLeftAlignButton->setChecked(true);
+		else mHCenterAlignButton->setChecked(true);
 
 		horizontalAlignWidget = new QWidget();
 		QHBoxLayout* horizontalAlignLayout = new QHBoxLayout();
@@ -759,7 +762,7 @@ QGroupBox* ItemPropertiesWidget::createTextGroup()
 			else if (align & Qt::AlignBottom) mBottomAlignButton->setChecked(true);
 			else mTopAlignButton->setChecked(true);
 		}
-		else mTopAlignButton->setChecked(true);
+		else mVCenterAlignButton->setChecked(true);
 
 		verticalAlignWidget = new QWidget();
 		QHBoxLayout* verticalAlignLayout = new QHBoxLayout();

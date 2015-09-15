@@ -24,51 +24,7 @@
 
 DynamicPropertiesWidget::DynamicPropertiesWidget() : QStackedWidget()
 {
-	mSceneWidget = nullptr;
-	mItemDefaultsWidget = nullptr;
 	mItemWidget = nullptr;
-
-	setFromItems();
-	setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Expanding);
-}
-
-DynamicPropertiesWidget::~DynamicPropertiesWidget() { }
-
-//==================================================================================================
-
-QSize DynamicPropertiesWidget::sizeHint() const
-{
-	return QSize(320, -1);
-}
-
-//==================================================================================================
-
-void DynamicPropertiesWidget::setFromItems(const QList<DrawingItem*>& items)
-{
-	clearWidgets();
-
-	if (items.size() > 0) addItemProperties(items);
-	else addSceneProperties();
-}
-
-void DynamicPropertiesWidget::setFromItem(DrawingItem* item)
-{
-	QList<DrawingItem*> items;
-	if (item) items.append(item);
-	setFromItems(items);
-}
-
-//==================================================================================================
-
-void DynamicPropertiesWidget::updateItemGeometry()
-{
-	if (mItemWidget) mItemWidget->updateGeometry();
-}
-
-//==================================================================================================
-
-void DynamicPropertiesWidget::addSceneProperties()
-{
 	mSceneWidget = new ScenePropertiesWidget();
 	mItemDefaultsWidget = new ItemPropertiesWidget(QList<DrawingItem*>());
 
@@ -82,31 +38,54 @@ void DynamicPropertiesWidget::addSceneProperties()
 		this, SIGNAL(drawingPropertiesUpdated(const QRectF&,qreal,const QBrush&,DrawingGridStyle,const QBrush&,int,int)));
 	connect(mItemDefaultsWidget, SIGNAL(propertiesUpdated(const QMap<QString,QVariant>&)),
 		this, SIGNAL(defaultItemPropertiesUpdated(const QMap<QString,QVariant>&)));
+
+	setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Expanding);
 }
 
-void DynamicPropertiesWidget::addItemProperties(const QList<DrawingItem*>& items)
-{
-	mItemWidget = new ItemPropertiesWidget(items);
-	addWidget(mItemWidget);
+DynamicPropertiesWidget::~DynamicPropertiesWidget() { }
 
-	connect(mItemWidget, SIGNAL(positionUpdated(const QPointF&)),
-		this, SIGNAL(itemPositionUpdated(const QPointF&)));
-	connect(mItemWidget, SIGNAL(pointPositionUpdated(DrawingItemPoint*,const QPointF&)),
-		this, SIGNAL(itemPointPositionUpdated(DrawingItemPoint*,const QPointF&)));
-	connect(mItemWidget, SIGNAL(propertiesUpdated(const QMap<QString,QVariant>&)),
-		this, SIGNAL(itemPropertiesUpdated(const QMap<QString,QVariant>&)));
+//==================================================================================================
+
+QSize DynamicPropertiesWidget::sizeHint() const
+{
+	return QSize(280, -1);
 }
 
-void DynamicPropertiesWidget::clearWidgets()
+//==================================================================================================
+
+void DynamicPropertiesWidget::setFromItems(const QList<DrawingItem*>& items)
 {
-	while (count() > 0)
+	if (mItemWidget)
 	{
-		QWidget* w = widget(0);
-		removeWidget(w);
-		delete w;
+		setCurrentIndex(0);
+		removeWidget(mItemWidget);
+		delete mItemWidget;
+		mItemWidget = nullptr;
 	}
 
-	mSceneWidget = nullptr;
-	mItemDefaultsWidget = nullptr;
-	mItemWidget = nullptr;
+	if (items.size() > 0)
+	{
+		mItemWidget = new ItemPropertiesWidget(items);
+		addWidget(mItemWidget);
+		setCurrentIndex(1);
+
+		connect(mItemWidget, SIGNAL(positionUpdated(const QPointF&)),
+			this, SIGNAL(itemPositionUpdated(const QPointF&)));
+		connect(mItemWidget, SIGNAL(pointPositionUpdated(DrawingItemPoint*,const QPointF&)),
+			this, SIGNAL(itemPointPositionUpdated(DrawingItemPoint*,const QPointF&)));
+		connect(mItemWidget, SIGNAL(propertiesUpdated(const QMap<QString,QVariant>&)),
+			this, SIGNAL(itemPropertiesUpdated(const QMap<QString,QVariant>&)));
+	}
+}
+
+void DynamicPropertiesWidget::setFromItem(DrawingItem* item)
+{
+	QList<DrawingItem*> items;
+	if (item) items.append(item);
+	setFromItems(items);
+}
+
+void DynamicPropertiesWidget::updateItemGeometry()
+{
+	if (mItemWidget) mItemWidget->updateGeometry();
 }

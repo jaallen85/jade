@@ -32,7 +32,6 @@ MainWindow::MainWindow() : QMainWindow()
 	createPropertiesWidget();
 	createStatusBar();
 
-
 	createActions();
 	createMenus();
 	createToolBars();

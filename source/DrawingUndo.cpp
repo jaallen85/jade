@@ -674,7 +674,8 @@ bool DrawingUpdateItemPropertiesCommand::mergeWith(const QUndoCommand* command)
 		const DrawingUpdateItemPropertiesCommand* propertiesCommand =
 			static_cast<const DrawingUpdateItemPropertiesCommand*>(command);
 
-		if (propertiesCommand && mProperties.keys() == propertiesCommand->mProperties.keys())
+		if (propertiesCommand && mProperties.keys() == propertiesCommand->mProperties.keys() &&
+			mProperties.keys().size() == 1 && mProperties.keys().first() == "Caption")
 		{
 			mProperties = propertiesCommand->mProperties;
 			mergeSuccess = true;
