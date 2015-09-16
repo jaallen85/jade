@@ -23,8 +23,6 @@
 
 #include <DrawingTypes.h>
 
-class DrawingItemGroup;
-
 class DrawingItem
 {
 	friend class DrawingWidget;

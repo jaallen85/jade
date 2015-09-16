@@ -39,8 +39,24 @@ public slots:
 private:
 	void writeItemElements(const QList<DrawingItem*>& items);
 
+	void writeLineItem(DrawingLineItem* item);
+	void writeArcItem(DrawingArcItem* item);
+	void writePolylineItem(DrawingPolylineItem* item);
+	void writeCurveItem(DrawingCurveItem* item);
+	void writeRectItem(DrawingRectItem* item);
+	void writeEllipseItem(DrawingEllipseItem* item);
+	void writePolygonItem(DrawingPolygonItem* item);
+	void writeTextItem(DrawingTextItem* item);
+	void writePathItem(DrawingPathItem* item);
+	void writeItemGroup(DrawingItemGroup* item);
+
+	void writeItemProperties(DrawingItem* item);
+
+	QString transformToString(const QPointF& pos, qreal rotation, bool flipped);
 	QString colorToString(const QColor& color) const;
 	QString gridStyleToString(DrawingGridStyle gridStyle) const;
+	QString pathToString(const QPainterPath& path) const;
+	QString pointsToString(const QPolygonF& points) const;
 };
 
 #endif

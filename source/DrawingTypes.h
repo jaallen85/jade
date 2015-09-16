@@ -26,6 +26,16 @@
 class DrawingWidget;
 class DrawingItem;
 class DrawingItemPoint;
+class DrawingLineItem;
+class DrawingArcItem;
+class DrawingPolylineItem;
+class DrawingCurveItem;
+class DrawingRectItem;
+class DrawingEllipseItem;
+class DrawingPolygonItem;
+class DrawingTextItem;
+class DrawingPathItem;
+class DrawingItemGroup;
 
 enum DrawingGridStyle { GridNone, GridDotted, GridLined, GridGraphPaper };
 
