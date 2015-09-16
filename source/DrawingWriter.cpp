@@ -290,63 +290,115 @@ void DrawingWriter::writeItemGroup(DrawingItemGroup* item)
 
 void DrawingWriter::writeItemProperties(DrawingItem* item)
 {
-	/*if (mPenStyleCombo && properties.contains("Pen Style"))
-		mPenStyleCombo->setCurrentIndex(properties["Pen Style"].toUInt());
-	if (mPenWidthEdit && properties.contains("Pen Width"))
-		mPenWidthEdit->setText(QString::number(properties["Pen Width"].toDouble()));
-	if (mPenColorButton && properties.contains("Pen Color"))
-		mPenColorButton->setColor(properties["Pen Color"].value<QColor>());
-	if (mBrushColorButton && properties.contains("Brush Color"))
-		mBrushColorButton->setColor(properties["Brush Color"].value<QColor>());
-
-	if (mStartArrowStyleCombo && properties.contains("Start Arrow Style"))
-		mStartArrowStyleCombo->setCurrentIndex(properties["Start Arrow Style"].toUInt());
-	if (mStartArrowSizeEdit && properties.contains("Start Arrow Size"))
-		mStartArrowSizeEdit->setText(QString::number(properties["Start Arrow Size"].toDouble()));
-	if (mEndArrowStyleCombo && properties.contains("End Arrow Style"))
-		mEndArrowStyleCombo->setCurrentIndex(properties["End Arrow Style"].toUInt());
-	if (mEndArrowSizeEdit && properties.contains("End Arrow Size"))
-		mEndArrowSizeEdit->setText(QString::number(properties["End Arrow Size"].toDouble()));
-
-	if (mFontFamilyCombo && properties.contains("Font Family"))
-		mFontFamilyCombo->setCurrentFont(QFont(properties["Font Family"].toString()));
-	if (mFontSizeEdit && properties.contains("Font Size"))
-		mFontSizeEdit->setText(QString::number(properties["Font Size"].toDouble()));
-	if (mFontBoldButton && properties.contains("Font Bold"))
-		mFontBoldButton->setChecked(properties["Font Bold"].toBool());
-	if (mFontItalicButton && properties.contains("Font Italic"))
-		mFontItalicButton->setChecked(properties["Font Italic"].toBool());
-	if (mFontUnderlineButton && properties.contains("Font Underline"))
-		mFontUnderlineButton->setChecked(properties["Font Underline"].toBool());
-	if (mFontStrikeOutButton && properties.contains("Font Strike-Out"))
-		mFontStrikeOutButton->setChecked(properties["Font Strike-Out"].toBool());
-
-	if (properties.contains("Text Horizontal Alignment"))
+	// Pen
+	if (item->hasProperty("Pen Color"))
 	{
-		Qt::Alignment align = (Qt::Alignment)(properties["Text Horizontal Alignment"].toUInt() & Qt::AlignHorizontal_Mask);
-		if (mLeftAlignButton) mLeftAlignButton->setChecked(align == Qt::AlignLeft);
-		if (mRightAlignButton) mRightAlignButton->setChecked(align == Qt::AlignRight);
-		if (mHCenterAlignButton) mHCenterAlignButton->setChecked(align == Qt::AlignHCenter);
+		QColor color = item->property("Pen Color").value<QColor>();
+		writeAttribute("stroke-color", colorToString(color));
+		writeAttribute("stroke-opacity", QString::number(color.alphaF()));
 	}
-	if (properties.contains("Text Vertical Alignment"))
+	if (item->hasProperty("Pen Width"))
+		writeAttribute("stroke-width", QString::number(item->property("Pen Width").toDouble()));
+	if (item->hasProperty("Pen Style"))
+		writeAttribute("stroke-style", penStyleToString((Qt::PenStyle)item->property("Pen Style").toUInt()));
+	if (item->hasProperty("Pen Cap Style"))
+		writeAttribute("stroke-linecap", penCapStyleToString((Qt::PenCapStyle)item->property("Pen Cap Style").toUInt()));
+	if (item->hasProperty("Pen Join Style"))
+		writeAttribute("stroke-linejoin", penJoinStyleToString((Qt::PenJoinStyle)item->property("Pen Join Style").toUInt()));
+
+	// Brush
+	if (item->hasProperty("Brush Color"))
 	{
-		Qt::Alignment align = (Qt::Alignment)(properties["Text Vertical Alignment"].toUInt() & Qt::AlignVertical_Mask);
-		if (mTopAlignButton) mTopAlignButton->setChecked(align == Qt::AlignTop);
-		if (mBottomAlignButton) mBottomAlignButton->setChecked(align == Qt::AlignBottom);
-		if (mVCenterAlignButton) mVCenterAlignButton->setChecked(align == Qt::AlignVCenter);
+		QColor color = item->property("Brush Color").value<QColor>();
+		writeAttribute("fill-color", colorToString(color));
+		writeAttribute("fill-opacity", QString::number(color.alphaF()));
 	}
 
-	if (mTextColorButton && properties.contains("Text Color"))
-		mTextColorButton->setColor(properties["Text Color"].value<QColor>());*/
+	// Arrows
+	if (item->hasProperty("Start Arrow Style"))
+		writeAttribute("arrow-start-style", arrowStyleToString((DrawingArrowStyle)item->property("Start Arrow Style").toUInt()));
+	if (item->hasProperty("Start Arrow Size"))
+		writeAttribute("arrow-start-size", QString::number(item->property("Start Arrow Size").toDouble()));
+	if (item->hasProperty("End Arrow Style"))
+		writeAttribute("arrow-end-style", arrowStyleToString((DrawingArrowStyle)item->property("End Arrow Style").toUInt()));
+	if (item->hasProperty("End Arrow Size"))
+		writeAttribute("arrow-end-size", QString::number(item->property("End Arrow Size").toDouble()));
+
+	// Font
+	if (item->hasProperty("Font Family"))
+		writeAttribute("font-name", item->property("Font Family").toString());
+	if (item->hasProperty("Font Size"))
+		writeAttribute("font-size", QString::number(item->property("Font Size").toDouble()));
+	if (item->hasProperty("Font Bold"))
+		writeAttribute("font-bold", (item->property("Font Bold").toBool()) ? "true" : "false");
+	if (item->hasProperty("Font Italic"))
+		writeAttribute("font-italic", (item->property("Font Italic").toBool()) ? "true" : "false");
+	if (item->hasProperty("Font Underline"))
+		writeAttribute("font-underline", (item->property("Font Underline").toBool()) ? "true" : "false");
+	if (item->hasProperty("Font Overline"))
+		writeAttribute("font-overline", (item->property("Font Overline").toBool()) ? "true" : "false");
+	if (item->hasProperty("Font Strike-Out"))
+		writeAttribute("font-strike-through", (item->property("Font Strike-Out").toBool()) ? "true" : "false");
+
+	// Text Alignment
+	if (item->hasProperty("Text Horizontal Alignment"))
+	{
+		Qt::Alignment align = (Qt::Alignment)(item->property("Text Horizontal Alignment").toUInt() & Qt::AlignHorizontal_Mask);
+		writeAttribute("text-alignment-horizontal", alignmentToString(align));
+	}
+	if (item->hasProperty("Text Vertical Alignment"))
+	{
+		Qt::Alignment align = (Qt::Alignment)(item->property("Text Vertical Alignment").toUInt() & Qt::AlignVertical_Mask);
+		writeAttribute("text-alignment-vertical", alignmentToString(align));
+	}
+
+	// Text color
+	if (item->hasProperty("Text Color"))
+	{
+		QColor color = item->property("Text Color").value<QColor>();
+		writeAttribute("text-color", colorToString(color));
+		writeAttribute("text-opacity", QString::number(color.alphaF()));
+	}
 }
 
 //==================================================================================================
 
-QString DrawingWriter::transformToString(const QPointF& pos, qreal rotation, bool flipped)
+QString DrawingWriter::alignmentToString(Qt::Alignment align) const
 {
-	QString str = "translate(" + QString::number(pos.x()) + "," + QString::number(pos.y()) + ")";
-	str += " rotate(" + QString::number(rotation) + ")";
-	str += (flipped) ? " scale(-1.0,1.0)" : "";
+	QString str;
+
+	if (align & Qt::AlignLeft) str = "left";
+	else if (align & Qt::AlignRight) str = "right";
+	else if (align & Qt::AlignHCenter) str = "center";
+	else if (align & Qt::AlignTop) str = "top";
+	else if (align & Qt::AlignBottom) str = "bottom";
+	else if (align & Qt::AlignVCenter) str = "middle";
+
+	return str;
+}
+
+QString DrawingWriter::arrowStyleToString(DrawingArrowStyle style) const
+{
+	QString str;
+
+	switch (style)
+	{
+	case ArrowNormal: str = "normal"; break;
+	case ArrowTriangle: str = "triangle"; break;
+	case ArrowTriangleFilled: str = "triangle-filled"; break;
+	case ArrowCircle: str = "circle"; break;
+	case ArrowCircleFilled: str = "circle-filled"; break;
+	case ArrowDiamond: str = "diamond"; break;
+	case ArrowDiamondFilled: str = "diamond-filled"; break;
+	case ArrowHarpoon: str = "harpoon"; break;
+	case ArrowHarpoonMirrored: str = "harpoon-mirrored"; break;
+	case ArrowConcave: str = "concave"; break;
+	case ArrowConcaveFilled: str = "concave-filled"; break;
+	case ArrowReverse: str = "reverse"; break;
+	case ArrowX: str = "X"; break;
+	default: str = "none"; break;
+	}
+
 	return str;
 }
 
@@ -379,16 +431,6 @@ QString DrawingWriter::gridStyleToString(DrawingGridStyle gridStyle) const
 	return str;
 }
 
-QString DrawingWriter::pointsToString(const QPolygonF& points) const
-{
-	QString pointsStr;
-
-	for(auto pointIter = points.begin(); pointIter != points.end(); pointIter++)
-		pointsStr += QString::number((*pointIter).x()) + "," + QString::number((*pointIter).y()) + " ";
-
-	return pointsStr.trimmed();
-}
-
 QString DrawingWriter::pathToString(const QPainterPath& path) const
 {
 	QString pathStr;
@@ -415,4 +457,68 @@ QString DrawingWriter::pathToString(const QPainterPath& path) const
 	}
 
 	return pathStr.trimmed();
+}
+
+QString DrawingWriter::penStyleToString(Qt::PenStyle style) const
+{
+	QString str;
+
+	switch (style)
+	{
+	case Qt::NoPen: str = "none"; break;
+	case Qt::DashLine: str = "dash"; break;
+	case Qt::DotLine: str = "dot"; break;
+	case Qt::DashDotLine: str = "dash-dot"; break;
+	case Qt::DashDotDotLine: str = "dash-dot-dot"; break;
+	default: str = "solid"; break;
+	}
+
+	return str;
+}
+
+QString DrawingWriter::penCapStyleToString(Qt::PenCapStyle style) const
+{
+	QString str;
+
+	switch (style)
+	{
+	case Qt::FlatCap: str = "flat"; break;
+	case Qt::SquareCap: str = "square"; break;
+	default: str = "round"; break;
+	}
+
+	return str;
+}
+
+QString DrawingWriter::penJoinStyleToString(Qt::PenJoinStyle style) const
+{
+	QString str;
+
+	switch (style)
+	{
+	case Qt::SvgMiterJoin:
+	case Qt::MiterJoin: str = "miter"; break;
+	case Qt::BevelJoin: str = "bevel"; break;
+	default: str = "round"; break;
+	}
+
+	return str;
+}
+
+QString DrawingWriter::pointsToString(const QPolygonF& points) const
+{
+	QString pointsStr;
+
+	for(auto pointIter = points.begin(); pointIter != points.end(); pointIter++)
+		pointsStr += QString::number((*pointIter).x()) + "," + QString::number((*pointIter).y()) + " ";
+
+	return pointsStr.trimmed();
+}
+
+QString DrawingWriter::transformToString(const QPointF& pos, qreal rotation, bool flipped) const
+{
+	QString str = "translate(" + QString::number(pos.x()) + "," + QString::number(pos.y()) + ")";
+	str += " rotate(" + QString::number(rotation) + ")";
+	str += (flipped) ? " scale(-1.0,1.0)" : "";
+	return str;
 }

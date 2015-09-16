@@ -52,11 +52,16 @@ private:
 
 	void writeItemProperties(DrawingItem* item);
 
-	QString transformToString(const QPointF& pos, qreal rotation, bool flipped);
+	QString alignmentToString(Qt::Alignment align) const;
+	QString arrowStyleToString(DrawingArrowStyle style) const;
 	QString colorToString(const QColor& color) const;
 	QString gridStyleToString(DrawingGridStyle gridStyle) const;
 	QString pathToString(const QPainterPath& path) const;
+	QString penStyleToString(Qt::PenStyle style) const;
+	QString penCapStyleToString(Qt::PenCapStyle style) const;
+	QString penJoinStyleToString(Qt::PenJoinStyle style) const;
 	QString pointsToString(const QPolygonF& points) const;
+	QString transformToString(const QPointF& pos, qreal rotation, bool flipped) const;
 };
 
 #endif
