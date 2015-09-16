@@ -25,14 +25,10 @@
 
 class DrawingWriter : public QXmlStreamWriter
 {
-private:
-
-
 public:
 	DrawingWriter(QIODevice* device);
 	~DrawingWriter();
 
-public slots:
 	void write(DrawingWidget* drawing);
 	void writeItems(const QList<DrawingItem*>& items);
 

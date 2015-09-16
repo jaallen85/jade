@@ -21,23 +21,43 @@
 #ifndef DRAWINGREADER_H
 #define DRAWINGREADER_H
 
-#include <QtWidgets>
+#include <DrawingTypes.h>
 
-class DrawingWidget;
-
-class DrawingReader : public QObject
+class DrawingReader : public QXmlStreamReader
 {
-	Q_OBJECT
-
-private:
-
-
 public:
 	DrawingReader(QIODevice* device);
 	~DrawingReader();
 
-public slots:
 	void read(DrawingWidget* drawing);
+	void readItems(QList<DrawingItem*>& items);
+
+private:
+	QList<DrawingItem*> readItemElements();
+
+	DrawingLineItem* readLineItem();
+	DrawingArcItem* readArcItem();
+	DrawingPolylineItem* readPolylineItem();
+	DrawingCurveItem* readCurveItem();
+	DrawingRectItem* readRectItem();
+	DrawingEllipseItem* readEllipseItem();
+	DrawingPolygonItem* readPolygonItem();
+	DrawingTextItem* readTextItem();
+	DrawingPathItem* readPathItem();
+	DrawingItemGroup* readItemGroup();
+
+	void readItemProperties(DrawingItem* item);
+
+	Qt::Alignment alignmentFromString(const QString& str) const;
+	DrawingArrowStyle arrowStyleFromString(const QString& str) const;
+	QColor colorFromString(const QString& str) const;
+	DrawingGridStyle gridStyleFromString(const QString& str) const;
+	QPainterPath pathFromString(const QString& str) const;
+	Qt::PenStyle penStyleFromString(const QString& str) const;
+	Qt::PenCapStyle penCapStyleFromString(const QString& str) const;
+	Qt::PenJoinStyle penJoinStyleFromString(const QString& str) const;
+	QPolygonF pointsFromString(const QString& str) const;
+	void transformFromString(const QString& str, DrawingItem* item);
 };
 
 #endif

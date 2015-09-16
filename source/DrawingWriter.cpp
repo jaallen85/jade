@@ -155,7 +155,11 @@ void DrawingWriter::writePolylineItem(DrawingPolylineItem* item)
 
 	writeAttribute("transform", transformToString(item->pos(), item->rotation(), item->isFlipped()));
 
-	writeAttribute("points", pointsToString(item->polyline()));
+	QPolygonF polygon;
+	QList<DrawingItemPoint*> points = item->points();
+	for(auto pointIter = points.begin(); pointIter != points.end(); pointIter++)
+		polygon.append((*pointIter)->pos());
+	if (!polygon.isEmpty()) writeAttribute("points", pointsToString(polygon));
 
 	writeItemProperties(item);
 
@@ -225,7 +229,11 @@ void DrawingWriter::writePolygonItem(DrawingPolygonItem* item)
 
 	writeAttribute("transform", transformToString(item->pos(), item->rotation(), item->isFlipped()));
 
-	writeAttribute("points", pointsToString(item->polygon()));
+	QPolygonF polygon;
+	QList<DrawingItemPoint*> points = item->points();
+	for(auto pointIter = points.begin(); pointIter != points.end(); pointIter++)
+		polygon.append((*pointIter)->pos());
+	if (!polygon.isEmpty()) writeAttribute("points", pointsToString(polygon));
 
 	writeItemProperties(item);
 
@@ -277,7 +285,7 @@ void DrawingWriter::writePathItem(DrawingPathItem* item)
 
 void DrawingWriter::writeItemGroup(DrawingItemGroup* item)
 {
-	writeStartElement("text");
+	writeStartElement("group");
 
 	writeAttribute("transform", transformToString(item->pos(), item->rotation(), item->isFlipped()));
 
