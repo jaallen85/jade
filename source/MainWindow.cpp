@@ -54,6 +54,7 @@ void MainWindow::openDrawing()
 	{
 		DrawingReader reader(&drawingFile);
 		reader.read(mDrawingWidget);
+		mDrawingWidget->viewport()->update();
 	}
 	else QMessageBox::critical(this, "Load Error", "Error opening test.jdm for reading.");
 }

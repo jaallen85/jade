@@ -259,11 +259,13 @@ DrawingRectItem* DrawingReader::readRectItem()
 
 	if (attr.hasAttribute("transform")) transformFromString(attr.value("transform").toString(), item);
 
-	if (attr.hasAttribute("left")) item->topLeftPoint()->setX(attr.value("left").toDouble());
-	if (attr.hasAttribute("top")) item->topLeftPoint()->setX(attr.value("top").toDouble());
-	if (attr.hasAttribute("width")) item->bottomRightPoint()->setX(attr.value("width").toDouble());
-	if (attr.hasAttribute("height")) item->bottomRightPoint()->setX(attr.value("height").toDouble());
-	item->resizeItem(item->bottomRightPoint(), item->mapToScene(item->bottomRightPoint()->pos()));
+	QRectF rect;
+	if (attr.hasAttribute("left")) rect.setLeft(attr.value("left").toDouble());
+	if (attr.hasAttribute("top")) rect.setTop(attr.value("top").toDouble());
+	if (attr.hasAttribute("width")) rect.setWidth(attr.value("width").toDouble());
+	if (attr.hasAttribute("height")) rect.setHeight(attr.value("height").toDouble());
+	item->topLeftPoint()->setPos(rect.topLeft());
+	item->resizeItem(item->bottomRightPoint(), item->mapToScene(rect.bottomRight()));
 
 	if (attr.hasAttribute("rx")) item->setCornerRadii(attr.value("rx").toDouble(), item->cornerRadiusY());
 	if (attr.hasAttribute("ry")) item->setCornerRadii(item->cornerRadiusX(), attr.value("ry").toDouble());
@@ -282,11 +284,13 @@ DrawingEllipseItem* DrawingReader::readEllipseItem()
 
 	if (attr.hasAttribute("transform")) transformFromString(attr.value("transform").toString(), item);
 
-	if (attr.hasAttribute("left")) item->topLeftPoint()->setX(attr.value("left").toDouble());
-	if (attr.hasAttribute("top")) item->topLeftPoint()->setX(attr.value("top").toDouble());
-	if (attr.hasAttribute("width")) item->bottomRightPoint()->setX(attr.value("width").toDouble());
-	if (attr.hasAttribute("height")) item->bottomRightPoint()->setX(attr.value("height").toDouble());
-	item->resizeItem(item->bottomRightPoint(), item->mapToScene(item->bottomRightPoint()->pos()));
+	QRectF rect;
+	if (attr.hasAttribute("left")) rect.setLeft(attr.value("left").toDouble());
+	if (attr.hasAttribute("top")) rect.setTop(attr.value("top").toDouble());
+	if (attr.hasAttribute("width")) rect.setWidth(attr.value("width").toDouble());
+	if (attr.hasAttribute("height")) rect.setHeight(attr.value("height").toDouble());
+	item->topLeftPoint()->setPos(rect.topLeft());
+	item->resizeItem(item->bottomRightPoint(), item->mapToScene(rect.bottomRight()));
 
 	readItemProperties(item);
 
@@ -347,11 +351,13 @@ DrawingPathItem* DrawingReader::readPathItem()
 
 	if (attr.hasAttribute("transform")) transformFromString(attr.value("transform").toString(), item);
 
-	if (attr.hasAttribute("left")) item->topLeftPoint()->setX(attr.value("left").toDouble());
-	if (attr.hasAttribute("top")) item->topLeftPoint()->setX(attr.value("top").toDouble());
-	if (attr.hasAttribute("width")) item->bottomRightPoint()->setX(attr.value("width").toDouble());
-	if (attr.hasAttribute("height")) item->bottomRightPoint()->setX(attr.value("height").toDouble());
-	item->resizeItem(item->bottomRightPoint(), item->mapToScene(item->bottomRightPoint()->pos()));
+	QRectF rect;
+	if (attr.hasAttribute("left")) rect.setLeft(attr.value("left").toDouble());
+	if (attr.hasAttribute("top")) rect.setTop(attr.value("top").toDouble());
+	if (attr.hasAttribute("width")) rect.setWidth(attr.value("width").toDouble());
+	if (attr.hasAttribute("height")) rect.setHeight(attr.value("height").toDouble());
+	item->topLeftPoint()->setPos(rect.topLeft());
+	item->resizeItem(item->bottomRightPoint(), item->mapToScene(rect.bottomRight()));
 
 	QRectF pathRect = item->pathRect();
 	if (attr.hasAttribute("view-left")) pathRect.setLeft(attr.value("view-left").toDouble());
@@ -621,7 +627,7 @@ void DrawingReader::transformFromString(const QString& str, DrawingItem* item)
 		if (tokenIter->startsWith("translate("))
 		{
 			int endIndex = tokenIter->indexOf(")");
-			QStringList coords = tokenIter->mid(10, endIndex - 11).split(",");
+			QStringList coords = tokenIter->mid(10, endIndex - 10).split(",");
 			if (coords.size() == 2)
 			{
 				item->setX(coords.first().toDouble());
@@ -631,13 +637,13 @@ void DrawingReader::transformFromString(const QString& str, DrawingItem* item)
 		else if (tokenIter->startsWith("rotate("))
 		{
 			int endIndex = tokenIter->indexOf(")");
-			QString angle = tokenIter->mid(7, endIndex - 8);
+			QString angle = tokenIter->mid(7, endIndex - 7);
 			item->setRotation(angle.toDouble());
 		}
 		else if (tokenIter->startsWith("scale("))
 		{
 			int endIndex = tokenIter->indexOf(")");
-			QStringList coords = tokenIter->mid(6, endIndex - 7).split(",");
+			QStringList coords = tokenIter->mid(6, endIndex - 6).split(",");
 			if (coords.size() == 2) item->setFlipped(coords.first().toDouble() < 0);
 		}
 	}

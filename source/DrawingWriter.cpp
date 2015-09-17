@@ -526,7 +526,7 @@ QString DrawingWriter::pointsToString(const QPolygonF& points) const
 QString DrawingWriter::transformToString(const QPointF& pos, qreal rotation, bool flipped) const
 {
 	QString str = "translate(" + QString::number(pos.x()) + "," + QString::number(pos.y()) + ")";
-	str += " rotate(" + QString::number(rotation) + ")";
+	str += (rotation != 0) ? " rotate(" + QString::number(rotation) + ")" : "";
 	str += (flipped) ? " scale(-1.0,1.0)" : "";
 	return str;
 }
