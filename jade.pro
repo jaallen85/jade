@@ -20,8 +20,10 @@ LIBS += ../libjade/lib/jade.lib
 # --------------------------------------------------------------------------------------------------
 
 SOURCES += \
-	source/MainWindow.cpp \
-	source/main.cpp
+    source/ItemPropertiesWidget.cpp \
+    source/MainWindow.cpp \
+    source/main.cpp
 
 HEADERS += \
-	source/MainWindow.h
+    source/ItemPropertiesWidget.h \
+    source/MainWindow.h
