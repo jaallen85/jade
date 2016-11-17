@@ -21,18 +21,64 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QtWidgets>
+#include <Drawing.h>
+
+class DiagramWidget;
 
 class MainWindow : public QMainWindow
 {
 	Q_OBJECT
 
+public:
+	enum ActionIndex { NewAction, OpenAction, SaveAction, SaveAsAction, CloseAction,
+		ExportPngAction, ExportSvgAction, ExportOdgAction,
+		PrintPreviewAction, PrintSetupAction, PrintAction, PrintPdfAction,
+		PreferencesAction, ExitAction,
+		AboutAction, AboutQtAction, NumberOfActions };
+
+	enum ModeActionIndex { DefaultModeAction, ScrollModeAction, ZoomModeAction,
+		PlaceArcAction, PlaceCurveAction, PlaceEllipseAction, PlaceLineAction,
+		PlacePolygonAction, PlacePolylineAction, PlaceRectAction, PlaceTextAction,
+		PlaceTextRectAction, PlaceTextEllipseAction, PlaceTextPolygonAction,
+		NumberOfModeActions };
+
 private:
+	DiagramWidget* mDiagramWidget;
+
+	QComboBox* mZoomCombo;
+
+	QLabel* mModeLabel;
+	QLabel* mModifiedLabel;
+	QLabel* mNumberOfItemsLabel;
+	QLabel* mMouseInfoLabel;
 	
-	
+	QActionGroup* mModeActionGroup;
+
 public:
 	MainWindow();
 	~MainWindow();
+
+private slots:
+	void setModeFromAction(QAction* action);
+
+	void setModeText(DrawingWidget::Mode mode);
+	void setModifiedText(bool clean);
+	void setNumberOfItemsText(int itemCount);
+
+	void setZoomComboText(qreal scale);
+	void setZoomLevel(const QString& text);
+
+private:
+	void showEvent(QShowEvent* event);
+
+private:
+	void createActions();
+	void createMenus();
+	void createToolBars();
+	void addAction(const QString& text, QObject* slotObj, const char* slotFunction,
+		const QString& iconPath = QString(), const QString& shortcut = QString());
+	QAction* addModeAction(const QString& text,
+		const QString& iconPath = QString(), const QString& shortcut = QString());
 };
 
 #endif

@@ -20,10 +20,21 @@ LIBS += ../libjade/lib/jade.lib
 # --------------------------------------------------------------------------------------------------
 
 SOURCES += \
-    source/ItemPropertiesWidget.cpp \
-    source/MainWindow.cpp \
+	source/DiagramUndo.cpp \
+	source/DiagramWidget.cpp \
+	source/DynamicPropertiesWidget.cpp \
+	source/ItemPropertiesWidget.cpp \
+	source/MainWindow.cpp \
     source/main.cpp
 
 HEADERS += \
-    source/ItemPropertiesWidget.h \
-    source/MainWindow.h
+	source/DiagramUndo.h \
+	source/DiagramWidget.h \
+	source/DynamicPropertiesWidget.h \
+	source/ItemPropertiesWidget.h \
+	source/MainWindow.h
+
+RESOURCES += icons/icons.qrc
+
+RC_FILE = icons/icons.rc
+OTHER_FILES += icons/icons.rc
