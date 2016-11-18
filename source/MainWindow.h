@@ -24,6 +24,7 @@
 #include <Drawing.h>
 
 class DiagramWidget;
+class DynamicPropertiesWidget;
 
 class MainWindow : public QMainWindow
 {
@@ -35,7 +36,6 @@ public:
 		PrintPreviewAction, PrintSetupAction, PrintAction, PrintPdfAction,
 		PreferencesAction, ExitAction,
 		AboutAction, AboutQtAction, NumberOfActions };
-
 	enum ModeActionIndex { DefaultModeAction, ScrollModeAction, ZoomModeAction,
 		PlaceArcAction, PlaceCurveAction, PlaceEllipseAction, PlaceLineAction,
 		PlacePolygonAction, PlacePolylineAction, PlaceRectAction, PlaceTextAction,
@@ -52,11 +52,17 @@ private:
 	QLabel* mNumberOfItemsLabel;
 	QLabel* mMouseInfoLabel;
 	
+	DynamicPropertiesWidget* mPropertiesWidget;
+	QDockWidget* mPropertiesDock;
+
 	QActionGroup* mModeActionGroup;
 
 public:
 	MainWindow();
 	~MainWindow();
+
+	void setWidget(DiagramWidget* widget);
+	void clearWidget();
 
 private slots:
 	void setModeFromAction(QAction* action);

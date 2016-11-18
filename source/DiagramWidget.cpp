@@ -19,6 +19,7 @@
  */
 
 #include "DiagramWidget.h"
+#include "DiagramUndo.h"
 
 DiagramWidget::DiagramWidget() : DrawingWidget()
 {
@@ -72,6 +73,51 @@ int DiagramWidget::gridSpacingMajor() const
 int DiagramWidget::gridSpacingMinor() const
 {
 	return mGridSpacingMinor;
+}
+
+//==================================================================================================
+
+void DiagramWidget::setSelectionStyleProperties(const QHash<DrawingItemStyle::Property,QVariant>& properties)
+{
+	QList<DrawingItem*> selectedItems = DiagramWidget::selectedItems();
+	if (!selectedItems.isEmpty() && !properties.isEmpty())
+		pushUndoCommand(new DiagramSetItemsStyleCommand(this, selectedItems, properties));
+}
+
+void DiagramWidget::setSelectionCornerRadius(qreal radiusX, qreal radiusY)
+{
+	QList<DrawingItem*> selectedItems = DiagramWidget::selectedItems();
+	if (selectedItems.size() == 1)
+	{
+		DrawingItem* item = selectedItems.first();
+		DrawingRectItem* rectItem = dynamic_cast<DrawingRectItem*>(item);
+		DrawingTextRectItem* textRectItem = dynamic_cast<DrawingTextRectItem*>(item);
+
+		if (rectItem || textRectItem)
+			pushUndoCommand(new DiagramSetItemCornerRadiusCommand(this, item, radiusX, radiusY));
+	}
+}
+
+void DiagramWidget::setSelectionCaption(const QString& newCaption)
+{
+	QList<DrawingItem*> selectedItems = DiagramWidget::selectedItems();
+	if (selectedItems.size() == 1)
+	{
+		DrawingItem* item = selectedItems.first();
+		DrawingTextItem* textItem = dynamic_cast<DrawingTextItem*>(item);
+		DrawingTextRectItem* textRectItem = dynamic_cast<DrawingTextRectItem*>(item);
+		DrawingTextEllipseItem* textEllipseItem = dynamic_cast<DrawingTextEllipseItem*>(item);
+		DrawingTextPolygonItem* textPolygonItem = dynamic_cast<DrawingTextPolygonItem*>(item);
+
+		if (textItem || textRectItem || textEllipseItem || textPolygonItem)
+			pushUndoCommand(new DiagramSetItemCaptionCommand(this, item, newCaption));
+	}
+}
+
+void DiagramWidget::setProperties(const QHash<DiagramWidget::Property,QVariant>& properties)
+{
+	if (!properties.isEmpty())
+		pushUndoCommand(new DiagramSetPropertiesCommand(this, properties));
 }
 
 //==================================================================================================
@@ -269,6 +315,71 @@ void DiagramWidget::updateActionsFromSelection()
 	actions[RemovePointAction]->setEnabled(canInsertRemovePoints);
 	actions[GroupAction]->setEnabled(canGroup);
 	actions[UngroupAction]->setEnabled(canUngroup);
+}
+
+//==================================================================================================
+
+void DiagramWidget::setItemsStyle(const QHash< DrawingItem*, QHash<DrawingItemStyle::Property,QVariant> >& properties)
+{
+	QList<DrawingItem*> items = properties.keys();
+	QList<DrawingItemStyle::Property> styleProperties;
+
+	for(auto itemIter = items.begin(); itemIter != items.end(); itemIter++)
+	{
+		styleProperties = properties[*itemIter].keys();
+		for (auto propIter = styleProperties.begin(); propIter != styleProperties.end(); propIter++)
+		{
+			if ((*itemIter)->style()->hasValue(*propIter))
+				(*itemIter)->style()->setValue(*propIter, properties[*itemIter][*propIter]);
+		}
+	}
+
+	emit itemsStyleChanged();
+}
+
+void DiagramWidget::setItemCornerRadius(DrawingItem* item, qreal radiusX, qreal radiusY)
+{
+	DrawingRectItem* rectItem = dynamic_cast<DrawingRectItem*>(item);
+	DrawingTextRectItem* textRectItem = dynamic_cast<DrawingTextRectItem*>(item);
+
+	if (rectItem || textRectItem)
+	{
+		if (rectItem) rectItem->setCornerRadii(radiusX, radiusY);
+		if (textRectItem) textRectItem->setCornerRadii(radiusX, radiusY);
+
+		emit itemCornerRadiusChanged();
+	}
+}
+
+void DiagramWidget::setItemCaption(DrawingItem* item, const QString& caption)
+{
+	DrawingTextItem* textItem = dynamic_cast<DrawingTextItem*>(item);
+	DrawingTextRectItem* textRectItem = dynamic_cast<DrawingTextRectItem*>(item);
+	DrawingTextEllipseItem* textEllipseItem = dynamic_cast<DrawingTextEllipseItem*>(item);
+	DrawingTextPolygonItem* textPolygonItem = dynamic_cast<DrawingTextPolygonItem*>(item);
+
+	if (textItem || textRectItem || textEllipseItem || textPolygonItem)
+	{
+		if (textItem) textItem->setCaption(caption);
+		if (textRectItem) textRectItem->setCaption(caption);
+		if (textEllipseItem) textEllipseItem->setCaption(caption);
+		if (textPolygonItem) textPolygonItem->setCaption(caption);
+
+		emit itemCaptionChanged();
+	}
+}
+
+void DiagramWidget::setDiagramProperties(const QHash<DiagramWidget::Property,QVariant>& properties)
+{
+	if (properties.contains(SceneRect)) setSceneRect(properties[SceneRect].toRectF());
+	if (properties.contains(BackgroundColor)) setBackgroundBrush(properties[BackgroundColor].value<QColor>());
+	if (properties.contains(Grid)) setGrid(properties[Grid].toDouble());
+	if (properties.contains(GridStyle)) setGridStyle((GridRenderStyle)properties[GridStyle].toUInt());
+	if (properties.contains(GridColor)) setGridBrush(properties[GridColor].value<QColor>());
+	if (properties.contains(GridSpacingMajor)) setGridSpacing(properties[GridSpacingMajor].toInt(), mGridSpacingMinor);
+	if (properties.contains(GridSpacingMinor)) setGridSpacing(mGridSpacingMajor, properties[GridSpacingMinor].toInt());
+
+	emit diagramPropertiesChanged();
 }
 
 //==================================================================================================

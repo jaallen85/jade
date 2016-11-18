@@ -31,8 +31,7 @@ class DiagramSetItemsStyleCommand : public QUndoCommand
 {
 private:
 	DiagramWidget* mDiagram;
-	QList<DrawingItem*> mItems;
-	QHash<DrawingItemStyle::Property,QVariant> mProperties;
+	QHash< DrawingItem*, QHash<DrawingItemStyle::Property,QVariant> > mProperties;
 	QHash< DrawingItem*, QHash<DrawingItemStyle::Property,QVariant> > mOriginalProperties;
 
 public:

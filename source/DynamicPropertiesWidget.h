@@ -23,26 +23,94 @@
 
 #include <DiagramWidget.h>
 
-class DynamicPropertiesWidget : public QWidget
+class PositionWidget;
+class SizeWidget;
+class SizeEdit;
+class ColorWidget;
+class ArrowStyleCombo;
+class PenStyleCombo;
+class GridStyleCombo;
+class FontStyleWidget;
+class TextAlignmentWidget;
+
+class DynamicPropertiesWidget : public QScrollArea
 {
 	Q_OBJECT
 
 protected:
+	// Diagram properties
+	PositionWidget* mDiagramTopLeftWidget;
+	SizeWidget* mDiagramRectSizeWidget;
+	ColorWidget* mDiagramBackgroundColorWidget;
+	GridStyleCombo* mDiagramGridStyleCombo;
+	ColorWidget* mDiagramGridColorWidget;
+	QLineEdit* mDiagramGridSpacingMajorWidget;
+	QLineEdit* mDiagramGridSpacingMinorWidget;
 
+	// Item default properties
+	PenStyleCombo* mDefaultPenStyleCombo;
+	SizeEdit* mDefaultPenWidthEdit;
+	ColorWidget* mDefaultPenColorWidget;
+	ColorWidget* mDefaultBrushColorWidget;
+
+	QFontComboBox* mDefaultFontComboBox;
+	SizeEdit* mDefaultFontSizeEdit;
+	FontStyleWidget* mDefaultFontStyleWidget;
+	TextAlignmentWidget* mDefaultTextAlignmentWidget;
+	ColorWidget* mDefaultTextColorWidget;
+
+	ArrowStyleCombo* mDefaultStartArrowCombo;
+	SizeEdit* mDefaultStartArrowSizeEdit;
+	ArrowStyleCombo* mDefaultEndArrowCombo;
+	SizeEdit* mDefaultEndArrowSizeEdit;
+
+	// Item properties
+	PositionWidget* mPositionWidget;
+
+	PositionWidget* mStartPositionWidget;
+	PositionWidget* mStartControlPositionWidget;
+	PositionWidget* mEndPositionWidget;
+	PositionWidget* mEndControlPositionWidget;
+
+	PositionWidget* mRectTopLeftWidget;
+	SizeWidget* mRectSizeWidget;
+	SizeWidget* mCornerRadiusWidget;
+
+	QList<PositionWidget*> mPointPositionWidgets;
+
+	PenStyleCombo* mPenStyleCombo;
+	SizeEdit* mPenWidthEdit;
+	ColorWidget* mPenColorWidget;
+	ColorWidget* mBrushColorWidget;
+
+	QFontComboBox* mFontComboBox;
+	SizeEdit* mFontSizeEdit;
+	FontStyleWidget* mFontStyleWidget;
+	TextAlignmentWidget* mTextAlignmentWidget;
+	ColorWidget* mTextColorWidget;
+	QTextEdit* mCaptionEdit;
+
+	ArrowStyleCombo* mStartArrowCombo;
+	SizeEdit* mStartArrowSizeEdit;
+	ArrowStyleCombo* mEndArrowCombo;
+	SizeEdit* mEndArrowSizeEdit;
 
 public:
 	DynamicPropertiesWidget(DiagramWidget* diagram);
 	virtual ~DynamicPropertiesWidget();
 
+	QSize sizeHint() const;
+	int labelWidth() const;
+
 public slots:
 	void setSelectedItems(const QList<DrawingItem*>& selectedItems);
 	void setNewItem(DrawingItem* item);
 
-	void updateGeometryFromSelectedItem();
+	void updateGeometryFromSelectedItems(const QList<DrawingItem*>& items);
 	void updateCaptionFromSelectedItem();
 	void updateCornerRadiusFromSelectedItem();
 	void updateStylePropertiesFromSelectedItems();
-	//void updatePropertiesFromDiagram();
+	void updatePropertiesFromDiagram();
 
 signals:
 	void selectedItemMoved(const QPointF& scenePos);		// connect to moveSelection
@@ -50,7 +118,7 @@ signals:
 	void selectedItemCaptionChanged(const QString& newCaption);
 	void selectedItemCornerRadiusChanged(qreal radiusX, qreal radiusY);
 	void selectedItemsStyleChanged(const QHash<DrawingItemStyle::Property,QVariant>& properties);
-	//void diagramPropertiesChanged(const QHash<DiagramWidget::Property,QVariant>& properties);
+	void diagramPropertiesChanged(const QHash<DiagramWidget::Property,QVariant>& properties);
 
 	//todo: fill in default item style properties
 	//todo: save/load default item style properties from INI file

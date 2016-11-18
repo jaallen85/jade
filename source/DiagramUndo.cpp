@@ -24,7 +24,24 @@ DiagramSetItemsStyleCommand::DiagramSetItemsStyleCommand(DiagramWidget* diagram,
 	const QList<DrawingItem*>& items, const QHash<DrawingItemStyle::Property,QVariant>& properties)
 	: QUndoCommand("Set Item Properties")
 {
+	mDiagram = diagram;
 
+	QList<DrawingItemStyle::Property> styleProperties = properties.keys();
+	QHash<DrawingItemStyle::Property,QVariant> originalProperties;
+
+	for(auto itemIter = items.begin(); itemIter != items.end(); itemIter++)
+	{
+		mProperties[*itemIter] = properties;
+
+		originalProperties.clear();
+		for (auto propIter = styleProperties.begin(); propIter != styleProperties.end(); propIter++)
+		{
+			if ((*itemIter)->style()->hasValue(*propIter))
+				originalProperties[*propIter] = (*itemIter)->style()->value(*propIter);
+		}
+
+		mOriginalProperties[*itemIter] = originalProperties;
+	}
 }
 
 DiagramSetItemsStyleCommand::~DiagramSetItemsStyleCommand() { }
@@ -36,13 +53,14 @@ int DiagramSetItemsStyleCommand::id() const
 
 void DiagramSetItemsStyleCommand::redo()
 {
-	if (mDiagram) mDiagram->setItemsStyle(mItems, mProperties);
+	if (mDiagram) mDiagram->setItemsStyle(mProperties);
 	QUndoCommand::redo();
 }
 
 void DiagramSetItemsStyleCommand::undo()
 {
-
+	QUndoCommand::undo();
+	if (mDiagram) mDiagram->setItemsStyle(mOriginalProperties);
 }
 
 //==================================================================================================
@@ -50,7 +68,26 @@ void DiagramSetItemsStyleCommand::undo()
 DiagramSetItemCornerRadiusCommand::DiagramSetItemCornerRadiusCommand(DiagramWidget* diagram,
 	DrawingItem* item, qreal radiusX, qreal radiusY) : QUndoCommand("Set Item Corner Radius")
 {
+	mDiagram = diagram;
+	mItem = item;
+	mCornerRadiusX = radiusX;
+	mCornerRadiusY = radiusY;
+	mOriginalCornerRadiusX = 0;
+	mOriginalCornerRadiusY = 0;
 
+	DrawingRectItem* rectItem = dynamic_cast<DrawingRectItem*>(item);
+	DrawingTextRectItem* textRectItem = dynamic_cast<DrawingTextRectItem*>(item);
+
+	if (rectItem)
+	{
+		mOriginalCornerRadiusX = rectItem->cornerRadiusX();
+		mOriginalCornerRadiusY = rectItem->cornerRadiusY();
+	}
+	if (textRectItem)
+	{
+		mOriginalCornerRadiusX = textRectItem->cornerRadiusX();
+		mOriginalCornerRadiusY = textRectItem->cornerRadiusY();
+	}
 }
 
 DiagramSetItemCornerRadiusCommand::~DiagramSetItemCornerRadiusCommand() { }
@@ -77,7 +114,19 @@ void DiagramSetItemCornerRadiusCommand::undo()
 DiagramSetItemCaptionCommand::DiagramSetItemCaptionCommand(DiagramWidget* diagram,
 	DrawingItem* item, const QString& caption) : QUndoCommand("Set Item Caption")
 {
+	mDiagram = diagram;
+	mItem = item;
+	mCaption = caption;
 
+	DrawingTextItem* textItem = dynamic_cast<DrawingTextItem*>(item);
+	DrawingTextRectItem* textRectItem = dynamic_cast<DrawingTextRectItem*>(item);
+	DrawingTextEllipseItem* textEllipseItem = dynamic_cast<DrawingTextEllipseItem*>(item);
+	DrawingTextPolygonItem* textPolygonItem = dynamic_cast<DrawingTextPolygonItem*>(item);
+
+	if (textItem) mOriginalCaption = textItem->caption();
+	if (textRectItem) mOriginalCaption = textRectItem->caption();
+	if (textEllipseItem) mOriginalCaption = textEllipseItem->caption();
+	if (textPolygonItem) mOriginalCaption = textPolygonItem->caption();
 }
 
 DiagramSetItemCaptionCommand::~DiagramSetItemCaptionCommand() { }
@@ -124,7 +173,26 @@ bool DiagramSetItemCaptionCommand::mergeWith(const QUndoCommand* command)
 DiagramSetPropertiesCommand::DiagramSetPropertiesCommand(DiagramWidget* diagram,
 	const QHash<DiagramWidget::Property,QVariant>& properties) : QUndoCommand("Set Diagram Properties")
 {
+	mDiagram = diagram;
+	mProperties = properties;
 
+	if (mDiagram)
+	{
+		if (properties.contains(DiagramWidget::SceneRect))
+			mOriginalProperties[DiagramWidget::SceneRect] = mDiagram->sceneRect();
+		if (properties.contains(DiagramWidget::BackgroundColor))
+			mOriginalProperties[DiagramWidget::BackgroundColor] = mDiagram->backgroundBrush().color();
+		if (properties.contains(DiagramWidget::Grid))
+			mOriginalProperties[DiagramWidget::Grid] = mDiagram->grid();
+		if (properties.contains(DiagramWidget::GridStyle))
+			mOriginalProperties[DiagramWidget::GridStyle] = (quint32)(mDiagram->gridStyle());
+		if (properties.contains(DiagramWidget::GridColor))
+			mOriginalProperties[DiagramWidget::GridColor] = mDiagram->gridBrush().color();
+		if (properties.contains(DiagramWidget::GridSpacingMajor))
+			mOriginalProperties[DiagramWidget::GridSpacingMajor] = mDiagram->gridSpacingMajor();
+		if (properties.contains(DiagramWidget::GridSpacingMinor))
+			mOriginalProperties[DiagramWidget::GridSpacingMinor] = mDiagram->gridSpacingMinor();
+	}
 }
 
 DiagramSetPropertiesCommand::~DiagramSetPropertiesCommand() { }

@@ -38,7 +38,7 @@ class DiagramWidget : public DrawingWidget
 public:
 	enum GridRenderStyle { GridNone, GridDots, GridLines, GridGraphPaper };
 
-	enum Property { SceneRect, BackgroundBrush, Grid, GridStyle, GridBrush,
+	enum Property { SceneRect, BackgroundColor, Grid, GridStyle, GridColor,
 		GridSpacingMajor, GridSpacingMinor, NumberOfProperties};
 
 	enum ActionIndex { UndoAction, RedoAction, CutAction, CopyAction, PasteAction, DeleteAction,
@@ -86,11 +86,10 @@ signals:
 	void propertiesTriggered();
 	void mouseInfoChanged(const QString& mouseInfo);
 
-	void selectedItemsStyleChanged();
-	void selectedItemCaptionChanged();
-	void selectedItemCornerRadiusChanged();
+	void itemsStyleChanged();
+	void itemCornerRadiusChanged();
+	void itemCaptionChanged();
 	void diagramPropertiesChanged();
-
 
 protected:
 	void drawBackground(QPainter* painter);
@@ -105,7 +104,7 @@ private slots:
 
 private:
 	// Functions called by undo command classes
-	void setItemsStyle(const QList<DrawingItem*>& items, const QHash<DrawingItemStyle::Property,QVariant>& properties);
+	void setItemsStyle(const QHash< DrawingItem*, QHash<DrawingItemStyle::Property,QVariant> >& properties);
 	void setItemCornerRadius(DrawingItem* item, qreal radiusX, qreal radiusY);
 	void setItemCaption(DrawingItem* item, const QString& caption);
 	void setDiagramProperties(const QHash<DiagramWidget::Property,QVariant>& properties);

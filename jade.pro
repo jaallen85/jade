@@ -23,7 +23,7 @@ SOURCES += \
 	source/DiagramUndo.cpp \
 	source/DiagramWidget.cpp \
 	source/DynamicPropertiesWidget.cpp \
-	source/ItemPropertiesWidget.cpp \
+	source/HelperWidgets.cpp \
 	source/MainWindow.cpp \
     source/main.cpp
 
@@ -31,7 +31,7 @@ HEADERS += \
 	source/DiagramUndo.h \
 	source/DiagramWidget.h \
 	source/DynamicPropertiesWidget.h \
-	source/ItemPropertiesWidget.h \
+	source/HelperWidgets.h \
 	source/MainWindow.h
 
 RESOURCES += icons/icons.qrc

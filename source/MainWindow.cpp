@@ -20,20 +20,43 @@
 
 #include "MainWindow.h"
 #include "DiagramWidget.h"
+#include "DynamicPropertiesWidget.h"
 
 MainWindow::MainWindow() : QMainWindow()
 {
+	// Central widget
 	mDiagramWidget = new DiagramWidget();
 	mDiagramWidget->setFlags(DrawingWidget::UndoableSelectCommands);
 	setCentralWidget(mDiagramWidget);
 
-	//mPropertiesWidget = new DrawingPropertiesWidget();
-	//mPropertiesDock = new QDockWidget("Properties");
-	//mPropertiesDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-	//mPropertiesDock->setFeatures(QDockWidget::AllDockWidgetFeatures);
-	//mPropertiesDock->setWidget(mPropertiesWidget);
-	//addDockWidget(Qt::RightDockWidgetArea, mPropertiesDock);
+	// Properties widget and dock
+	mPropertiesWidget = new DynamicPropertiesWidget(mDiagramWidget);
+	mPropertiesDock = new QDockWidget("Properties");
+	mPropertiesDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+	mPropertiesDock->setFeatures(QDockWidget::AllDockWidgetFeatures);
+	mPropertiesDock->setWidget(mPropertiesWidget);
+	addDockWidget(Qt::RightDockWidgetArea, mPropertiesDock);
 
+	connect(mDiagramWidget, SIGNAL(selectionChanged(const QList<DrawingItem*>&)), mPropertiesWidget, SLOT(setSelectedItems(const QList<DrawingItem*>&)));
+	connect(mDiagramWidget, SIGNAL(newItemChanged(DrawingItem*)), mPropertiesWidget, SLOT(setNewItem(DrawingItem*)));
+	connect(mDiagramWidget, SIGNAL(itemsGeometryChanged(const QList<DrawingItem*>&)), mPropertiesWidget, SLOT(updateGeometryFromSelectedItems(const QList<DrawingItem*>&)));
+	connect(mDiagramWidget, SIGNAL(itemsStyleChanged()), mPropertiesWidget, SLOT(updateStylePropertiesFromSelectedItems()));
+	connect(mDiagramWidget, SIGNAL(itemCornerRadiusChanged()), mPropertiesWidget, SLOT(updateCornerRadiusFromSelectedItem()));
+	connect(mDiagramWidget, SIGNAL(itemCaptionChanged()), mPropertiesWidget, SLOT(updateCaptionFromSelectedItem()));
+	connect(mDiagramWidget, SIGNAL(diagramPropertiesChanged()), mPropertiesWidget, SLOT(updatePropertiesFromDiagram()));
+
+	connect(mPropertiesWidget, SIGNAL(selectedItemMoved(const QPointF&)), mDiagramWidget, SLOT(moveSelection(const QPointF&)));
+	connect(mPropertiesWidget, SIGNAL(selectedItemResized(DrawingItemPoint*, const QPointF&)), mDiagramWidget, SLOT(resizeSelection(DrawingItemPoint*, const QPointF&)));
+	connect(mPropertiesWidget, SIGNAL(selectedItemsStyleChanged(const QHash<DrawingItemStyle::Property,QVariant>&)),
+		mDiagramWidget, SLOT(setSelectionStyleProperties(const QHash<DrawingItemStyle::Property,QVariant>&)));
+	connect(mPropertiesWidget, SIGNAL(selectedItemCornerRadiusChanged(qreal,qreal)), mDiagramWidget, SLOT(setSelectionCornerRadius(qreal,qreal)));
+	connect(mPropertiesWidget, SIGNAL(selectedItemCaptionChanged(const QString&)), mDiagramWidget, SLOT(setSelectionCaption(const QString&)));
+	connect(mPropertiesWidget, SIGNAL(diagramPropertiesChanged(const QHash<DiagramWidget::Property,QVariant>&)),
+		mDiagramWidget, SLOT(setProperties(const QHash<DiagramWidget::Property,QVariant>&)));
+
+	connect(mDiagramWidget, SIGNAL(propertiesTriggered()), mPropertiesDock, SLOT(show()));
+
+	// Status bar
 	mModeLabel = new QLabel("Select Mode");
 	mModifiedLabel = new QLabel("Modified");
 	mNumberOfItemsLabel = new QLabel("0");
@@ -46,27 +69,29 @@ MainWindow::MainWindow() : QMainWindow()
 	statusBar()->addWidget(mNumberOfItemsLabel);
 	statusBar()->addWidget(mMouseInfoLabel, 100);
 
+	connect(mDiagramWidget, SIGNAL(modeChanged(DrawingWidget::Mode)), this, SLOT(setModeText(DrawingWidget::Mode)));
+	connect(mDiagramWidget, SIGNAL(cleanChanged(bool)), this, SLOT(setModifiedText(bool)));
+	connect(mDiagramWidget, SIGNAL(numberOfItemsChanged(int)), this, SLOT(setNumberOfItemsText(int)));
+	connect(mDiagramWidget, SIGNAL(mouseInfoChanged(const QString&)), mMouseInfoLabel, SLOT(setText(const QString&)));
+
+	// Zoom combo
 	mZoomCombo = new QComboBox();
 	mZoomCombo->setMinimumWidth(QFontMetrics(mZoomCombo->font()).width("XXXXXX.XX%") + 48);
 	mZoomCombo->addItems(QStringList() << "Fit to Page" << "25%" << "50%" << "100%" << "150%" << "200%" << "300%" << "400%");
 	mZoomCombo->setEditable(true);
 	mZoomCombo->setCurrentIndex(3);
 
+	connect(mDiagramWidget, SIGNAL(scaleChanged(qreal)), this, SLOT(setZoomComboText(qreal)));
+	connect(mZoomCombo, SIGNAL(activated(const QString&)), this, SLOT(setZoomLevel(const QString&)));
+
+	// Final setup
 	createActions();
 	createMenus();
 	createToolBars();
 
 	setWindowTitle("Jade");
 	setWindowIcon(QIcon(":/icons/jade/diagram.png"));
-	resize(1240, 760);
-
-	connect(mDiagramWidget, SIGNAL(modeChanged(DrawingWidget::Mode)), this, SLOT(setModeText(DrawingWidget::Mode)));
-	connect(mDiagramWidget, SIGNAL(cleanChanged(bool)), this, SLOT(setModifiedText(bool)));
-	connect(mDiagramWidget, SIGNAL(numberOfItemsChanged(int)), this, SLOT(setNumberOfItemsText(int)));
-	connect(mDiagramWidget, SIGNAL(mouseInfoChanged(const QString&)), mMouseInfoLabel, SLOT(setText(const QString&)));
-
-	connect(mDiagramWidget, SIGNAL(scaleChanged(qreal)), this, SLOT(setZoomComboText(qreal)));
-	connect(mZoomCombo, SIGNAL(activated(const QString&)), this, SLOT(setZoomLevel(const QString&)));
+	resize(1290, 760);
 }
 
 MainWindow::~MainWindow() { }
@@ -274,6 +299,8 @@ void MainWindow::createMenus()
 	menu->addAction(widgetActions[DiagramWidget::SendToBackAction]);
 
 	menu = menuBar()->addMenu("View");
+	menu->addAction(widgetActions[DiagramWidget::PropertiesAction]);
+	menu->addSeparator();
 	menu->addAction(widgetActions[DiagramWidget::ZoomInAction]);
 	menu->addAction(widgetActions[DiagramWidget::ZoomOutAction]);
 	menu->addAction(widgetActions[DiagramWidget::ZoomFitAction]);
