@@ -26,140 +26,6 @@ DynamicPropertiesWidget::DynamicPropertiesWidget(DiagramWidget* diagram) : QScro
 	mStackedWidget = new QStackedWidget();
 	clear();
 
-	QFormLayout* groupLayout;
-
-	mPositionWidget = new PositionWidget();
-
-	mStartPositionWidget = new PositionWidget();
-	mStartControlPositionWidget = new PositionWidget();
-	mEndPositionWidget = new PositionWidget();
-	mEndControlPositionWidget = new PositionWidget();
-
-	mRectTopLeftWidget = new PositionWidget();
-	mRectSizeWidget = new SizeWidget();
-	mCornerRadiusWidget = new SizeWidget();
-
-	for(int i = 0; i < 4; i++)
-		mPointPositionWidgets.append(new PositionWidget());
-
-	mPenStyleCombo = new PenStyleCombo();
-	mPenWidthEdit = new SizeEdit();
-	mPenColorWidget = new ColorWidget();
-	mBrushColorWidget = new ColorWidget();
-
-	mFontComboBox = new QFontComboBox();
-	mFontSizeEdit = new SizeEdit();
-	mFontStyleWidget = new FontStyleWidget();
-	mTextAlignmentWidget = new TextAlignmentWidget();
-	mTextColorWidget = new ColorWidget();
-	mCaptionEdit = new QTextEdit();
-
-	mStartArrowCombo = new ArrowStyleCombo();
-	mStartArrowSizeEdit = new SizeEdit();
-	mEndArrowCombo = new ArrowStyleCombo();
-	mEndArrowSizeEdit = new SizeEdit();
-
-	QGroupBox* positionGroup = new QGroupBox("Position");
-	groupLayout = new QFormLayout();
-	groupLayout->addRow("Position:", mPositionWidget);
-	groupLayout->setRowWrapPolicy(QFormLayout::DontWrapRows);
-	groupLayout->setLabelAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-	groupLayout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
-	groupLayout->itemAt(0, QFormLayout::LabelRole)->widget()->setMinimumWidth(labelWidth());
-	positionGroup->setLayout(groupLayout);
-
-	QGroupBox* pointsGroup = new QGroupBox("Points");
-	groupLayout = new QFormLayout();
-	groupLayout->addRow("Start Point:", mStartPositionWidget);
-	groupLayout->addRow("Control Point:", mStartControlPositionWidget);
-	groupLayout->addRow("End Point:", mEndPositionWidget);
-	groupLayout->addRow("Control Point:", mEndControlPositionWidget);
-	groupLayout->setRowWrapPolicy(QFormLayout::DontWrapRows);
-	groupLayout->setLabelAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-	groupLayout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
-	groupLayout->itemAt(0, QFormLayout::LabelRole)->widget()->setMinimumWidth(labelWidth());
-	pointsGroup->setLayout(groupLayout);
-
-	QGroupBox* rectGroup = new QGroupBox("Rectangle");
-	groupLayout = new QFormLayout();
-	groupLayout->addRow("Top Left:", mRectTopLeftWidget);
-	groupLayout->addRow("Size:", mRectSizeWidget);
-	groupLayout->addRow("Corner Radius:", mCornerRadiusWidget);
-	groupLayout->setRowWrapPolicy(QFormLayout::DontWrapRows);
-	groupLayout->setLabelAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-	groupLayout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
-	groupLayout->itemAt(0, QFormLayout::LabelRole)->widget()->setMinimumWidth(labelWidth());
-	rectGroup->setLayout(groupLayout);
-
-	QString label;
-	QGroupBox* polyGroup = new QGroupBox("Polygon");
-	groupLayout = new QFormLayout();
-	for(auto pointIter = mPointPositionWidgets.begin(); pointIter != mPointPositionWidgets.end(); pointIter++)
-	{
-		if (pointIter == mPointPositionWidgets.begin()) label = "First Point:";
-		else if (pointIter == mPointPositionWidgets.end() - 1) label = "Last Point:";
-		else label = "";
-
-		groupLayout->addRow(label, *pointIter);
-	}
-	groupLayout->setRowWrapPolicy(QFormLayout::DontWrapRows);
-	groupLayout->setLabelAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-	groupLayout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
-	groupLayout->itemAt(0, QFormLayout::LabelRole)->widget()->setMinimumWidth(labelWidth());
-	polyGroup->setLayout(groupLayout);
-
-	QGroupBox* penBrushGroup = new QGroupBox("Pen and Brush");
-	groupLayout = new QFormLayout();
-	groupLayout->addRow("Pen Style:", mPenStyleCombo);
-	groupLayout->addRow("Pen Width:", mPenWidthEdit);
-	groupLayout->addRow("Pen Color:", mPenColorWidget);
-	groupLayout->addRow("Brush Color:", mBrushColorWidget);
-	groupLayout->setRowWrapPolicy(QFormLayout::DontWrapRows);
-	groupLayout->setLabelAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-	groupLayout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
-	groupLayout->itemAt(0, QFormLayout::LabelRole)->widget()->setMinimumWidth(labelWidth());
-	penBrushGroup->setLayout(groupLayout);
-
-	QGroupBox* textGroup = new QGroupBox("Text");
-	groupLayout = new QFormLayout();
-	groupLayout->addRow("Font:", mFontComboBox);
-	groupLayout->addRow("Font Size:", mFontSizeEdit);
-	groupLayout->addRow("Font Style:", mFontStyleWidget);
-	groupLayout->addRow("Alignment:", mTextAlignmentWidget);
-	groupLayout->addRow("Text Color:", mTextColorWidget);
-	groupLayout->addRow("Caption:", mCaptionEdit);
-	groupLayout->setRowWrapPolicy(QFormLayout::DontWrapRows);
-	groupLayout->setLabelAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-	groupLayout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
-	groupLayout->itemAt(0, QFormLayout::LabelRole)->widget()->setMinimumWidth(labelWidth());
-	textGroup->setLayout(groupLayout);
-
-	QGroupBox* arrowGroup = new QGroupBox("Arrow");
-	groupLayout = new QFormLayout();
-	groupLayout->addRow("Start Arrow:", mStartArrowCombo);
-	groupLayout->addRow("Arrow Size:", mStartArrowSizeEdit);
-	groupLayout->addRow("End Arrow:", mEndArrowCombo);
-	groupLayout->addRow("Arrow Size:", mEndArrowSizeEdit);
-	groupLayout->setRowWrapPolicy(QFormLayout::DontWrapRows);
-	groupLayout->setLabelAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-	groupLayout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
-	groupLayout->itemAt(0, QFormLayout::LabelRole)->widget()->setMinimumWidth(labelWidth());
-	arrowGroup->setLayout(groupLayout);
-
-	QWidget* mainWidget = new QWidget();
-	QVBoxLayout* mainLayout = new QVBoxLayout();
-	mainLayout->addWidget(positionGroup);
-	mainLayout->addWidget(pointsGroup);
-	mainLayout->addWidget(rectGroup);
-	mainLayout->addWidget(polyGroup);
-	mainLayout->addWidget(penBrushGroup);
-	mainLayout->addWidget(textGroup);
-	mainLayout->addWidget(arrowGroup);
-	mainLayout->addWidget(new QWidget(), 100);
-	mainWidget->setLayout(mainLayout);
-
-	mStackedWidget->addWidget(mainWidget);
-
 	setWidget(mStackedWidget);
 	setWidgetResizable(true);
 
@@ -176,7 +42,6 @@ DynamicPropertiesWidget::~DynamicPropertiesWidget()
 QSize DynamicPropertiesWidget::sizeHint() const
 {
 	return QSize(350, -1);
-	//return QSize(labelWidth() + FontComboBox::preferredWidth() + 8, -1);
 }
 
 int DynamicPropertiesWidget::labelWidth() const
@@ -259,11 +124,13 @@ void DynamicPropertiesWidget::clear()
 
 	mPositionWidget = nullptr;
 	mStartPositionWidget = nullptr;
-	mStartControlPositionWidget = nullptr;
 	mEndPositionWidget = nullptr;
-	mEndControlPositionWidget = nullptr;
+	mCurveStartPositionWidget = nullptr;
+	mCurveStartControlPositionWidget = nullptr;
+	mCurveEndPositionWidget = nullptr;
+	mCurveEndControlPositionWidget = nullptr;
 	mRectTopLeftWidget = nullptr;
-	mRectSizeWidget = nullptr;
+	mRectBottomRightWidget = nullptr;
 	mCornerRadiusWidget = nullptr;
 	mPointPositionWidgets.clear();
 	mPenStyleCombo = nullptr;
@@ -313,7 +180,95 @@ void DynamicPropertiesWidget::updatePropertiesFromDiagram()
 
 void DynamicPropertiesWidget::createGeometryWidgets()
 {
+	DrawingArcItem* arcItem = dynamic_cast<DrawingArcItem*>(mItem);
+	DrawingCurveItem* curveItem = dynamic_cast<DrawingCurveItem*>(mItem);
+	DrawingEllipseItem* ellipseItem = dynamic_cast<DrawingEllipseItem*>(mItem);
+	DrawingLineItem* lineItem = dynamic_cast<DrawingLineItem*>(mItem);
+	DrawingPathItem* pathItem = dynamic_cast<DrawingPathItem*>(mItem);
+	DrawingPolygonItem* polygonItem = dynamic_cast<DrawingPolygonItem*>(mItem);
+	DrawingPolylineItem* polylineItem = dynamic_cast<DrawingPolylineItem*>(mItem);
+	DrawingRectItem* rectItem = dynamic_cast<DrawingRectItem*>(mItem);
+	DrawingTextEllipseItem* textEllipseItem = dynamic_cast<DrawingTextEllipseItem*>(mItem);
+	DrawingTextItem* textItem = dynamic_cast<DrawingTextItem*>(mItem);
+	DrawingTextPolygonItem* textPolygonItem = dynamic_cast<DrawingTextPolygonItem*>(mItem);
+	DrawingTextRectItem* textRectItem = dynamic_cast<DrawingTextRectItem*>(mItem);
+	DrawingItemGroup* groupItem = dynamic_cast<DrawingItemGroup*>(mItem);
 
+	// Position widget
+	if (pathItem || polygonItem || polylineItem || textItem || textPolygonItem || groupItem)
+	{
+		mPositionWidget = new PositionWidget(mItem->pos());
+		connect(mPositionWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleGeometryChange()));
+	}
+
+	// Line/arc widgets
+	if (arcItem || lineItem)
+	{
+		mStartPositionWidget = new PositionWidget(mItem->mapToScene(mItem->points().first()->pos()));
+		connect(mStartPositionWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleGeometryChange()));
+
+		mEndPositionWidget = new PositionWidget(mItem->mapToScene(mItem->points().last()->pos()));
+		connect(mEndPositionWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleGeometryChange()));
+	}
+
+	// Curve widgets
+	if (curveItem)
+	{
+		mCurveStartPositionWidget = new PositionWidget(mItem->mapToScene(mItem->points()[0]->pos()));
+		connect(mCurveStartPositionWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleGeometryChange()));
+
+		mCurveEndPositionWidget = new PositionWidget(mItem->mapToScene(mItem->points()[1]->pos()));
+		connect(mCurveEndPositionWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleGeometryChange()));
+
+		mCurveStartControlPositionWidget = new PositionWidget(mItem->mapToScene(mItem->points()[2]->pos()));
+		connect(mCurveStartControlPositionWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleGeometryChange()));
+
+		mCurveEndControlPositionWidget = new PositionWidget(mItem->mapToScene(mItem->points()[3]->pos()));
+		connect(mCurveEndControlPositionWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleGeometryChange()));
+	}
+
+	// Rect widgets
+	if (ellipseItem || pathItem || rectItem || textEllipseItem || textRectItem)
+	{
+		mRectTopLeftWidget = new PositionWidget(mItem->mapToScene(mItem->points()[0]->pos()));
+		connect(mRectTopLeftWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleGeometryChange()));
+
+		mRectBottomRightWidget = new PositionWidget(mItem->mapToScene(mItem->points()[4]->pos()));
+		connect(mRectBottomRightWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleGeometryChange()));
+	}
+
+	if (rectItem || textRectItem)
+	{
+		mCornerRadiusWidget = new SizeWidget();
+		if (textRectItem)
+			mCornerRadiusWidget->setSize(QSizeF(textRectItem->cornerRadiusX(), textRectItem->cornerRadiusY()));
+		else
+			mCornerRadiusWidget->setSize(QSizeF(rectItem->cornerRadiusX(), rectItem->cornerRadiusY()));
+		connect(mCornerRadiusWidget, SIGNAL(sizeChanged(const QSizeF&)), this, SLOT(handleGeometryChange()));
+	}
+
+	// Poly widgets
+	if (polygonItem || polylineItem || textPolygonItem)
+	{
+		QList<DrawingItemPoint*> points = mItem->points();
+		for(int i = 0; i < points.size(); i++)
+		{
+			PositionWidget* posWidget = new PositionWidget(mItem->mapToScene(points[i]->pos()));
+			connect(posWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleGeometryChange()));
+			mPointPositionWidgets.append(posWidget);
+		}
+	}
+
+	// Caption widget
+	if (textItem || textRectItem || textEllipseItem || textPolygonItem)
+	{
+		mCaptionEdit = new QTextEdit();
+		if (textRectItem) mCaptionEdit->setPlainText(textRectItem->caption());
+		else if (textEllipseItem) mCaptionEdit->setPlainText(textEllipseItem->caption());
+		else if (textPolygonItem) mCaptionEdit->setPlainText(textPolygonItem->caption());
+		else mCaptionEdit->setPlainText(textItem->caption());
+		connect(mCaptionEdit, SIGNAL(textChanged()), this, SLOT(handleGeometryChange()));
+	}
 }
 
 void DynamicPropertiesWidget::createStyleWidgets()

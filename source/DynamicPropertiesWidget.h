@@ -72,12 +72,15 @@ protected:
 	PositionWidget* mPositionWidget;
 
 	PositionWidget* mStartPositionWidget;
-	PositionWidget* mStartControlPositionWidget;
 	PositionWidget* mEndPositionWidget;
-	PositionWidget* mEndControlPositionWidget;
+
+	PositionWidget* mCurveStartPositionWidget;
+	PositionWidget* mCurveStartControlPositionWidget;
+	PositionWidget* mCurveEndPositionWidget;
+	PositionWidget* mCurveEndControlPositionWidget;
 
 	PositionWidget* mRectTopLeftWidget;
-	SizeWidget* mRectSizeWidget;
+	PositionWidget* mRectBottomRightWidget;
 	SizeWidget* mCornerRadiusWidget;
 
 	QList<PositionWidget*> mPointPositionWidgets;
@@ -129,6 +132,7 @@ signals:
 	//todo: save/load default item style properties from INI file
 
 private slots:
+	void handleGeometryChange();
 	void handleStyleChange();
 
 private:
