@@ -177,6 +177,18 @@ void DynamicPropertiesWidget::updatePropertiesFromDiagram()
 
 //==================================================================================================
 
+void DynamicPropertiesWidget::handleGeometryChange()
+{
+
+}
+
+void DynamicPropertiesWidget::handleStyleChange()
+{
+
+}
+
+//==================================================================================================
+
 void DynamicPropertiesWidget::createGeometryWidgets()
 {
 	DrawingArcItem* arcItem = dynamic_cast<DrawingArcItem*>(mItem);
@@ -489,7 +501,7 @@ void DynamicPropertiesWidget::assembleLayout()
 		groupLayout = nullptr;
 		addWidget(groupLayout, "Top Left:", mRectTopLeftWidget);
 		addWidget(groupLayout, "Bottom Right:", mRectBottomRightWidget);
-		if (mCornerRadiusWidget) addWidget(groupLayout, "Corner Radius:", mCornerRadiusWidget);
+		addWidget(groupLayout, "Corner Radius:", mCornerRadiusWidget);
 		groupBox->setLayout(groupLayout);
 		mainLayout->addWidget(groupBox);
 	}
@@ -561,25 +573,28 @@ void DynamicPropertiesWidget::assembleLayout()
 
 void DynamicPropertiesWidget::addWidget(QFormLayout*& formLayout, const QString& label,	QWidget* widget)
 {
-	if (formLayout == nullptr)
+	if (widget)
 	{
-		formLayout = new QFormLayout();
-		formLayout->setRowWrapPolicy(QFormLayout::DontWrapRows);
-		formLayout->setLabelAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-		formLayout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+		if (formLayout == nullptr)
+		{
+			formLayout = new QFormLayout();
+			formLayout->setRowWrapPolicy(QFormLayout::DontWrapRows);
+			formLayout->setLabelAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+			formLayout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+		}
+
+		if (mItems.size() > 1)
+		{
+			QCheckBox* checkBox = new QCheckBox(label);
+			checkBox->setChecked(widget->isEnabled());
+			connect(checkBox, SIGNAL(toggled(bool)), widget, SLOT(setEnabled(bool)));
+			connect(checkBox, SIGNAL(toggled(bool)), this, SLOT(handlePropertyChange()));
+
+			formLayout->addRow(checkBox, widget);
+		}
+		else formLayout->addRow(label, widget);
+
+		if (formLayout->rowCount() == 1)
+			formLayout->itemAt(0, QFormLayout::LabelRole)->widget()->setMinimumWidth(labelWidth());
 	}
-
-	if (mItems.size() > 1)
-	{
-		QCheckBox* checkBox = new QCheckBox(label);
-		checkBox->setChecked(widget->isEnabled());
-		connect(checkBox, SIGNAL(toggled(bool)), widget, SLOT(setEnabled(bool)));
-		connect(checkBox, SIGNAL(toggled(bool)), this, SLOT(handlePropertyChange()));
-
-		formLayout->addRow(checkBox, widget);
-	}
-	else formLayout->addRow(label, widget);
-
-	if (formLayout->rowCount() == 1)
-		formLayout->itemAt(0, QFormLayout::LabelRole)->widget()->setMinimumWidth(labelWidth());
 }
