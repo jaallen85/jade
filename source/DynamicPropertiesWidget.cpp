@@ -23,6 +23,9 @@
 
 DynamicPropertiesWidget::DynamicPropertiesWidget(DiagramWidget* diagram) : QScrollArea()
 {
+	mStackedWidget = new QStackedWidget();
+	clear();
+
 	QFormLayout* groupLayout;
 
 	mPositionWidget = new PositionWidget();
@@ -155,7 +158,9 @@ DynamicPropertiesWidget::DynamicPropertiesWidget(DiagramWidget* diagram) : QScro
 	mainLayout->addWidget(new QWidget(), 100);
 	mainWidget->setLayout(mainLayout);
 
-	setWidget(mainWidget);
+	mStackedWidget->addWidget(mainWidget);
+
+	setWidget(mStackedWidget);
 	setWidgetResizable(true);
 
 	setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
@@ -183,12 +188,98 @@ int DynamicPropertiesWidget::labelWidth() const
 
 void DynamicPropertiesWidget::setSelectedItems(const QList<DrawingItem*>& selectedItems)
 {
+	clear();
 
+	if (selectedItems.size() > 1)
+	{
+		mItems = selectedItems;
+
+		// search for common item style properties
+		// create widgets
+		// assemble layout
+	}
+	else if (selectedItems.size() == 1)
+	{
+		mItems = selectedItems;
+		mItem = selectedItems.first();
+
+		// search for common item style properties
+		// create widgets
+		// assemble layout
+	}
+	else
+	{
+		// create widgets
+		// assemble layout
+	}
 }
 
 void DynamicPropertiesWidget::setNewItem(DrawingItem* item)
 {
+	QList<DrawingItem*> items;
+	items.append(item);
+	setSelectedItems(items);
+}
 
+void DynamicPropertiesWidget::clear()
+{
+	QWidget* widget;
+
+	while (mStackedWidget->count() > 0)
+	{
+		widget = mStackedWidget->widget(0);
+		mStackedWidget->removeWidget(widget);
+		delete widget;
+	}
+
+	mItems.clear();
+	mItem = nullptr;
+
+	mDiagramTopLeftWidget = nullptr;
+	mDiagramRectSizeWidget = nullptr;
+	mDiagramBackgroundColorWidget = nullptr;
+	mDiagramGridStyleCombo = nullptr;
+	mDiagramGridColorWidget = nullptr;
+	mDiagramGridSpacingMajorWidget = nullptr;
+	mDiagramGridSpacingMinorWidget = nullptr;
+
+	mDefaultPenStyleCombo = nullptr;
+	mDefaultPenWidthEdit = nullptr;
+	mDefaultPenColorWidget = nullptr;
+	mDefaultBrushColorWidget = nullptr;
+	mDefaultFontComboBox = nullptr;
+	mDefaultFontSizeEdit = nullptr;
+	mDefaultFontStyleWidget = nullptr;
+	mDefaultTextAlignmentWidget = nullptr;
+	mDefaultTextColorWidget = nullptr;
+	mDefaultStartArrowCombo = nullptr;
+	mDefaultStartArrowSizeEdit = nullptr;
+	mDefaultEndArrowCombo = nullptr;
+	mDefaultEndArrowSizeEdit = nullptr;
+
+	mPositionWidget = nullptr;
+	mStartPositionWidget = nullptr;
+	mStartControlPositionWidget = nullptr;
+	mEndPositionWidget = nullptr;
+	mEndControlPositionWidget = nullptr;
+	mRectTopLeftWidget = nullptr;
+	mRectSizeWidget = nullptr;
+	mCornerRadiusWidget = nullptr;
+	mPointPositionWidgets.clear();
+	mPenStyleCombo = nullptr;
+	mPenWidthEdit = nullptr;
+	mPenColorWidget = nullptr;
+	mBrushColorWidget = nullptr;
+	mFontComboBox = nullptr;
+	mFontSizeEdit = nullptr;
+	mFontStyleWidget = nullptr;
+	mTextAlignmentWidget = nullptr;
+	mTextColorWidget = nullptr;
+	mCaptionEdit = nullptr;
+	mStartArrowCombo = nullptr;
+	mStartArrowSizeEdit = nullptr;
+	mEndArrowCombo = nullptr;
+	mEndArrowSizeEdit = nullptr;
 }
 
 //==================================================================================================
@@ -216,4 +307,177 @@ void DynamicPropertiesWidget::updateStylePropertiesFromSelectedItems()
 void DynamicPropertiesWidget::updatePropertiesFromDiagram()
 {
 
+}
+
+//==================================================================================================
+
+void DynamicPropertiesWidget::createGeometryWidgets()
+{
+
+}
+
+void DynamicPropertiesWidget::createStyleWidgets()
+{
+	QVector<bool> allItemsHaveProperty(DrawingItemStyle::NumberOfProperties, true);
+	QVector<bool> propertiesMatch(DrawingItemStyle::NumberOfProperties, true);
+	QVector<QVariant> propertyValue(DrawingItemStyle::NumberOfProperties, QVariant());
+
+	// Check for style properties within selected items
+	for(int i = 0; i < DrawingItemStyle::NumberOfProperties; i++)
+	{
+		for(auto itemIter = mItems.begin(); allItemsHaveProperty[i] && itemIter != mItems.end(); itemIter++)
+		{
+			allItemsHaveProperty[i] = (*itemIter)->style()->hasValue((DrawingItemStyle::Property)i);
+			if (allItemsHaveProperty[i])
+			{
+				if (propertyValue[i].isValid())
+				{
+					propertiesMatch[i] = (propertiesMatch[i] &&
+						propertyValue[i] == (*itemIter)->style()->value((DrawingItemStyle::Property)i));
+				}
+				else propertyValue[i] = (*itemIter)->style()->value((DrawingItemStyle::Property)i);
+			}
+		}
+	}
+
+	// Pen / Brush widgets
+	if (allItemsHaveProperty[DrawingItemStyle::PenStyle])
+	{
+		mPenStyleCombo = new PenStyleCombo((Qt::PenStyle)propertyValue[DrawingItemStyle::PenStyle].toUInt());
+		mPenStyleCombo->setEnabled(propertiesMatch[DrawingItemStyle::PenStyle]);
+		connect(mPenStyleCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(handleStyleChange()));
+	}
+
+	if (allItemsHaveProperty[DrawingItemStyle::PenWidth])
+	{
+		mPenWidthEdit = new SizeEdit(propertyValue[DrawingItemStyle::PenWidth].toDouble());
+		mPenWidthEdit->setEnabled(propertiesMatch[DrawingItemStyle::PenWidth]);
+		connect(mPenWidthEdit, SIGNAL(sizeChanged(qreal)), this, SLOT(handleStyleChange()));
+	}
+
+	if (allItemsHaveProperty[DrawingItemStyle::PenColor])
+	{
+		mPenColorWidget = new ColorWidget(propertyValue[DrawingItemStyle::PenColor].value<QColor>());
+		mPenColorWidget->setEnabled(propertiesMatch[DrawingItemStyle::PenColor]);
+		connect(mPenColorWidget, SIGNAL(colorChanged(const QColor&)), this, SLOT(handleStyleChange()));
+
+		if (allItemsHaveProperty[DrawingItemStyle::PenOpacity])
+		{
+			QColor color = mPenColorWidget->color();
+			color.setAlphaF(propertyValue[DrawingItemStyle::PenOpacity].toDouble());
+			mPenColorWidget->setColor(color);
+			mPenColorWidget->setEnabled(propertiesMatch[DrawingItemStyle::PenColor] &&
+				propertiesMatch[DrawingItemStyle::PenOpacity]);
+		}
+	}
+
+	if (allItemsHaveProperty[DrawingItemStyle::BrushColor])
+	{
+		mBrushColorWidget = new ColorWidget(propertyValue[DrawingItemStyle::BrushColor].value<QColor>());
+		mBrushColorWidget->setEnabled(propertiesMatch[DrawingItemStyle::BrushColor]);
+		connect(mBrushColorWidget, SIGNAL(colorChanged(const QColor&)), this, SLOT(handleStyleChange()));
+
+		if (allItemsHaveProperty[DrawingItemStyle::BrushOpacity])
+		{
+			QColor color = mBrushColorWidget->color();
+			color.setAlphaF(propertyValue[DrawingItemStyle::BrushOpacity].toDouble());
+			mBrushColorWidget->setColor(color);
+			mBrushColorWidget->setEnabled(propertiesMatch[DrawingItemStyle::BrushColor] &&
+				propertiesMatch[DrawingItemStyle::BrushOpacity]);
+		}
+	}
+
+	// Text widgets
+	if (allItemsHaveProperty[DrawingItemStyle::FontName])
+	{
+		mFontComboBox = new QFontComboBox();
+		mFontComboBox->setCurrentFont(QFont(propertyValue[DrawingItemStyle::FontName].toString()));
+		mFontComboBox->setEnabled(propertiesMatch[DrawingItemStyle::FontName]);
+		connect(mFontComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(handleStyleChange()));
+	}
+
+	if (allItemsHaveProperty[DrawingItemStyle::FontSize])
+	{
+		mFontSizeEdit = new SizeEdit(propertyValue[DrawingItemStyle::FontSize].toDouble());
+		mFontSizeEdit->setEnabled(propertiesMatch[DrawingItemStyle::FontSize]);
+		connect(mFontSizeEdit, SIGNAL(sizeChanged(qreal)), this, SLOT(handleStyleChange()));
+	}
+
+	if (allItemsHaveProperty[DrawingItemStyle::FontBold] && allItemsHaveProperty[DrawingItemStyle::FontItalic] &&
+		allItemsHaveProperty[DrawingItemStyle::FontUnderline] && allItemsHaveProperty[DrawingItemStyle::FontStrikeThrough])
+	{
+		mFontStyleWidget = new FontStyleWidget();
+		mFontStyleWidget->setBold(propertyValue[DrawingItemStyle::FontBold].toBool());
+		mFontStyleWidget->setItalic(propertyValue[DrawingItemStyle::FontItalic].toBool());
+		mFontStyleWidget->setUnderline(propertyValue[DrawingItemStyle::FontUnderline].toBool());
+		mFontStyleWidget->setStrikeThrough(propertyValue[DrawingItemStyle::FontStrikeThrough].toBool());
+		mFontStyleWidget->setEnabled(propertiesMatch[DrawingItemStyle::FontBold] &&
+			propertiesMatch[DrawingItemStyle::FontItalic] &&
+			propertiesMatch[DrawingItemStyle::FontUnderline] &&
+			propertiesMatch[DrawingItemStyle::FontStrikeThrough]);
+		connect(mFontStyleWidget, SIGNAL(boldChanged(bool)), this, SLOT(handleStyleChange()));
+		connect(mFontStyleWidget, SIGNAL(italicChanged(bool)), this, SLOT(handleStyleChange()));
+		connect(mFontStyleWidget, SIGNAL(underlineChanged(bool)), this, SLOT(handleStyleChange()));
+		connect(mFontStyleWidget, SIGNAL(strikeThroughChanged(bool)), this, SLOT(handleStyleChange()));
+	}
+
+	if (allItemsHaveProperty[DrawingItemStyle::TextHorizontalAlignment] &&
+		allItemsHaveProperty[DrawingItemStyle::TextVerticalAlignment])
+	{
+		mTextAlignmentWidget = new TextAlignmentWidget();
+		mTextAlignmentWidget->setAlignment(
+			(Qt::Alignment)propertyValue[DrawingItemStyle::TextHorizontalAlignment].toUInt(),
+			(Qt::Alignment)propertyValue[DrawingItemStyle::TextVerticalAlignment].toUInt());
+		mTextAlignmentWidget->setEnabled(propertiesMatch[DrawingItemStyle::TextHorizontalAlignment] &&
+			propertiesMatch[DrawingItemStyle::TextVerticalAlignment]);
+		connect(mTextAlignmentWidget, SIGNAL(horizontalAlignmentChanged(Qt::Alignment)), this, SLOT(handleStyleChange()));
+		connect(mTextAlignmentWidget, SIGNAL(verticalAlignmentChanged(Qt::Alignment)), this, SLOT(handleStyleChange()));
+	}
+
+	if (allItemsHaveProperty[DrawingItemStyle::TextColor])
+	{
+		mTextColorWidget = new ColorWidget(propertyValue[DrawingItemStyle::TextColor].value<QColor>());
+		mTextColorWidget->setEnabled(propertiesMatch[DrawingItemStyle::TextColor]);
+		connect(mTextColorWidget, SIGNAL(colorChanged(const QColor&)), this, SLOT(handleStyleChange()));
+
+		if (allItemsHaveProperty[DrawingItemStyle::TextOpacity])
+		{
+			QColor color = mTextColorWidget->color();
+			color.setAlphaF(propertyValue[DrawingItemStyle::TextOpacity].toDouble());
+			mTextColorWidget->setColor(color);
+			mTextColorWidget->setEnabled(propertiesMatch[DrawingItemStyle::TextColor] &&
+				propertiesMatch[DrawingItemStyle::TextOpacity]);
+		}
+	}
+
+	// Arrow widgets
+	if (allItemsHaveProperty[DrawingItemStyle::StartArrowStyle])
+	{
+		mStartArrowCombo = new ArrowStyleCombo(
+			(DrawingItemStyle::ArrowStyle)propertyValue[DrawingItemStyle::StartArrowStyle].toUInt());
+		mStartArrowCombo->setEnabled(propertiesMatch[DrawingItemStyle::StartArrowStyle]);
+		connect(mStartArrowCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(handleStyleChange()));
+	}
+
+	if (allItemsHaveProperty[DrawingItemStyle::StartArrowSize])
+	{
+		mStartArrowSizeEdit = new SizeEdit(propertyValue[DrawingItemStyle::StartArrowSize].toDouble());
+		mStartArrowSizeEdit->setEnabled(propertiesMatch[DrawingItemStyle::StartArrowSize]);
+		connect(mStartArrowSizeEdit, SIGNAL(sizeChanged(qreal)), this, SLOT(handleStyleChange()));
+	}
+
+	if (allItemsHaveProperty[DrawingItemStyle::EndArrowStyle])
+	{
+		mEndArrowCombo = new ArrowStyleCombo(
+			(DrawingItemStyle::ArrowStyle)propertyValue[DrawingItemStyle::EndArrowStyle].toUInt());
+		mEndArrowCombo->setEnabled(propertiesMatch[DrawingItemStyle::EndArrowStyle]);
+		connect(mEndArrowCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(handleStyleChange()));
+	}
+
+	if (allItemsHaveProperty[DrawingItemStyle::EndArrowSize])
+	{
+		mEndArrowSizeEdit = new SizeEdit(propertyValue[DrawingItemStyle::EndArrowSize].toDouble());
+		mEndArrowSizeEdit->setEnabled(propertiesMatch[DrawingItemStyle::EndArrowSize]);
+		connect(mEndArrowSizeEdit, SIGNAL(sizeChanged(qreal)), this, SLOT(handleStyleChange()));
+	}
 }

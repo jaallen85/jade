@@ -38,6 +38,10 @@ class DynamicPropertiesWidget : public QScrollArea
 	Q_OBJECT
 
 protected:
+	QStackedWidget* mStackedWidget;
+	QList<DrawingItem*> mItems;
+	DrawingItem* mItem;
+
 	// Diagram properties
 	PositionWidget* mDiagramTopLeftWidget;
 	SizeWidget* mDiagramRectSizeWidget;
@@ -105,6 +109,7 @@ public:
 public slots:
 	void setSelectedItems(const QList<DrawingItem*>& selectedItems);
 	void setNewItem(DrawingItem* item);
+	void clear();
 
 	void updateGeometryFromSelectedItems(const QList<DrawingItem*>& items);
 	void updateCaptionFromSelectedItem();
@@ -122,6 +127,13 @@ signals:
 
 	//todo: fill in default item style properties
 	//todo: save/load default item style properties from INI file
+
+private slots:
+	void handleStyleChange();
+
+private:
+	void createGeometryWidgets();
+	void createStyleWidgets();
 };
 
 #endif
