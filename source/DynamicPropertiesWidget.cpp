@@ -59,18 +59,17 @@ void DynamicPropertiesWidget::setSelectedItems(const QList<DrawingItem*>& select
 	{
 		mItems = selectedItems;
 
-		// search for common item style properties
-		// create widgets
-		// assemble layout
+		createStyleWidgets();
+		assembleLayout();
 	}
 	else if (selectedItems.size() == 1)
 	{
 		mItems = selectedItems;
 		mItem = selectedItems.first();
 
-		// search for common item style properties
-		// create widgets
-		// assemble layout
+		createGeometryWidgets();
+		createStyleWidgets();
+		assembleLayout();
 	}
 	else
 	{
@@ -82,7 +81,7 @@ void DynamicPropertiesWidget::setSelectedItems(const QList<DrawingItem*>& select
 void DynamicPropertiesWidget::setNewItem(DrawingItem* item)
 {
 	QList<DrawingItem*> items;
-	items.append(item);
+	if (item) items.append(item);
 	setSelectedItems(items);
 }
 
@@ -263,6 +262,7 @@ void DynamicPropertiesWidget::createGeometryWidgets()
 	if (textItem || textRectItem || textEllipseItem || textPolygonItem)
 	{
 		mCaptionEdit = new QTextEdit();
+		mCaptionEdit->setMaximumHeight(QFontMetrics(mCaptionEdit->font()).height() * 6 + 8);
 		if (textRectItem) mCaptionEdit->setPlainText(textRectItem->caption());
 		else if (textEllipseItem) mCaptionEdit->setPlainText(textEllipseItem->caption());
 		else if (textPolygonItem) mCaptionEdit->setPlainText(textPolygonItem->caption());
@@ -435,4 +435,151 @@ void DynamicPropertiesWidget::createStyleWidgets()
 		mEndArrowSizeEdit->setEnabled(propertiesMatch[DrawingItemStyle::EndArrowSize]);
 		connect(mEndArrowSizeEdit, SIGNAL(sizeChanged(qreal)), this, SLOT(handleStyleChange()));
 	}
+}
+
+void DynamicPropertiesWidget::assembleLayout()
+{
+	QWidget* mainWidget = new QWidget();
+	QVBoxLayout* mainLayout = new QVBoxLayout();
+	QGroupBox* groupBox = nullptr;
+	QFormLayout* groupLayout = nullptr;
+
+	if (mPositionWidget)
+	{
+		groupBox = new QGroupBox("Position");
+		groupLayout = nullptr;
+		addWidget(groupLayout, "Position:", mPositionWidget);
+		groupBox->setLayout(groupLayout);
+		mainLayout->addWidget(groupBox);
+	}
+
+	if (mStartPositionWidget || mEndPositionWidget)
+	{
+		DrawingArcItem* arcItem = dynamic_cast<DrawingArcItem*>(mItem);
+
+		if (arcItem) groupBox = new QGroupBox("Arc");
+		else groupBox = new QGroupBox("Line");
+		groupLayout = nullptr;
+		addWidget(groupLayout, "Start Point:", mStartPositionWidget);
+		addWidget(groupLayout, "End Point:", mEndPositionWidget);
+		groupBox->setLayout(groupLayout);
+		mainLayout->addWidget(groupBox);
+	}
+
+	if (mCurveStartPositionWidget || mCurveStartControlPositionWidget ||
+		mCurveEndPositionWidget || mCurveEndControlPositionWidget)
+	{
+		groupBox = new QGroupBox("Curve");
+		groupLayout = nullptr;
+		addWidget(groupLayout, "Start Point:", mCurveStartPositionWidget);
+		addWidget(groupLayout, "Control Point:", mCurveStartControlPositionWidget);
+		addWidget(groupLayout, "End Point:", mCurveEndPositionWidget);
+		addWidget(groupLayout, "Control Point:", mCurveEndControlPositionWidget);
+		groupBox->setLayout(groupLayout);
+		mainLayout->addWidget(groupBox);
+	}
+
+	if (mRectTopLeftWidget || mRectBottomRightWidget || mCornerRadiusWidget)
+	{
+		DrawingEllipseItem* ellipseItem = dynamic_cast<DrawingEllipseItem*>(mItem);
+		DrawingTextEllipseItem* textEllipseItem = dynamic_cast<DrawingTextEllipseItem*>(mItem);
+
+		if (ellipseItem || textEllipseItem) groupBox = new QGroupBox("Ellipse");
+		else groupBox = new QGroupBox("Rectangle");
+		groupLayout = nullptr;
+		addWidget(groupLayout, "Top Left:", mRectTopLeftWidget);
+		addWidget(groupLayout, "Bottom Right:", mRectBottomRightWidget);
+		if (mCornerRadiusWidget) addWidget(groupLayout, "Corner Radius:", mCornerRadiusWidget);
+		groupBox->setLayout(groupLayout);
+		mainLayout->addWidget(groupBox);
+	}
+
+	if (!mPointPositionWidgets.isEmpty())
+	{
+		DrawingPolylineItem* polylineItem = dynamic_cast<DrawingPolylineItem*>(mItem);
+
+		if (polylineItem) groupBox = new QGroupBox("Polyline");
+		else groupBox = new QGroupBox("Polygon");
+		groupLayout = nullptr;
+		for(int i = 0; i < mPointPositionWidgets.size(); i++)
+		{
+			if (i == 0)
+				addWidget(groupLayout, "Start Point:", mPointPositionWidgets[i]);
+			else if (i == mPointPositionWidgets.size() - 1)
+				addWidget(groupLayout, "End Point:", mPointPositionWidgets[i]);
+			else
+				addWidget(groupLayout, "", mPointPositionWidgets[i]);
+
+		}
+		groupBox->setLayout(groupLayout);
+		mainLayout->addWidget(groupBox);
+	}
+
+	if (mPenStyleCombo || mPenWidthEdit || mPenColorWidget || mBrushColorWidget)
+	{
+		groupBox = new QGroupBox("Pen / Brush");
+		groupLayout = nullptr;
+		addWidget(groupLayout, "Pen Style:", mPenStyleCombo);
+		addWidget(groupLayout, "Pen Width:", mPenWidthEdit);
+		addWidget(groupLayout, "Pen Color:", mPenColorWidget);
+		addWidget(groupLayout, "Brush Color:", mBrushColorWidget);
+		groupBox->setLayout(groupLayout);
+		mainLayout->addWidget(groupBox);
+	}
+
+	if (mFontComboBox || mFontSizeEdit || mFontStyleWidget || mTextAlignmentWidget ||
+		mTextColorWidget || mCaptionEdit)
+	{
+		groupBox = new QGroupBox("Text");
+		groupLayout = nullptr;
+		addWidget(groupLayout, "Font:", mFontComboBox);
+		addWidget(groupLayout, "Font Size:", mFontSizeEdit);
+		addWidget(groupLayout, "Font Style:", mFontStyleWidget);
+		addWidget(groupLayout, "Alignment:", mTextAlignmentWidget);
+		addWidget(groupLayout, "Text Color:", mTextColorWidget);
+		addWidget(groupLayout, "Caption:", mCaptionEdit);
+		groupBox->setLayout(groupLayout);
+		mainLayout->addWidget(groupBox);
+	}
+
+	if (mStartArrowCombo || mStartArrowSizeEdit || mEndArrowCombo || mEndArrowSizeEdit)
+	{
+		groupBox = new QGroupBox("Arrow");
+		groupLayout = nullptr;
+		addWidget(groupLayout, "Start Arrow:", mStartArrowCombo);
+		addWidget(groupLayout, "Arrow Size:", mStartArrowSizeEdit);
+		addWidget(groupLayout, "End Arrow:", mEndArrowCombo);
+		addWidget(groupLayout, "Arrow Size:", mEndArrowSizeEdit);
+		groupBox->setLayout(groupLayout);
+		mainLayout->addWidget(groupBox);
+	}
+
+	mainLayout->addWidget(new QWidget(), 100);
+	mainWidget->setLayout(mainLayout);
+	mStackedWidget->addWidget(mainWidget);
+}
+
+void DynamicPropertiesWidget::addWidget(QFormLayout*& formLayout, const QString& label,	QWidget* widget)
+{
+	if (formLayout == nullptr)
+	{
+		formLayout = new QFormLayout();
+		formLayout->setRowWrapPolicy(QFormLayout::DontWrapRows);
+		formLayout->setLabelAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+		formLayout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+	}
+
+	if (mItems.size() > 1)
+	{
+		QCheckBox* checkBox = new QCheckBox(label);
+		checkBox->setChecked(widget->isEnabled());
+		connect(checkBox, SIGNAL(toggled(bool)), widget, SLOT(setEnabled(bool)));
+		connect(checkBox, SIGNAL(toggled(bool)), this, SLOT(handlePropertyChange()));
+
+		formLayout->addRow(checkBox, widget);
+	}
+	else formLayout->addRow(label, widget);
+
+	if (formLayout->rowCount() == 1)
+		formLayout->itemAt(0, QFormLayout::LabelRole)->widget()->setMinimumWidth(labelWidth());
 }

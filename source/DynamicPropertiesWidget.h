@@ -132,12 +132,14 @@ signals:
 	//todo: save/load default item style properties from INI file
 
 private slots:
-	void handleGeometryChange();
-	void handleStyleChange();
+	//void handleGeometryChange();
+	//void handleStyleChange();
 
 private:
 	void createGeometryWidgets();
 	void createStyleWidgets();
+	void assembleLayout();
+	void addWidget(QFormLayout*& formLayout, const QString& label, QWidget* widget);
 };
 
 #endif

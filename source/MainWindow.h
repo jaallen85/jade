@@ -66,6 +66,7 @@ public:
 
 private slots:
 	void setModeFromAction(QAction* action);
+	void setModeFromDiagram(DrawingWidget::Mode mode);
 
 	void setModeText(DrawingWidget::Mode mode);
 	void setModifiedText(bool clean);

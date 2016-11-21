@@ -116,6 +116,24 @@ void MainWindow::setModeFromAction(QAction* action)
 	else mDiagramWidget->setDefaultMode();
 }
 
+void MainWindow::setModeFromDiagram(DrawingWidget::Mode mode)
+{
+	switch (mode)
+	{
+	case DrawingWidget::ScrollMode:
+		mModeActionGroup->actions()[ScrollModeAction]->setChecked(true);
+		break;
+	case DrawingWidget::ZoomMode:
+		mModeActionGroup->actions()[ZoomModeAction]->setChecked(true);
+		break;
+	case DrawingWidget::DefaultMode:
+		mModeActionGroup->actions()[DefaultModeAction]->setChecked(true);
+		break;
+	default:
+		break;
+	}
+}
+
 //==================================================================================================
 
 void MainWindow::setModeText(DrawingWidget::Mode mode)
@@ -205,6 +223,7 @@ void MainWindow::createActions()
 
 	mModeActionGroup = new QActionGroup(this);
 	connect(mModeActionGroup, SIGNAL(triggered(QAction*)), this, SLOT(setModeFromAction(QAction*)));
+	connect(mDiagramWidget, SIGNAL(modeChanged(DrawingWidget::Mode)), this, SLOT(setModeFromDiagram(DrawingWidget::Mode)));
 
 	addModeAction("Select Mode", ":/icons/oxygen/edit-select.png", "Escape");
 	addModeAction("Scroll Mode", ":/icons/oxygen/transform-move.png", "");
