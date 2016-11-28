@@ -19,11 +19,14 @@
  */
 
 #include "MainWindow.h"
-#include "DiagramWidget.h"
 #include "DynamicPropertiesWidget.h"
 
 MainWindow::MainWindow() : QMainWindow()
 {
+	// Settings
+	fillDefaultPropertyValues();
+	loadSettings();
+
 	// Central widget
 	mDiagramWidget = new DiagramWidget();
 	mDiagramWidget->setFlags(DrawingWidget::UndoableSelectCommands);
@@ -95,6 +98,57 @@ MainWindow::MainWindow() : QMainWindow()
 }
 
 MainWindow::~MainWindow() { }
+
+//==================================================================================================
+
+void MainWindow::fillDefaultPropertyValues()
+{
+	mDiagramDefaultProperties[DiagramWidget::SceneRect] = QRectF(-5000, -3750, 10000, 7500);
+	mDiagramDefaultProperties[DiagramWidget::BackgroundColor] = QColor(255, 255, 255);
+	mDiagramDefaultProperties[DiagramWidget::Grid] = 50;
+	mDiagramDefaultProperties[DiagramWidget::GridStyle] = (quint32)(DiagramWidget::GridGraphPaper);
+	mDiagramDefaultProperties[DiagramWidget::GridColor] = QColor(0, 128, 128);
+	mDiagramDefaultProperties[DiagramWidget::GridSpacingMajor] = 8;
+	mDiagramDefaultProperties[DiagramWidget::GridSpacingMinor] = 2;
+
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::PenStyle, (uint)(Qt::SolidLine));
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::PenColor, QColor(0, 0, 0));
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::PenOpacity, 1.0);
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::PenWidth, 12.0);
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::PenCapStyle, (uint)(Qt::RoundCap));
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::PenJoinStyle, (uint)(Qt::RoundJoin));
+
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::BrushStyle, (uint)(Qt::SolidPattern));
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::BrushColor, QColor(255, 255, 255));
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::BrushOpacity, 1.0);
+
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::FontName, "Arial");
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::FontSize, 100.0);
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::FontBold, false);
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::FontItalic, false);
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::FontUnderline, false);
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::FontOverline, false);
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::FontStrikeThrough, false);
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::TextColor, QColor(0, 0, 0));
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::TextOpacity, 1.0);
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::TextHorizontalAlignment, (uint)(Qt::AlignHCenter));
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::TextVerticalAlignment, (uint)(Qt::AlignVCenter));
+
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::StartArrowStyle, (uint)(DrawingItemStyle::ArrowNone));
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::StartArrowSize, 100.0);
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::EndArrowStyle, (uint)(DrawingItemStyle::ArrowNone));
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::EndArrowSize, 100.0);
+}
+
+void MainWindow::loadSettings()
+{
+
+}
+
+void MainWindow::saveSettings()
+{
+
+}
 
 //==================================================================================================
 

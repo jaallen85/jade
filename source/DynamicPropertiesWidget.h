@@ -43,6 +43,7 @@ protected:
 	DrawingItem* mItem;
 
 	// Diagram properties
+	QWidget* mDiagramPropertiesWidget;
 	PositionWidget* mDiagramTopLeftWidget;
 	SizeWidget* mDiagramRectSizeWidget;
 	ColorWidget* mDiagramBackgroundColorWidget;
@@ -52,6 +53,8 @@ protected:
 	QLineEdit* mDiagramGridSpacingMinorWidget;
 
 	// Item default properties
+	QWidget* mItemDefaultPropertiesWidget;
+
 	PenStyleCombo* mDefaultPenStyleCombo;
 	SizeEdit* mDefaultPenWidthEdit;
 	ColorWidget* mDefaultPenColorWidget;
@@ -136,6 +139,9 @@ private slots:
 	void handleStyleChange();
 
 private:
+	void createDiagramWidget();
+	void createItemDefaultsWidget();
+
 	void createGeometryWidgets();
 	void createStyleWidgets();
 	void assembleLayout();

@@ -30,6 +30,8 @@ DynamicPropertiesWidget::DynamicPropertiesWidget(DiagramWidget* diagram) : QScro
 	setWidgetResizable(true);
 
 	setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+
+	setSelectedItems(QList<DrawingItem*>());
 }
 
 DynamicPropertiesWidget::~DynamicPropertiesWidget()
@@ -73,8 +75,28 @@ void DynamicPropertiesWidget::setSelectedItems(const QList<DrawingItem*>& select
 	}
 	else
 	{
-		// create widgets
-		// assemble layout
+		createDiagramWidget();
+		createItemDefaultsWidget();
+
+		/*QTabWidget* tabWidget = new QTabWidget();
+		tabWidget->addTab(mDiagramPropertiesWidget, "Diagram");
+		tabWidget->addTab(mItemDefaultPropertiesWidget, "Item Defaults");
+		tabWidget->setTabPosition(QTabWidget::South);
+		mStackedWidget->addWidget(tabWidget);*/
+
+		QWidget* widget = new QWidget();
+		QVBoxLayout* layout = new QVBoxLayout();
+
+		QFrame* separator = new QFrame();
+		separator->setFrameStyle(QFrame::HLine | QFrame::Sunken);
+
+		layout->addWidget(mDiagramPropertiesWidget);
+		layout->addWidget(separator);
+		layout->addWidget(mItemDefaultPropertiesWidget);
+		layout->addWidget(new QWidget(), 100);
+		layout->setContentsMargins(0, 0, 0, 0);
+		widget->setLayout(layout);
+		mStackedWidget->addWidget(widget);
 	}
 }
 
@@ -99,6 +121,7 @@ void DynamicPropertiesWidget::clear()
 	mItems.clear();
 	mItem = nullptr;
 
+	mDiagramPropertiesWidget = nullptr;
 	mDiagramTopLeftWidget = nullptr;
 	mDiagramRectSizeWidget = nullptr;
 	mDiagramBackgroundColorWidget = nullptr;
@@ -107,6 +130,7 @@ void DynamicPropertiesWidget::clear()
 	mDiagramGridSpacingMajorWidget = nullptr;
 	mDiagramGridSpacingMinorWidget = nullptr;
 
+	mItemDefaultPropertiesWidget = nullptr;
 	mDefaultPenStyleCombo = nullptr;
 	mDefaultPenWidthEdit = nullptr;
 	mDefaultPenColorWidget = nullptr;
@@ -185,6 +209,192 @@ void DynamicPropertiesWidget::handleGeometryChange()
 void DynamicPropertiesWidget::handleStyleChange()
 {
 
+}
+
+//==================================================================================================
+
+void DynamicPropertiesWidget::createDiagramWidget()
+{
+	// todo: how to fill widgets with correct information for diagram
+
+
+	QGroupBox* groupBox;
+	QFormLayout* groupLayout;
+	QVBoxLayout* diagramPropertiesLayout = new QVBoxLayout();
+
+	// Create widgets
+	mDiagramTopLeftWidget = new PositionWidget();
+	connect(mDiagramTopLeftWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleDiagramChange()));
+
+	mDiagramRectSizeWidget = new SizeWidget();
+	connect(mDiagramRectSizeWidget, SIGNAL(sizeChanged(const QSizeF&)), this, SLOT(handleDiagramChange()));
+
+	mDiagramBackgroundColorWidget = new ColorWidget();
+	connect(mDiagramBackgroundColorWidget, SIGNAL(colorChanged(const QColor&)), this, SLOT(handleDiagramChange()));
+
+	mDiagramGridStyleCombo = new GridStyleCombo();
+	connect(mDiagramGridStyleCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(handleDiagramChange()));
+	// only enable mDiagramGridSpacingMinorWidget if mDiagramGridStyleCombo current index is "GraphPaper"
+
+	mDiagramGridColorWidget = new ColorWidget();
+	connect(mDiagramGridColorWidget, SIGNAL(colorChanged(const QColor&)), this, SLOT(handleDiagramChange()));
+
+	mDiagramGridSpacingMajorWidget = new QLineEdit();
+	mDiagramGridSpacingMajorWidget->setValidator(new QIntValidator(1, 1E6));
+	connect(mDiagramGridSpacingMajorWidget, SIGNAL(editingFinished()), this, SLOT(handleDiagramChange()));
+
+	mDiagramGridSpacingMinorWidget = new QLineEdit();
+	mDiagramGridSpacingMinorWidget->setValidator(new QIntValidator(1, 1E6));
+	connect(mDiagramGridSpacingMinorWidget, SIGNAL(editingFinished()), this, SLOT(handleDiagramChange()));
+
+	// Assemble layout
+	groupBox = new QGroupBox("Diagram");
+	groupLayout = new QFormLayout();
+	groupLayout->setRowWrapPolicy(QFormLayout::DontWrapRows);
+	groupLayout->setLabelAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+	groupLayout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+	groupLayout->addRow("Top Left:", mDiagramTopLeftWidget);
+	groupLayout->addRow("Size:", mDiagramRectSizeWidget);
+	groupLayout->addRow("Background Color:", mDiagramBackgroundColorWidget);
+	groupLayout->itemAt(0, QFormLayout::LabelRole)->widget()->setMinimumWidth(labelWidth());
+	groupBox->setLayout(groupLayout);
+	diagramPropertiesLayout->addWidget(groupBox);
+
+	groupBox = new QGroupBox("Grid");
+	groupLayout = new QFormLayout();
+	groupLayout->setRowWrapPolicy(QFormLayout::DontWrapRows);
+	groupLayout->setLabelAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+	groupLayout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+	groupLayout->addRow("Grid Style:", mDiagramGridStyleCombo);
+	groupLayout->addRow("Grid Color:", mDiagramGridColorWidget);
+	groupLayout->addRow("Major Spacing:", mDiagramGridSpacingMajorWidget);
+	groupLayout->addRow("Minor Spacing:", mDiagramGridSpacingMinorWidget);
+	groupLayout->itemAt(0, QFormLayout::LabelRole)->widget()->setMinimumWidth(labelWidth());
+	groupBox->setLayout(groupLayout);
+	diagramPropertiesLayout->addWidget(groupBox);
+
+	diagramPropertiesLayout->addWidget(new QWidget(), 100);
+
+	mDiagramPropertiesWidget = new QWidget();
+	mDiagramPropertiesWidget->setLayout(diagramPropertiesLayout);
+}
+
+void DynamicPropertiesWidget::createItemDefaultsWidget()
+{
+	QGroupBox* groupBox;
+	QFormLayout* groupLayout;
+	QVBoxLayout* itemDefaultPropertiesLayout = new QVBoxLayout();
+
+	// Pen / Brush widgets
+	mDefaultPenStyleCombo = new PenStyleCombo((Qt::PenStyle)DrawingItemStyle::defaultValue(DrawingItemStyle::PenStyle).toUInt());
+	connect(mDefaultPenStyleCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(handleItemDefaultChange()));
+
+	mDefaultPenWidthEdit = new SizeEdit(DrawingItemStyle::defaultValue(DrawingItemStyle::PenWidth).toDouble());
+	connect(mDefaultPenWidthEdit, SIGNAL(sizeChanged(qreal)), this, SLOT(handleItemDefaultChange()));
+
+	mDefaultPenColorWidget = new ColorWidget();
+	QColor color = DrawingItemStyle::defaultValue(DrawingItemStyle::PenColor).value<QColor>();
+	color.setAlphaF(DrawingItemStyle::defaultValue(DrawingItemStyle::PenOpacity).toDouble());
+	mDefaultPenColorWidget->setColor(color);
+	connect(mDefaultPenColorWidget, SIGNAL(colorChanged(const QColor&)), this, SLOT(handleItemDefaultChange()));
+
+	mDefaultBrushColorWidget = new ColorWidget();
+	color = DrawingItemStyle::defaultValue(DrawingItemStyle::BrushColor).value<QColor>();
+	color.setAlphaF(DrawingItemStyle::defaultValue(DrawingItemStyle::BrushOpacity).toDouble());
+	mDefaultBrushColorWidget->setColor(color);
+	connect(mDefaultBrushColorWidget, SIGNAL(colorChanged(const QColor&)), this, SLOT(handleItemDefaultChange()));
+
+	// Text widgets
+	mDefaultFontComboBox = new QFontComboBox();
+	mDefaultFontComboBox->setCurrentFont(QFont(DrawingItemStyle::defaultValue(DrawingItemStyle::FontName).toString()));
+	connect(mDefaultFontComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(handleItemDefaultChange()));
+
+	mDefaultFontSizeEdit = new SizeEdit(DrawingItemStyle::defaultValue(DrawingItemStyle::FontSize).toDouble());
+	connect(mDefaultFontSizeEdit, SIGNAL(sizeChanged(qreal)), this, SLOT(handleItemDefaultChange()));
+
+	mDefaultFontStyleWidget = new FontStyleWidget();
+	mDefaultFontStyleWidget->setBold(DrawingItemStyle::defaultValue(DrawingItemStyle::FontBold).toBool());
+	mDefaultFontStyleWidget->setItalic(DrawingItemStyle::defaultValue(DrawingItemStyle::FontItalic).toBool());
+	mDefaultFontStyleWidget->setUnderline(DrawingItemStyle::defaultValue(DrawingItemStyle::FontUnderline).toBool());
+	mDefaultFontStyleWidget->setStrikeThrough(DrawingItemStyle::defaultValue(DrawingItemStyle::FontStrikeThrough).toBool());
+	connect(mDefaultFontStyleWidget, SIGNAL(boldChanged(bool)), this, SLOT(handleItemDefaultChange()));
+	connect(mDefaultFontStyleWidget, SIGNAL(italicChanged(bool)), this, SLOT(handleItemDefaultChange()));
+	connect(mDefaultFontStyleWidget, SIGNAL(underlineChanged(bool)), this, SLOT(handleItemDefaultChange()));
+	connect(mDefaultFontStyleWidget, SIGNAL(strikeThroughChanged(bool)), this, SLOT(handleItemDefaultChange()));
+
+	mDefaultTextAlignmentWidget = new TextAlignmentWidget();
+	mDefaultTextAlignmentWidget->setAlignment(
+		(Qt::Alignment)DrawingItemStyle::defaultValue(DrawingItemStyle::TextHorizontalAlignment).toUInt(),
+		(Qt::Alignment)DrawingItemStyle::defaultValue(DrawingItemStyle::TextVerticalAlignment).toUInt());
+	connect(mDefaultTextAlignmentWidget, SIGNAL(horizontalAlignmentChanged(Qt::Alignment)), this, SLOT(handleItemDefaultChange()));
+	connect(mDefaultTextAlignmentWidget, SIGNAL(verticalAlignmentChanged(Qt::Alignment)), this, SLOT(handleItemDefaultChange()));
+
+	mDefaultTextColorWidget = new ColorWidget();
+	color = DrawingItemStyle::defaultValue(DrawingItemStyle::TextColor).value<QColor>();
+	color.setAlphaF(DrawingItemStyle::defaultValue(DrawingItemStyle::TextOpacity).toDouble());
+	mDefaultTextColorWidget->setColor(color);
+	connect(mDefaultTextColorWidget, SIGNAL(colorChanged(const QColor&)), this, SLOT(handleItemDefaultChange()));
+
+	// Arrow widgets
+	mDefaultStartArrowCombo = new ArrowStyleCombo(
+		(DrawingItemStyle::ArrowStyle)DrawingItemStyle::defaultValue(DrawingItemStyle::StartArrowStyle).toUInt());
+	connect(mDefaultStartArrowCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(handleItemDefaultChange()));
+
+	mDefaultStartArrowSizeEdit = new SizeEdit(DrawingItemStyle::defaultValue(DrawingItemStyle::StartArrowSize).toDouble());
+	connect(mDefaultStartArrowSizeEdit, SIGNAL(sizeChanged(qreal)), this, SLOT(handleItemDefaultChange()));
+
+	mDefaultEndArrowCombo = new ArrowStyleCombo(
+		(DrawingItemStyle::ArrowStyle)DrawingItemStyle::defaultValue(DrawingItemStyle::EndArrowStyle).toUInt());
+	connect(mDefaultEndArrowCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(handleItemDefaultChange()));
+
+	mDefaultEndArrowSizeEdit = new SizeEdit(DrawingItemStyle::defaultValue(DrawingItemStyle::EndArrowSize).toDouble());
+	connect(mDefaultEndArrowSizeEdit, SIGNAL(sizeChanged(qreal)), this, SLOT(handleItemDefaultChange()));
+
+	// Assemble layout
+	groupBox = new QGroupBox("Pen / Brush Defaults");
+	groupLayout = new QFormLayout();
+	groupLayout->setRowWrapPolicy(QFormLayout::DontWrapRows);
+	groupLayout->setLabelAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+	groupLayout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+	groupLayout->addRow("Pen Style:", mDefaultPenStyleCombo);
+	groupLayout->addRow("Pen Width:", mDefaultPenWidthEdit);
+	groupLayout->addRow("Pen Color:", mDefaultPenColorWidget);
+	groupLayout->addRow("Brush Color:", mDefaultBrushColorWidget);
+	groupLayout->itemAt(0, QFormLayout::LabelRole)->widget()->setMinimumWidth(labelWidth());
+	groupBox->setLayout(groupLayout);
+	itemDefaultPropertiesLayout->addWidget(groupBox);
+
+	groupBox = new QGroupBox("Text Defaults");
+	groupLayout = new QFormLayout();
+	groupLayout->setRowWrapPolicy(QFormLayout::DontWrapRows);
+	groupLayout->setLabelAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+	groupLayout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+	groupLayout->addRow("Font:", mDefaultFontComboBox);
+	groupLayout->addRow("Font Size:", mDefaultFontSizeEdit);
+	groupLayout->addRow("Font Style:", mDefaultFontStyleWidget);
+	groupLayout->addRow("Alignment:", mDefaultTextAlignmentWidget);
+	groupLayout->addRow("Text Color:", mDefaultTextColorWidget);
+	groupLayout->itemAt(0, QFormLayout::LabelRole)->widget()->setMinimumWidth(labelWidth());
+	groupBox->setLayout(groupLayout);
+	itemDefaultPropertiesLayout->addWidget(groupBox);
+
+	groupBox = new QGroupBox("Arrow Defaults");
+	groupLayout = new QFormLayout();
+	groupLayout->setRowWrapPolicy(QFormLayout::DontWrapRows);
+	groupLayout->setLabelAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+	groupLayout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+	groupLayout->addRow("Start Arrow:", mDefaultStartArrowCombo);
+	groupLayout->addRow("Arrow Size:", mDefaultStartArrowSizeEdit);
+	groupLayout->addRow("End Arrow:", mDefaultEndArrowCombo);
+	groupLayout->addRow("Arrow Size:", mDefaultEndArrowSizeEdit);
+	groupLayout->itemAt(0, QFormLayout::LabelRole)->widget()->setMinimumWidth(labelWidth());
+	groupBox->setLayout(groupLayout);
+	itemDefaultPropertiesLayout->addWidget(groupBox);
+
+	itemDefaultPropertiesLayout->addWidget(new QWidget(), 100);
+
+	mItemDefaultPropertiesWidget = new QWidget();
+	mItemDefaultPropertiesWidget->setLayout(itemDefaultPropertiesLayout);
 }
 
 //==================================================================================================

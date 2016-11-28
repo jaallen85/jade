@@ -21,9 +21,8 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <Drawing.h>
+#include <DiagramWidget.h>
 
-class DiagramWidget;
 class DynamicPropertiesWidget;
 
 class MainWindow : public QMainWindow
@@ -44,6 +43,7 @@ public:
 
 private:
 	DiagramWidget* mDiagramWidget;
+	QHash<DiagramWidget::Property,QVariant> mDiagramDefaultProperties;
 
 	QComboBox* mZoomCombo;
 
@@ -61,8 +61,12 @@ public:
 	MainWindow();
 	~MainWindow();
 
-	void setWidget(DiagramWidget* widget);
-	void clearWidget();
+	//void setWidget(DiagramWidget* widget);
+	//void clearWidget();
+
+	void fillDefaultPropertyValues();
+	void loadSettings();
+	void saveSettings();
 
 private slots:
 	void setModeFromAction(QAction* action);
