@@ -86,6 +86,7 @@ protected:
 	PositionWidget* mRectBottomRightWidget;
 	SizeWidget* mCornerRadiusWidget;
 
+	QStackedWidget* mPointPositionStackedWidget;
 	QList<PositionWidget*> mPointPositionWidgets;
 
 	PenStyleCombo* mPenStyleCombo;
@@ -147,6 +148,8 @@ private:
 	void createStyleWidgets();
 	QWidget* createItemsWidget();
 	void addWidget(QFormLayout*& formLayout, const QString& label, QWidget* widget);
+
+	void fillPointsWidgets();
 };
 
 #endif

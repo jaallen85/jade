@@ -656,10 +656,10 @@ FontStyleWidget::FontStyleWidget() : QWidget()
 	styleLayout->setContentsMargins(0, 0, 0, 0);
 	setLayout(styleLayout);
 
-	connect(mBoldButton, SIGNAL(toggled(bool)), this, SIGNAL(boldChanged(bool)));
-	connect(mItalicButton, SIGNAL(toggled(bool)), this, SIGNAL(italicChanged(bool)));
-	connect(mUnderlineButton, SIGNAL(toggled(bool)), this, SIGNAL(underlineChanged(bool)));
-	connect(mStrikeThroughButton, SIGNAL(toggled(bool)), this, SIGNAL(strikeThroughChanged(bool)));
+	connect(mBoldButton, SIGNAL(clicked(bool)), this, SIGNAL(boldChanged(bool)));
+	connect(mItalicButton, SIGNAL(clicked(bool)), this, SIGNAL(italicChanged(bool)));
+	connect(mUnderlineButton, SIGNAL(clicked(bool)), this, SIGNAL(underlineChanged(bool)));
+	connect(mStrikeThroughButton, SIGNAL(clicked(bool)), this, SIGNAL(strikeThroughChanged(bool)));
 }
 
 FontStyleWidget::~FontStyleWidget() { }
@@ -779,13 +779,13 @@ TextAlignmentWidget::TextAlignmentWidget() : QWidget()
 	textAlignmentLayout->setContentsMargins(0, 0, 0, 0);
 	setLayout(textAlignmentLayout);
 
-	connect(mLeftAlignButton, SIGNAL(toggled(bool)), this, SLOT(handleHorizontalAlignmentChange()));
-	connect(mHCenterAlignButton, SIGNAL(toggled(bool)), this, SLOT(handleHorizontalAlignmentChange()));
-	connect(mRightAlignButton, SIGNAL(toggled(bool)), this, SLOT(handleHorizontalAlignmentChange()));
+	connect(mLeftAlignButton, SIGNAL(clicked(bool)), this, SLOT(handleHorizontalAlignmentChange()));
+	connect(mHCenterAlignButton, SIGNAL(clicked(bool)), this, SLOT(handleHorizontalAlignmentChange()));
+	connect(mRightAlignButton, SIGNAL(clicked(bool)), this, SLOT(handleHorizontalAlignmentChange()));
 
-	connect(mTopAlignButton, SIGNAL(toggled(bool)), this, SLOT(handleVerticalAlignmentChange()));
-	connect(mVCenterAlignButton, SIGNAL(toggled(bool)), this, SLOT(handleVerticalAlignmentChange()));
-	connect(mBottomAlignButton, SIGNAL(toggled(bool)), this, SLOT(handleVerticalAlignmentChange()));
+	connect(mTopAlignButton, SIGNAL(clicked(bool)), this, SLOT(handleVerticalAlignmentChange()));
+	connect(mVCenterAlignButton, SIGNAL(clicked(bool)), this, SLOT(handleVerticalAlignmentChange()));
+	connect(mBottomAlignButton, SIGNAL(clicked(bool)), this, SLOT(handleVerticalAlignmentChange()));
 }
 
 TextAlignmentWidget::~TextAlignmentWidget() { }

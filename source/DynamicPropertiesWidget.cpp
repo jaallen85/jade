@@ -114,6 +114,7 @@ void DynamicPropertiesWidget::clear()
 	mRectTopLeftWidget = nullptr;
 	mRectBottomRightWidget = nullptr;
 	mCornerRadiusWidget = nullptr;
+	mPointPositionStackedWidget = nullptr;
 	mPointPositionWidgets.clear();
 	mPenStyleCombo = nullptr;
 	mPenWidthEdit = nullptr;
@@ -152,19 +153,23 @@ void DynamicPropertiesWidget::setItemGeometry(const QList<DrawingItem*>& items)
 		if (mCurveStartPositionWidget && itemPoints.size() >= 4)
 			mCurveStartPositionWidget->setPos(item->mapToScene(itemPoints[0]->pos()));
 		if (mCurveEndPositionWidget && itemPoints.size() >= 4)
-			mCurveEndPositionWidget->setPos(item->mapToScene(itemPoints[1]->pos()));
+			mCurveEndPositionWidget->setPos(item->mapToScene(itemPoints[3]->pos()));
 		if (mCurveStartControlPositionWidget && itemPoints.size() >= 4)
-			mCurveStartControlPositionWidget->setPos(item->mapToScene(itemPoints[2]->pos()));
+			mCurveStartControlPositionWidget->setPos(item->mapToScene(itemPoints[1]->pos()));
 		if (mCurveEndControlPositionWidget && itemPoints.size() >= 4)
-			mCurveEndControlPositionWidget->setPos(item->mapToScene(itemPoints[3]->pos()));
+			mCurveEndControlPositionWidget->setPos(item->mapToScene(itemPoints[2]->pos()));
 
 		if (mRectTopLeftWidget && itemPoints.size() >= 8)
 			mRectTopLeftWidget->setPos(item->mapToScene(itemPoints[0]->pos()));
 		if (mRectBottomRightWidget && itemPoints.size() >= 8)
 			mRectBottomRightWidget->setPos(item->mapToScene(itemPoints[4]->pos()));
 
-		for(int i = 0; i < itemPoints.size() && i < mPointPositionWidgets.size(); i++)
-			mPointPositionWidgets[i]->setPos(item->mapToScene(itemPoints[i]->pos()));
+		if (mPointPositionStackedWidget)
+		{
+			if (itemPoints.size() != mPointPositionWidgets.size()) fillPointsWidgets();
+			for(int i = 0; i < itemPoints.size() && i < mPointPositionWidgets.size(); i++)
+				mPointPositionWidgets[i]->setPos(item->mapToScene(itemPoints[i]->pos()));
+		}
 	}
 }
 
@@ -180,10 +185,19 @@ void DynamicPropertiesWidget::setItemCaption(DrawingItem* item)
 		// Caption widget
 		if ((textItem || textRectItem || textEllipseItem || textPolygonItem) && mCaptionEdit)
 		{
-			if (textRectItem) mCaptionEdit->setPlainText(textRectItem->caption());
-			else if (textEllipseItem) mCaptionEdit->setPlainText(textEllipseItem->caption());
-			else if (textPolygonItem) mCaptionEdit->setPlainText(textPolygonItem->caption());
-			else mCaptionEdit->setPlainText(textItem->caption());
+			QString caption;
+
+			if (textRectItem) caption = textRectItem->caption();
+			else if (textEllipseItem) caption = textEllipseItem->caption();
+			else if (textPolygonItem) caption = textPolygonItem->caption();
+			else caption = textItem->caption();
+
+			if (mCaptionEdit->toPlainText() != caption)
+			{
+				disconnect(mCaptionEdit, SIGNAL(textChanged()), this, SLOT(handleItemGeometryChange()));
+				mCaptionEdit->setPlainText(caption);
+				connect(mCaptionEdit, SIGNAL(textChanged()), this, SLOT(handleItemGeometryChange()));
+			}
 		}
 	}
 }
@@ -207,7 +221,162 @@ void DynamicPropertiesWidget::setItemCornerRadius(DrawingItem* item)
 
 void DynamicPropertiesWidget::setItemsStyleProperties(const QList<DrawingItem*>& items)
 {
-	setSelectedItems(items);
+	QVector<bool> allItemsHaveProperty(DrawingItemStyle::NumberOfProperties, true);
+	QVector<bool> propertiesMatch(DrawingItemStyle::NumberOfProperties, true);
+	QVector<QVariant> propertyValue(DrawingItemStyle::NumberOfProperties, QVariant());
+
+	// Check for style properties within selected items
+	for(int i = 0; i < DrawingItemStyle::NumberOfProperties; i++)
+	{
+		for(auto itemIter = items.begin(); allItemsHaveProperty[i] && itemIter != items.end(); itemIter++)
+		{
+			allItemsHaveProperty[i] = (*itemIter)->style()->hasValue((DrawingItemStyle::Property)i);
+			if (allItemsHaveProperty[i])
+			{
+				if (propertyValue[i].isValid())
+				{
+					propertiesMatch[i] = (propertiesMatch[i] &&
+						propertyValue[i] == (*itemIter)->style()->value((DrawingItemStyle::Property)i));
+				}
+				else propertyValue[i] = (*itemIter)->style()->value((DrawingItemStyle::Property)i);
+			}
+		}
+	}
+
+	// Pen / Brush widgets
+	if (allItemsHaveProperty[DrawingItemStyle::PenStyle] && mPenStyleCombo)
+	{
+		mPenStyleCombo->setStyle((Qt::PenStyle)propertyValue[DrawingItemStyle::PenStyle].toUInt());
+		mPenStyleCombo->setEnabled(propertiesMatch[DrawingItemStyle::PenStyle]);
+		if (mItemStyleLabels.contains(mPenStyleCombo)) mItemStyleLabels.value(mPenStyleCombo)->setChecked(mPenStyleCombo->isEnabled());
+	}
+
+	if (allItemsHaveProperty[DrawingItemStyle::PenWidth] && mPenWidthEdit)
+	{
+		mPenWidthEdit->setSize(propertyValue[DrawingItemStyle::PenWidth].toDouble());
+		mPenWidthEdit->setEnabled(propertiesMatch[DrawingItemStyle::PenWidth]);
+		if (mItemStyleLabels.contains(mPenWidthEdit)) mItemStyleLabels.value(mPenWidthEdit)->setChecked(mPenWidthEdit->isEnabled());
+	}
+
+	if (allItemsHaveProperty[DrawingItemStyle::PenColor] && mPenColorWidget)
+	{
+		mPenColorWidget->setColor(propertyValue[DrawingItemStyle::PenColor].value<QColor>());
+		mPenColorWidget->setEnabled(propertiesMatch[DrawingItemStyle::PenColor]);
+
+		if (allItemsHaveProperty[DrawingItemStyle::PenOpacity])
+		{
+			QColor color = mPenColorWidget->color();
+			color.setAlphaF(propertyValue[DrawingItemStyle::PenOpacity].toDouble());
+			mPenColorWidget->setColor(color);
+			mPenColorWidget->setEnabled(propertiesMatch[DrawingItemStyle::PenColor] &&
+				propertiesMatch[DrawingItemStyle::PenOpacity]);
+		}
+
+		if (mItemStyleLabels.contains(mPenColorWidget)) mItemStyleLabels.value(mPenColorWidget)->setChecked(mPenColorWidget->isEnabled());
+	}
+
+	if (allItemsHaveProperty[DrawingItemStyle::BrushColor] && mBrushColorWidget)
+	{
+		mBrushColorWidget->setColor(propertyValue[DrawingItemStyle::BrushColor].value<QColor>());
+		mBrushColorWidget->setEnabled(propertiesMatch[DrawingItemStyle::BrushColor]);
+
+		if (allItemsHaveProperty[DrawingItemStyle::BrushOpacity])
+		{
+			QColor color = mBrushColorWidget->color();
+			color.setAlphaF(propertyValue[DrawingItemStyle::BrushOpacity].toDouble());
+			mBrushColorWidget->setColor(color);
+			mBrushColorWidget->setEnabled(propertiesMatch[DrawingItemStyle::BrushColor] &&
+				propertiesMatch[DrawingItemStyle::BrushOpacity]);
+		}
+
+		if (mItemStyleLabels.contains(mBrushColorWidget)) mItemStyleLabels.value(mBrushColorWidget)->setChecked(mBrushColorWidget->isEnabled());
+	}
+
+	// Text widgets
+	if (allItemsHaveProperty[DrawingItemStyle::FontName] && mFontComboBox)
+	{
+		mFontComboBox->setCurrentFont(QFont(propertyValue[DrawingItemStyle::FontName].toString()));
+		mFontComboBox->setEnabled(propertiesMatch[DrawingItemStyle::FontName]);
+		if (mItemStyleLabels.contains(mFontComboBox)) mItemStyleLabels.value(mFontComboBox)->setChecked(mFontComboBox->isEnabled());
+	}
+
+	if (allItemsHaveProperty[DrawingItemStyle::FontSize] && mFontSizeEdit)
+	{
+		mFontSizeEdit->setSize(propertyValue[DrawingItemStyle::FontSize].toDouble());
+		mFontSizeEdit->setEnabled(propertiesMatch[DrawingItemStyle::FontSize]);
+		if (mItemStyleLabels.contains(mFontSizeEdit)) mItemStyleLabels.value(mFontSizeEdit)->setChecked(mFontSizeEdit->isEnabled());
+	}
+
+	if (allItemsHaveProperty[DrawingItemStyle::FontBold] && allItemsHaveProperty[DrawingItemStyle::FontItalic] &&
+		allItemsHaveProperty[DrawingItemStyle::FontUnderline] && allItemsHaveProperty[DrawingItemStyle::FontStrikeThrough] && mFontStyleWidget)
+	{
+		mFontStyleWidget->setBold(propertyValue[DrawingItemStyle::FontBold].toBool());
+		mFontStyleWidget->setItalic(propertyValue[DrawingItemStyle::FontItalic].toBool());
+		mFontStyleWidget->setUnderline(propertyValue[DrawingItemStyle::FontUnderline].toBool());
+		mFontStyleWidget->setStrikeThrough(propertyValue[DrawingItemStyle::FontStrikeThrough].toBool());
+		mFontStyleWidget->setEnabled(propertiesMatch[DrawingItemStyle::FontBold] &&
+			propertiesMatch[DrawingItemStyle::FontItalic] &&
+			propertiesMatch[DrawingItemStyle::FontUnderline] &&
+			propertiesMatch[DrawingItemStyle::FontStrikeThrough]);
+		if (mItemStyleLabels.contains(mFontStyleWidget)) mItemStyleLabels.value(mFontStyleWidget)->setChecked(mFontStyleWidget->isEnabled());
+	}
+
+	if (allItemsHaveProperty[DrawingItemStyle::TextHorizontalAlignment] &&
+		allItemsHaveProperty[DrawingItemStyle::TextVerticalAlignment] && mTextAlignmentWidget)
+	{
+		mTextAlignmentWidget->setAlignment(
+			(Qt::Alignment)propertyValue[DrawingItemStyle::TextHorizontalAlignment].toUInt(),
+			(Qt::Alignment)propertyValue[DrawingItemStyle::TextVerticalAlignment].toUInt());
+		mTextAlignmentWidget->setEnabled(propertiesMatch[DrawingItemStyle::TextHorizontalAlignment] &&
+			propertiesMatch[DrawingItemStyle::TextVerticalAlignment]);
+		if (mItemStyleLabels.contains(mTextAlignmentWidget)) mItemStyleLabels.value(mTextAlignmentWidget)->setChecked(mTextAlignmentWidget->isEnabled());
+	}
+
+	if (allItemsHaveProperty[DrawingItemStyle::TextColor] && mTextColorWidget)
+	{
+		mTextColorWidget->setColor(propertyValue[DrawingItemStyle::TextColor].value<QColor>());
+		mTextColorWidget->setEnabled(propertiesMatch[DrawingItemStyle::TextColor]);
+
+		if (allItemsHaveProperty[DrawingItemStyle::TextOpacity])
+		{
+			QColor color = mTextColorWidget->color();
+			color.setAlphaF(propertyValue[DrawingItemStyle::TextOpacity].toDouble());
+			mTextColorWidget->setColor(color);
+			mTextColorWidget->setEnabled(propertiesMatch[DrawingItemStyle::TextColor] &&
+				propertiesMatch[DrawingItemStyle::TextOpacity]);
+		}
+
+		if (mItemStyleLabels.contains(mTextColorWidget)) mItemStyleLabels.value(mTextColorWidget)->setChecked(mTextColorWidget->isEnabled());
+	}
+
+	// Arrow widgets
+	if (allItemsHaveProperty[DrawingItemStyle::StartArrowStyle] && mStartArrowCombo)
+	{
+		mStartArrowCombo->setStyle((DrawingItemStyle::ArrowStyle)propertyValue[DrawingItemStyle::StartArrowStyle].toUInt());
+		mStartArrowCombo->setEnabled(propertiesMatch[DrawingItemStyle::StartArrowStyle]);
+		if (mItemStyleLabels.contains(mStartArrowCombo)) mItemStyleLabels.value(mStartArrowCombo)->setChecked(mStartArrowCombo->isEnabled());
+	}
+
+	if (allItemsHaveProperty[DrawingItemStyle::StartArrowSize] && mStartArrowSizeEdit)
+	{
+		mStartArrowSizeEdit->setSize(propertyValue[DrawingItemStyle::StartArrowSize].toDouble());
+		mStartArrowSizeEdit->setEnabled(propertiesMatch[DrawingItemStyle::StartArrowSize]);
+		if (mItemStyleLabels.contains(mStartArrowSizeEdit)) mItemStyleLabels.value(mStartArrowSizeEdit)->setChecked(mStartArrowSizeEdit->isEnabled());
+	}
+
+	if (allItemsHaveProperty[DrawingItemStyle::EndArrowStyle] && mEndArrowCombo)
+	{
+		mEndArrowCombo->setStyle((DrawingItemStyle::ArrowStyle)propertyValue[DrawingItemStyle::EndArrowStyle].toUInt());
+		mEndArrowCombo->setEnabled(propertiesMatch[DrawingItemStyle::EndArrowStyle]);
+		if (mItemStyleLabels.contains(mEndArrowCombo)) mItemStyleLabels.value(mEndArrowCombo)->setChecked(mEndArrowCombo->isEnabled());
+	}
+
+	if (allItemsHaveProperty[DrawingItemStyle::EndArrowSize] && mEndArrowSizeEdit)
+	{
+		mEndArrowSizeEdit->setSize(propertyValue[DrawingItemStyle::EndArrowSize].toDouble());
+		mEndArrowSizeEdit->setEnabled(propertiesMatch[DrawingItemStyle::EndArrowSize]);
+		if (mItemStyleLabels.contains(mEndArrowSizeEdit)) mItemStyleLabels.value(mEndArrowSizeEdit)->setChecked(mEndArrowSizeEdit->isEnabled());
+	}
 }
 
 void DynamicPropertiesWidget::setDiagramProperties(const QHash<DiagramWidget::Property,QVariant>& properties)
@@ -246,6 +415,10 @@ void DynamicPropertiesWidget::handleItemGeometryChange()
 
 	if (mPositionWidget && sender == mPositionWidget)
 		emit selectedItemMoved(mPositionWidget->pos());
+	else if (mCornerRadiusWidget && sender == mCornerRadiusWidget)
+		emit selectedItemCornerRadiusChanged(mCornerRadiusWidget->size().width(), mCornerRadiusWidget->size().height());
+	else if (mCaptionEdit && sender == mCaptionEdit)
+		emit selectedItemCaptionChanged(mCaptionEdit->toPlainText());
 	else if (mItem)
 	{
 		QList<DrawingItemPoint*> itemPoints = mItem->points();
@@ -257,11 +430,11 @@ void DynamicPropertiesWidget::handleItemGeometryChange()
 		else if (mCurveStartPositionWidget && sender == mCurveStartPositionWidget && itemPoints.size() >= 4)
 			emit selectedItemResized(itemPoints[0], mCurveStartPositionWidget->pos());
 		else if (mCurveStartControlPositionWidget && sender == mCurveStartControlPositionWidget && itemPoints.size() >= 4)
-			emit selectedItemResized(itemPoints[2], mCurveStartControlPositionWidget->pos());
+			emit selectedItemResized(itemPoints[1], mCurveStartControlPositionWidget->pos());
 		else if (mCurveEndPositionWidget && sender == mCurveEndPositionWidget && itemPoints.size() >= 4)
-			emit selectedItemResized(itemPoints[1], mCurveEndPositionWidget->pos());
+			emit selectedItemResized(itemPoints[3], mCurveEndPositionWidget->pos());
 		else if (mCurveEndControlPositionWidget && sender == mCurveEndControlPositionWidget && itemPoints.size() >= 4)
-			emit selectedItemResized(itemPoints[3], mCurveEndControlPositionWidget->pos());
+			emit selectedItemResized(itemPoints[2], mCurveEndControlPositionWidget->pos());
 		else if (mRectTopLeftWidget && sender == mRectTopLeftWidget && itemPoints.size() >= 8)
 			emit selectedItemResized(itemPoints[0], mRectTopLeftWidget->pos());
 		else if (mRectBottomRightWidget && sender == mRectBottomRightWidget && itemPoints.size() >= 8)
@@ -275,10 +448,6 @@ void DynamicPropertiesWidget::handleItemGeometryChange()
 			}
 		}
 	}
-	else if (mCornerRadiusWidget && sender == mCornerRadiusWidget)
-		emit selectedItemCornerRadiusChanged(mCornerRadiusWidget->size().width(), mCornerRadiusWidget->size().height());
-	else if (mCaptionEdit && sender == mCaptionEdit)
-		emit selectedItemCaptionChanged(mCaptionEdit->toPlainText());
 }
 
 void DynamicPropertiesWidget::handleItemsStyleChange()
@@ -286,51 +455,51 @@ void DynamicPropertiesWidget::handleItemsStyleChange()
 	QHash<DrawingItemStyle::Property,QVariant> newProperties;
 	QObject* sender = DynamicPropertiesWidget::sender();
 
-	if ((mPenStyleCombo && sender == mPenStyleCombo) || (mItemStyleLabels.contains(mPenStyleCombo) && sender == mItemStyleLabels[mPenStyleCombo]))
+	if (mPenStyleCombo && (sender == mPenStyleCombo || (mItemStyleLabels.contains(mPenStyleCombo) && sender == mItemStyleLabels[mPenStyleCombo] && mItemStyleLabels[mPenStyleCombo]->isChecked())))
 		newProperties[DrawingItemStyle::PenStyle] = (uint)mPenStyleCombo->style();
-	else if ((mPenWidthEdit && sender == mPenWidthEdit) || (mItemStyleLabels.contains(mPenWidthEdit) && sender == mItemStyleLabels[mPenWidthEdit]))
+	else if (mPenWidthEdit && (sender == mPenWidthEdit || (mItemStyleLabels.contains(mPenWidthEdit) && sender == mItemStyleLabels[mPenWidthEdit] && mItemStyleLabels[mPenWidthEdit]->isChecked())))
 		newProperties[DrawingItemStyle::PenWidth] = mPenWidthEdit->size();
-	else if ((mPenColorWidget && sender == mPenColorWidget) || (mItemStyleLabels.contains(mPenColorWidget) && sender == mItemStyleLabels[mPenColorWidget]))
+	else if (mPenColorWidget && (sender == mPenColorWidget || (mItemStyleLabels.contains(mPenColorWidget) && sender == mItemStyleLabels[mPenColorWidget] && mItemStyleLabels[mPenColorWidget]->isChecked())))
 	{
 		QColor color = mPenColorWidget->color();
 		newProperties[DrawingItemStyle::PenColor] = color;
 		newProperties[DrawingItemStyle::PenOpacity] = color.alphaF();
 	}
-	else if ((mBrushColorWidget && sender == mBrushColorWidget) || (mItemStyleLabels.contains(mBrushColorWidget) && sender == mItemStyleLabels[mBrushColorWidget]))
+	else if (mBrushColorWidget && (sender == mBrushColorWidget || (mItemStyleLabels.contains(mBrushColorWidget) && sender == mItemStyleLabels[mBrushColorWidget] && mItemStyleLabels[mBrushColorWidget]->isChecked())))
 	{
 		QColor color = mBrushColorWidget->color();
 		newProperties[DrawingItemStyle::BrushColor] = color;
 		newProperties[DrawingItemStyle::BrushOpacity] = color.alphaF();
 	}
-	else if ((mFontComboBox && sender == mFontComboBox) || (mItemStyleLabels.contains(mFontComboBox) && sender == mItemStyleLabels[mFontComboBox]))
+	else if (mFontComboBox && (sender == mFontComboBox || (mItemStyleLabels.contains(mFontComboBox) && sender == mItemStyleLabels[mFontComboBox] && mItemStyleLabels[mFontComboBox]->isChecked())))
 		newProperties[DrawingItemStyle::FontName] = mFontComboBox->currentFont().family();
-	else if ((mFontSizeEdit && sender == mFontSizeEdit) || (mItemStyleLabels.contains(mFontSizeEdit) && sender == mItemStyleLabels[mFontSizeEdit]))
+	else if (mFontSizeEdit && (sender == mFontSizeEdit || (mItemStyleLabels.contains(mFontSizeEdit) && sender == mItemStyleLabels[mFontSizeEdit] && mItemStyleLabels[mFontSizeEdit]->isChecked())))
 		newProperties[DrawingItemStyle::FontSize] = mFontSizeEdit->size();
-	else if ((mFontStyleWidget && sender == mFontStyleWidget) || (mItemStyleLabels.contains(mFontStyleWidget) && sender == mItemStyleLabels[mFontStyleWidget]))
+	else if (mFontStyleWidget && (sender == mFontStyleWidget || (mItemStyleLabels.contains(mFontStyleWidget) && sender == mItemStyleLabels[mFontStyleWidget] && mItemStyleLabels[mFontStyleWidget]->isChecked())))
 	{
 		newProperties[DrawingItemStyle::FontBold] = mFontStyleWidget->isBold();
 		newProperties[DrawingItemStyle::FontItalic] = mFontStyleWidget->isItalic();
 		newProperties[DrawingItemStyle::FontUnderline] = mFontStyleWidget->isUnderline();
 		newProperties[DrawingItemStyle::FontStrikeThrough] = mFontStyleWidget->isStrikeThrough();
 	}
-	else if ((mTextAlignmentWidget && sender == mTextAlignmentWidget) || (mItemStyleLabels.contains(mTextAlignmentWidget) && sender == mItemStyleLabels[mTextAlignmentWidget]))
+	else if (mTextAlignmentWidget && (sender == mTextAlignmentWidget || (mItemStyleLabels.contains(mTextAlignmentWidget) && sender == mItemStyleLabels[mTextAlignmentWidget] && mItemStyleLabels[mTextAlignmentWidget]->isChecked())))
 	{
 		newProperties[DrawingItemStyle::TextHorizontalAlignment] = (uint)mTextAlignmentWidget->horizontalAlignment();
 		newProperties[DrawingItemStyle::TextVerticalAlignment] = (uint)mTextAlignmentWidget->verticalAlignment();
 	}
-	else if ((mTextColorWidget && sender == mTextColorWidget) || (mItemStyleLabels.contains(mTextColorWidget) && sender == mItemStyleLabels[mTextColorWidget]))
+	else if (mTextColorWidget && (sender == mTextColorWidget || (mItemStyleLabels.contains(mTextColorWidget) && sender == mItemStyleLabels[mTextColorWidget] && mItemStyleLabels[mTextColorWidget]->isChecked())))
 	{
 		QColor color = mTextColorWidget->color();
 		newProperties[DrawingItemStyle::TextColor] = color;
 		newProperties[DrawingItemStyle::TextOpacity] = color.alphaF();
 	}
-	else if ((mStartArrowCombo && sender == mStartArrowCombo) || (mItemStyleLabels.contains(mStartArrowCombo) && sender == mItemStyleLabels[mStartArrowCombo]))
+	else if (mStartArrowCombo && (sender == mStartArrowCombo || (mItemStyleLabels.contains(mStartArrowCombo) && sender == mItemStyleLabels[mStartArrowCombo] && mItemStyleLabels[mStartArrowCombo]->isChecked())))
 		newProperties[DrawingItemStyle::StartArrowStyle] = (uint)mStartArrowCombo->style();
-	else if ((mStartArrowSizeEdit && sender == mStartArrowSizeEdit) || (mItemStyleLabels.contains(mStartArrowSizeEdit) && sender == mItemStyleLabels[mStartArrowSizeEdit]))
+	else if (mStartArrowSizeEdit && (sender == mStartArrowSizeEdit || (mItemStyleLabels.contains(mStartArrowSizeEdit) && sender == mItemStyleLabels[mStartArrowSizeEdit] && mItemStyleLabels[mStartArrowSizeEdit]->isChecked())))
 		newProperties[DrawingItemStyle::StartArrowSize] = mStartArrowSizeEdit->size();
-	else if ((mEndArrowCombo && sender == mEndArrowCombo) || (mItemStyleLabels.contains(mEndArrowCombo) && sender == mItemStyleLabels[mEndArrowCombo]))
+	else if (mEndArrowCombo && (sender == mEndArrowCombo || (mItemStyleLabels.contains(mEndArrowCombo) && sender == mItemStyleLabels[mEndArrowCombo] && mItemStyleLabels[mEndArrowCombo]->isChecked())))
 		newProperties[DrawingItemStyle::EndArrowStyle] = (uint)mEndArrowCombo->style();
-	else if ((mEndArrowSizeEdit && sender == mEndArrowSizeEdit) || (mItemStyleLabels.contains(mEndArrowSizeEdit) && sender == mItemStyleLabels[mEndArrowSizeEdit]))
+	else if (mEndArrowSizeEdit && (sender == mEndArrowSizeEdit || (mItemStyleLabels.contains(mEndArrowSizeEdit) && sender == mItemStyleLabels[mEndArrowSizeEdit] && mItemStyleLabels[mEndArrowSizeEdit]->isChecked())))
 		newProperties[DrawingItemStyle::EndArrowSize] = mEndArrowSizeEdit->size();
 
 	if (!newProperties.isEmpty()) emit selectedItemsStyleChanged(newProperties);
@@ -641,13 +810,13 @@ void DynamicPropertiesWidget::createGeometryWidgets()
 		mCurveStartPositionWidget = new PositionWidget(mItem->mapToScene(mItem->points()[0]->pos()));
 		connect(mCurveStartPositionWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleItemGeometryChange()));
 
-		mCurveEndPositionWidget = new PositionWidget(mItem->mapToScene(mItem->points()[1]->pos()));
+		mCurveEndPositionWidget = new PositionWidget(mItem->mapToScene(mItem->points()[3]->pos()));
 		connect(mCurveEndPositionWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleItemGeometryChange()));
 
-		mCurveStartControlPositionWidget = new PositionWidget(mItem->mapToScene(mItem->points()[2]->pos()));
+		mCurveStartControlPositionWidget = new PositionWidget(mItem->mapToScene(mItem->points()[1]->pos()));
 		connect(mCurveStartControlPositionWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleItemGeometryChange()));
 
-		mCurveEndControlPositionWidget = new PositionWidget(mItem->mapToScene(mItem->points()[3]->pos()));
+		mCurveEndControlPositionWidget = new PositionWidget(mItem->mapToScene(mItem->points()[2]->pos()));
 		connect(mCurveEndControlPositionWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleItemGeometryChange()));
 	}
 
@@ -674,13 +843,8 @@ void DynamicPropertiesWidget::createGeometryWidgets()
 	// Poly widgets
 	if (polygonItem || polylineItem || textPolygonItem)
 	{
-		QList<DrawingItemPoint*> points = mItem->points();
-		for(int i = 0; i < points.size(); i++)
-		{
-			PositionWidget* posWidget = new PositionWidget(mItem->mapToScene(points[i]->pos()));
-			connect(posWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleItemGeometryChange()));
-			mPointPositionWidgets.append(posWidget);
-		}
+		mPointPositionStackedWidget = new QStackedWidget();
+		fillPointsWidgets();
 	}
 
 	// Caption widget
@@ -919,24 +1083,16 @@ QWidget* DynamicPropertiesWidget::createItemsWidget()
 		mainLayout->addWidget(groupBox);
 	}
 
-	if (!mPointPositionWidgets.isEmpty())
+	if (mPointPositionStackedWidget)
 	{
 		DrawingPolylineItem* polylineItem = dynamic_cast<DrawingPolylineItem*>(mItem);
 
 		if (polylineItem) groupBox = new QGroupBox("Polyline");
 		else groupBox = new QGroupBox("Polygon");
-		groupLayout = nullptr;
-		for(int i = 0; i < mPointPositionWidgets.size(); i++)
-		{
-			if (i == 0)
-				addWidget(groupLayout, "Start Point:", mPointPositionWidgets[i]);
-			else if (i == mPointPositionWidgets.size() - 1)
-				addWidget(groupLayout, "End Point:", mPointPositionWidgets[i]);
-			else
-				addWidget(groupLayout, "", mPointPositionWidgets[i]);
-
-		}
-		groupBox->setLayout(groupLayout);
+		QVBoxLayout* vLayout = new QVBoxLayout();
+		vLayout->addWidget(mPointPositionStackedWidget);
+		vLayout->setContentsMargins(0, 0, 0, 0);
+		groupBox->setLayout(vLayout);
 		mainLayout->addWidget(groupBox);
 	}
 
@@ -1000,8 +1156,8 @@ void DynamicPropertiesWidget::addWidget(QFormLayout*& formLayout, const QString&
 		{
 			QCheckBox* checkBox = new QCheckBox(label);
 			checkBox->setChecked(widget->isEnabled());
-			connect(checkBox, SIGNAL(toggled(bool)), widget, SLOT(setEnabled(bool)));
-			connect(checkBox, SIGNAL(toggled(bool)), this, SLOT(handleItemsStyleChange()));
+			connect(checkBox, SIGNAL(clicked(bool)), widget, SLOT(setEnabled(bool)));
+			connect(checkBox, SIGNAL(clicked(bool)), this, SLOT(handleItemsStyleChange()));
 
 			formLayout->addRow(checkBox, widget);
 			mItemStyleLabels[widget] = checkBox;
@@ -1010,5 +1166,54 @@ void DynamicPropertiesWidget::addWidget(QFormLayout*& formLayout, const QString&
 
 		if (formLayout->rowCount() == 1)
 			formLayout->itemAt(0, QFormLayout::LabelRole)->widget()->setMinimumWidth(labelWidth());
+	}
+}
+
+//==================================================================================================
+
+void DynamicPropertiesWidget::fillPointsWidgets()
+{
+	// Clear old point position widgets
+	if (mPointPositionStackedWidget)
+	{
+		QWidget* widget = nullptr;
+
+		while (mPointPositionStackedWidget->count() > 0)
+		{
+			widget = mPointPositionStackedWidget->widget(0);
+			mPointPositionStackedWidget->removeWidget(widget);
+			delete widget;
+		}
+	}
+
+	mPointPositionWidgets.clear();
+
+	// Create new point position widgets
+	QList<DrawingItemPoint*> points = mItem->points();
+	for(int i = 0; i < points.size(); i++)
+	{
+		PositionWidget* posWidget = new PositionWidget(mItem->mapToScene(points[i]->pos()));
+		connect(posWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleItemGeometryChange()));
+		mPointPositionWidgets.append(posWidget);
+	}
+
+	// Assemble point position widgets into layout
+	if (!mPointPositionWidgets.isEmpty())
+	{
+		QWidget* pointsWidget = new QWidget();
+		QFormLayout* pointsLayout = nullptr;
+		pointsLayout = nullptr;
+		for(int i = 0; i < mPointPositionWidgets.size(); i++)
+		{
+			if (i == 0)
+				addWidget(pointsLayout, "Start Point:", mPointPositionWidgets[i]);
+			else if (i == mPointPositionWidgets.size() - 1)
+				addWidget(pointsLayout, "End Point:", mPointPositionWidgets[i]);
+			else
+				addWidget(pointsLayout, "", mPointPositionWidgets[i]);
+
+		}
+		pointsWidget->setLayout(pointsLayout);
+		mPointPositionStackedWidget->addWidget(pointsWidget);
 	}
 }
