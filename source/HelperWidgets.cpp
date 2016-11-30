@@ -67,7 +67,7 @@ PositionEdit::PositionEdit(qreal pos) : QLineEdit()
 	setValidator(new QDoubleValidator(-std::numeric_limits<qreal>::max(), std::numeric_limits<qreal>::max(), 8));
 	setPos(pos);
 
-	connect(this, SIGNAL(editingFinished()), this, SLOT(sendPositionChanged()));
+	connect(this, SIGNAL(returnPressed()), this, SLOT(sendPositionChanged()));
 }
 
 PositionEdit::~PositionEdit() { }
@@ -152,7 +152,7 @@ SizeEdit::SizeEdit(qreal size) : QLineEdit()
 	setValidator(new QDoubleValidator(0, std::numeric_limits<qreal>::max(), 8));
 	setSize(size);
 
-	connect(this, SIGNAL(editingFinished()), this, SLOT(sendPositionChanged()));
+	connect(this, SIGNAL(returnPressed()), this, SLOT(sendSizeChanged()));
 }
 
 SizeEdit::~SizeEdit() { }
@@ -656,10 +656,10 @@ FontStyleWidget::FontStyleWidget() : QWidget()
 	styleLayout->setContentsMargins(0, 0, 0, 0);
 	setLayout(styleLayout);
 
-	connect(mBoldButton, SIGNAL(toggled(bool)), this, SLOT(boldChanged(bool)));
-	connect(mItalicButton, SIGNAL(toggled(bool)), this, SLOT(italicChanged(bool)));
-	connect(mUnderlineButton, SIGNAL(toggled(bool)), this, SLOT(underlineChanged(bool)));
-	connect(mStrikeThroughButton, SIGNAL(toggled(bool)), this, SLOT(strikeThroughChanged(bool)));
+	connect(mBoldButton, SIGNAL(toggled(bool)), this, SIGNAL(boldChanged(bool)));
+	connect(mItalicButton, SIGNAL(toggled(bool)), this, SIGNAL(italicChanged(bool)));
+	connect(mUnderlineButton, SIGNAL(toggled(bool)), this, SIGNAL(underlineChanged(bool)));
+	connect(mStrikeThroughButton, SIGNAL(toggled(bool)), this, SIGNAL(strikeThroughChanged(bool)));
 }
 
 FontStyleWidget::~FontStyleWidget() { }

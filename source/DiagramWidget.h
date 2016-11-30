@@ -86,10 +86,10 @@ signals:
 	void propertiesTriggered();
 	void mouseInfoChanged(const QString& mouseInfo);
 
-	void itemsStyleChanged();
-	void itemCornerRadiusChanged();
-	void itemCaptionChanged();
-	void diagramPropertiesChanged();
+	void itemsStyleChanged(const QList<DrawingItem*>& items);
+	void itemCornerRadiusChanged(DrawingItem* item);
+	void itemCaptionChanged(DrawingItem* item);
+	void diagramPropertiesChanged(const QHash<DiagramWidget::Property,QVariant>& properties);
 
 protected:
 	void drawBackground(QPainter* painter);

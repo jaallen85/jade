@@ -43,18 +43,18 @@ protected:
 	DrawingItem* mItem;
 
 	// Diagram properties
-	QWidget* mDiagramPropertiesWidget;
+	QTabWidget* mTabWidget;
+
 	PositionWidget* mDiagramTopLeftWidget;
 	SizeWidget* mDiagramRectSizeWidget;
 	ColorWidget* mDiagramBackgroundColorWidget;
+	SizeEdit* mDiagramGridEdit;
 	GridStyleCombo* mDiagramGridStyleCombo;
 	ColorWidget* mDiagramGridColorWidget;
 	QLineEdit* mDiagramGridSpacingMajorWidget;
 	QLineEdit* mDiagramGridSpacingMinorWidget;
 
 	// Item default properties
-	QWidget* mItemDefaultPropertiesWidget;
-
 	PenStyleCombo* mDefaultPenStyleCombo;
 	SizeEdit* mDefaultPenWidthEdit;
 	ColorWidget* mDefaultPenColorWidget;
@@ -105,8 +105,10 @@ protected:
 	ArrowStyleCombo* mEndArrowCombo;
 	SizeEdit* mEndArrowSizeEdit;
 
+	QHash<QWidget*,QCheckBox*> mItemStyleLabels;
+
 public:
-	DynamicPropertiesWidget(DiagramWidget* diagram);
+	DynamicPropertiesWidget();
 	virtual ~DynamicPropertiesWidget();
 
 	QSize sizeHint() const;
@@ -117,34 +119,33 @@ public slots:
 	void setNewItem(DrawingItem* item);
 	void clear();
 
-	void updateGeometryFromSelectedItems(const QList<DrawingItem*>& items);
-	void updateCaptionFromSelectedItem();
-	void updateCornerRadiusFromSelectedItem();
-	void updateStylePropertiesFromSelectedItems();
-	void updatePropertiesFromDiagram();
+	void setItemGeometry(const QList<DrawingItem*>& item);
+	void setItemCaption(DrawingItem* item);
+	void setItemCornerRadius(DrawingItem* item);
+	void setItemsStyleProperties(const QList<DrawingItem*>& items);
+	void setDiagramProperties(const QHash<DiagramWidget::Property,QVariant>& properties);
 
 signals:
-	void selectedItemMoved(const QPointF& scenePos);		// connect to moveSelection
-	void selectedItemResized(DrawingItemPoint* itemPoint, const QPointF& scenePos);		// connect to resizeSelection
+	void selectedItemMoved(const QPointF& scenePos);
+	void selectedItemResized(DrawingItemPoint* itemPoint, const QPointF& scenePos);
 	void selectedItemCaptionChanged(const QString& newCaption);
 	void selectedItemCornerRadiusChanged(qreal radiusX, qreal radiusY);
 	void selectedItemsStyleChanged(const QHash<DrawingItemStyle::Property,QVariant>& properties);
 	void diagramPropertiesChanged(const QHash<DiagramWidget::Property,QVariant>& properties);
 
-	//todo: fill in default item style properties
-	//todo: save/load default item style properties from INI file
-
 private slots:
-	void handleGeometryChange();
-	void handleStyleChange();
+	void handleItemGeometryChange();
+	void handleItemsStyleChange();
+	void handleItemDefaultsChange();
+	void handleDiagramChange();
 
 private:
-	void createDiagramWidget();
-	void createItemDefaultsWidget();
+	QWidget* createDiagramWidget();
+	QWidget* createItemDefaultsWidget();
 
 	void createGeometryWidgets();
 	void createStyleWidgets();
-	void assembleLayout();
+	QWidget* createItemsWidget();
 	void addWidget(QFormLayout*& formLayout, const QString& label, QWidget* widget);
 };
 

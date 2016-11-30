@@ -334,7 +334,8 @@ void DiagramWidget::setItemsStyle(const QHash< DrawingItem*, QHash<DrawingItemSt
 		}
 	}
 
-	emit itemsStyleChanged();
+	emit itemsStyleChanged(items);
+	viewport()->update();
 }
 
 void DiagramWidget::setItemCornerRadius(DrawingItem* item, qreal radiusX, qreal radiusY)
@@ -347,7 +348,8 @@ void DiagramWidget::setItemCornerRadius(DrawingItem* item, qreal radiusX, qreal 
 		if (rectItem) rectItem->setCornerRadii(radiusX, radiusY);
 		if (textRectItem) textRectItem->setCornerRadii(radiusX, radiusY);
 
-		emit itemCornerRadiusChanged();
+		emit itemCornerRadiusChanged(item);
+		viewport()->update();
 	}
 }
 
@@ -365,7 +367,8 @@ void DiagramWidget::setItemCaption(DrawingItem* item, const QString& caption)
 		if (textEllipseItem) textEllipseItem->setCaption(caption);
 		if (textPolygonItem) textPolygonItem->setCaption(caption);
 
-		emit itemCaptionChanged();
+		emit itemCaptionChanged(item);
+		viewport()->update();
 	}
 }
 
@@ -373,13 +376,14 @@ void DiagramWidget::setDiagramProperties(const QHash<DiagramWidget::Property,QVa
 {
 	if (properties.contains(SceneRect)) setSceneRect(properties[SceneRect].toRectF());
 	if (properties.contains(BackgroundColor)) setBackgroundBrush(properties[BackgroundColor].value<QColor>());
-	if (properties.contains(Grid)) setGrid(properties[Grid].toDouble());
+	if (properties.contains(Grid)) setGrid(properties[Grid].toReal());
 	if (properties.contains(GridStyle)) setGridStyle((GridRenderStyle)properties[GridStyle].toUInt());
 	if (properties.contains(GridColor)) setGridBrush(properties[GridColor].value<QColor>());
 	if (properties.contains(GridSpacingMajor)) setGridSpacing(properties[GridSpacingMajor].toInt(), mGridSpacingMinor);
 	if (properties.contains(GridSpacingMinor)) setGridSpacing(mGridSpacingMajor, properties[GridSpacingMinor].toInt());
 
-	emit diagramPropertiesChanged();
+	emit diagramPropertiesChanged(properties);
+	viewport()->update();
 }
 
 //==================================================================================================

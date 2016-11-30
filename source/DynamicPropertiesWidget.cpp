@@ -21,10 +21,16 @@
 #include "DynamicPropertiesWidget.h"
 #include "HelperWidgets.h"
 
-DynamicPropertiesWidget::DynamicPropertiesWidget(DiagramWidget* diagram) : QScrollArea()
+DynamicPropertiesWidget::DynamicPropertiesWidget() : QScrollArea()
 {
 	mStackedWidget = new QStackedWidget();
 	clear();
+
+	mTabWidget = new QTabWidget();
+	mTabWidget->addTab(createDiagramWidget(), "Diagram");
+	mTabWidget->addTab(createItemDefaultsWidget(), "Item Defaults");
+	mTabWidget->setTabPosition(QTabWidget::South);
+	mStackedWidget->addWidget(mTabWidget);
 
 	setWidget(mStackedWidget);
 	setWidgetResizable(true);
@@ -34,10 +40,7 @@ DynamicPropertiesWidget::DynamicPropertiesWidget(DiagramWidget* diagram) : QScro
 	setSelectedItems(QList<DrawingItem*>());
 }
 
-DynamicPropertiesWidget::~DynamicPropertiesWidget()
-{
-
-}
+DynamicPropertiesWidget::~DynamicPropertiesWidget() { }
 
 //==================================================================================================
 
@@ -62,7 +65,9 @@ void DynamicPropertiesWidget::setSelectedItems(const QList<DrawingItem*>& select
 		mItems = selectedItems;
 
 		createStyleWidgets();
-		assembleLayout();
+
+		mStackedWidget->addWidget(createItemsWidget());
+		mStackedWidget->setCurrentIndex(1);
 	}
 	else if (selectedItems.size() == 1)
 	{
@@ -71,32 +76,9 @@ void DynamicPropertiesWidget::setSelectedItems(const QList<DrawingItem*>& select
 
 		createGeometryWidgets();
 		createStyleWidgets();
-		assembleLayout();
-	}
-	else
-	{
-		createDiagramWidget();
-		createItemDefaultsWidget();
 
-		/*QTabWidget* tabWidget = new QTabWidget();
-		tabWidget->addTab(mDiagramPropertiesWidget, "Diagram");
-		tabWidget->addTab(mItemDefaultPropertiesWidget, "Item Defaults");
-		tabWidget->setTabPosition(QTabWidget::South);
-		mStackedWidget->addWidget(tabWidget);*/
-
-		QWidget* widget = new QWidget();
-		QVBoxLayout* layout = new QVBoxLayout();
-
-		QFrame* separator = new QFrame();
-		separator->setFrameStyle(QFrame::HLine | QFrame::Sunken);
-
-		layout->addWidget(mDiagramPropertiesWidget);
-		layout->addWidget(separator);
-		layout->addWidget(mItemDefaultPropertiesWidget);
-		layout->addWidget(new QWidget(), 100);
-		layout->setContentsMargins(0, 0, 0, 0);
-		widget->setLayout(layout);
-		mStackedWidget->addWidget(widget);
+		mStackedWidget->addWidget(createItemsWidget());
+		mStackedWidget->setCurrentIndex(1);
 	}
 }
 
@@ -111,39 +93,16 @@ void DynamicPropertiesWidget::clear()
 {
 	QWidget* widget;
 
-	while (mStackedWidget->count() > 0)
+	while (mStackedWidget->count() > 1)
 	{
-		widget = mStackedWidget->widget(0);
+		widget = mStackedWidget->widget(1);
 		mStackedWidget->removeWidget(widget);
 		delete widget;
 	}
+	mStackedWidget->setCurrentIndex(0);
 
 	mItems.clear();
 	mItem = nullptr;
-
-	mDiagramPropertiesWidget = nullptr;
-	mDiagramTopLeftWidget = nullptr;
-	mDiagramRectSizeWidget = nullptr;
-	mDiagramBackgroundColorWidget = nullptr;
-	mDiagramGridStyleCombo = nullptr;
-	mDiagramGridColorWidget = nullptr;
-	mDiagramGridSpacingMajorWidget = nullptr;
-	mDiagramGridSpacingMinorWidget = nullptr;
-
-	mItemDefaultPropertiesWidget = nullptr;
-	mDefaultPenStyleCombo = nullptr;
-	mDefaultPenWidthEdit = nullptr;
-	mDefaultPenColorWidget = nullptr;
-	mDefaultBrushColorWidget = nullptr;
-	mDefaultFontComboBox = nullptr;
-	mDefaultFontSizeEdit = nullptr;
-	mDefaultFontStyleWidget = nullptr;
-	mDefaultTextAlignmentWidget = nullptr;
-	mDefaultTextColorWidget = nullptr;
-	mDefaultStartArrowCombo = nullptr;
-	mDefaultStartArrowSizeEdit = nullptr;
-	mDefaultEndArrowCombo = nullptr;
-	mDefaultEndArrowSizeEdit = nullptr;
 
 	mPositionWidget = nullptr;
 	mStartPositionWidget = nullptr;
@@ -170,82 +129,326 @@ void DynamicPropertiesWidget::clear()
 	mStartArrowSizeEdit = nullptr;
 	mEndArrowCombo = nullptr;
 	mEndArrowSizeEdit = nullptr;
+	mItemStyleLabels.clear();
 }
 
 //==================================================================================================
 
-void DynamicPropertiesWidget::updateGeometryFromSelectedItems(const QList<DrawingItem*>& items)
+void DynamicPropertiesWidget::setItemGeometry(const QList<DrawingItem*>& items)
 {
+	DrawingItem* item = (!items.isEmpty()) ? items.first() : nullptr;
 
+	if (item)
+	{
+		QList<DrawingItemPoint*> itemPoints = item->points();
+
+		if (mPositionWidget) mPositionWidget->setPos(item->pos());
+
+		if (mStartPositionWidget && itemPoints.size() >= 2)
+			mStartPositionWidget->setPos(item->mapToScene(itemPoints.first()->pos()));
+		if (mEndPositionWidget && itemPoints.size() >= 2)
+			mEndPositionWidget->setPos(item->mapToScene(itemPoints.last()->pos()));
+
+		if (mCurveStartPositionWidget && itemPoints.size() >= 4)
+			mCurveStartPositionWidget->setPos(item->mapToScene(itemPoints[0]->pos()));
+		if (mCurveEndPositionWidget && itemPoints.size() >= 4)
+			mCurveEndPositionWidget->setPos(item->mapToScene(itemPoints[1]->pos()));
+		if (mCurveStartControlPositionWidget && itemPoints.size() >= 4)
+			mCurveStartControlPositionWidget->setPos(item->mapToScene(itemPoints[2]->pos()));
+		if (mCurveEndControlPositionWidget && itemPoints.size() >= 4)
+			mCurveEndControlPositionWidget->setPos(item->mapToScene(itemPoints[3]->pos()));
+
+		if (mRectTopLeftWidget && itemPoints.size() >= 8)
+			mRectTopLeftWidget->setPos(item->mapToScene(itemPoints[0]->pos()));
+		if (mRectBottomRightWidget && itemPoints.size() >= 8)
+			mRectBottomRightWidget->setPos(item->mapToScene(itemPoints[4]->pos()));
+
+		for(int i = 0; i < itemPoints.size() && i < mPointPositionWidgets.size(); i++)
+			mPointPositionWidgets[i]->setPos(item->mapToScene(itemPoints[i]->pos()));
+	}
 }
 
-void DynamicPropertiesWidget::updateCaptionFromSelectedItem()
+void DynamicPropertiesWidget::setItemCaption(DrawingItem* item)
 {
+	if (item)
+	{
+		DrawingTextEllipseItem* textEllipseItem = dynamic_cast<DrawingTextEllipseItem*>(item);
+		DrawingTextItem* textItem = dynamic_cast<DrawingTextItem*>(item);
+		DrawingTextPolygonItem* textPolygonItem = dynamic_cast<DrawingTextPolygonItem*>(item);
+		DrawingTextRectItem* textRectItem = dynamic_cast<DrawingTextRectItem*>(item);
 
+		// Caption widget
+		if ((textItem || textRectItem || textEllipseItem || textPolygonItem) && mCaptionEdit)
+		{
+			if (textRectItem) mCaptionEdit->setPlainText(textRectItem->caption());
+			else if (textEllipseItem) mCaptionEdit->setPlainText(textEllipseItem->caption());
+			else if (textPolygonItem) mCaptionEdit->setPlainText(textPolygonItem->caption());
+			else mCaptionEdit->setPlainText(textItem->caption());
+		}
+	}
 }
 
-void DynamicPropertiesWidget::updateCornerRadiusFromSelectedItem()
+void DynamicPropertiesWidget::setItemCornerRadius(DrawingItem* item)
 {
+	if (item)
+	{
+		DrawingRectItem* rectItem = dynamic_cast<DrawingRectItem*>(item);
+		DrawingTextRectItem* textRectItem = dynamic_cast<DrawingTextRectItem*>(item);
 
+		if ((rectItem || textRectItem) && mCornerRadiusWidget)
+		{
+			if (textRectItem)
+				mCornerRadiusWidget->setSize(QSizeF(textRectItem->cornerRadiusX(), textRectItem->cornerRadiusY()));
+			else
+				mCornerRadiusWidget->setSize(QSizeF(rectItem->cornerRadiusX(), rectItem->cornerRadiusY()));
+		}
+	}
 }
 
-void DynamicPropertiesWidget::updateStylePropertiesFromSelectedItems()
+void DynamicPropertiesWidget::setItemsStyleProperties(const QList<DrawingItem*>& items)
 {
-
+	setSelectedItems(items);
 }
 
-void DynamicPropertiesWidget::updatePropertiesFromDiagram()
+void DynamicPropertiesWidget::setDiagramProperties(const QHash<DiagramWidget::Property,QVariant>& properties)
 {
+	if (properties.contains(DiagramWidget::SceneRect))
+	{
+		QRectF sceneRect = properties.value(DiagramWidget::SceneRect).toRectF();
+		mDiagramTopLeftWidget->setPos(sceneRect.topLeft());
+		mDiagramRectSizeWidget->setSize(sceneRect.size());
+	}
 
+	if (properties.contains(DiagramWidget::BackgroundColor))
+		mDiagramBackgroundColorWidget->setColor(properties.value(DiagramWidget::BackgroundColor).value<QColor>());
+
+	if (properties.contains(DiagramWidget::Grid))
+		mDiagramGridEdit->setSize(properties.value(DiagramWidget::Grid).toReal());
+
+	if (properties.contains(DiagramWidget::GridStyle))
+		mDiagramGridStyleCombo->setStyle((DiagramWidget::GridRenderStyle)properties.value(DiagramWidget::GridStyle).toUInt());
+
+	if (properties.contains(DiagramWidget::GridColor))
+		mDiagramGridColorWidget->setColor(properties.value(DiagramWidget::GridColor).value<QColor>());
+
+	if (properties.contains(DiagramWidget::GridSpacingMajor))
+		mDiagramGridSpacingMajorWidget->setText(QString::number(properties.value(DiagramWidget::GridSpacingMajor).toInt()));
+
+	if (properties.contains(DiagramWidget::GridSpacingMinor))
+		mDiagramGridSpacingMinorWidget->setText(QString::number(properties.value(DiagramWidget::GridSpacingMinor).toInt()));
 }
 
 //==================================================================================================
 
-void DynamicPropertiesWidget::handleGeometryChange()
+void DynamicPropertiesWidget::handleItemGeometryChange()
 {
+	QObject* sender = DynamicPropertiesWidget::sender();
 
+	if (mPositionWidget && sender == mPositionWidget)
+		emit selectedItemMoved(mPositionWidget->pos());
+	else if (mItem)
+	{
+		QList<DrawingItemPoint*> itemPoints = mItem->points();
+
+		if (mStartPositionWidget && sender == mStartPositionWidget && itemPoints.size() >= 2)
+			emit selectedItemResized(itemPoints.first(), mStartPositionWidget->pos());
+		else if (mEndPositionWidget && sender == mEndPositionWidget && itemPoints.size() >= 2)
+			emit selectedItemResized(itemPoints.last(), mEndPositionWidget->pos());
+		else if (mCurveStartPositionWidget && sender == mCurveStartPositionWidget && itemPoints.size() >= 4)
+			emit selectedItemResized(itemPoints[0], mCurveStartPositionWidget->pos());
+		else if (mCurveStartControlPositionWidget && sender == mCurveStartControlPositionWidget && itemPoints.size() >= 4)
+			emit selectedItemResized(itemPoints[2], mCurveStartControlPositionWidget->pos());
+		else if (mCurveEndPositionWidget && sender == mCurveEndPositionWidget && itemPoints.size() >= 4)
+			emit selectedItemResized(itemPoints[1], mCurveEndPositionWidget->pos());
+		else if (mCurveEndControlPositionWidget && sender == mCurveEndControlPositionWidget && itemPoints.size() >= 4)
+			emit selectedItemResized(itemPoints[3], mCurveEndControlPositionWidget->pos());
+		else if (mRectTopLeftWidget && sender == mRectTopLeftWidget && itemPoints.size() >= 8)
+			emit selectedItemResized(itemPoints[0], mRectTopLeftWidget->pos());
+		else if (mRectBottomRightWidget && sender == mRectBottomRightWidget && itemPoints.size() >= 8)
+			emit selectedItemResized(itemPoints[4], mRectBottomRightWidget->pos());
+		else if	(!mPointPositionWidgets.isEmpty())
+		{
+			for(int i = 0; i < itemPoints.size() && i < mPointPositionWidgets.size(); i++)
+			{
+				if (sender == mPointPositionWidgets[i])
+					emit selectedItemResized(itemPoints[i], mPointPositionWidgets[i]->pos());
+			}
+		}
+	}
+	else if (mCornerRadiusWidget && sender == mCornerRadiusWidget)
+		emit selectedItemCornerRadiusChanged(mCornerRadiusWidget->size().width(), mCornerRadiusWidget->size().height());
+	else if (mCaptionEdit && sender == mCaptionEdit)
+		emit selectedItemCaptionChanged(mCaptionEdit->toPlainText());
 }
 
-void DynamicPropertiesWidget::handleStyleChange()
+void DynamicPropertiesWidget::handleItemsStyleChange()
 {
+	QHash<DrawingItemStyle::Property,QVariant> newProperties;
+	QObject* sender = DynamicPropertiesWidget::sender();
 
+	if ((mPenStyleCombo && sender == mPenStyleCombo) || (mItemStyleLabels.contains(mPenStyleCombo) && sender == mItemStyleLabels[mPenStyleCombo]))
+		newProperties[DrawingItemStyle::PenStyle] = (uint)mPenStyleCombo->style();
+	else if ((mPenWidthEdit && sender == mPenWidthEdit) || (mItemStyleLabels.contains(mPenWidthEdit) && sender == mItemStyleLabels[mPenWidthEdit]))
+		newProperties[DrawingItemStyle::PenWidth] = mPenWidthEdit->size();
+	else if ((mPenColorWidget && sender == mPenColorWidget) || (mItemStyleLabels.contains(mPenColorWidget) && sender == mItemStyleLabels[mPenColorWidget]))
+	{
+		QColor color = mPenColorWidget->color();
+		newProperties[DrawingItemStyle::PenColor] = color;
+		newProperties[DrawingItemStyle::PenOpacity] = color.alphaF();
+	}
+	else if ((mBrushColorWidget && sender == mBrushColorWidget) || (mItemStyleLabels.contains(mBrushColorWidget) && sender == mItemStyleLabels[mBrushColorWidget]))
+	{
+		QColor color = mBrushColorWidget->color();
+		newProperties[DrawingItemStyle::BrushColor] = color;
+		newProperties[DrawingItemStyle::BrushOpacity] = color.alphaF();
+	}
+	else if ((mFontComboBox && sender == mFontComboBox) || (mItemStyleLabels.contains(mFontComboBox) && sender == mItemStyleLabels[mFontComboBox]))
+		newProperties[DrawingItemStyle::FontName] = mFontComboBox->currentFont().family();
+	else if ((mFontSizeEdit && sender == mFontSizeEdit) || (mItemStyleLabels.contains(mFontSizeEdit) && sender == mItemStyleLabels[mFontSizeEdit]))
+		newProperties[DrawingItemStyle::FontSize] = mFontSizeEdit->size();
+	else if ((mFontStyleWidget && sender == mFontStyleWidget) || (mItemStyleLabels.contains(mFontStyleWidget) && sender == mItemStyleLabels[mFontStyleWidget]))
+	{
+		newProperties[DrawingItemStyle::FontBold] = mFontStyleWidget->isBold();
+		newProperties[DrawingItemStyle::FontItalic] = mFontStyleWidget->isItalic();
+		newProperties[DrawingItemStyle::FontUnderline] = mFontStyleWidget->isUnderline();
+		newProperties[DrawingItemStyle::FontStrikeThrough] = mFontStyleWidget->isStrikeThrough();
+	}
+	else if ((mTextAlignmentWidget && sender == mTextAlignmentWidget) || (mItemStyleLabels.contains(mTextAlignmentWidget) && sender == mItemStyleLabels[mTextAlignmentWidget]))
+	{
+		newProperties[DrawingItemStyle::TextHorizontalAlignment] = (uint)mTextAlignmentWidget->horizontalAlignment();
+		newProperties[DrawingItemStyle::TextVerticalAlignment] = (uint)mTextAlignmentWidget->verticalAlignment();
+	}
+	else if ((mTextColorWidget && sender == mTextColorWidget) || (mItemStyleLabels.contains(mTextColorWidget) && sender == mItemStyleLabels[mTextColorWidget]))
+	{
+		QColor color = mTextColorWidget->color();
+		newProperties[DrawingItemStyle::TextColor] = color;
+		newProperties[DrawingItemStyle::TextOpacity] = color.alphaF();
+	}
+	else if ((mStartArrowCombo && sender == mStartArrowCombo) || (mItemStyleLabels.contains(mStartArrowCombo) && sender == mItemStyleLabels[mStartArrowCombo]))
+		newProperties[DrawingItemStyle::StartArrowStyle] = (uint)mStartArrowCombo->style();
+	else if ((mStartArrowSizeEdit && sender == mStartArrowSizeEdit) || (mItemStyleLabels.contains(mStartArrowSizeEdit) && sender == mItemStyleLabels[mStartArrowSizeEdit]))
+		newProperties[DrawingItemStyle::StartArrowSize] = mStartArrowSizeEdit->size();
+	else if ((mEndArrowCombo && sender == mEndArrowCombo) || (mItemStyleLabels.contains(mEndArrowCombo) && sender == mItemStyleLabels[mEndArrowCombo]))
+		newProperties[DrawingItemStyle::EndArrowStyle] = (uint)mEndArrowCombo->style();
+	else if ((mEndArrowSizeEdit && sender == mEndArrowSizeEdit) || (mItemStyleLabels.contains(mEndArrowSizeEdit) && sender == mItemStyleLabels[mEndArrowSizeEdit]))
+		newProperties[DrawingItemStyle::EndArrowSize] = mEndArrowSizeEdit->size();
+
+	if (!newProperties.isEmpty()) emit selectedItemsStyleChanged(newProperties);
+}
+
+void DynamicPropertiesWidget::handleItemDefaultsChange()
+{
+	QObject* sender = DynamicPropertiesWidget::sender();
+
+	if (sender == mDefaultPenStyleCombo)
+		DrawingItemStyle::setDefaultValue(DrawingItemStyle::PenStyle, (uint)mDefaultPenStyleCombo->style());
+	else if (sender == mDefaultPenWidthEdit)
+		DrawingItemStyle::setDefaultValue(DrawingItemStyle::PenWidth, mDefaultPenWidthEdit->size());
+	else if (sender == mDefaultPenColorWidget)
+	{
+		QColor color = mDefaultPenColorWidget->color();
+		DrawingItemStyle::setDefaultValue(DrawingItemStyle::PenColor, color);
+		DrawingItemStyle::setDefaultValue(DrawingItemStyle::PenOpacity, color.alphaF());
+	}
+	else if (sender == mDefaultBrushColorWidget)
+	{
+		QColor color = mDefaultBrushColorWidget->color();
+		DrawingItemStyle::setDefaultValue(DrawingItemStyle::BrushColor, color);
+		DrawingItemStyle::setDefaultValue(DrawingItemStyle::BrushOpacity, color.alphaF());
+	}
+	else if (sender == mDefaultFontComboBox)
+		DrawingItemStyle::setDefaultValue(DrawingItemStyle::FontName, mDefaultFontComboBox->currentFont().family());
+	else if (sender == mDefaultFontSizeEdit)
+		DrawingItemStyle::setDefaultValue(DrawingItemStyle::FontSize, mDefaultFontSizeEdit->size());
+	else if (sender == mDefaultFontStyleWidget)
+	{
+		DrawingItemStyle::setDefaultValue(DrawingItemStyle::FontBold, mDefaultFontStyleWidget->isBold());
+		DrawingItemStyle::setDefaultValue(DrawingItemStyle::FontItalic, mDefaultFontStyleWidget->isItalic());
+		DrawingItemStyle::setDefaultValue(DrawingItemStyle::FontUnderline, mDefaultFontStyleWidget->isUnderline());
+		DrawingItemStyle::setDefaultValue(DrawingItemStyle::FontStrikeThrough, mDefaultFontStyleWidget->isStrikeThrough());
+	}
+	else if (sender == mDefaultTextAlignmentWidget)
+	{
+		DrawingItemStyle::setDefaultValue(DrawingItemStyle::TextHorizontalAlignment, (uint)mDefaultTextAlignmentWidget->horizontalAlignment());
+		DrawingItemStyle::setDefaultValue(DrawingItemStyle::TextVerticalAlignment, (uint)mDefaultTextAlignmentWidget->verticalAlignment());
+	}
+	else if (sender == mDefaultTextColorWidget)
+	{
+		QColor color = mDefaultTextColorWidget->color();
+		DrawingItemStyle::setDefaultValue(DrawingItemStyle::TextColor, color);
+		DrawingItemStyle::setDefaultValue(DrawingItemStyle::TextOpacity, color.alphaF());
+	}
+	else if (sender == mDefaultStartArrowCombo)
+		DrawingItemStyle::setDefaultValue(DrawingItemStyle::StartArrowStyle, (uint)mDefaultStartArrowCombo->style());
+	else if (sender == mDefaultStartArrowSizeEdit)
+		DrawingItemStyle::setDefaultValue(DrawingItemStyle::StartArrowSize, mDefaultStartArrowSizeEdit->size());
+	else if (sender == mDefaultEndArrowCombo)
+		DrawingItemStyle::setDefaultValue(DrawingItemStyle::EndArrowStyle, (uint)mDefaultEndArrowCombo->style());
+	else if (sender == mDefaultEndArrowSizeEdit)
+		DrawingItemStyle::setDefaultValue(DrawingItemStyle::EndArrowSize, mDefaultEndArrowSizeEdit->size());
+}
+
+void DynamicPropertiesWidget::handleDiagramChange()
+{
+	QHash<DiagramWidget::Property,QVariant> newProperties;
+	QObject* sender = DynamicPropertiesWidget::sender();
+
+	if (sender == mDiagramGridStyleCombo)
+		mDiagramGridSpacingMinorWidget->setEnabled(mDiagramGridStyleCombo->currentIndex() == 3);
+
+	if (sender == mDiagramTopLeftWidget || sender == mDiagramRectSizeWidget)
+		newProperties[DiagramWidget::SceneRect] = QRectF(mDiagramTopLeftWidget->pos(), mDiagramRectSizeWidget->size());
+	else if (sender == mDiagramBackgroundColorWidget)
+		newProperties[DiagramWidget::BackgroundColor] = mDiagramBackgroundColorWidget->color();
+	else if (sender == mDiagramGridEdit)
+		newProperties[DiagramWidget::Grid] = mDiagramGridEdit->size();
+	else if (sender == mDiagramGridStyleCombo)
+		newProperties[DiagramWidget::GridStyle] = (uint)mDiagramGridStyleCombo->style();
+	else if (sender == mDiagramGridColorWidget)
+		newProperties[DiagramWidget::GridColor] = mDiagramGridColorWidget->color();
+	else if (sender == mDiagramGridSpacingMajorWidget)
+		newProperties[DiagramWidget::GridSpacingMajor] = mDiagramGridSpacingMajorWidget->text().toInt();
+	else if (sender == mDiagramGridSpacingMinorWidget)
+		newProperties[DiagramWidget::GridSpacingMinor] = mDiagramGridSpacingMinorWidget->text().toInt();
+
+	if (!newProperties.isEmpty()) emit diagramPropertiesChanged(newProperties);
 }
 
 //==================================================================================================
 
-void DynamicPropertiesWidget::createDiagramWidget()
+QWidget* DynamicPropertiesWidget::createDiagramWidget()
 {
-	// todo: how to fill widgets with correct information for diagram
-
-
+	QWidget* diagramPropertiesWidget = new QWidget();
+	QVBoxLayout* diagramPropertiesLayout = new QVBoxLayout();
 	QGroupBox* groupBox;
 	QFormLayout* groupLayout;
-	QVBoxLayout* diagramPropertiesLayout = new QVBoxLayout();
 
 	// Create widgets
 	mDiagramTopLeftWidget = new PositionWidget();
 	connect(mDiagramTopLeftWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleDiagramChange()));
 
-	mDiagramRectSizeWidget = new SizeWidget();
+	mDiagramRectSizeWidget = new SizeWidget(QSizeF(10000, 7500));
 	connect(mDiagramRectSizeWidget, SIGNAL(sizeChanged(const QSizeF&)), this, SLOT(handleDiagramChange()));
 
 	mDiagramBackgroundColorWidget = new ColorWidget();
 	connect(mDiagramBackgroundColorWidget, SIGNAL(colorChanged(const QColor&)), this, SLOT(handleDiagramChange()));
 
+	mDiagramGridEdit = new SizeEdit();
+	connect(mDiagramGridEdit, SIGNAL(sizeChanged(qreal)), this, SLOT(handleDiagramChange()));
+
 	mDiagramGridStyleCombo = new GridStyleCombo();
-	connect(mDiagramGridStyleCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(handleDiagramChange()));
-	// only enable mDiagramGridSpacingMinorWidget if mDiagramGridStyleCombo current index is "GraphPaper"
+	connect(mDiagramGridStyleCombo, SIGNAL(activated(int)), this, SLOT(handleDiagramChange()));
 
 	mDiagramGridColorWidget = new ColorWidget();
 	connect(mDiagramGridColorWidget, SIGNAL(colorChanged(const QColor&)), this, SLOT(handleDiagramChange()));
 
 	mDiagramGridSpacingMajorWidget = new QLineEdit();
 	mDiagramGridSpacingMajorWidget->setValidator(new QIntValidator(1, 1E6));
-	connect(mDiagramGridSpacingMajorWidget, SIGNAL(editingFinished()), this, SLOT(handleDiagramChange()));
+	connect(mDiagramGridSpacingMajorWidget, SIGNAL(returnPressed()), this, SLOT(handleDiagramChange()));
 
 	mDiagramGridSpacingMinorWidget = new QLineEdit();
 	mDiagramGridSpacingMinorWidget->setValidator(new QIntValidator(1, 1E6));
-	connect(mDiagramGridSpacingMinorWidget, SIGNAL(editingFinished()), this, SLOT(handleDiagramChange()));
+	connect(mDiagramGridSpacingMinorWidget, SIGNAL(returnPressed()), this, SLOT(handleDiagramChange()));
 
 	// Assemble layout
 	groupBox = new QGroupBox("Diagram");
@@ -265,6 +468,7 @@ void DynamicPropertiesWidget::createDiagramWidget()
 	groupLayout->setRowWrapPolicy(QFormLayout::DontWrapRows);
 	groupLayout->setLabelAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 	groupLayout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+	groupLayout->addRow("Grid:", mDiagramGridEdit);
 	groupLayout->addRow("Grid Style:", mDiagramGridStyleCombo);
 	groupLayout->addRow("Grid Color:", mDiagramGridColorWidget);
 	groupLayout->addRow("Major Spacing:", mDiagramGridSpacingMajorWidget);
@@ -274,81 +478,81 @@ void DynamicPropertiesWidget::createDiagramWidget()
 	diagramPropertiesLayout->addWidget(groupBox);
 
 	diagramPropertiesLayout->addWidget(new QWidget(), 100);
-
-	mDiagramPropertiesWidget = new QWidget();
-	mDiagramPropertiesWidget->setLayout(diagramPropertiesLayout);
+	diagramPropertiesWidget->setLayout(diagramPropertiesLayout);
+	return diagramPropertiesWidget;
 }
 
-void DynamicPropertiesWidget::createItemDefaultsWidget()
+QWidget* DynamicPropertiesWidget::createItemDefaultsWidget()
 {
+	QWidget* itemDefaultPropertiesWidget = new QWidget();
+	QVBoxLayout* itemDefaultPropertiesLayout = new QVBoxLayout();
 	QGroupBox* groupBox;
 	QFormLayout* groupLayout;
-	QVBoxLayout* itemDefaultPropertiesLayout = new QVBoxLayout();
 
 	// Pen / Brush widgets
 	mDefaultPenStyleCombo = new PenStyleCombo((Qt::PenStyle)DrawingItemStyle::defaultValue(DrawingItemStyle::PenStyle).toUInt());
-	connect(mDefaultPenStyleCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(handleItemDefaultChange()));
+	connect(mDefaultPenStyleCombo, SIGNAL(activated(int)), this, SLOT(handleItemDefaultsChange()));
 
 	mDefaultPenWidthEdit = new SizeEdit(DrawingItemStyle::defaultValue(DrawingItemStyle::PenWidth).toDouble());
-	connect(mDefaultPenWidthEdit, SIGNAL(sizeChanged(qreal)), this, SLOT(handleItemDefaultChange()));
+	connect(mDefaultPenWidthEdit, SIGNAL(sizeChanged(qreal)), this, SLOT(handleItemDefaultsChange()));
 
 	mDefaultPenColorWidget = new ColorWidget();
 	QColor color = DrawingItemStyle::defaultValue(DrawingItemStyle::PenColor).value<QColor>();
 	color.setAlphaF(DrawingItemStyle::defaultValue(DrawingItemStyle::PenOpacity).toDouble());
 	mDefaultPenColorWidget->setColor(color);
-	connect(mDefaultPenColorWidget, SIGNAL(colorChanged(const QColor&)), this, SLOT(handleItemDefaultChange()));
+	connect(mDefaultPenColorWidget, SIGNAL(colorChanged(const QColor&)), this, SLOT(handleItemDefaultsChange()));
 
 	mDefaultBrushColorWidget = new ColorWidget();
 	color = DrawingItemStyle::defaultValue(DrawingItemStyle::BrushColor).value<QColor>();
 	color.setAlphaF(DrawingItemStyle::defaultValue(DrawingItemStyle::BrushOpacity).toDouble());
 	mDefaultBrushColorWidget->setColor(color);
-	connect(mDefaultBrushColorWidget, SIGNAL(colorChanged(const QColor&)), this, SLOT(handleItemDefaultChange()));
+	connect(mDefaultBrushColorWidget, SIGNAL(colorChanged(const QColor&)), this, SLOT(handleItemDefaultsChange()));
 
 	// Text widgets
 	mDefaultFontComboBox = new QFontComboBox();
 	mDefaultFontComboBox->setCurrentFont(QFont(DrawingItemStyle::defaultValue(DrawingItemStyle::FontName).toString()));
-	connect(mDefaultFontComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(handleItemDefaultChange()));
+	connect(mDefaultFontComboBox, SIGNAL(activated(int)), this, SLOT(handleItemDefaultsChange()));
 
 	mDefaultFontSizeEdit = new SizeEdit(DrawingItemStyle::defaultValue(DrawingItemStyle::FontSize).toDouble());
-	connect(mDefaultFontSizeEdit, SIGNAL(sizeChanged(qreal)), this, SLOT(handleItemDefaultChange()));
+	connect(mDefaultFontSizeEdit, SIGNAL(sizeChanged(qreal)), this, SLOT(handleItemDefaultsChange()));
 
 	mDefaultFontStyleWidget = new FontStyleWidget();
 	mDefaultFontStyleWidget->setBold(DrawingItemStyle::defaultValue(DrawingItemStyle::FontBold).toBool());
 	mDefaultFontStyleWidget->setItalic(DrawingItemStyle::defaultValue(DrawingItemStyle::FontItalic).toBool());
 	mDefaultFontStyleWidget->setUnderline(DrawingItemStyle::defaultValue(DrawingItemStyle::FontUnderline).toBool());
 	mDefaultFontStyleWidget->setStrikeThrough(DrawingItemStyle::defaultValue(DrawingItemStyle::FontStrikeThrough).toBool());
-	connect(mDefaultFontStyleWidget, SIGNAL(boldChanged(bool)), this, SLOT(handleItemDefaultChange()));
-	connect(mDefaultFontStyleWidget, SIGNAL(italicChanged(bool)), this, SLOT(handleItemDefaultChange()));
-	connect(mDefaultFontStyleWidget, SIGNAL(underlineChanged(bool)), this, SLOT(handleItemDefaultChange()));
-	connect(mDefaultFontStyleWidget, SIGNAL(strikeThroughChanged(bool)), this, SLOT(handleItemDefaultChange()));
+	connect(mDefaultFontStyleWidget, SIGNAL(boldChanged(bool)), this, SLOT(handleItemDefaultsChange()));
+	connect(mDefaultFontStyleWidget, SIGNAL(italicChanged(bool)), this, SLOT(handleItemDefaultsChange()));
+	connect(mDefaultFontStyleWidget, SIGNAL(underlineChanged(bool)), this, SLOT(handleItemDefaultsChange()));
+	connect(mDefaultFontStyleWidget, SIGNAL(strikeThroughChanged(bool)), this, SLOT(handleItemDefaultsChange()));
 
 	mDefaultTextAlignmentWidget = new TextAlignmentWidget();
 	mDefaultTextAlignmentWidget->setAlignment(
 		(Qt::Alignment)DrawingItemStyle::defaultValue(DrawingItemStyle::TextHorizontalAlignment).toUInt(),
 		(Qt::Alignment)DrawingItemStyle::defaultValue(DrawingItemStyle::TextVerticalAlignment).toUInt());
-	connect(mDefaultTextAlignmentWidget, SIGNAL(horizontalAlignmentChanged(Qt::Alignment)), this, SLOT(handleItemDefaultChange()));
-	connect(mDefaultTextAlignmentWidget, SIGNAL(verticalAlignmentChanged(Qt::Alignment)), this, SLOT(handleItemDefaultChange()));
+	connect(mDefaultTextAlignmentWidget, SIGNAL(horizontalAlignmentChanged(Qt::Alignment)), this, SLOT(handleItemDefaultsChange()));
+	connect(mDefaultTextAlignmentWidget, SIGNAL(verticalAlignmentChanged(Qt::Alignment)), this, SLOT(handleItemDefaultsChange()));
 
 	mDefaultTextColorWidget = new ColorWidget();
 	color = DrawingItemStyle::defaultValue(DrawingItemStyle::TextColor).value<QColor>();
 	color.setAlphaF(DrawingItemStyle::defaultValue(DrawingItemStyle::TextOpacity).toDouble());
 	mDefaultTextColorWidget->setColor(color);
-	connect(mDefaultTextColorWidget, SIGNAL(colorChanged(const QColor&)), this, SLOT(handleItemDefaultChange()));
+	connect(mDefaultTextColorWidget, SIGNAL(colorChanged(const QColor&)), this, SLOT(handleItemDefaultsChange()));
 
 	// Arrow widgets
 	mDefaultStartArrowCombo = new ArrowStyleCombo(
 		(DrawingItemStyle::ArrowStyle)DrawingItemStyle::defaultValue(DrawingItemStyle::StartArrowStyle).toUInt());
-	connect(mDefaultStartArrowCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(handleItemDefaultChange()));
+	connect(mDefaultStartArrowCombo, SIGNAL(activated(int)), this, SLOT(handleItemDefaultsChange()));
 
 	mDefaultStartArrowSizeEdit = new SizeEdit(DrawingItemStyle::defaultValue(DrawingItemStyle::StartArrowSize).toDouble());
-	connect(mDefaultStartArrowSizeEdit, SIGNAL(sizeChanged(qreal)), this, SLOT(handleItemDefaultChange()));
+	connect(mDefaultStartArrowSizeEdit, SIGNAL(sizeChanged(qreal)), this, SLOT(handleItemDefaultsChange()));
 
 	mDefaultEndArrowCombo = new ArrowStyleCombo(
 		(DrawingItemStyle::ArrowStyle)DrawingItemStyle::defaultValue(DrawingItemStyle::EndArrowStyle).toUInt());
-	connect(mDefaultEndArrowCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(handleItemDefaultChange()));
+	connect(mDefaultEndArrowCombo, SIGNAL(activated(int)), this, SLOT(handleItemDefaultsChange()));
 
 	mDefaultEndArrowSizeEdit = new SizeEdit(DrawingItemStyle::defaultValue(DrawingItemStyle::EndArrowSize).toDouble());
-	connect(mDefaultEndArrowSizeEdit, SIGNAL(sizeChanged(qreal)), this, SLOT(handleItemDefaultChange()));
+	connect(mDefaultEndArrowSizeEdit, SIGNAL(sizeChanged(qreal)), this, SLOT(handleItemDefaultsChange()));
 
 	// Assemble layout
 	groupBox = new QGroupBox("Pen / Brush Defaults");
@@ -392,9 +596,8 @@ void DynamicPropertiesWidget::createItemDefaultsWidget()
 	itemDefaultPropertiesLayout->addWidget(groupBox);
 
 	itemDefaultPropertiesLayout->addWidget(new QWidget(), 100);
-
-	mItemDefaultPropertiesWidget = new QWidget();
-	mItemDefaultPropertiesWidget->setLayout(itemDefaultPropertiesLayout);
+	itemDefaultPropertiesWidget->setLayout(itemDefaultPropertiesLayout);
+	return itemDefaultPropertiesWidget;
 }
 
 //==================================================================================================
@@ -419,43 +622,43 @@ void DynamicPropertiesWidget::createGeometryWidgets()
 	if (pathItem || polygonItem || polylineItem || textItem || textPolygonItem || groupItem)
 	{
 		mPositionWidget = new PositionWidget(mItem->pos());
-		connect(mPositionWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleGeometryChange()));
+		connect(mPositionWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleItemGeometryChange()));
 	}
 
 	// Line/arc widgets
 	if (arcItem || lineItem)
 	{
 		mStartPositionWidget = new PositionWidget(mItem->mapToScene(mItem->points().first()->pos()));
-		connect(mStartPositionWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleGeometryChange()));
+		connect(mStartPositionWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleItemGeometryChange()));
 
 		mEndPositionWidget = new PositionWidget(mItem->mapToScene(mItem->points().last()->pos()));
-		connect(mEndPositionWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleGeometryChange()));
+		connect(mEndPositionWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleItemGeometryChange()));
 	}
 
 	// Curve widgets
 	if (curveItem)
 	{
 		mCurveStartPositionWidget = new PositionWidget(mItem->mapToScene(mItem->points()[0]->pos()));
-		connect(mCurveStartPositionWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleGeometryChange()));
+		connect(mCurveStartPositionWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleItemGeometryChange()));
 
 		mCurveEndPositionWidget = new PositionWidget(mItem->mapToScene(mItem->points()[1]->pos()));
-		connect(mCurveEndPositionWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleGeometryChange()));
+		connect(mCurveEndPositionWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleItemGeometryChange()));
 
 		mCurveStartControlPositionWidget = new PositionWidget(mItem->mapToScene(mItem->points()[2]->pos()));
-		connect(mCurveStartControlPositionWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleGeometryChange()));
+		connect(mCurveStartControlPositionWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleItemGeometryChange()));
 
 		mCurveEndControlPositionWidget = new PositionWidget(mItem->mapToScene(mItem->points()[3]->pos()));
-		connect(mCurveEndControlPositionWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleGeometryChange()));
+		connect(mCurveEndControlPositionWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleItemGeometryChange()));
 	}
 
 	// Rect widgets
 	if (ellipseItem || pathItem || rectItem || textEllipseItem || textRectItem)
 	{
 		mRectTopLeftWidget = new PositionWidget(mItem->mapToScene(mItem->points()[0]->pos()));
-		connect(mRectTopLeftWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleGeometryChange()));
+		connect(mRectTopLeftWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleItemGeometryChange()));
 
 		mRectBottomRightWidget = new PositionWidget(mItem->mapToScene(mItem->points()[4]->pos()));
-		connect(mRectBottomRightWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleGeometryChange()));
+		connect(mRectBottomRightWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleItemGeometryChange()));
 	}
 
 	if (rectItem || textRectItem)
@@ -465,7 +668,7 @@ void DynamicPropertiesWidget::createGeometryWidgets()
 			mCornerRadiusWidget->setSize(QSizeF(textRectItem->cornerRadiusX(), textRectItem->cornerRadiusY()));
 		else
 			mCornerRadiusWidget->setSize(QSizeF(rectItem->cornerRadiusX(), rectItem->cornerRadiusY()));
-		connect(mCornerRadiusWidget, SIGNAL(sizeChanged(const QSizeF&)), this, SLOT(handleGeometryChange()));
+		connect(mCornerRadiusWidget, SIGNAL(sizeChanged(const QSizeF&)), this, SLOT(handleItemGeometryChange()));
 	}
 
 	// Poly widgets
@@ -475,7 +678,7 @@ void DynamicPropertiesWidget::createGeometryWidgets()
 		for(int i = 0; i < points.size(); i++)
 		{
 			PositionWidget* posWidget = new PositionWidget(mItem->mapToScene(points[i]->pos()));
-			connect(posWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleGeometryChange()));
+			connect(posWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleItemGeometryChange()));
 			mPointPositionWidgets.append(posWidget);
 		}
 	}
@@ -489,7 +692,7 @@ void DynamicPropertiesWidget::createGeometryWidgets()
 		else if (textEllipseItem) mCaptionEdit->setPlainText(textEllipseItem->caption());
 		else if (textPolygonItem) mCaptionEdit->setPlainText(textPolygonItem->caption());
 		else mCaptionEdit->setPlainText(textItem->caption());
-		connect(mCaptionEdit, SIGNAL(textChanged()), this, SLOT(handleGeometryChange()));
+		connect(mCaptionEdit, SIGNAL(textChanged()), this, SLOT(handleItemGeometryChange()));
 	}
 }
 
@@ -522,21 +725,21 @@ void DynamicPropertiesWidget::createStyleWidgets()
 	{
 		mPenStyleCombo = new PenStyleCombo((Qt::PenStyle)propertyValue[DrawingItemStyle::PenStyle].toUInt());
 		mPenStyleCombo->setEnabled(propertiesMatch[DrawingItemStyle::PenStyle]);
-		connect(mPenStyleCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(handleStyleChange()));
+		connect(mPenStyleCombo, SIGNAL(activated(int)), this, SLOT(handleItemsStyleChange()));
 	}
 
 	if (allItemsHaveProperty[DrawingItemStyle::PenWidth])
 	{
 		mPenWidthEdit = new SizeEdit(propertyValue[DrawingItemStyle::PenWidth].toDouble());
 		mPenWidthEdit->setEnabled(propertiesMatch[DrawingItemStyle::PenWidth]);
-		connect(mPenWidthEdit, SIGNAL(sizeChanged(qreal)), this, SLOT(handleStyleChange()));
+		connect(mPenWidthEdit, SIGNAL(sizeChanged(qreal)), this, SLOT(handleItemsStyleChange()));
 	}
 
 	if (allItemsHaveProperty[DrawingItemStyle::PenColor])
 	{
 		mPenColorWidget = new ColorWidget(propertyValue[DrawingItemStyle::PenColor].value<QColor>());
 		mPenColorWidget->setEnabled(propertiesMatch[DrawingItemStyle::PenColor]);
-		connect(mPenColorWidget, SIGNAL(colorChanged(const QColor&)), this, SLOT(handleStyleChange()));
+		connect(mPenColorWidget, SIGNAL(colorChanged(const QColor&)), this, SLOT(handleItemsStyleChange()));
 
 		if (allItemsHaveProperty[DrawingItemStyle::PenOpacity])
 		{
@@ -552,7 +755,7 @@ void DynamicPropertiesWidget::createStyleWidgets()
 	{
 		mBrushColorWidget = new ColorWidget(propertyValue[DrawingItemStyle::BrushColor].value<QColor>());
 		mBrushColorWidget->setEnabled(propertiesMatch[DrawingItemStyle::BrushColor]);
-		connect(mBrushColorWidget, SIGNAL(colorChanged(const QColor&)), this, SLOT(handleStyleChange()));
+		connect(mBrushColorWidget, SIGNAL(colorChanged(const QColor&)), this, SLOT(handleItemsStyleChange()));
 
 		if (allItemsHaveProperty[DrawingItemStyle::BrushOpacity])
 		{
@@ -570,14 +773,14 @@ void DynamicPropertiesWidget::createStyleWidgets()
 		mFontComboBox = new QFontComboBox();
 		mFontComboBox->setCurrentFont(QFont(propertyValue[DrawingItemStyle::FontName].toString()));
 		mFontComboBox->setEnabled(propertiesMatch[DrawingItemStyle::FontName]);
-		connect(mFontComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(handleStyleChange()));
+		connect(mFontComboBox, SIGNAL(activated(int)), this, SLOT(handleItemsStyleChange()));
 	}
 
 	if (allItemsHaveProperty[DrawingItemStyle::FontSize])
 	{
 		mFontSizeEdit = new SizeEdit(propertyValue[DrawingItemStyle::FontSize].toDouble());
 		mFontSizeEdit->setEnabled(propertiesMatch[DrawingItemStyle::FontSize]);
-		connect(mFontSizeEdit, SIGNAL(sizeChanged(qreal)), this, SLOT(handleStyleChange()));
+		connect(mFontSizeEdit, SIGNAL(sizeChanged(qreal)), this, SLOT(handleItemsStyleChange()));
 	}
 
 	if (allItemsHaveProperty[DrawingItemStyle::FontBold] && allItemsHaveProperty[DrawingItemStyle::FontItalic] &&
@@ -592,10 +795,10 @@ void DynamicPropertiesWidget::createStyleWidgets()
 			propertiesMatch[DrawingItemStyle::FontItalic] &&
 			propertiesMatch[DrawingItemStyle::FontUnderline] &&
 			propertiesMatch[DrawingItemStyle::FontStrikeThrough]);
-		connect(mFontStyleWidget, SIGNAL(boldChanged(bool)), this, SLOT(handleStyleChange()));
-		connect(mFontStyleWidget, SIGNAL(italicChanged(bool)), this, SLOT(handleStyleChange()));
-		connect(mFontStyleWidget, SIGNAL(underlineChanged(bool)), this, SLOT(handleStyleChange()));
-		connect(mFontStyleWidget, SIGNAL(strikeThroughChanged(bool)), this, SLOT(handleStyleChange()));
+		connect(mFontStyleWidget, SIGNAL(boldChanged(bool)), this, SLOT(handleItemsStyleChange()));
+		connect(mFontStyleWidget, SIGNAL(italicChanged(bool)), this, SLOT(handleItemsStyleChange()));
+		connect(mFontStyleWidget, SIGNAL(underlineChanged(bool)), this, SLOT(handleItemsStyleChange()));
+		connect(mFontStyleWidget, SIGNAL(strikeThroughChanged(bool)), this, SLOT(handleItemsStyleChange()));
 	}
 
 	if (allItemsHaveProperty[DrawingItemStyle::TextHorizontalAlignment] &&
@@ -607,15 +810,15 @@ void DynamicPropertiesWidget::createStyleWidgets()
 			(Qt::Alignment)propertyValue[DrawingItemStyle::TextVerticalAlignment].toUInt());
 		mTextAlignmentWidget->setEnabled(propertiesMatch[DrawingItemStyle::TextHorizontalAlignment] &&
 			propertiesMatch[DrawingItemStyle::TextVerticalAlignment]);
-		connect(mTextAlignmentWidget, SIGNAL(horizontalAlignmentChanged(Qt::Alignment)), this, SLOT(handleStyleChange()));
-		connect(mTextAlignmentWidget, SIGNAL(verticalAlignmentChanged(Qt::Alignment)), this, SLOT(handleStyleChange()));
+		connect(mTextAlignmentWidget, SIGNAL(horizontalAlignmentChanged(Qt::Alignment)), this, SLOT(handleItemsStyleChange()));
+		connect(mTextAlignmentWidget, SIGNAL(verticalAlignmentChanged(Qt::Alignment)), this, SLOT(handleItemsStyleChange()));
 	}
 
 	if (allItemsHaveProperty[DrawingItemStyle::TextColor])
 	{
 		mTextColorWidget = new ColorWidget(propertyValue[DrawingItemStyle::TextColor].value<QColor>());
 		mTextColorWidget->setEnabled(propertiesMatch[DrawingItemStyle::TextColor]);
-		connect(mTextColorWidget, SIGNAL(colorChanged(const QColor&)), this, SLOT(handleStyleChange()));
+		connect(mTextColorWidget, SIGNAL(colorChanged(const QColor&)), this, SLOT(handleItemsStyleChange()));
 
 		if (allItemsHaveProperty[DrawingItemStyle::TextOpacity])
 		{
@@ -633,14 +836,14 @@ void DynamicPropertiesWidget::createStyleWidgets()
 		mStartArrowCombo = new ArrowStyleCombo(
 			(DrawingItemStyle::ArrowStyle)propertyValue[DrawingItemStyle::StartArrowStyle].toUInt());
 		mStartArrowCombo->setEnabled(propertiesMatch[DrawingItemStyle::StartArrowStyle]);
-		connect(mStartArrowCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(handleStyleChange()));
+		connect(mStartArrowCombo, SIGNAL(activated(int)), this, SLOT(handleItemsStyleChange()));
 	}
 
 	if (allItemsHaveProperty[DrawingItemStyle::StartArrowSize])
 	{
 		mStartArrowSizeEdit = new SizeEdit(propertyValue[DrawingItemStyle::StartArrowSize].toDouble());
 		mStartArrowSizeEdit->setEnabled(propertiesMatch[DrawingItemStyle::StartArrowSize]);
-		connect(mStartArrowSizeEdit, SIGNAL(sizeChanged(qreal)), this, SLOT(handleStyleChange()));
+		connect(mStartArrowSizeEdit, SIGNAL(sizeChanged(qreal)), this, SLOT(handleItemsStyleChange()));
 	}
 
 	if (allItemsHaveProperty[DrawingItemStyle::EndArrowStyle])
@@ -648,18 +851,18 @@ void DynamicPropertiesWidget::createStyleWidgets()
 		mEndArrowCombo = new ArrowStyleCombo(
 			(DrawingItemStyle::ArrowStyle)propertyValue[DrawingItemStyle::EndArrowStyle].toUInt());
 		mEndArrowCombo->setEnabled(propertiesMatch[DrawingItemStyle::EndArrowStyle]);
-		connect(mEndArrowCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(handleStyleChange()));
+		connect(mEndArrowCombo, SIGNAL(activated(int)), this, SLOT(handleItemsStyleChange()));
 	}
 
 	if (allItemsHaveProperty[DrawingItemStyle::EndArrowSize])
 	{
 		mEndArrowSizeEdit = new SizeEdit(propertyValue[DrawingItemStyle::EndArrowSize].toDouble());
 		mEndArrowSizeEdit->setEnabled(propertiesMatch[DrawingItemStyle::EndArrowSize]);
-		connect(mEndArrowSizeEdit, SIGNAL(sizeChanged(qreal)), this, SLOT(handleStyleChange()));
+		connect(mEndArrowSizeEdit, SIGNAL(sizeChanged(qreal)), this, SLOT(handleItemsStyleChange()));
 	}
 }
 
-void DynamicPropertiesWidget::assembleLayout()
+QWidget* DynamicPropertiesWidget::createItemsWidget()
 {
 	QWidget* mainWidget = new QWidget();
 	QVBoxLayout* mainLayout = new QVBoxLayout();
@@ -778,7 +981,7 @@ void DynamicPropertiesWidget::assembleLayout()
 
 	mainLayout->addWidget(new QWidget(), 100);
 	mainWidget->setLayout(mainLayout);
-	mStackedWidget->addWidget(mainWidget);
+	return mainWidget;
 }
 
 void DynamicPropertiesWidget::addWidget(QFormLayout*& formLayout, const QString& label,	QWidget* widget)
@@ -798,9 +1001,10 @@ void DynamicPropertiesWidget::addWidget(QFormLayout*& formLayout, const QString&
 			QCheckBox* checkBox = new QCheckBox(label);
 			checkBox->setChecked(widget->isEnabled());
 			connect(checkBox, SIGNAL(toggled(bool)), widget, SLOT(setEnabled(bool)));
-			connect(checkBox, SIGNAL(toggled(bool)), this, SLOT(handlePropertyChange()));
+			connect(checkBox, SIGNAL(toggled(bool)), this, SLOT(handleItemsStyleChange()));
 
 			formLayout->addRow(checkBox, widget);
+			mItemStyleLabels[widget] = checkBox;
 		}
 		else formLayout->addRow(label, widget);
 

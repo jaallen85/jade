@@ -33,7 +33,7 @@ MainWindow::MainWindow() : QMainWindow()
 	setCentralWidget(mDiagramWidget);
 
 	// Properties widget and dock
-	mPropertiesWidget = new DynamicPropertiesWidget(mDiagramWidget);
+	mPropertiesWidget = new DynamicPropertiesWidget();
 	mPropertiesDock = new QDockWidget("Properties");
 	mPropertiesDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
 	mPropertiesDock->setFeatures(QDockWidget::AllDockWidgetFeatures);
@@ -42,11 +42,11 @@ MainWindow::MainWindow() : QMainWindow()
 
 	connect(mDiagramWidget, SIGNAL(selectionChanged(const QList<DrawingItem*>&)), mPropertiesWidget, SLOT(setSelectedItems(const QList<DrawingItem*>&)));
 	connect(mDiagramWidget, SIGNAL(newItemChanged(DrawingItem*)), mPropertiesWidget, SLOT(setNewItem(DrawingItem*)));
-	connect(mDiagramWidget, SIGNAL(itemsGeometryChanged(const QList<DrawingItem*>&)), mPropertiesWidget, SLOT(updateGeometryFromSelectedItems(const QList<DrawingItem*>&)));
-	connect(mDiagramWidget, SIGNAL(itemsStyleChanged()), mPropertiesWidget, SLOT(updateStylePropertiesFromSelectedItems()));
-	connect(mDiagramWidget, SIGNAL(itemCornerRadiusChanged()), mPropertiesWidget, SLOT(updateCornerRadiusFromSelectedItem()));
-	connect(mDiagramWidget, SIGNAL(itemCaptionChanged()), mPropertiesWidget, SLOT(updateCaptionFromSelectedItem()));
-	connect(mDiagramWidget, SIGNAL(diagramPropertiesChanged()), mPropertiesWidget, SLOT(updatePropertiesFromDiagram()));
+	connect(mDiagramWidget, SIGNAL(itemsGeometryChanged(const QList<DrawingItem*>&)), mPropertiesWidget, SLOT(setItemGeometry(const QList<DrawingItem*>&)));
+	connect(mDiagramWidget, SIGNAL(itemsStyleChanged(const QList<DrawingItem*>&)), mPropertiesWidget, SLOT(setItemsStyleProperties(const QList<DrawingItem*>&)));
+	connect(mDiagramWidget, SIGNAL(itemCornerRadiusChanged(DrawingItem*)), mPropertiesWidget, SLOT(setItemCornerRadius(DrawingItem*)));
+	connect(mDiagramWidget, SIGNAL(itemCaptionChanged(DrawingItem*)), mPropertiesWidget, SLOT(setItemCaption(DrawingItem*)));
+	connect(mDiagramWidget, SIGNAL(diagramPropertiesChanged(const QHash<DiagramWidget::Property,QVariant>&)), mPropertiesWidget, SLOT(setDiagramProperties(const QHash<DiagramWidget::Property,QVariant>&)));
 
 	connect(mPropertiesWidget, SIGNAL(selectedItemMoved(const QPointF&)), mDiagramWidget, SLOT(moveSelection(const QPointF&)));
 	connect(mPropertiesWidget, SIGNAL(selectedItemResized(DrawingItemPoint*, const QPointF&)), mDiagramWidget, SLOT(resizeSelection(DrawingItemPoint*, const QPointF&)));
