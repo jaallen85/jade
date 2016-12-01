@@ -20,6 +20,8 @@
 
 #include "DiagramWidget.h"
 #include "DiagramUndo.h"
+#include "DiagramReader.h"
+#include "DiagramWriter.h"
 
 DiagramWidget::DiagramWidget() : DrawingWidget()
 {
@@ -29,6 +31,7 @@ DiagramWidget::DiagramWidget() : DrawingWidget()
 	mGridSpacingMinor = 2;
 
 	mDragged = false;
+	mConsecutivePastes = 0;
 
 	addActions();
 	createContextMenu();
@@ -73,6 +76,75 @@ int DiagramWidget::gridSpacingMajor() const
 int DiagramWidget::gridSpacingMinor() const
 {
 	return mGridSpacingMinor;
+}
+
+//==================================================================================================
+
+void DiagramWidget::cut()
+{
+	copy();
+	deleteSelection();
+}
+
+void DiagramWidget::copy()
+{
+	if (mode() == DefaultMode)
+	{
+		QClipboard* clipboard = QApplication::clipboard();
+		QList<DrawingItem*> selectedItems = DiagramWidget::selectedItems();
+
+		if (clipboard && !selectedItems.isEmpty())
+		{
+			QString xmlItems;
+
+			DiagramWriter writer(&xmlItems);
+			writer.writeItems(selectedItems);
+
+			clipboard->setText(xmlItems);
+		}
+	}
+}
+
+void DiagramWidget::paste()
+{
+	if (mode() == DefaultMode)
+	{
+		QClipboard* clipboard = QApplication::clipboard();
+		QList<DrawingItem*> newItems;
+
+		if (clipboard)
+		{
+			QString xmlItems = clipboard->text();
+
+			DiagramReader reader(xmlItems);
+			reader.readItems(newItems);
+		}
+
+		if (!newItems.isEmpty())
+		{
+			QUndoCommand* pasteCommand = new QUndoCommand("Paste Items");
+
+			// Offset items based on mConsecutivePastes
+			qreal offset = 2 * mConsecutivePastes * grid();
+			QPointF deltaPosition = QPointF(offset, offset) +
+				roundToGrid(mButtonDownPos - newItems.first()->pos());
+
+			for(auto itemIter = newItems.begin(); itemIter != newItems.end(); itemIter++)
+			{
+				(*itemIter)->setPos((*itemIter)->pos() + deltaPosition);
+				(*itemIter)->setSelected(false);
+			}
+
+			// Add new items to scene and select them
+			addItemsCommand(newItems, false, pasteCommand);
+			selectItemsCommand(newItems, true, pasteCommand);
+
+			pushUndoCommand(pasteCommand);
+
+			mConsecutivePastes++;
+			viewport()->update();
+		}
+	}
 }
 
 //==================================================================================================
@@ -280,6 +352,7 @@ void DiagramWidget::mouseReleaseEvent(QMouseEvent* event)
 	}
 	else DrawingWidget::mouseReleaseEvent(event);
 
+	mConsecutivePastes = 0;
 	mDragged = false;
 }
 

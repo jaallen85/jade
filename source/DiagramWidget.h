@@ -23,9 +23,6 @@
 
 #include <Drawing.h>
 
-//undo command for style changes
-//may need to provide access to Drawing undo commands for property changes
-
 class DiagramWidget : public DrawingWidget
 {
 	Q_OBJECT
@@ -59,6 +56,7 @@ private:
 
 	QPoint mButtonDownPos;
 	bool mDragged;
+	int mConsecutivePastes;
 
 public:
 	DiagramWidget();
@@ -73,9 +71,9 @@ public:
 	int gridSpacingMinor() const;
 
 public slots:
-	//void cut();
-	//void copy();
-	//void paste();
+	void cut();
+	void copy();
+	void paste();
 
 	void setSelectionStyleProperties(const QHash<DrawingItemStyle::Property,QVariant>& properties);
 	void setSelectionCornerRadius(qreal radiusX, qreal radiusY);

@@ -20,17 +20,21 @@ LIBS += ../libjade/lib/jade.lib
 # --------------------------------------------------------------------------------------------------
 
 SOURCES += \
-	source/DiagramUndo.cpp \
-	source/DiagramWidget.cpp \
-	source/DynamicPropertiesWidget.cpp \
+    source/DiagramReader.cpp \
+    source/DiagramUndo.cpp \
+    source/DiagramWidget.cpp \
+    source/DiagramWriter.cpp \
+    source/DynamicPropertiesWidget.cpp \
 	source/HelperWidgets.cpp \
 	source/MainWindow.cpp \
     source/main.cpp
 
 HEADERS += \
-	source/DiagramUndo.h \
-	source/DiagramWidget.h \
-	source/DynamicPropertiesWidget.h \
+    source/DiagramReader.h \
+    source/DiagramUndo.h \
+    source/DiagramWidget.h \
+    source/DiagramWriter.h \
+    source/DynamicPropertiesWidget.h \
 	source/HelperWidgets.h \
 	source/MainWindow.h
 

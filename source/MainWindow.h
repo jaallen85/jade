@@ -42,33 +42,63 @@ public:
 		NumberOfModeActions };
 
 private:
+	QStackedWidget* mStackedWidget;
 	DiagramWidget* mDiagramWidget;
 	QHash<DiagramWidget::Property,QVariant> mDiagramDefaultProperties;
 
 	QComboBox* mZoomCombo;
 
+	DynamicPropertiesWidget* mPropertiesWidget;
+	QDockWidget* mPropertiesDock;
+
 	QLabel* mModeLabel;
 	QLabel* mModifiedLabel;
 	QLabel* mNumberOfItemsLabel;
 	QLabel* mMouseInfoLabel;
-	
-	DynamicPropertiesWidget* mPropertiesWidget;
-	QDockWidget* mPropertiesDock;
 
 	QActionGroup* mModeActionGroup;
 
-public:
-	MainWindow();
-	~MainWindow();
+	bool mPromptCloseUnsaved;
+	bool mPromptOverwrite;
 
-	//void setWidget(DiagramWidget* widget);
-	//void clearWidget();
+	QString mFilePath;
+	QString mFileFilter;
+	QString mFileSuffix;
+	int mNewDiagramCount;
+	QDir mWorkingDir;
+	QByteArray mWindowState;
+
+public:
+	MainWindow(const QString& filePath = QString());
+	~MainWindow();
 
 	void fillDefaultPropertyValues();
 	void loadSettings();
 	void saveSettings();
 
+public slots:
+	bool newDiagram();
+	bool openDiagram();
+	bool saveDiagram();
+	bool saveDiagramAs();
+	bool closeDiagram();
+
+	void exportPng();
+	void exportSvg();
+	void exportOdg();
+
+	void printPreview();
+	void printSetup();
+	void printDiagram();
+	void printPdf();
+
+	void preferences();
+	void about();
+
 private slots:
+	void setWindowTitle(const QString& filePath);
+	void setActionsEnabled(bool diagramVisible);
+
 	void setModeFromAction(QAction* action);
 	void setModeFromDiagram(DrawingWidget::Mode mode);
 
@@ -81,8 +111,17 @@ private slots:
 
 private:
 	void showEvent(QShowEvent* event);
+	void hideEvent(QHideEvent* event);
+	void closeEvent(QCloseEvent* event);
 
 private:
+	bool saveDiagramToFile(const QString& filePath);
+	bool loadDiagramFromFile(const QString& filePath);
+	void clearDiagram();
+
+	void createPropertiesDock();
+	void createStatusBar();
+
 	void createActions();
 	void createMenus();
 	void createToolBars();

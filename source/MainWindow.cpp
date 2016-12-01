@@ -21,73 +21,31 @@
 #include "MainWindow.h"
 #include "DynamicPropertiesWidget.h"
 
-MainWindow::MainWindow() : QMainWindow()
+MainWindow::MainWindow(const QString& filePath) : QMainWindow()
 {
-	// Settings
+	mPromptCloseUnsaved = true;
+	mPromptOverwrite = true;
+	mFileFilter = "Jade Drawings (*.jdm);;All Files (*)";
+	mFileSuffix = "jdm";
+	mNewDiagramCount = 0;
+#ifndef WIN32
+	mWorkingDir = QDir::home();
+#endif
+
 	fillDefaultPropertyValues();
 	loadSettings();
 
-	// Central widget
 	mDiagramWidget = new DiagramWidget();
 	mDiagramWidget->setFlags(DrawingWidget::UndoableSelectCommands);
-	setCentralWidget(mDiagramWidget);
 
-	// Properties widget and dock
-	mPropertiesWidget = new DynamicPropertiesWidget();
-	mPropertiesDock = new QDockWidget("Properties");
-	mPropertiesDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-	mPropertiesDock->setFeatures(QDockWidget::AllDockWidgetFeatures);
-	mPropertiesDock->setWidget(mPropertiesWidget);
-	addDockWidget(Qt::RightDockWidgetArea, mPropertiesDock);
+	mStackedWidget = new QStackedWidget();
+	mStackedWidget->addWidget(new QWidget());
+	mStackedWidget->addWidget(mDiagramWidget);
+	setCentralWidget(mStackedWidget);
 
-	connect(mDiagramWidget, SIGNAL(selectionChanged(const QList<DrawingItem*>&)), mPropertiesWidget, SLOT(setSelectedItems(const QList<DrawingItem*>&)));
-	connect(mDiagramWidget, SIGNAL(newItemChanged(DrawingItem*)), mPropertiesWidget, SLOT(setNewItem(DrawingItem*)));
-	connect(mDiagramWidget, SIGNAL(itemsGeometryChanged(const QList<DrawingItem*>&)), mPropertiesWidget, SLOT(setItemGeometry(const QList<DrawingItem*>&)));
-	connect(mDiagramWidget, SIGNAL(itemsStyleChanged(const QList<DrawingItem*>&)), mPropertiesWidget, SLOT(setItemsStyleProperties(const QList<DrawingItem*>&)));
-	connect(mDiagramWidget, SIGNAL(itemCornerRadiusChanged(DrawingItem*)), mPropertiesWidget, SLOT(setItemCornerRadius(DrawingItem*)));
-	connect(mDiagramWidget, SIGNAL(itemCaptionChanged(DrawingItem*)), mPropertiesWidget, SLOT(setItemCaption(DrawingItem*)));
-	connect(mDiagramWidget, SIGNAL(diagramPropertiesChanged(const QHash<DiagramWidget::Property,QVariant>&)), mPropertiesWidget, SLOT(setDiagramProperties(const QHash<DiagramWidget::Property,QVariant>&)));
+	createPropertiesDock();
+	createStatusBar();
 
-	connect(mPropertiesWidget, SIGNAL(selectedItemMoved(const QPointF&)), mDiagramWidget, SLOT(moveSelection(const QPointF&)));
-	connect(mPropertiesWidget, SIGNAL(selectedItemResized(DrawingItemPoint*, const QPointF&)), mDiagramWidget, SLOT(resizeSelection(DrawingItemPoint*, const QPointF&)));
-	connect(mPropertiesWidget, SIGNAL(selectedItemsStyleChanged(const QHash<DrawingItemStyle::Property,QVariant>&)),
-		mDiagramWidget, SLOT(setSelectionStyleProperties(const QHash<DrawingItemStyle::Property,QVariant>&)));
-	connect(mPropertiesWidget, SIGNAL(selectedItemCornerRadiusChanged(qreal,qreal)), mDiagramWidget, SLOT(setSelectionCornerRadius(qreal,qreal)));
-	connect(mPropertiesWidget, SIGNAL(selectedItemCaptionChanged(const QString&)), mDiagramWidget, SLOT(setSelectionCaption(const QString&)));
-	connect(mPropertiesWidget, SIGNAL(diagramPropertiesChanged(const QHash<DiagramWidget::Property,QVariant>&)),
-		mDiagramWidget, SLOT(setProperties(const QHash<DiagramWidget::Property,QVariant>&)));
-
-	connect(mDiagramWidget, SIGNAL(propertiesTriggered()), mPropertiesDock, SLOT(show()));
-
-	// Status bar
-	mModeLabel = new QLabel("Select Mode");
-	mModifiedLabel = new QLabel("Modified");
-	mNumberOfItemsLabel = new QLabel("0");
-	mMouseInfoLabel = new QLabel("");
-	mModeLabel->setMinimumWidth(QFontMetrics(mModeLabel->font()).width("Select Mode") + 64);
-	mModifiedLabel->setMinimumWidth(QFontMetrics(mModifiedLabel->font()).width("Modified") + 64);
-	mNumberOfItemsLabel->setMinimumWidth(QFontMetrics(mNumberOfItemsLabel->font()).width("888888") + 48);
-	statusBar()->addWidget(mModeLabel);
-	statusBar()->addWidget(mModifiedLabel);
-	statusBar()->addWidget(mNumberOfItemsLabel);
-	statusBar()->addWidget(mMouseInfoLabel, 100);
-
-	connect(mDiagramWidget, SIGNAL(modeChanged(DrawingWidget::Mode)), this, SLOT(setModeText(DrawingWidget::Mode)));
-	connect(mDiagramWidget, SIGNAL(cleanChanged(bool)), this, SLOT(setModifiedText(bool)));
-	connect(mDiagramWidget, SIGNAL(numberOfItemsChanged(int)), this, SLOT(setNumberOfItemsText(int)));
-	connect(mDiagramWidget, SIGNAL(mouseInfoChanged(const QString&)), mMouseInfoLabel, SLOT(setText(const QString&)));
-
-	// Zoom combo
-	mZoomCombo = new QComboBox();
-	mZoomCombo->setMinimumWidth(QFontMetrics(mZoomCombo->font()).width("XXXXXX.XX%") + 48);
-	mZoomCombo->addItems(QStringList() << "Fit to Page" << "25%" << "50%" << "100%" << "150%" << "200%" << "300%" << "400%");
-	mZoomCombo->setEditable(true);
-	mZoomCombo->setCurrentIndex(3);
-
-	connect(mDiagramWidget, SIGNAL(scaleChanged(qreal)), this, SLOT(setZoomComboText(qreal)));
-	connect(mZoomCombo, SIGNAL(activated(const QString&)), this, SLOT(setZoomLevel(const QString&)));
-
-	// Final setup
 	createActions();
 	createMenus();
 	createToolBars();
@@ -95,6 +53,16 @@ MainWindow::MainWindow() : QMainWindow()
 	setWindowTitle("Jade");
 	setWindowIcon(QIcon(":/icons/jade/diagram.png"));
 	resize(1290, 760);
+
+	if (!filePath.isEmpty() && loadDiagramFromFile(filePath))
+	{
+		mFilePath = filePath;
+
+		setWindowTitle(filePath);
+		mPropertiesWidget->setDiagramProperties(mDiagramWidget->properties());
+		setDrawingVisible(true);
+	}
+	else newDiagram();
 }
 
 MainWindow::~MainWindow() { }
@@ -148,6 +116,240 @@ void MainWindow::loadSettings()
 void MainWindow::saveSettings()
 {
 
+}
+
+//==================================================================================================
+
+bool MainWindow::newDiagram()
+{
+	bool drawingCreated = false;
+
+	if (closeDrawing())
+	{
+		drawingCreated = true;
+		mNewDrawingCount++;
+
+		mDrawingWidget->setSceneRect(mDefaultSceneRect);
+		mDrawingWidget->setGrid(mDefaultGrid);
+		mDrawingWidget->setBackgroundBrush(mDefaultBackgroundBrush);
+		mDrawingWidget->setGridStyle(mDefaultGridStyle);
+		mDrawingWidget->setGridBrush(mDefaultGridBrush);
+		mDrawingWidget->setGridSpacing(mDefaultGridSpacingMajor, mDefaultGridSpacingMinor);
+
+		setFilePath("Untitled " + QString::number(mNewDrawingCount));
+		mPropertiesWidget->setDrawingProperties(mDrawingWidget->sceneRect(), mDrawingWidget->grid(),
+			mDrawingWidget->backgroundBrush(), mDrawingWidget->gridStyle(), mDrawingWidget->gridBrush(),
+			mDrawingWidget->gridSpacingMajor(), mDrawingWidget->gridSpacingMinor());
+		setDrawingVisible(true);
+		mDrawingWidget->zoomFit();
+	}
+
+	return drawingCreated;
+}
+
+bool MainWindow::openDiagram()
+{
+	bool drawingOpened = false;
+
+	QString filePath = mWorkingDir.path();
+	QFileDialog::Options options = (mPromptOverwrite) ? (QFileDialog::Options)0 : QFileDialog::DontConfirmOverwrite;
+
+	filePath = QFileDialog::getOpenFileName(this, "Open File", filePath, mFileFilter, nullptr, options);
+	if (!filePath.isEmpty())
+	{
+		QFileInfo fileInfo(filePath);
+		mWorkingDir = fileInfo.dir();
+
+		drawingOpened = loadDrawingFromFile(filePath);
+		if (drawingOpened)
+		{
+			setFilePath(filePath);
+			mPropertiesWidget->setDrawingProperties(mDrawingWidget->sceneRect(), mDrawingWidget->grid(),
+				mDrawingWidget->backgroundBrush(), mDrawingWidget->gridStyle(), mDrawingWidget->gridBrush(),
+				mDrawingWidget->gridSpacingMajor(), mDrawingWidget->gridSpacingMinor());
+			setDrawingVisible(true);
+			mDrawingWidget->zoomFit();
+		}
+		else
+		{
+			QMessageBox::critical(this, "Error Reading File",
+				"File could not be read. Please ensure that this file is a valid Jade drawing.");
+
+			setDrawingVisible(false);
+			setFilePath("");
+			clearDrawing();
+		}
+	}
+
+	return drawingOpened;
+}
+
+bool MainWindow::saveDiagram()
+{
+	bool drawingSaved = false;
+
+	if (isDrawingVisible())
+	{
+		if (!mFilePath.startsWith("Untitled"))
+		{
+			drawingSaved = saveDrawingToFile(mFilePath);
+			if (!drawingSaved)
+			{
+				QMessageBox::critical(this, "Error Saving File",
+					"Unable to open " + mFilePath + "for saving.  File not saved!");
+			}
+		}
+
+		else drawingSaved = saveDrawingAs();
+	}
+
+	return drawingSaved;
+}
+
+bool MainWindow::saveDiagramAs()
+{
+	bool drawingSaved = false;
+
+	if (isDrawingVisible())
+	{
+		QString filePath = (mFilePath.startsWith("Untitled")) ? mWorkingDir.path() : mFilePath;
+		QFileDialog::Options options = (mPromptOverwrite) ? (QFileDialog::Options)0 : QFileDialog::DontConfirmOverwrite;
+
+		filePath = QFileDialog::getSaveFileName(this, "Save File", filePath, mFileFilter, nullptr, options);
+		if (!filePath.isEmpty())
+		{
+			QFileInfo fileInfo(filePath);
+			mWorkingDir = fileInfo.dir();
+
+			if (!filePath.endsWith("." + mFileSuffix, Qt::CaseInsensitive))
+				filePath += "." + mFileSuffix;
+
+			drawingSaved = saveDrawingToFile(filePath);
+			if (drawingSaved) setFilePath(filePath);
+		}
+	}
+
+	return drawingSaved;
+}
+
+bool MainWindow::closeDiagram()
+{
+	bool drawingClosed = true;
+
+	if (isDrawingVisible())
+	{
+		QMessageBox::StandardButton button = QMessageBox::Yes;
+
+		if (mPromptCloseUnsaved && !mDrawingWidget->isClean())
+		{
+			QFileInfo fileInfo(mFilePath);
+
+			button = QMessageBox::question(this, "Save Changes",
+				"Save changes to " + fileInfo.fileName() + " before closing?",
+				QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel, QMessageBox::Yes);
+
+			if (button == QMessageBox::Yes)
+			{
+				if (mFilePath.startsWith("Untitled"))
+				{
+					if (!saveDrawingAs()) button = QMessageBox::Cancel;
+				}
+				else saveDrawing();
+			}
+		}
+
+		drawingClosed = (button != QMessageBox::Cancel);
+		if (drawingClosed)
+		{
+			setDrawingVisible(false);
+			setFilePath("");
+			clearDrawing();
+		}
+	}
+
+	return drawingClosed;
+}
+
+//==================================================================================================
+
+void MainWindow::exportPng()
+{
+
+}
+
+void MainWindow::exportSvg()
+{
+
+}
+
+void MainWindow::exportOdg()
+{
+
+}
+
+//==================================================================================================
+
+void MainWindow::printPreview()
+{
+
+}
+
+void MainWindow::printSetup()
+{
+
+}
+
+void MainWindow::printDiagram()
+{
+
+}
+
+void MainWindow::printPdf()
+{
+
+}
+
+//==================================================================================================
+
+void MainWindow::preferences()
+{
+
+}
+
+void MainWindow::about()
+{
+
+}
+
+//==================================================================================================
+
+void MainWindow::setWindowTitle(const QString& filePath)
+{
+	QFileInfo fileInfo(filePath);
+	QString fileName = fileInfo.fileName();
+
+	setWindowTitle(fileName.isEmpty() ? "Jade" : fileName + " - " + "Jade");
+}
+
+void MainWindow::setActionsEnabled(bool diagramVisible)
+{
+	QList<QAction*> actions = MainWindow::actions();
+	QList<QAction*> diagramActions = mDiagramWidget->actions();
+	QList<QAction*> modeActions = mModeActionGroup->actions();
+
+	while (!diagramActions.isEmpty())
+		diagramActions.takeFirst()->setEnabled(diagramVisible);
+	while (!modeActions.isEmpty())
+		modeActions.takeFirst()->setEnabled(diagramVisible);
+
+	actions[ExportPngAction]->setEnabled(diagramVisible);
+	actions[ExportSvgAction]->setEnabled(diagramVisible);
+	actions[ExportOdgAction]->setEnabled(diagramVisible);
+	actions[PrintPreviewAction]->setEnabled(diagramVisible);
+	actions[PrintAction]->setEnabled(diagramVisible);
+	actions[PrintPdfAction]->setEnabled(diagramVisible);
+
+	setWindowTitle(diagramVisible ? mFilePath : "");
 }
 
 //==================================================================================================
@@ -250,7 +452,126 @@ void MainWindow::setZoomLevel(const QString& text)
 void MainWindow::showEvent(QShowEvent* event)
 {
 	QMainWindow::showEvent(event);
-	if (!event->spontaneous()) mDiagramWidget->zoomFit();
+
+	if (!event->spontaneous())
+	{
+		if (mDrawingWidget) mDrawingWidget->zoomFit();
+	}
+	else if (!mWindowState.isEmpty()) restoreState(mWindowState);
+}
+
+void MainWindow::hideEvent(QHideEvent* event)
+{
+	QMainWindow::hideEvent(event);
+
+	if (event->spontaneous()) mWindowState = saveState();
+}
+
+void MainWindow::closeEvent(QCloseEvent* event)
+{
+	if (closeDrawing())
+	{
+		savePreferences();
+		event->accept();
+	}
+	else event->ignore();
+}
+
+//==================================================================================================
+
+bool MainWindow::saveDiagramToFile(const QString& filePath)
+{
+	QFile dataFile(filePath);
+
+	bool fileError = !dataFile.open(QIODevice::WriteOnly);
+	if (!fileError)
+	{
+		DrawingWriter writer(&dataFile);
+		writer.write(mDrawingWidget);
+		dataFile.close();
+
+		mDrawingWidget->setClean();
+		mDrawingWidget->viewport()->update();
+	}
+
+	return (!fileError);
+}
+
+bool MainWindow::loadDiagramFromFile(const QString& filePath)
+{
+	QFile dataFile(filePath);
+
+	bool fileError = !dataFile.open(QIODevice::ReadOnly);
+	if (!fileError)
+	{
+		clearDrawing();
+
+		DrawingReader reader(&dataFile);
+		reader.read(mDrawingWidget);
+		dataFile.close();
+
+		mDrawingWidget->setClean();
+		mDrawingWidget->viewport()->update();
+	}
+
+	return (!fileError);
+}
+
+void MainWindow::clearDiagram()
+{
+	mDrawingWidget->setDefaultMode();
+	mDrawingWidget->clearItems();
+}
+
+//==================================================================================================
+
+void MainWindow::createPropertiesDock()
+{
+	mPropertiesWidget = new DynamicPropertiesWidget();
+	mPropertiesDock = new QDockWidget("Properties");
+	mPropertiesDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+	mPropertiesDock->setFeatures(QDockWidget::AllDockWidgetFeatures);
+	mPropertiesDock->setWidget(mPropertiesWidget);
+	addDockWidget(Qt::RightDockWidgetArea, mPropertiesDock);
+
+	connect(mDiagramWidget, SIGNAL(selectionChanged(const QList<DrawingItem*>&)), mPropertiesWidget, SLOT(setSelectedItems(const QList<DrawingItem*>&)));
+	connect(mDiagramWidget, SIGNAL(newItemChanged(DrawingItem*)), mPropertiesWidget, SLOT(setNewItem(DrawingItem*)));
+	connect(mDiagramWidget, SIGNAL(itemsGeometryChanged(const QList<DrawingItem*>&)), mPropertiesWidget, SLOT(setItemGeometry(const QList<DrawingItem*>&)));
+	connect(mDiagramWidget, SIGNAL(itemsStyleChanged(const QList<DrawingItem*>&)), mPropertiesWidget, SLOT(setItemsStyleProperties(const QList<DrawingItem*>&)));
+	connect(mDiagramWidget, SIGNAL(itemCornerRadiusChanged(DrawingItem*)), mPropertiesWidget, SLOT(setItemCornerRadius(DrawingItem*)));
+	connect(mDiagramWidget, SIGNAL(itemCaptionChanged(DrawingItem*)), mPropertiesWidget, SLOT(setItemCaption(DrawingItem*)));
+	connect(mDiagramWidget, SIGNAL(diagramPropertiesChanged(const QHash<DiagramWidget::Property,QVariant>&)), mPropertiesWidget, SLOT(setDiagramProperties(const QHash<DiagramWidget::Property,QVariant>&)));
+
+	connect(mPropertiesWidget, SIGNAL(selectedItemMoved(const QPointF&)), mDiagramWidget, SLOT(moveSelection(const QPointF&)));
+	connect(mPropertiesWidget, SIGNAL(selectedItemResized(DrawingItemPoint*, const QPointF&)), mDiagramWidget, SLOT(resizeSelection(DrawingItemPoint*, const QPointF&)));
+	connect(mPropertiesWidget, SIGNAL(selectedItemsStyleChanged(const QHash<DrawingItemStyle::Property,QVariant>&)),
+		mDiagramWidget, SLOT(setSelectionStyleProperties(const QHash<DrawingItemStyle::Property,QVariant>&)));
+	connect(mPropertiesWidget, SIGNAL(selectedItemCornerRadiusChanged(qreal,qreal)), mDiagramWidget, SLOT(setSelectionCornerRadius(qreal,qreal)));
+	connect(mPropertiesWidget, SIGNAL(selectedItemCaptionChanged(const QString&)), mDiagramWidget, SLOT(setSelectionCaption(const QString&)));
+	connect(mPropertiesWidget, SIGNAL(diagramPropertiesChanged(const QHash<DiagramWidget::Property,QVariant>&)),
+		mDiagramWidget, SLOT(setProperties(const QHash<DiagramWidget::Property,QVariant>&)));
+
+	connect(mDiagramWidget, SIGNAL(propertiesTriggered()), mPropertiesDock, SLOT(show()));
+}
+
+void MainWindow::createStatusBar()
+{
+	mModeLabel = new QLabel("Select Mode");
+	mModifiedLabel = new QLabel("Modified");
+	mNumberOfItemsLabel = new QLabel("0");
+	mMouseInfoLabel = new QLabel("");
+	mModeLabel->setMinimumWidth(QFontMetrics(mModeLabel->font()).width("Select Mode") + 64);
+	mModifiedLabel->setMinimumWidth(QFontMetrics(mModifiedLabel->font()).width("Modified") + 64);
+	mNumberOfItemsLabel->setMinimumWidth(QFontMetrics(mNumberOfItemsLabel->font()).width("888888") + 48);
+	statusBar()->addWidget(mModeLabel);
+	statusBar()->addWidget(mModifiedLabel);
+	statusBar()->addWidget(mNumberOfItemsLabel);
+	statusBar()->addWidget(mMouseInfoLabel, 100);
+
+	connect(mDiagramWidget, SIGNAL(modeChanged(DrawingWidget::Mode)), this, SLOT(setModeText(DrawingWidget::Mode)));
+	connect(mDiagramWidget, SIGNAL(cleanChanged(bool)), this, SLOT(setModifiedText(bool)));
+	connect(mDiagramWidget, SIGNAL(numberOfItemsChanged(int)), this, SLOT(setNumberOfItemsText(int)));
+	connect(mDiagramWidget, SIGNAL(mouseInfoChanged(const QString&)), mMouseInfoLabel, SLOT(setText(const QString&)));
 }
 
 //==================================================================================================
@@ -385,6 +706,15 @@ void MainWindow::createMenus()
 
 void MainWindow::createToolBars()
 {
+	mZoomCombo = new QComboBox();
+	mZoomCombo->setMinimumWidth(QFontMetrics(mZoomCombo->font()).width("XXXXXX.XX%") + 48);
+	mZoomCombo->addItems(QStringList() << "Fit to Page" << "25%" << "50%" << "100%" << "150%" << "200%" << "300%" << "400%");
+	mZoomCombo->setEditable(true);
+	mZoomCombo->setCurrentIndex(3);
+
+	connect(mDiagramWidget, SIGNAL(scaleChanged(qreal)), this, SLOT(setZoomComboText(qreal)));
+	connect(mZoomCombo, SIGNAL(activated(const QString&)), this, SLOT(setZoomLevel(const QString&)));
+
 	QWidget* zoomWidget = new QWidget();
 	QHBoxLayout* zoomLayout = new QHBoxLayout();
 	zoomLayout->addWidget(mZoomCombo);
