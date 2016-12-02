@@ -22,12 +22,10 @@
 #define MAINWINDOW_H
 
 #include <DiagramWidget.h>
+#include <QtPrintSupport>
+#include <QtSvg>
 
 class DynamicPropertiesWidget;
-
-// Todo: DrawingWriter, DrawingReader
-// Todo: Print support, print to PDF
-// Todo: Export to PNG, SVG, ODG
 
 class MainWindow : public QMainWindow
 {
@@ -75,6 +73,11 @@ private:
 	QDir mWorkingDir;
 	QByteArray mWindowState;
 
+	QSize mPrevExportSize;
+	bool mPrevMaintainAspectRatio;
+
+	QPrinter mPrinter;
+
 public:
 	MainWindow(const QString& filePath = QString());
 	~MainWindow();
@@ -117,6 +120,8 @@ private slots:
 
 	void setZoomComboText(qreal scale);
 	void setZoomLevel(const QString& text);
+
+	void printPages(QPrinter* printer);
 
 private:
 	void showEvent(QShowEvent* event);

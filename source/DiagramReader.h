@@ -30,8 +30,38 @@ public:
 	DiagramReader(const QString & data);
 	~DiagramReader();
 
-	void read(DiagramWidget* drawing);
+	void read(DiagramWidget* diagram);
 	void readItems(QList<DrawingItem*>& items);
+
+private:
+	QList<DrawingItem*> readItemElements();
+
+	DrawingLineItem* readLineItem();
+	DrawingArcItem* readArcItem();
+	DrawingPolylineItem* readPolylineItem();
+	DrawingCurveItem* readCurveItem();
+	DrawingRectItem* readRectItem();
+	DrawingEllipseItem* readEllipseItem();
+	DrawingPolygonItem* readPolygonItem();
+	DrawingTextItem* readTextItem();
+	DrawingTextRectItem* readTextRectItem();
+	DrawingTextEllipseItem* readTextEllipseItem();
+	DrawingTextPolygonItem* readTextPolygonItem();
+	DrawingPathItem* readPathItem();
+	DrawingItemGroup* readItemGroup();
+
+	void readItemStyle(DrawingItemStyle* style);
+
+	Qt::Alignment alignmentFromString(const QString& str) const;
+	DrawingItemStyle::ArrowStyle arrowStyleFromString(const QString& str) const;
+	QColor colorFromString(const QString& str) const;
+	DiagramWidget::GridRenderStyle gridStyleFromString(const QString& str) const;
+	QPainterPath pathFromString(const QString& str) const;
+	Qt::PenStyle penStyleFromString(const QString& str) const;
+	Qt::PenCapStyle penCapStyleFromString(const QString& str) const;
+	Qt::PenJoinStyle penJoinStyleFromString(const QString& str) const;
+	QPolygonF pointsFromString(const QString& str) const;
+	void transformFromString(const QString& str, DrawingItem* item);
 };
 
 #endif

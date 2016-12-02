@@ -30,8 +30,38 @@ public:
 	DiagramWriter(QString* string);
 	~DiagramWriter();
 
-	void write(DiagramWidget* drawing);
+	void write(DiagramWidget* diagram);
 	void writeItems(const QList<DrawingItem*>& items);
+
+private:
+	void writeItemElements(const QList<DrawingItem*>& items);
+
+	void writeLineItem(DrawingLineItem* item);
+	void writeArcItem(DrawingArcItem* item);
+	void writePolylineItem(DrawingPolylineItem* item);
+	void writeCurveItem(DrawingCurveItem* item);
+	void writeRectItem(DrawingRectItem* item);
+	void writeEllipseItem(DrawingEllipseItem* item);
+	void writePolygonItem(DrawingPolygonItem* item);
+	void writeTextItem(DrawingTextItem* item);
+	void writeTextRectItem(DrawingTextRectItem* item);
+	void writeTextEllipseItem(DrawingTextEllipseItem* item);
+	void writeTextPolygonItem(DrawingTextPolygonItem* item);
+	void writePathItem(DrawingPathItem* item);
+	void writeItemGroup(DrawingItemGroup* item);
+
+	void writeItemStyle(DrawingItemStyle* style);
+
+	QString alignmentToString(Qt::Alignment align) const;
+	QString arrowStyleToString(DrawingItemStyle::ArrowStyle style) const;
+	QString colorToString(const QColor& color) const;
+	QString gridStyleToString(DiagramWidget::GridRenderStyle gridStyle) const;
+	QString pathToString(const QPainterPath& path) const;
+	QString penStyleToString(Qt::PenStyle style) const;
+	QString penCapStyleToString(Qt::PenCapStyle style) const;
+	QString penJoinStyleToString(Qt::PenJoinStyle style) const;
+	QString pointsToString(const QPolygonF& points) const;
+	QString transformToString(const QPointF& pos, qreal rotation, bool flipped) const;
 };
 
 #endif

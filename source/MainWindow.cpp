@@ -24,8 +24,10 @@
 #include "DiagramReader.h"
 #include "PreferencesDialog.h"
 #include "AboutDialog.h"
+#include "ExportOptionsDialog.h"
 #include "ElectricItems.h"
 #include "LogicItems.h"
+#include "OdgWriter.h"
 
 //#define RELEASE_BUILD
 #undef RELEASE_BUILD
@@ -41,10 +43,11 @@ MainWindow::MainWindow(const QString& filePath) : QMainWindow()
 	mWorkingDir = QDir::home();
 #endif
 
+	mPrevMaintainAspectRatio = true;
+
 	loadSettings();
 
 	mDiagramWidget = new DiagramWidget();
-	mDiagramWidget->setFlags(DrawingWidget::UndoableSelectCommands);
 
 	mStackedWidget = new QStackedWidget();
 	mStackedWidget->addWidget(new QWidget());
@@ -143,10 +146,15 @@ void MainWindow::loadSettings()
 	}
 	settings.endGroup();
 
+	mPrinter.setPageOrientation(QPageLayout::Landscape);
+	mPrinter.setPageSize(QPageSize(QPageSize::Letter));
+	mPrinter.setPageMargins(QMarginsF(0.5, 0.5, 0.5, 0.5), QPageLayout::Inch);
+	mPrinter.setResolution(600);
+
 	/*settings.beginGroup("Printer");
 	mPrinter.setPageSize((QPrinter::PageSize)settings.value("pageSize", (int)QPrinter::Letter).toInt());
-	mPrinter.setPageMargins(
-		QMarginsF(settings.value("pageMarginLeft", 0.5).toReal(), settings.value("pageMarginTop", 0.5).toReal(),
+	mPrinter.setPageMargins(QMarginsF(
+		settings.value("pageMarginLeft", 0.5).toReal(), settings.value("pageMarginTop", 0.5).toReal(),
 		settings.value("pageMarginRight", 0.5).toReal(), settings.value("pageMarginBottom", 0.5).toReal()),
 		(QPageLayout::Unit)settings.value("pageMarginUnits", (int)QPageLayout::Inch).toInt());
 	mPrinter.setPageOrientation(
@@ -216,7 +224,7 @@ void MainWindow::saveSettings()
 	settings.setValue("workingDir", mWorkingDir.absolutePath());
 	settings.endGroup();
 
-	/*settings.beginGroup("Printer");
+	settings.beginGroup("Printer");
 	settings.setValue("pageSize", (int)mPrinter.pageSize());
 	settings.setValue("pageMarginLeft", mPrinter.pageLayout().margins().left());
 	settings.setValue("pageMarginTop", mPrinter.pageLayout().margins().top());
@@ -225,7 +233,7 @@ void MainWindow::saveSettings()
 	settings.setValue("pageMarginUnits", (int)mPrinter.pageLayout().units());
 	settings.setValue("pageOrientation", (int)mPrinter.pageLayout().orientation());
 	settings.setValue("resolution", mPrinter.resolution());
-	settings.endGroup();*/
+	settings.endGroup();
 }
 
 //==================================================================================================
@@ -261,16 +269,19 @@ bool MainWindow::openDiagram()
 		QFileInfo fileInfo(filePath);
 		mWorkingDir = fileInfo.dir();
 
-		drawingOpened = loadDiagramFromFile(filePath);
-
-		if (!drawingOpened)
+		if (closeDiagram())
 		{
-			QMessageBox::critical(this, "Error Reading File",
-				"File could not be read. Please ensure that this file is a valid Jade drawing: " + filePath);
+			drawingOpened = loadDiagramFromFile(filePath);
 
-			hideDiagram();
+			if (!drawingOpened)
+			{
+				QMessageBox::critical(this, "Error Reading File",
+					"File could not be read. Please ensure that this file is a valid Jade drawing: " + filePath);
+
+				hideDiagram();
+			}
+			else showDiagram();
 		}
-		else showDiagram();
 	}
 
 	return drawingOpened;
@@ -367,39 +378,174 @@ bool MainWindow::closeDiagram()
 
 void MainWindow::exportPng()
 {
+	if (isDiagramVisible())
+	{
+		QString filePath = mFilePath;
+		QFileDialog::Options options = (mPromptOverwrite) ? 0 : QFileDialog::DontConfirmOverwrite;
 
+		if (filePath.startsWith("Untitled")) filePath = mWorkingDir.path();
+		else filePath = filePath.left(filePath.length() - mFileSuffix.length() - 1) + ".png";
+
+		filePath = QFileDialog::getSaveFileName(this, "Export PNG", filePath, "Portable Network Graphics (*.png);;All Files (*)", nullptr, options);
+		if (!filePath.isEmpty())
+		{
+			ExportOptionsDialog exportDialog(mDiagramWidget->sceneRect(), QSize(), mPrevMaintainAspectRatio, 0.2, this);
+
+			if (exportDialog.exec() == QDialog::Accepted)
+			{
+				if (!filePath.endsWith(".png", Qt::CaseInsensitive)) filePath += ".png";
+
+				QImage pngImage(exportDialog.exportSize(), QImage::Format_ARGB32);
+				QPainter painter;
+				QRectF visibleRect = mDiagramWidget->sceneRect();
+
+				mDiagramWidget->clearSelection();
+
+				painter.begin(&pngImage);
+				painter.scale(pngImage.width() / visibleRect.width(), pngImage.height() / visibleRect.height());
+				painter.translate(-visibleRect.left(), -visibleRect.top());
+				painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing, true);
+				mDiagramWidget->renderExport(&painter);
+				painter.end();
+
+				pngImage.save(filePath, "PNG");
+
+				mPrevExportSize = exportDialog.exportSize();
+				mPrevMaintainAspectRatio = exportDialog.maintainAspectRatio();
+			}
+		}
+	}
 }
 
 void MainWindow::exportSvg()
 {
+	if (isDiagramVisible())
+	{
+		QString filePath = mFilePath;
+		QFileDialog::Options options = (mPromptOverwrite) ? 0 : QFileDialog::DontConfirmOverwrite;
 
+		if (filePath.startsWith("Untitled")) filePath = mWorkingDir.path();
+		else filePath = filePath.left(filePath.length() - mFileSuffix.length() - 1) + ".svg";
+
+		filePath = QFileDialog::getSaveFileName(this, "Export SVG", filePath, "Scalable Vector Graphics (*.svg);;All Files (*)", nullptr, options);
+		if (!filePath.isEmpty())
+		{
+			ExportOptionsDialog exportDialog(mDiagramWidget->sceneRect(), QSize(), mPrevMaintainAspectRatio, 0.1, this);
+
+			if (exportDialog.exec() == QDialog::Accepted)
+			{
+				if (!filePath.endsWith(".svg", Qt::CaseInsensitive)) filePath += ".svg";
+
+				QSvgGenerator svgImage;
+				QPainter painter;
+				QRectF visibleRect = mDiagramWidget->sceneRect();
+
+				mDiagramWidget->selectNone();
+
+				svgImage.setFileName(filePath);
+				svgImage.setSize(exportDialog.exportSize());
+				svgImage.setViewBox(QRect(QPoint(0, 0), exportDialog.exportSize()));
+
+				painter.begin(&svgImage);
+				painter.scale(svgImage.size().width() / visibleRect.width(), svgImage.size().height() / visibleRect.height());
+				painter.translate(-visibleRect.left(), -visibleRect.top());
+				painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing, true);
+				mDiagramWidget->renderExport(&painter);
+				painter.end();
+
+				mPrevExportSize = exportDialog.exportSize();
+				mPrevMaintainAspectRatio = exportDialog.maintainAspectRatio();
+			}
+		}
+	}
 }
 
 void MainWindow::exportOdg()
 {
+	if (isDiagramVisible())
+	{
+		QString filePath = mFilePath;
+		QFileDialog::Options options = (mPromptOverwrite) ? 0 : QFileDialog::DontConfirmOverwrite;
 
+		if (filePath.startsWith("Untitled")) filePath = mWorkingDir.path();
+		else filePath = filePath.left(filePath.length() - mFileSuffix.length() - 1) + ".odg";
+
+		filePath = QFileDialog::getSaveFileName(this, "Export to ODG", filePath, "Open Document Graphics (*.odg);;All Files (*)", nullptr, options);
+		if (!filePath.isEmpty())
+		{
+			if (!filePath.endsWith(".odg", Qt::CaseInsensitive)) filePath += ".odg";
+
+			mDiagramWidget->selectNone();
+
+			OdgWriter writer;
+			if (!writer.write(mDiagramWidget, &mPrinter, filePath))
+				QMessageBox::critical(this, "ODG Export Error", writer.errorMessage());
+		}
+	}
 }
 
 //==================================================================================================
 
 void MainWindow::printPreview()
 {
+	if (isDiagramVisible())
+	{
+		QPrintPreviewDialog printPreviewDialog(&mPrinter, this);
+		connect(&printPreviewDialog, SIGNAL(paintRequested(QPrinter*)), this, SLOT(printPages(QPrinter*)));
 
+		mDiagramWidget->clearSelection();
+
+		printPreviewDialog.exec();
+	}
 }
 
 void MainWindow::printSetup()
 {
-
+	if (isDiagramVisible())
+	{
+		QPageSetupDialog printSetupDialog(&mPrinter, this);
+		printSetupDialog.exec();
+	}
 }
 
 void MainWindow::printDiagram()
 {
+	if (isDiagramVisible())
+	{
+		QPrintDialog printDialog(&mPrinter, this);
+		printDialog.setEnabledOptions(QAbstractPrintDialog::PrintShowPageSize);
 
+		mDiagramWidget->clearSelection();
+
+		if (printDialog.exec() == QDialog::Accepted)
+		{
+			for(int i = 0; i < mPrinter.numCopies(); i++) printPages(&mPrinter);
+		}
+	}
 }
 
 void MainWindow::printPdf()
 {
+	if (isDiagramVisible())
+	{
+		QString filePath = mFilePath;
+		QFileDialog::Options options = (mPromptOverwrite) ? 0 : QFileDialog::DontConfirmOverwrite;
 
+		if (filePath.startsWith("Untitled")) filePath = mWorkingDir.path();
+		else filePath = filePath.left(filePath.length() - mFileSuffix.length() - 1) + ".pdf";
+
+		filePath = QFileDialog::getSaveFileName(this, "Print to PDF", filePath, "Portable Document Format (*.pdf);;All Files (*)", nullptr, options);
+		if (!filePath.isEmpty())
+		{
+			if (!filePath.endsWith(".pdf", Qt::CaseInsensitive)) filePath += ".pdf";
+
+			mDiagramWidget->clearSelection();
+
+			mPrinter.setOutputFileName(filePath);
+			printPages(&mPrinter);
+			mPrinter.setOutputFileName("");
+		}
+	}
 }
 
 //==================================================================================================
@@ -428,19 +574,18 @@ void MainWindow::about()
 
 void MainWindow::showDiagram()
 {
-	if (!isDiagramVisible())
-	{
-		setDiagramVisible(true);
+	setDiagramVisible(true);
 
-		mDiagramWidget->setDefaultMode();
-		mPropertiesWidget->setDiagramProperties(mDiagramWidget->properties());
+	mDiagramWidget->setDefaultMode();
+	mPropertiesWidget->setDiagramProperties(mDiagramWidget->properties());
 
-		mDiagramWidget->zoomFit();
+	mDiagramWidget->zoomFit();
 
-		setModifiedText(mDiagramWidget->isClean());
-		setNumberOfItemsText(mDiagramWidget->items().size());
-		mMouseInfoLabel->setText("");
-	}
+	setModifiedText(mDiagramWidget->isClean());
+	setNumberOfItemsText(mDiagramWidget->items().size());
+	mMouseInfoLabel->setText("");
+
+	mPrevExportSize = QSize();
 }
 
 void MainWindow::hideDiagram()
@@ -606,6 +751,37 @@ void MainWindow::setZoomLevel(const QString& text)
 			setZoomComboText(newScale);
 		}
 	}
+}
+
+//==================================================================================================
+
+void MainWindow::printPages(QPrinter* printer)
+{
+	QPainter painter;
+	QRectF visibleRect = mDiagramWidget->sceneRect();
+	qreal pageAspect, scale;
+
+	pageAspect = printer->pageRect().width() / (qreal)printer->pageRect().height();
+	scale = qMin(printer->pageRect().width() / visibleRect.width(),
+		printer->pageRect().height() / visibleRect.height());
+
+	if (visibleRect.height() * pageAspect > visibleRect.width())
+	{
+		visibleRect.adjust(-(visibleRect.height() * pageAspect - visibleRect.width()) / 2, 0,
+			(visibleRect.height() * pageAspect - visibleRect.width()) / 2, 0);
+	}
+	else if (visibleRect.width() / pageAspect > visibleRect.height())
+	{
+		visibleRect.adjust(0, -(visibleRect.width() / pageAspect - visibleRect.height()) / 2,
+			0, (visibleRect.width() / pageAspect - visibleRect.height()) / 2);
+	}
+
+	painter.begin(printer);
+	painter.scale(scale, scale);
+	painter.translate(-visibleRect.left(), -visibleRect.top());
+	painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing, true);
+	mDiagramWidget->renderExport(&painter);
+	painter.end();
 }
 
 //==================================================================================================

@@ -25,12 +25,13 @@
 
 DiagramWidget::DiagramWidget() : DrawingWidget()
 {
+	setFlags(UndoableSelectCommands | SendsMouseMoveInfo);
+
 	mGridStyle = GridGraphPaper;
 	mGridBrush = QColor(0, 128, 128);
 	mGridSpacingMajor = 8;
 	mGridSpacingMinor = 2;
 
-	mDragged = false;
 	mConsecutivePastes = 0;
 
 	addActions();
@@ -108,6 +109,17 @@ QHash<DiagramWidget::Property,QVariant> DiagramWidget::properties() const
 
 //==================================================================================================
 
+void DiagramWidget::renderExport(QPainter* painter)
+{
+	painter->setBrush(backgroundBrush());
+	painter->setPen(Qt::NoPen);
+	painter->drawRect(sceneRect());
+
+	drawItems(painter);
+}
+
+//==================================================================================================
+
 void DiagramWidget::cut()
 {
 	copy();
@@ -155,7 +167,7 @@ void DiagramWidget::paste()
 			// Offset items based on mConsecutivePastes
 			qreal offset = 2 * mConsecutivePastes * grid();
 			QPointF deltaPosition = QPointF(offset, offset) +
-				roundToGrid(mButtonDownPos - newItems.first()->pos());
+				roundToGrid(mButtonDownScenePos - newItems.first()->pos());
 
 			for(auto itemIter = newItems.begin(); itemIter != newItems.end(); itemIter++)
 			{
@@ -305,48 +317,7 @@ void DiagramWidget::mousePressEvent(QMouseEvent* event)
 {
 	DrawingWidget::mousePressEvent(event);
 
-	mButtonDownPos = event->pos();
-	mDragged = false;
-}
-
-void DiagramWidget::mouseMoveEvent(QMouseEvent* event)
-{
-	QString mouseInfoText;
-
-	DrawingWidget::mouseMoveEvent(event);
-
-	mDragged = (mDragged |
-		((mButtonDownPos - event->pos()).manhattanLength() >= QApplication::startDragDistance()));
-
-	if ((event->buttons() & Qt::LeftButton) && mDragged)
-	{
-		QPointF p1 = mapToScene(mButtonDownPos);
-		QPointF p2 = mapToScene(event->pos());
-
-		if (mode() == PlaceMode || mode() == DefaultMode)
-		{
-			p1 = roundToGrid(p1);
-			p2 = roundToGrid(p2);
-		}
-
-		QPointF delta = p2 - p1;
-
-		mouseInfoText += "(" + QString::number(p1.x()) + "," + QString::number(p1.y()) + ")";
-		mouseInfoText += " - (" + QString::number(p2.x()) + "," + QString::number(p2.y()) + ")";
-		mouseInfoText += "  " + QString(QChar(0x394)) + " = (" +
-			QString::number(delta.x()) + "," + QString::number(delta.y()) + ")";
-	}
-	else
-	{
-		QPointF p1 = mapToScene(event->pos());
-
-		if (mode() == PlaceMode || mode() == DefaultMode)
-			p1 = roundToGrid(p1);
-
-		mouseInfoText = "(" + QString::number(p1.x()) + "," + QString::number(p1.y()) + ")";
-	}
-
-	emit mouseInfoChanged(mouseInfoText);
+	mButtonDownScenePos = mapToScene(event->pos());
 }
 
 void DiagramWidget::mouseReleaseEvent(QMouseEvent* event)
@@ -381,7 +352,6 @@ void DiagramWidget::mouseReleaseEvent(QMouseEvent* event)
 	else DrawingWidget::mouseReleaseEvent(event);
 
 	mConsecutivePastes = 0;
-	mDragged = false;
 }
 
 void DiagramWidget::mouseDoubleClickEvent(QMouseEvent* event)

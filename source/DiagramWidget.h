@@ -54,8 +54,7 @@ private:
 	QMenu mMultipleItemContextMenu;
 	QMenu mDrawingContextMenu;
 
-	QPoint mButtonDownPos;
-	bool mDragged;
+	QPointF mButtonDownScenePos;
 	int mConsecutivePastes;
 
 public:
@@ -73,6 +72,8 @@ public:
 	void setProperties(const QHash<DiagramWidget::Property,QVariant>& properties);
 	QHash<DiagramWidget::Property,QVariant> properties() const;
 
+	void renderExport(QPainter* painter);
+
 public slots:
 	void cut();
 	void copy();
@@ -85,7 +86,6 @@ public slots:
 
 signals:
 	void propertiesTriggered();
-	void mouseInfoChanged(const QString& mouseInfo);
 
 	void itemsStyleChanged(const QList<DrawingItem*>& items);
 	void itemCornerRadiusChanged(DrawingItem* item);
@@ -96,7 +96,6 @@ protected:
 	void drawBackground(QPainter* painter);
 
 	void mousePressEvent(QMouseEvent* event);
-	void mouseMoveEvent(QMouseEvent* event);
 	void mouseReleaseEvent(QMouseEvent* event);
 	void mouseDoubleClickEvent(QMouseEvent* event);
 
