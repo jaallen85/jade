@@ -70,6 +70,9 @@ public:
 	int gridSpacingMajor() const;
 	int gridSpacingMinor() const;
 
+	void setProperties(const QHash<DiagramWidget::Property,QVariant>& properties);
+	QHash<DiagramWidget::Property,QVariant> properties() const;
+
 public slots:
 	void cut();
 	void copy();
@@ -78,7 +81,7 @@ public slots:
 	void setSelectionStyleProperties(const QHash<DrawingItemStyle::Property,QVariant>& properties);
 	void setSelectionCornerRadius(qreal radiusX, qreal radiusY);
 	void setSelectionCaption(const QString& newCaption);
-	void setProperties(const QHash<DiagramWidget::Property,QVariant>& properties);
+	void setDiagramProperties(const QHash<DiagramWidget::Property,QVariant>& properties);
 
 signals:
 	void propertiesTriggered();
@@ -105,7 +108,7 @@ private:
 	void setItemsStyle(const QHash< DrawingItem*, QHash<DrawingItemStyle::Property,QVariant> >& properties);
 	void setItemCornerRadius(DrawingItem* item, qreal radiusX, qreal radiusY);
 	void setItemCaption(DrawingItem* item, const QString& caption);
-	void setDiagramProperties(const QHash<DiagramWidget::Property,QVariant>& properties);
+	void setSceneProperties(const QHash<DiagramWidget::Property,QVariant>& properties);
 
 	void addActions();
 	void createContextMenu();

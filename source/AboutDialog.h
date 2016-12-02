@@ -1,4 +1,4 @@
-/* main.cpp
+/* AboutDialog.h
  *
  * Copyright (C) 2013-2016 Jason Allen
  *
@@ -18,20 +18,28 @@
  * along with jade.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#include "MainWindow.h"
+#ifndef ABOUTDIALOG_H
+#define ABOUTDIALOG_H
 
-int main(int argc, char* argv[])
+#include <QtCore>
+
+#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
+#include <QtGui>
+#else
+#include <QtWidgets>
+#endif
+
+class AboutDialog : public QDialog
 {
-	QApplication app(argc, argv);
+	Q_OBJECT
 
-	// Command-line arguments
-	QString filePath;
-	if (app.arguments().size() > 1)
-		filePath = app.arguments()[1];
+private:
+	QFrame* createAboutTab();
+	QFrame* createLicenseTab();
 
-	// Create main window and run
-	MainWindow window(filePath);
-	window.show();
+public:
+	AboutDialog(QWidget* parent = NULL);
+	~AboutDialog();
+};
 
-	return app.exec();
-}
+#endif

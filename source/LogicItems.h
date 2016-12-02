@@ -1,4 +1,4 @@
-/* main.cpp
+/* LogicItems.h
  *
  * Copyright (C) 2013-2016 Jason Allen
  *
@@ -18,20 +18,32 @@
  * along with jade.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#include "MainWindow.h"
+#ifndef LOGICITEMS_H
+#define LOGICITEMS_H
 
-int main(int argc, char* argv[])
+#include <DrawingPathItem.h>
+
+namespace LogicItems
 {
-	QApplication app(argc, argv);
 
-	// Command-line arguments
-	QString filePath;
-	if (app.arguments().size() > 1)
-		filePath = app.arguments()[1];
+QList<DrawingPathItem*> items();
+QStringList icons();
 
-	// Create main window and run
-	MainWindow window(filePath);
-	window.show();
+DrawingPathItem* createAndGate();
+DrawingPathItem* createOrGate();
+DrawingPathItem* createXorGate();
+DrawingPathItem* createXnorGate();
+DrawingPathItem* createNandGate();
+DrawingPathItem* createNorGate();
+DrawingPathItem* createMultiplexer();
+DrawingPathItem* createDemultiplexer();
+DrawingPathItem* createBuffer();
+DrawingPathItem* createNotGate();
+DrawingPathItem* createTristateBuffer1();
+DrawingPathItem* createTristateBuffer2();
+DrawingPathItem* createFlipFlop1();
+DrawingPathItem* createFlipFlop2();
 
-	return app.exec();
 }
+
+#endif

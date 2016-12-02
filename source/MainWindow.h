@@ -25,6 +25,10 @@
 
 class DynamicPropertiesWidget;
 
+// Todo: DrawingWriter, DrawingReader
+// Todo: Print support, print to PDF
+// Todo: Export to PNG, SVG, ODG
+
 class MainWindow : public QMainWindow
 {
 	Q_OBJECT
@@ -57,6 +61,9 @@ private:
 	QLabel* mMouseInfoLabel;
 
 	QActionGroup* mModeActionGroup;
+	QList<DrawingPathItem*> mPathItems;
+	QAction* mElectricItemsAction;
+	QAction* mLogicItemsAction;
 
 	bool mPromptCloseUnsaved;
 	bool mPromptOverwrite;
@@ -72,7 +79,6 @@ public:
 	MainWindow(const QString& filePath = QString());
 	~MainWindow();
 
-	void fillDefaultPropertyValues();
 	void loadSettings();
 	void saveSettings();
 
@@ -95,9 +101,12 @@ public slots:
 	void preferences();
 	void about();
 
+	void showDiagram();
+	void hideDiagram();
+
 private slots:
+	void setDiagramVisible(bool visible);
 	void setWindowTitle(const QString& filePath);
-	void setActionsEnabled(bool diagramVisible);
 
 	void setModeFromAction(QAction* action);
 	void setModeFromDiagram(DrawingWidget::Mode mode);
@@ -115,6 +124,7 @@ private:
 	void closeEvent(QCloseEvent* event);
 
 private:
+	bool isDiagramVisible() const;
 	bool saveDiagramToFile(const QString& filePath);
 	bool loadDiagramFromFile(const QString& filePath);
 	void clearDiagram();
@@ -129,6 +139,8 @@ private:
 		const QString& iconPath = QString(), const QString& shortcut = QString());
 	QAction* addModeAction(const QString& text,
 		const QString& iconPath = QString(), const QString& shortcut = QString());
+	QAction* addPathItems(const QString& name, const QList<DrawingPathItem*>& items,
+		const QStringList& icons);
 };
 
 #endif

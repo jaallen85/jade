@@ -405,6 +405,8 @@ void DynamicPropertiesWidget::setDiagramProperties(const QHash<DiagramWidget::Pr
 
 	if (properties.contains(DiagramWidget::GridSpacingMinor))
 		mDiagramGridSpacingMinorWidget->setText(QString::number(properties.value(DiagramWidget::GridSpacingMinor).toInt()));
+
+	mDiagramGridSpacingMinorWidget->setEnabled(mDiagramGridStyleCombo->currentIndex() == 3);
 }
 
 //==================================================================================================

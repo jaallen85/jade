@@ -20,23 +20,31 @@ LIBS += ../libjade/lib/jade.lib
 # --------------------------------------------------------------------------------------------------
 
 SOURCES += \
-    source/DiagramReader.cpp \
-    source/DiagramUndo.cpp \
+	source/AboutDialog.cpp \
+	source/DiagramReader.cpp \
+	source/DiagramUndo.cpp \
     source/DiagramWidget.cpp \
     source/DiagramWriter.cpp \
     source/DynamicPropertiesWidget.cpp \
+	source/ElectricItems.cpp \
 	source/HelperWidgets.cpp \
+	source/LogicItems.cpp \
 	source/MainWindow.cpp \
-    source/main.cpp
+	source/PreferencesDialog.cpp \
+	source/main.cpp
 
 HEADERS += \
-    source/DiagramReader.h \
-    source/DiagramUndo.h \
+	source/AboutDialog.h \
+	source/DiagramReader.h \
+	source/DiagramUndo.h \
     source/DiagramWidget.h \
     source/DiagramWriter.h \
     source/DynamicPropertiesWidget.h \
+	source/ElectricItems.h \
 	source/HelperWidgets.h \
-	source/MainWindow.h
+	source/LogicItems.h \
+	source/MainWindow.h \
+	source/PreferencesDialog.h
 
 RESOURCES += icons/icons.qrc
 

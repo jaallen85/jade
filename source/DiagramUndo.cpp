@@ -204,12 +204,12 @@ int DiagramSetPropertiesCommand::id() const
 
 void DiagramSetPropertiesCommand::redo()
 {
-	if (mDiagram) mDiagram->setDiagramProperties(mProperties);
+	if (mDiagram) mDiagram->setSceneProperties(mProperties);
 	QUndoCommand::redo();
 }
 
 void DiagramSetPropertiesCommand::undo()
 {
 	QUndoCommand::undo();
-	if (mDiagram) mDiagram->setDiagramProperties(mOriginalProperties);
+	if (mDiagram) mDiagram->setSceneProperties(mOriginalProperties);
 }

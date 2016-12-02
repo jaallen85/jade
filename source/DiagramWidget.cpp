@@ -80,6 +80,34 @@ int DiagramWidget::gridSpacingMinor() const
 
 //==================================================================================================
 
+void DiagramWidget::setProperties(const QHash<DiagramWidget::Property,QVariant>& properties)
+{
+	if (properties.contains(SceneRect)) setSceneRect(properties[SceneRect].toRectF());
+	if (properties.contains(BackgroundColor)) setBackgroundBrush(properties[BackgroundColor].value<QColor>());
+	if (properties.contains(Grid)) setGrid(properties[Grid].toReal());
+	if (properties.contains(GridStyle)) setGridStyle((GridRenderStyle)properties[GridStyle].toUInt());
+	if (properties.contains(GridColor)) setGridBrush(properties[GridColor].value<QColor>());
+	if (properties.contains(GridSpacingMajor)) setGridSpacing(properties[GridSpacingMajor].toInt(), mGridSpacingMinor);
+	if (properties.contains(GridSpacingMinor)) setGridSpacing(mGridSpacingMajor, properties[GridSpacingMinor].toInt());
+}
+
+QHash<DiagramWidget::Property,QVariant> DiagramWidget::properties() const
+{
+	QHash<DiagramWidget::Property,QVariant> properties;
+
+	properties[SceneRect] = sceneRect();
+	properties[BackgroundColor] = backgroundBrush().color();
+	properties[Grid] = grid();
+	properties[GridStyle] = (uint)gridStyle();
+	properties[GridColor] = gridBrush().color();
+	properties[GridSpacingMajor] = gridSpacingMajor();
+	properties[GridSpacingMinor] = gridSpacingMinor();
+
+	return properties;
+}
+
+//==================================================================================================
+
 void DiagramWidget::cut()
 {
 	copy();
@@ -186,7 +214,7 @@ void DiagramWidget::setSelectionCaption(const QString& newCaption)
 	}
 }
 
-void DiagramWidget::setProperties(const QHash<DiagramWidget::Property,QVariant>& properties)
+void DiagramWidget::setDiagramProperties(const QHash<DiagramWidget::Property,QVariant>& properties)
 {
 	if (!properties.isEmpty())
 		pushUndoCommand(new DiagramSetPropertiesCommand(this, properties));
@@ -445,16 +473,9 @@ void DiagramWidget::setItemCaption(DrawingItem* item, const QString& caption)
 	}
 }
 
-void DiagramWidget::setDiagramProperties(const QHash<DiagramWidget::Property,QVariant>& properties)
+void DiagramWidget::setSceneProperties(const QHash<DiagramWidget::Property,QVariant>& properties)
 {
-	if (properties.contains(SceneRect)) setSceneRect(properties[SceneRect].toRectF());
-	if (properties.contains(BackgroundColor)) setBackgroundBrush(properties[BackgroundColor].value<QColor>());
-	if (properties.contains(Grid)) setGrid(properties[Grid].toReal());
-	if (properties.contains(GridStyle)) setGridStyle((GridRenderStyle)properties[GridStyle].toUInt());
-	if (properties.contains(GridColor)) setGridBrush(properties[GridColor].value<QColor>());
-	if (properties.contains(GridSpacingMajor)) setGridSpacing(properties[GridSpacingMajor].toInt(), mGridSpacingMinor);
-	if (properties.contains(GridSpacingMinor)) setGridSpacing(mGridSpacingMajor, properties[GridSpacingMinor].toInt());
-
+	setProperties(properties);
 	emit diagramPropertiesChanged(properties);
 	viewport()->update();
 }

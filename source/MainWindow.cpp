@@ -20,6 +20,15 @@
 
 #include "MainWindow.h"
 #include "DynamicPropertiesWidget.h"
+#include "DiagramWriter.h"
+#include "DiagramReader.h"
+#include "PreferencesDialog.h"
+#include "AboutDialog.h"
+#include "ElectricItems.h"
+#include "LogicItems.h"
+
+//#define RELEASE_BUILD
+#undef RELEASE_BUILD
 
 MainWindow::MainWindow(const QString& filePath) : QMainWindow()
 {
@@ -32,7 +41,6 @@ MainWindow::MainWindow(const QString& filePath) : QMainWindow()
 	mWorkingDir = QDir::home();
 #endif
 
-	fillDefaultPropertyValues();
 	loadSettings();
 
 	mDiagramWidget = new DiagramWidget();
@@ -41,6 +49,7 @@ MainWindow::MainWindow(const QString& filePath) : QMainWindow()
 	mStackedWidget = new QStackedWidget();
 	mStackedWidget->addWidget(new QWidget());
 	mStackedWidget->addWidget(mDiagramWidget);
+	mStackedWidget->setCurrentIndex(0);
 	setCentralWidget(mStackedWidget);
 
 	createPropertiesDock();
@@ -50,101 +59,193 @@ MainWindow::MainWindow(const QString& filePath) : QMainWindow()
 	createMenus();
 	createToolBars();
 
-	setWindowTitle("Jade");
+	QMainWindow::setWindowTitle("Jade");
 	setWindowIcon(QIcon(":/icons/jade/diagram.png"));
 	resize(1290, 760);
 
-	if (!filePath.isEmpty() && loadDiagramFromFile(filePath))
-	{
-		mFilePath = filePath;
-
-		setWindowTitle(filePath);
-		mPropertiesWidget->setDiagramProperties(mDiagramWidget->properties());
-		setDrawingVisible(true);
-	}
+	if (!filePath.isEmpty() && loadDiagramFromFile(filePath)) showDiagram();
 	else newDiagram();
 }
 
-MainWindow::~MainWindow() { }
+MainWindow::~MainWindow()
+{
+	while (!mPathItems.isEmpty()) delete mPathItems.takeFirst();
+}
 
 //==================================================================================================
 
-void MainWindow::fillDefaultPropertyValues()
-{
-	mDiagramDefaultProperties[DiagramWidget::SceneRect] = QRectF(-5000, -3750, 10000, 7500);
-	mDiagramDefaultProperties[DiagramWidget::BackgroundColor] = QColor(255, 255, 255);
-	mDiagramDefaultProperties[DiagramWidget::Grid] = 50;
-	mDiagramDefaultProperties[DiagramWidget::GridStyle] = (quint32)(DiagramWidget::GridGraphPaper);
-	mDiagramDefaultProperties[DiagramWidget::GridColor] = QColor(0, 128, 128);
-	mDiagramDefaultProperties[DiagramWidget::GridSpacingMajor] = 8;
-	mDiagramDefaultProperties[DiagramWidget::GridSpacingMinor] = 2;
-
-	DrawingItemStyle::setDefaultValue(DrawingItemStyle::PenStyle, (uint)(Qt::SolidLine));
-	DrawingItemStyle::setDefaultValue(DrawingItemStyle::PenColor, QColor(0, 0, 0));
-	DrawingItemStyle::setDefaultValue(DrawingItemStyle::PenOpacity, 1.0);
-	DrawingItemStyle::setDefaultValue(DrawingItemStyle::PenWidth, 12.0);
-	DrawingItemStyle::setDefaultValue(DrawingItemStyle::PenCapStyle, (uint)(Qt::RoundCap));
-	DrawingItemStyle::setDefaultValue(DrawingItemStyle::PenJoinStyle, (uint)(Qt::RoundJoin));
-
-	DrawingItemStyle::setDefaultValue(DrawingItemStyle::BrushStyle, (uint)(Qt::SolidPattern));
-	DrawingItemStyle::setDefaultValue(DrawingItemStyle::BrushColor, QColor(255, 255, 255));
-	DrawingItemStyle::setDefaultValue(DrawingItemStyle::BrushOpacity, 1.0);
-
-	DrawingItemStyle::setDefaultValue(DrawingItemStyle::FontName, "Arial");
-	DrawingItemStyle::setDefaultValue(DrawingItemStyle::FontSize, 100.0);
-	DrawingItemStyle::setDefaultValue(DrawingItemStyle::FontBold, false);
-	DrawingItemStyle::setDefaultValue(DrawingItemStyle::FontItalic, false);
-	DrawingItemStyle::setDefaultValue(DrawingItemStyle::FontUnderline, false);
-	DrawingItemStyle::setDefaultValue(DrawingItemStyle::FontOverline, false);
-	DrawingItemStyle::setDefaultValue(DrawingItemStyle::FontStrikeThrough, false);
-	DrawingItemStyle::setDefaultValue(DrawingItemStyle::TextColor, QColor(0, 0, 0));
-	DrawingItemStyle::setDefaultValue(DrawingItemStyle::TextOpacity, 1.0);
-	DrawingItemStyle::setDefaultValue(DrawingItemStyle::TextHorizontalAlignment, (uint)(Qt::AlignHCenter));
-	DrawingItemStyle::setDefaultValue(DrawingItemStyle::TextVerticalAlignment, (uint)(Qt::AlignVCenter));
-
-	DrawingItemStyle::setDefaultValue(DrawingItemStyle::StartArrowStyle, (uint)(DrawingItemStyle::ArrowNone));
-	DrawingItemStyle::setDefaultValue(DrawingItemStyle::StartArrowSize, 100.0);
-	DrawingItemStyle::setDefaultValue(DrawingItemStyle::EndArrowStyle, (uint)(DrawingItemStyle::ArrowNone));
-	DrawingItemStyle::setDefaultValue(DrawingItemStyle::EndArrowSize, 100.0);
-}
-
 void MainWindow::loadSettings()
 {
+#ifdef RELEASE_BUILD
+#ifdef WIN32
+	QString configPath("config.ini");
+#else
+	QString configPath(QDir::home().absoluteFilePath(".jade/config.ini"));
+#endif
+#else
+	QString configPath("config.ini");
+#endif
 
+	QSettings settings(configPath, QSettings::IniFormat);
+
+	settings.beginGroup("Window");
+	restoreGeometry(settings.value("geometry", QVariant()).toByteArray());
+	restoreState(settings.value("state", QVariant()).toByteArray());
+	settings.endGroup();
+
+	settings.beginGroup("Prompts");
+	mPromptCloseUnsaved = settings.value("promptOnClosingUnsaved", QVariant(true)).toBool();
+	mPromptOverwrite = settings.value("promptOnOverwrite", QVariant(true)).toBool();
+	settings.endGroup();
+
+	settings.beginGroup("DrawingDefaults");
+	mDiagramDefaultProperties[DiagramWidget::SceneRect] = settings.value("sceneRect", QVariant(QRectF(-5000, -3750, 10000, 7500))).toRectF();
+	mDiagramDefaultProperties[DiagramWidget::BackgroundColor] = settings.value("backgroundColor", QVariant(QColor(255, 255, 255))).value<QColor>();
+	mDiagramDefaultProperties[DiagramWidget::Grid] = settings.value("grid", QVariant(50.0)).toDouble();
+	mDiagramDefaultProperties[DiagramWidget::GridStyle] = settings.value("gridStyle", QVariant((uint)DiagramWidget::GridGraphPaper)).toUInt();
+	mDiagramDefaultProperties[DiagramWidget::GridSpacingMajor] = settings.value("gridSpacingMajor", QVariant(8)).toInt();
+	mDiagramDefaultProperties[DiagramWidget::GridSpacingMinor] = settings.value("gridSpacingMinor", QVariant(2)).toInt();
+	mDiagramDefaultProperties[DiagramWidget::GridColor] = settings.value("gridColor", QVariant(QColor(0, 128, 128))).value<QColor>();
+	settings.endGroup();
+
+	settings.beginGroup("ItemDefaults");
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::PenStyle, settings.value("penStyle", (uint)(Qt::SolidLine)));
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::PenWidth, settings.value("penWidth", 12.0));
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::PenColor, settings.value("penColor", QColor(0, 0, 0)));
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::PenOpacity, settings.value("penOpacity", 1.0));
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::PenCapStyle, (uint)(Qt::RoundCap));
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::PenJoinStyle, (uint)(Qt::RoundJoin));
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::BrushStyle, (uint)(Qt::SolidPattern));
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::BrushColor, settings.value("brushColor", QColor(255, 255, 255)));
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::BrushOpacity, settings.value("brushOpacity", 1.0));
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::FontName, settings.value("fontName", "Arial"));
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::FontSize, settings.value("fontSize", 100.0));
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::FontBold, settings.value("fontBold", false));
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::FontItalic, settings.value("fontItalic", false));
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::FontUnderline, settings.value("fontUnderline", false));
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::FontOverline, false);
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::FontStrikeThrough, settings.value("fontStrikeThrough", false));
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::TextHorizontalAlignment, settings.value("textAlignHorizontal", (uint)(Qt::AlignHCenter)));
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::TextVerticalAlignment, settings.value("textAlignVertical", (uint)(Qt::AlignVCenter)));
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::TextColor, settings.value("textColor", QColor(0, 0, 0)));
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::TextOpacity, settings.value("textOpacity", 1.0));
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::StartArrowStyle, settings.value("startArrowStyle", (uint)(DrawingItemStyle::ArrowNone)));
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::StartArrowSize, settings.value("startArrowSize", 100.0));
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::EndArrowStyle, settings.value("endArrowStyle", (uint)(DrawingItemStyle::ArrowNone)));
+	DrawingItemStyle::setDefaultValue(DrawingItemStyle::EndArrowSize, settings.value("endArrowSize", 100.0));
+	settings.endGroup();
+
+	settings.beginGroup("Recent");
+	if (settings.contains("workingDir"))
+	{
+		QDir newDir(settings.value("workingDir").toString());
+		if (newDir.exists()) mWorkingDir = newDir;
+	}
+	settings.endGroup();
+
+	/*settings.beginGroup("Printer");
+	mPrinter.setPageSize((QPrinter::PageSize)settings.value("pageSize", (int)QPrinter::Letter).toInt());
+	mPrinter.setPageMargins(
+		QMarginsF(settings.value("pageMarginLeft", 0.5).toReal(), settings.value("pageMarginTop", 0.5).toReal(),
+		settings.value("pageMarginRight", 0.5).toReal(), settings.value("pageMarginBottom", 0.5).toReal()),
+		(QPageLayout::Unit)settings.value("pageMarginUnits", (int)QPageLayout::Inch).toInt());
+	mPrinter.setPageOrientation(
+		(QPageLayout::Orientation)settings.value("pageOrientation", (int)QPageLayout::Landscape).toInt());
+	mPrinter.setResolution(settings.value("resolution", 600).toInt());
+	settings.endGroup();*/
 }
 
 void MainWindow::saveSettings()
 {
+#ifdef RELEASE_BUILD
+#ifdef WIN32
+	QString configPath("config.ini");
+#else
+	QString configPath(QDir::home().absoluteFilePath(".jade/config.ini"));
+#endif
+#else
+	QString configPath("config.ini");
+#endif
 
+	QSettings settings(configPath, QSettings::IniFormat);
+
+	settings.beginGroup("Window");
+	settings.setValue("geometry", saveGeometry());
+	settings.setValue("state", saveState());
+	settings.endGroup();
+
+	settings.beginGroup("Prompts");
+	settings.setValue("promptOnClosingUnsaved", mPromptCloseUnsaved);
+	settings.setValue("promptOnOverwrite", mPromptOverwrite);
+	settings.endGroup();
+
+	settings.beginGroup("DrawingDefaults");
+	settings.setValue("sceneRect", mDiagramDefaultProperties[DiagramWidget::SceneRect].toRectF());
+	settings.setValue("backgroundColor", mDiagramDefaultProperties[DiagramWidget::BackgroundColor]);
+	settings.setValue("grid", mDiagramDefaultProperties[DiagramWidget::Grid]);
+	settings.setValue("gridStyle",mDiagramDefaultProperties[DiagramWidget::GridStyle]);
+	settings.setValue("gridSpacingMajor", mDiagramDefaultProperties[DiagramWidget::GridSpacingMajor]);
+	settings.setValue("gridSpacingMinor", mDiagramDefaultProperties[DiagramWidget::GridSpacingMinor]);
+	settings.setValue("gridColor", mDiagramDefaultProperties[DiagramWidget::GridColor]);
+	settings.endGroup();
+
+	settings.beginGroup("ItemDefaults");
+	settings.setValue("penStyle", DrawingItemStyle::defaultValue(DrawingItemStyle::PenStyle));
+	settings.setValue("penWidth", DrawingItemStyle::defaultValue(DrawingItemStyle::PenWidth));
+	settings.setValue("penColor", DrawingItemStyle::defaultValue(DrawingItemStyle::PenColor));
+	settings.setValue("penOpacity", DrawingItemStyle::defaultValue(DrawingItemStyle::PenOpacity));
+	settings.setValue("brushColor", DrawingItemStyle::defaultValue(DrawingItemStyle::BrushColor));
+	settings.setValue("brushOpacity", DrawingItemStyle::defaultValue(DrawingItemStyle::BrushOpacity));
+	settings.setValue("fontName", DrawingItemStyle::defaultValue(DrawingItemStyle::FontName));
+	settings.setValue("fontSize", DrawingItemStyle::defaultValue(DrawingItemStyle::FontSize));
+	settings.setValue("fontBold", DrawingItemStyle::defaultValue(DrawingItemStyle::FontBold));
+	settings.setValue("fontItalic", DrawingItemStyle::defaultValue(DrawingItemStyle::FontItalic));
+	settings.setValue("fontUnderline", DrawingItemStyle::defaultValue(DrawingItemStyle::FontUnderline));
+	settings.setValue("fontStrikeThrough", DrawingItemStyle::defaultValue(DrawingItemStyle::FontStrikeThrough));
+	settings.setValue("textAlignHorizontal", DrawingItemStyle::defaultValue(DrawingItemStyle::TextHorizontalAlignment));
+	settings.setValue("textAlignVertical", DrawingItemStyle::defaultValue(DrawingItemStyle::TextVerticalAlignment));
+	settings.setValue("textColor", DrawingItemStyle::defaultValue(DrawingItemStyle::TextColor));
+	settings.setValue("textOpacity", DrawingItemStyle::defaultValue(DrawingItemStyle::TextOpacity));
+	settings.setValue("startArrowStyle", DrawingItemStyle::defaultValue(DrawingItemStyle::StartArrowStyle));
+	settings.setValue("startArrowSize", DrawingItemStyle::defaultValue(DrawingItemStyle::StartArrowSize));
+	settings.setValue("endArrowStyle", DrawingItemStyle::defaultValue(DrawingItemStyle::EndArrowStyle));
+	settings.setValue("endArrowSize", DrawingItemStyle::defaultValue(DrawingItemStyle::EndArrowSize));
+	settings.endGroup();
+
+	settings.beginGroup("Recent");
+	settings.setValue("workingDir", mWorkingDir.absolutePath());
+	settings.endGroup();
+
+	/*settings.beginGroup("Printer");
+	settings.setValue("pageSize", (int)mPrinter.pageSize());
+	settings.setValue("pageMarginLeft", mPrinter.pageLayout().margins().left());
+	settings.setValue("pageMarginTop", mPrinter.pageLayout().margins().top());
+	settings.setValue("pageMarginRight", mPrinter.pageLayout().margins().right());
+	settings.setValue("pageMarginBottom", mPrinter.pageLayout().margins().bottom());
+	settings.setValue("pageMarginUnits", (int)mPrinter.pageLayout().units());
+	settings.setValue("pageOrientation", (int)mPrinter.pageLayout().orientation());
+	settings.setValue("resolution", mPrinter.resolution());
+	settings.endGroup();*/
 }
 
 //==================================================================================================
 
 bool MainWindow::newDiagram()
 {
-	bool drawingCreated = false;
+	bool diagramCreated = false;
 
-	if (closeDrawing())
+	if (closeDiagram())
 	{
-		drawingCreated = true;
-		mNewDrawingCount++;
+		diagramCreated = true;
+		mNewDiagramCount++;
 
-		mDrawingWidget->setSceneRect(mDefaultSceneRect);
-		mDrawingWidget->setGrid(mDefaultGrid);
-		mDrawingWidget->setBackgroundBrush(mDefaultBackgroundBrush);
-		mDrawingWidget->setGridStyle(mDefaultGridStyle);
-		mDrawingWidget->setGridBrush(mDefaultGridBrush);
-		mDrawingWidget->setGridSpacing(mDefaultGridSpacingMajor, mDefaultGridSpacingMinor);
+		mFilePath = "Untitled " + QString::number(mNewDiagramCount);
+		mDiagramWidget->setProperties(mDiagramDefaultProperties);
 
-		setFilePath("Untitled " + QString::number(mNewDrawingCount));
-		mPropertiesWidget->setDrawingProperties(mDrawingWidget->sceneRect(), mDrawingWidget->grid(),
-			mDrawingWidget->backgroundBrush(), mDrawingWidget->gridStyle(), mDrawingWidget->gridBrush(),
-			mDrawingWidget->gridSpacingMajor(), mDrawingWidget->gridSpacingMinor());
-		setDrawingVisible(true);
-		mDrawingWidget->zoomFit();
+		showDiagram();
 	}
 
-	return drawingCreated;
+	return diagramCreated;
 }
 
 bool MainWindow::openDiagram()
@@ -160,25 +261,16 @@ bool MainWindow::openDiagram()
 		QFileInfo fileInfo(filePath);
 		mWorkingDir = fileInfo.dir();
 
-		drawingOpened = loadDrawingFromFile(filePath);
-		if (drawingOpened)
-		{
-			setFilePath(filePath);
-			mPropertiesWidget->setDrawingProperties(mDrawingWidget->sceneRect(), mDrawingWidget->grid(),
-				mDrawingWidget->backgroundBrush(), mDrawingWidget->gridStyle(), mDrawingWidget->gridBrush(),
-				mDrawingWidget->gridSpacingMajor(), mDrawingWidget->gridSpacingMinor());
-			setDrawingVisible(true);
-			mDrawingWidget->zoomFit();
-		}
-		else
+		drawingOpened = loadDiagramFromFile(filePath);
+
+		if (!drawingOpened)
 		{
 			QMessageBox::critical(this, "Error Reading File",
-				"File could not be read. Please ensure that this file is a valid Jade drawing.");
+				"File could not be read. Please ensure that this file is a valid Jade drawing: " + filePath);
 
-			setDrawingVisible(false);
-			setFilePath("");
-			clearDrawing();
+			hideDiagram();
 		}
+		else showDiagram();
 	}
 
 	return drawingOpened;
@@ -186,31 +278,32 @@ bool MainWindow::openDiagram()
 
 bool MainWindow::saveDiagram()
 {
-	bool drawingSaved = false;
+	bool diagramSaved = false;
 
-	if (isDrawingVisible())
+	if (isDiagramVisible())
 	{
 		if (!mFilePath.startsWith("Untitled"))
 		{
-			drawingSaved = saveDrawingToFile(mFilePath);
-			if (!drawingSaved)
+			diagramSaved = saveDiagramToFile(mFilePath);
+			if (!diagramSaved)
 			{
 				QMessageBox::critical(this, "Error Saving File",
-					"Unable to open " + mFilePath + "for saving.  File not saved!");
+					"Unable to open file for saving.  File not saved: " + mFilePath);
 			}
+			else setWindowTitle(mFilePath);
 		}
 
-		else drawingSaved = saveDrawingAs();
+		else diagramSaved = saveDiagramAs();
 	}
 
-	return drawingSaved;
+	return diagramSaved;
 }
 
 bool MainWindow::saveDiagramAs()
 {
-	bool drawingSaved = false;
+	bool diagramSaved = false;
 
-	if (isDrawingVisible())
+	if (isDiagramVisible())
 	{
 		QString filePath = (mFilePath.startsWith("Untitled")) ? mWorkingDir.path() : mFilePath;
 		QFileDialog::Options options = (mPromptOverwrite) ? (QFileDialog::Options)0 : QFileDialog::DontConfirmOverwrite;
@@ -224,23 +317,28 @@ bool MainWindow::saveDiagramAs()
 			if (!filePath.endsWith("." + mFileSuffix, Qt::CaseInsensitive))
 				filePath += "." + mFileSuffix;
 
-			drawingSaved = saveDrawingToFile(filePath);
-			if (drawingSaved) setFilePath(filePath);
+			diagramSaved = saveDiagramToFile(filePath);
+			if (!diagramSaved)
+			{
+				QMessageBox::critical(this, "Error Saving File",
+					"Unable to open file for saving.  File not saved: " + mFilePath);
+			}
+			else setWindowTitle(mFilePath);
 		}
 	}
 
-	return drawingSaved;
+	return diagramSaved;
 }
 
 bool MainWindow::closeDiagram()
 {
-	bool drawingClosed = true;
+	bool diagramClosed = true;
 
-	if (isDrawingVisible())
+	if (isDiagramVisible())
 	{
 		QMessageBox::StandardButton button = QMessageBox::Yes;
 
-		if (mPromptCloseUnsaved && !mDrawingWidget->isClean())
+		if (mPromptCloseUnsaved && !mDiagramWidget->isClean())
 		{
 			QFileInfo fileInfo(mFilePath);
 
@@ -252,22 +350,17 @@ bool MainWindow::closeDiagram()
 			{
 				if (mFilePath.startsWith("Untitled"))
 				{
-					if (!saveDrawingAs()) button = QMessageBox::Cancel;
+					if (!saveDiagramAs()) button = QMessageBox::Cancel;
 				}
-				else saveDrawing();
+				else saveDiagram();
 			}
 		}
 
-		drawingClosed = (button != QMessageBox::Cancel);
-		if (drawingClosed)
-		{
-			setDrawingVisible(false);
-			setFilePath("");
-			clearDrawing();
-		}
+		diagramClosed = (button != QMessageBox::Cancel);
+		if (diagramClosed) hideDiagram();
 	}
 
-	return drawingClosed;
+	return diagramClosed;
 }
 
 //==================================================================================================
@@ -313,43 +406,90 @@ void MainWindow::printPdf()
 
 void MainWindow::preferences()
 {
+	PreferencesDialog dialog(this);
+	dialog.setPrompts(mPromptCloseUnsaved, mPromptOverwrite);
+	dialog.setDiagramProperties(mDiagramDefaultProperties);
 
+	if (dialog.exec() == QDialog::Accepted)
+	{
+		mPromptCloseUnsaved = dialog.shouldPromptOnClosingUnsaved();
+		mPromptOverwrite = dialog.shouldPromptOnOverwrite();
+		mDiagramDefaultProperties = dialog.diagramProperties();
+	}
 }
 
 void MainWindow::about()
 {
-
+	AboutDialog dialog(this);
+	dialog.exec();
 }
 
 //==================================================================================================
+
+void MainWindow::showDiagram()
+{
+	if (!isDiagramVisible())
+	{
+		setDiagramVisible(true);
+
+		mDiagramWidget->setDefaultMode();
+		mPropertiesWidget->setDiagramProperties(mDiagramWidget->properties());
+
+		mDiagramWidget->zoomFit();
+
+		setModifiedText(mDiagramWidget->isClean());
+		setNumberOfItemsText(mDiagramWidget->items().size());
+		mMouseInfoLabel->setText("");
+	}
+}
+
+void MainWindow::hideDiagram()
+{
+	setDiagramVisible(false);
+
+	mFilePath = "";
+	clearDiagram();
+
+	mModifiedLabel->setText("");
+	mNumberOfItemsLabel->setText("");
+	mMouseInfoLabel->setText("");
+}
+
+//==================================================================================================
+
+void MainWindow::setDiagramVisible(bool visible)
+{
+	QList<QAction*> actions = MainWindow::actions();
+	QList<QAction*> diagramActions = mDiagramWidget->actions();
+	QList<QAction*> modeActions = mModeActionGroup->actions();
+
+	// Show/hide diagram
+	mStackedWidget->setCurrentIndex(visible ? 1 : 0);
+
+	// Enable/disable actions
+	while (!diagramActions.isEmpty())
+		diagramActions.takeFirst()->setEnabled(visible);
+	while (!modeActions.isEmpty())
+		modeActions.takeFirst()->setEnabled(visible);
+
+	actions[ExportPngAction]->setEnabled(visible);
+	actions[ExportSvgAction]->setEnabled(visible);
+	actions[ExportOdgAction]->setEnabled(visible);
+	actions[PrintPreviewAction]->setEnabled(visible);
+	actions[PrintSetupAction]->setEnabled(visible);
+	actions[PrintAction]->setEnabled(visible);
+	actions[PrintPdfAction]->setEnabled(visible);
+
+	// Update window title
+	setWindowTitle(visible ? mFilePath : "");
+}
 
 void MainWindow::setWindowTitle(const QString& filePath)
 {
 	QFileInfo fileInfo(filePath);
 	QString fileName = fileInfo.fileName();
 
-	setWindowTitle(fileName.isEmpty() ? "Jade" : fileName + " - " + "Jade");
-}
-
-void MainWindow::setActionsEnabled(bool diagramVisible)
-{
-	QList<QAction*> actions = MainWindow::actions();
-	QList<QAction*> diagramActions = mDiagramWidget->actions();
-	QList<QAction*> modeActions = mModeActionGroup->actions();
-
-	while (!diagramActions.isEmpty())
-		diagramActions.takeFirst()->setEnabled(diagramVisible);
-	while (!modeActions.isEmpty())
-		modeActions.takeFirst()->setEnabled(diagramVisible);
-
-	actions[ExportPngAction]->setEnabled(diagramVisible);
-	actions[ExportSvgAction]->setEnabled(diagramVisible);
-	actions[ExportOdgAction]->setEnabled(diagramVisible);
-	actions[PrintPreviewAction]->setEnabled(diagramVisible);
-	actions[PrintAction]->setEnabled(diagramVisible);
-	actions[PrintPdfAction]->setEnabled(diagramVisible);
-
-	setWindowTitle(diagramVisible ? mFilePath : "");
+	QMainWindow::setWindowTitle(fileName.isEmpty() ? "Jade" : fileName + " - " + "Jade");
 }
 
 //==================================================================================================
@@ -369,7 +509,28 @@ void MainWindow::setModeFromAction(QAction* action)
 	else if (action->text() == "Place Text Rect") mDiagramWidget->setPlaceMode(new DrawingTextRectItem());
 	else if (action->text() == "Place Text Ellipse") mDiagramWidget->setPlaceMode(new DrawingTextEllipseItem());
 	else if (action->text() == "Place Text Polygon") mDiagramWidget->setPlaceMode(new DrawingTextPolygonItem());
-	else mDiagramWidget->setDefaultMode();
+	else
+	{
+		DrawingPathItem* matchItem = nullptr;
+		QString text;
+
+		for(auto itemIter = mPathItems.begin(); matchItem == nullptr && itemIter != mPathItems.end(); itemIter++)
+		{
+			text = action->text();
+			if (text.right(text.size() - 6) == (*itemIter)->name()) matchItem = *itemIter;
+		}
+
+		if (matchItem)
+		{
+			DrawingPathItem* newItem = new DrawingPathItem();
+			newItem->setName(matchItem->name());
+			newItem->setPath(matchItem->path(), matchItem->pathRect());
+			newItem->setRect(matchItem->rect());
+			newItem->addConnectionPoints(matchItem->connectionPoints());
+			mDiagramWidget->setPlaceMode(newItem);
+		}
+		else mDiagramWidget->setDefaultMode();
+	}
 }
 
 void MainWindow::setModeFromDiagram(DrawingWidget::Mode mode)
@@ -455,7 +616,7 @@ void MainWindow::showEvent(QShowEvent* event)
 
 	if (!event->spontaneous())
 	{
-		if (mDrawingWidget) mDrawingWidget->zoomFit();
+		if (mDiagramWidget) mDiagramWidget->zoomFit();
 	}
 	else if (!mWindowState.isEmpty()) restoreState(mWindowState);
 }
@@ -469,15 +630,20 @@ void MainWindow::hideEvent(QHideEvent* event)
 
 void MainWindow::closeEvent(QCloseEvent* event)
 {
-	if (closeDrawing())
+	if (closeDiagram())
 	{
-		savePreferences();
+		saveSettings();
 		event->accept();
 	}
 	else event->ignore();
 }
 
 //==================================================================================================
+
+bool MainWindow::isDiagramVisible() const
+{
+	return (mStackedWidget->currentIndex() == 1);
+}
 
 bool MainWindow::saveDiagramToFile(const QString& filePath)
 {
@@ -486,12 +652,14 @@ bool MainWindow::saveDiagramToFile(const QString& filePath)
 	bool fileError = !dataFile.open(QIODevice::WriteOnly);
 	if (!fileError)
 	{
-		DrawingWriter writer(&dataFile);
-		writer.write(mDrawingWidget);
+		DiagramWriter writer(&dataFile);
+		writer.write(mDiagramWidget);
 		dataFile.close();
 
-		mDrawingWidget->setClean();
-		mDrawingWidget->viewport()->update();
+		mDiagramWidget->setClean();
+		mDiagramWidget->viewport()->update();
+
+		mFilePath = filePath;
 	}
 
 	return (!fileError);
@@ -504,14 +672,16 @@ bool MainWindow::loadDiagramFromFile(const QString& filePath)
 	bool fileError = !dataFile.open(QIODevice::ReadOnly);
 	if (!fileError)
 	{
-		clearDrawing();
+		clearDiagram();
 
-		DrawingReader reader(&dataFile);
-		reader.read(mDrawingWidget);
+		DiagramReader reader(&dataFile);
+		reader.read(mDiagramWidget);
 		dataFile.close();
 
-		mDrawingWidget->setClean();
-		mDrawingWidget->viewport()->update();
+		mDiagramWidget->setClean();
+		mDiagramWidget->viewport()->update();
+
+		mFilePath = filePath;
 	}
 
 	return (!fileError);
@@ -519,8 +689,8 @@ bool MainWindow::loadDiagramFromFile(const QString& filePath)
 
 void MainWindow::clearDiagram()
 {
-	mDrawingWidget->setDefaultMode();
-	mDrawingWidget->clearItems();
+	mDiagramWidget->setDefaultMode();
+	mDiagramWidget->clearItems();
 }
 
 //==================================================================================================
@@ -532,6 +702,7 @@ void MainWindow::createPropertiesDock()
 	mPropertiesDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
 	mPropertiesDock->setFeatures(QDockWidget::AllDockWidgetFeatures);
 	mPropertiesDock->setWidget(mPropertiesWidget);
+	mPropertiesDock->setObjectName("PropertiesDock");
 	addDockWidget(Qt::RightDockWidgetArea, mPropertiesDock);
 
 	connect(mDiagramWidget, SIGNAL(selectionChanged(const QList<DrawingItem*>&)), mPropertiesWidget, SLOT(setSelectedItems(const QList<DrawingItem*>&)));
@@ -549,7 +720,7 @@ void MainWindow::createPropertiesDock()
 	connect(mPropertiesWidget, SIGNAL(selectedItemCornerRadiusChanged(qreal,qreal)), mDiagramWidget, SLOT(setSelectionCornerRadius(qreal,qreal)));
 	connect(mPropertiesWidget, SIGNAL(selectedItemCaptionChanged(const QString&)), mDiagramWidget, SLOT(setSelectionCaption(const QString&)));
 	connect(mPropertiesWidget, SIGNAL(diagramPropertiesChanged(const QHash<DiagramWidget::Property,QVariant>&)),
-		mDiagramWidget, SLOT(setProperties(const QHash<DiagramWidget::Property,QVariant>&)));
+		mDiagramWidget, SLOT(setDiagramProperties(const QHash<DiagramWidget::Property,QVariant>&)));
 
 	connect(mDiagramWidget, SIGNAL(propertiesTriggered()), mPropertiesDock, SLOT(show()));
 }
@@ -615,6 +786,9 @@ void MainWindow::createActions()
 	addModeAction("Place Text Ellipse", ":/icons/items/textellipse.png", "");
 	addModeAction("Place Text Polygon", ":/icons/items/textpolygon.png", "");
 
+	mElectricItemsAction = addPathItems("Electric Items", ElectricItems::items(), ElectricItems::icons());
+	mLogicItemsAction = addPathItems("Logic Items", LogicItems::items(), LogicItems::icons());
+
 	mModeActionGroup->actions()[DefaultModeAction]->setChecked(true);
 }
 
@@ -675,6 +849,9 @@ void MainWindow::createMenus()
 	menu->addAction(modeActions[PlaceTextEllipseAction]);
 	menu->addAction(modeActions[PlaceTextPolygonAction]);
 	menu->addAction(modeActions[PlaceTextRectAction]);
+	menu->addSeparator();
+	menu->addAction(mElectricItemsAction);
+	menu->addAction(mLogicItemsAction);
 
 	menu = menuBar()->addMenu("Object");
 	menu->addAction(widgetActions[DiagramWidget::RotateAction]);
@@ -816,5 +993,18 @@ QAction* MainWindow::addModeAction(const QString& text, const QString& iconPath,
 	action->setCheckable(true);
 	action->setActionGroup(mModeActionGroup);
 
+	return action;
+}
+
+QAction* MainWindow::addPathItems(const QString& name, const QList<DrawingPathItem*>& items, const QStringList& icons)
+{
+	QAction* action = new QAction(QIcon(icons.first()), name, this);
+	QMenu* menu = new QMenu(name);
+
+	mPathItems.append(items);
+	for(int i = 0; i < items.size() && i < icons.size(); i++)
+		menu->addAction(addModeAction("Place " + items[i]->name(), icons[i], ""));
+
+	action->setMenu(menu);
 	return action;
 }
