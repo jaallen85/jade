@@ -22,57 +22,70 @@
 #define ODGWRITER_H
 
 #include <DiagramWidget.h>
-#include <QtPrintSupport>
 
+class QPrinter;
 class QuaZip;
 
 class OdgWriter
 {
 private:
-	QString mErrorMessage;
-
+	struct ArrowStyle
+	{
+		DrawingItemStyle::ArrowStyle arrowStyle;
+		qreal arrowSize;
+		qreal penWidth;
+	};
+	
 	DiagramWidget* mDiagram;
 	QPrinter* mPrinter;
 	QString mFilePath;
 
-	QString mContentStr;
-	QString mStylesStr;
+	QString mErrorMessage;
 
-	QString mMetaStr;
-	QString mSettingsStr;
-	QString mManifestStr;
-
+	// Internal variables
 	QRectF mVisibleRect;
 	qreal mDiagramScale;
 	QString mDiagramUnits;
 	QTransform mDiagramTransform;
-
-	QHash<DrawingItem*,QString> mItemIds;
-	QHash<DrawingItemStyle*,QString> mItemStyleIds;
-
+	
+	QList<DrawingItemStyle*> mItemStyles;
+	QStringList mFontDecls;
+	QList<Qt::PenStyle> mDashStyles;
+	QList<ArrowStyle> mArrowStyles;
+	
 public:
 	OdgWriter();
 	~OdgWriter();
 
 	bool write(DiagramWidget* diagram, QPrinter* printer, const QString& filePath);
 	QString errorMessage() const;
-
+	
 private:
-	void getDiagramPrinterInfo();
-
-	void writeContent();
-	void writeStyles();
-
-	void writeManifest();
-	void writeMeta();
-	void writeSettings();
-
-	void finishOdg();
+	void analyzeDiagram();
+	void analyzeItemStyles();
+	void findItemStyles(const QList<DrawingItem*>& items, QList<DrawingItemStyle*>& itemStyles);
+	
+	QString writeContent();
+	QString writeStyles();
+	QString writeMeta();
+	QString writeSettings();
+	QString writeManifest();
+	void writeOdg(const QString& contentStr, const QString& stylesStr, const QString& metaStr, 
+		const QString& settingsStr, const QString& manifestStr);
 	void createFileInZip(QuaZip* zip, const QString& path, const QString& content);
+		
+private:
+	void writeDefaultPageStyle(QXmlStreamWriter& xml);
+	void writeFontDeclarations(QXmlStreamWriter& xml);
+	void writeArrowStyles(QXmlStreamWriter& xml);
+	void writeDashStyles(QXmlStreamWriter& xml);
 
-	void writeItemStyles(QXmlStreamWriter& xml, const QList<DrawingItem*>& items);
+	void writeItemStyles(QXmlStreamWriter& xml);
+	void writeItemStyle(QXmlStreamWriter& xml, DrawingItemStyle* style);
+	void writeItemParagraphStyle(QXmlStreamWriter& xml, DrawingItemStyle* style);
+	QString itemStyleName(DrawingItemStyle* style);
+	
 	void writeItems(QXmlStreamWriter& xml, const QList<DrawingItem*>& items);
-
 	void writeLineItem(QXmlStreamWriter& xml, DrawingLineItem* item);
 	void writeArcItem(QXmlStreamWriter& xml, DrawingArcItem* item);
 	void writePolylineItem(QXmlStreamWriter& xml, DrawingPolylineItem* item);
@@ -86,13 +99,20 @@ private:
 	void writeTextPolygonItem(QXmlStreamWriter& xml, DrawingTextPolygonItem* item);
 	void writePathItem(QXmlStreamWriter& xml, DrawingPathItem* item);
 	void writeItemGroup(QXmlStreamWriter& xml, DrawingItemGroup* item);
+	
+private:
+	QString fontStyleName(const QString& fontName) const;
+	QString dashStyleName(Qt::PenStyle penStyle) const;
+	
+	void addArrowStyle(DrawingItemStyle::ArrowStyle arrowStyle, qreal arrowSize, qreal penWidth);
+	void clearArrowStyles();
+	bool containsArrowStyle(DrawingItemStyle::ArrowStyle arrowStyle, qreal arrowSize, qreal penWidth) const;
+	QString arrowStyleName(DrawingItemStyle::ArrowStyle arrowStyle, qreal arrowSize, qreal penWidth) const;
+	QString arrowStylePath(DrawingItemStyle::ArrowStyle arrowStyle, qreal arrowSize, qreal penWidth, QRectF& viewBox) const;
+	bool arrowStyleCentered(DrawingItemStyle::ArrowStyle arrowStyle) const;
 
-	void writeItemStyle(QXmlStreamWriter& xml, DrawingItemStyle* style);
-
-	QString arrowToPathString(DrawingItemStyle::ArrowStyle arrowStyle, qreal arrowSize, qreal penWidth) const;
 	QString colorToHexString(const QColor& color) const;
 	QString penStyleToString(Qt::PenStyle style) const;
-	QString penDashStyleToString(Qt::PenStyle style) const;
 	QString penCapStyleToString(Qt::PenCapStyle style) const;
 	QString penJoinStyleToString(Qt::PenJoinStyle style) const;
 	QString pointsToString(const QPolygonF& points) const;
