@@ -152,12 +152,21 @@ void OdgWriter::writeContent()
 	xml.writeAttribute("xmlns:style", "urn:oasis:names:tc:opendocument:xmlns:style:1.0");
 	xml.writeAttribute("xmlns:svg", "urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0");
 	xml.writeAttribute("xmlns:text", "urn:oasis:names:tc:opendocument:xmlns:text:1.0");
+	xml.writeAttribute("xmlns:fo", "urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0");
 
 	xml.writeStartElement("office:scripts");
 	xml.writeEndElement();
 
 	xml.writeStartElement("office:font-face-decls");
+	/*xml.writeStartElement("style:font-face");
+	xml.writeAttribute("style:name", "Arial");
+	xml.writeAttribute("svg:font-family", "Arial");
+	xml.writeAttribute("style:font-family-generic", "swiss");
+	xml.writeAttribute("style:font-pitch", "variable");
+	xml.writeEndElement();*/
+	extractFontDeclarations();
 	xml.writeEndElement();
+
 	xml.writeStartElement("office:automatic-styles");
 	xml.writeStartElement("style:style");
 	xml.writeAttribute("style:name", "Page1");
@@ -737,7 +746,7 @@ void OdgWriter::writeTextItem(QXmlStreamWriter& xml, DrawingTextItem* item)
 
 void OdgWriter::writeTextRectItem(QXmlStreamWriter& xml, DrawingTextRectItem* item)
 {
-	/*xml.writeStartElement("draw:rect");
+	xml.writeStartElement("draw:rect");
 
 	xml.writeAttribute("draw:transform", transformToString(mDiagramTransform.map(item->pos()), item->rotation(), item->isFlipped()));
 
@@ -755,10 +764,9 @@ void OdgWriter::writeTextRectItem(QXmlStreamWriter& xml, DrawingTextRectItem* it
 	xml.writeStartElement("text:p");
 	xml.writeAttribute("text:style-name", mItemStyleIds[item->style()] + "_paragraph");
 	xml.writeCharacters(item->caption());
-
 	xml.writeEndElement();
 
-	xml.writeEndElement();*/
+	xml.writeEndElement();
 }
 
 void OdgWriter::writeTextEllipseItem(QXmlStreamWriter& xml, DrawingTextEllipseItem* item)
@@ -908,6 +916,21 @@ void OdgWriter::writeItemStyle(QXmlStreamWriter& xml, DrawingItemStyle* style)
 			xml.writeAttribute("draw:marker-end-width", QString::number(style->value(DrawingItemStyle::EndArrowSize).toReal() * mDiagramScale) + mDiagramUnits);*/
 
 		xml.writeEndElement();
+
+		xml.writeStartElement("style:paragraph-properties");
+		xml.writeEndElement();
+
+		xml.writeStartElement("style:text-properties");
+
+		// Font
+		if (style->hasValue(DrawingItemStyle::FontName))
+			xml.writeAttribute("style:font-name", style->value(DrawingItemStyle::FontName).toString());
+
+		if (style->hasValue(DrawingItemStyle::FontSize))
+			xml.writeAttribute("fo:font-size", QString::number(style->value(DrawingItemStyle::FontSize).toReal() * mDiagramScale * 96) + "pt");
+
+		xml.writeEndElement();
+
 		xml.writeEndElement();
 
 
@@ -915,14 +938,6 @@ void OdgWriter::writeItemStyle(QXmlStreamWriter& xml, DrawingItemStyle* style)
 		xml.writeAttribute("style:name", mItemStyleIds[style] + "_paragraph");
 		xml.writeAttribute("style:family", "paragraph");
 		xml.writeStartElement("style:paragraph-properties");
-
-		// Font
-		if (style->hasValue(DrawingItemStyle::FontName))
-			xml.writeAttribute("style:font-name", style->value(DrawingItemStyle::FontName).toString());
-
-		if (style->hasValue(DrawingItemStyle::FontSize))
-			xml.writeAttribute("fo:font-size", QString::number(style->value(DrawingItemStyle::FontSize).toReal() * mDiagramScale * 100) + "pt");
-
 		xml.writeEndElement();
 		xml.writeStartElement("style:text-properties");
 
@@ -931,7 +946,7 @@ void OdgWriter::writeItemStyle(QXmlStreamWriter& xml, DrawingItemStyle* style)
 			xml.writeAttribute("style:font-name", style->value(DrawingItemStyle::FontName).toString());
 
 		if (style->hasValue(DrawingItemStyle::FontSize))
-			xml.writeAttribute("fo:font-size", QString::number(style->value(DrawingItemStyle::FontSize).toReal() * mDiagramScale * 100) + "pt");
+			xml.writeAttribute("fo:font-size", QString::number(style->value(DrawingItemStyle::FontSize).toReal() * mDiagramScale * 96) + "pt");
 
 		xml.writeEndElement();
 		xml.writeEndElement();
