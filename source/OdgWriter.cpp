@@ -59,7 +59,6 @@ QString OdgWriter::errorMessage() const
 
 void OdgWriter::analyzeDiagram()
 {
-	// Transform (diagram to ODG scene)
 	if (mPrinter->pageLayout().pageSize().definitionUnits() == QPageSize::Millimeter ||
 		mPrinter->pageLayout().pageSize().definitionUnits() == QPageSize::Cicero) mDiagramUnits = "mm";
 	else mDiagramUnits = "in";
@@ -92,7 +91,6 @@ void OdgWriter::analyzeDiagram()
 	
 void OdgWriter::analyzeItemStyles()
 {
-	// Item styles
 	mItemStyles.clear();
 	findItemStyles(mDiagram->items(), mItemStyles);
 	
@@ -125,7 +123,6 @@ void OdgWriter::analyzeItemStyles()
 				(*styleIter)->value(DrawingItemStyle::StartArrowStyle).toUInt();
 			qreal arrowSize = (*styleIter)->value(DrawingItemStyle::StartArrowSize).toReal();
 			qreal penWidth = (*styleIter)->value(DrawingItemStyle::PenWidth).toReal();
-			QString styleName = arrowStyleName(arrowStyle, arrowSize, penWidth);
 			
 			if (arrowStyle != DrawingItemStyle::ArrowNone && !containsArrowStyle(arrowStyle, arrowSize, penWidth)) 
 				addArrowStyle(arrowStyle, arrowSize, penWidth);
@@ -139,7 +136,6 @@ void OdgWriter::analyzeItemStyles()
 				(*styleIter)->value(DrawingItemStyle::EndArrowStyle).toUInt();
 			qreal arrowSize = (*styleIter)->value(DrawingItemStyle::EndArrowSize).toReal();
 			qreal penWidth = (*styleIter)->value(DrawingItemStyle::PenWidth).toReal();
-			QString styleName = arrowStyleName(arrowStyle, arrowSize, penWidth);
 			
 			if (arrowStyle != DrawingItemStyle::ArrowNone && !containsArrowStyle(arrowStyle, arrowSize, penWidth)) 
 				addArrowStyle(arrowStyle, arrowSize, penWidth);
@@ -462,57 +458,117 @@ void OdgWriter::writeDefaultPageStyle(QXmlStreamWriter& xml)
 
 void OdgWriter::writeFontDeclarations(QXmlStreamWriter& xml)
 {
-	
+	for(auto fontIter = mFontDecls.begin(); fontIter != mFontDecls.end(); fontIter++)
+	{
+		QFont font(*fontIter);
+		QFontInfo fontInfo(font);
+		QString fontGeneric;
+
+		switch (fontInfo.styleHint())
+		{
+		case QFont::SansSerif:
+			fontGeneric = "swiss";
+			break;
+		case QFont::Serif:
+			fontGeneric = "roman";
+			break;
+		case QFont::TypeWriter:
+		case QFont::Monospace:
+			fontGeneric = "script";
+			break;
+		case QFont::Decorative:
+			fontGeneric = "decorative";
+			break;
+		case QFont::System:
+			fontGeneric = "system";
+			break;
+		default:
+			fontGeneric = "";
+			break;
+		}
+
+		xml.writeStartElement("style:font-face");
+		xml.writeAttribute("style:name", fontStyleName(*fontIter));
+		xml.writeAttribute("svg:font-family", *fontIter);
+		if (!fontGeneric.isEmpty()) xml.writeAttribute("style:font-family-generic", fontGeneric);
+		xml.writeAttribute("style:font-pitch", fontInfo.fixedPitch() ? "fixed" : "variable");
+		xml.writeEndElement();
+	}
 }
 
 void OdgWriter::writeArrowStyles(QXmlStreamWriter& xml)
 {
-	
+	for(auto arrowIter = mArrowStyles.begin(); arrowIter != mArrowStyles.end(); arrowIter++)
+	{
+		QRectF viewBox;
+		QString path = arrowStylePath(arrowIter->arrowStyle, arrowIter->arrowSize, arrowIter->penWidth, viewBox);
+
+		if (!path.isEmpty() && viewBox.isValid())
+		{
+			xml.writeStartElement("draw:marker");
+			xml.writeAttribute("draw:name", arrowStyleName(arrowIter->arrowStyle, arrowIter->arrowSize, arrowIter->penWidth));
+			xml.writeAttribute("svg:viewBox", QString::number(viewBox.left()) + " " + QString::number(viewBox.top()) + " " +
+				QString::number(viewBox.width()) + " " + QString::number(viewBox.height()));
+			xml.writeAttribute("svg:d", path);
+			xml.writeEndElement();
+		}
+	}
 }
 
 void OdgWriter::writeDashStyles(QXmlStreamWriter& xml)
 {
-	// todo: only add styles actually used by document
-
-	/*xml.writeStartElement("draw:stroke-dash");
-	xml.writeAttribute("draw:name", "dashed");
-	xml.writeAttribute("draw:style", "round");
-	xml.writeAttribute("draw:dots1", "1");
-	xml.writeAttribute("draw:dots1-length", "300%");
-	xml.writeAttribute("draw:dots2", "0");
-	xml.writeAttribute("draw:dots2-length", "0%");
-	xml.writeAttribute("draw:distance", "200%");
-	xml.writeEndElement();
-
-	xml.writeStartElement("draw:stroke-dash");
-	xml.writeAttribute("draw:name", "dotted");
-	xml.writeAttribute("draw:style", "round");
-	xml.writeAttribute("draw:dots1", "1");
-	xml.writeAttribute("draw:dots1-length", "100%");
-	xml.writeAttribute("draw:dots2", "0");
-	xml.writeAttribute("draw:dots2-length", "0%");
-	xml.writeAttribute("draw:distance", "200%");
-	xml.writeEndElement();
-
-	xml.writeStartElement("draw:stroke-dash");
-	xml.writeAttribute("draw:name", "dash-dotted");
-	xml.writeAttribute("draw:style", "round");
-	xml.writeAttribute("draw:dots1", "1");
-	xml.writeAttribute("draw:dots1-length", "300%");
-	xml.writeAttribute("draw:dots2", "1");
-	xml.writeAttribute("draw:dots2-length", "100%");
-	xml.writeAttribute("draw:distance", "200%");
-	xml.writeEndElement();
-
-	xml.writeStartElement("draw:stroke-dash");
-	xml.writeAttribute("draw:name", "dash-dot-dotted");
-	xml.writeAttribute("draw:style", "round");
-	xml.writeAttribute("draw:dots1", "1");
-	xml.writeAttribute("draw:dots1-length", "300%");
-	xml.writeAttribute("draw:dots2", "2");
-	xml.writeAttribute("draw:dots2-length", "100%");
-	xml.writeAttribute("draw:distance", "200%");
-	xml.writeEndElement();*/
+	for(auto dashIter = mDashStyles.begin(); dashIter != mDashStyles.end(); dashIter++)
+	{
+		switch (*dashIter)
+		{
+		case Qt::DashLine:
+			xml.writeStartElement("draw:stroke-dash");
+			xml.writeAttribute("draw:name", dashStyleName(*dashIter));
+			xml.writeAttribute("draw:style", "round");
+			xml.writeAttribute("draw:dots1", "1");
+			xml.writeAttribute("draw:dots1-length", "300%");
+			xml.writeAttribute("draw:dots2", "0");
+			xml.writeAttribute("draw:dots2-length", "0%");
+			xml.writeAttribute("draw:distance", "200%");
+			xml.writeEndElement();
+			break;
+		case Qt::DotLine:
+			xml.writeStartElement("draw:stroke-dash");
+			xml.writeAttribute("draw:name", dashStyleName(*dashIter));
+			xml.writeAttribute("draw:style", "round");
+			xml.writeAttribute("draw:dots1", "1");
+			xml.writeAttribute("draw:dots1-length", "100%");
+			xml.writeAttribute("draw:dots2", "0");
+			xml.writeAttribute("draw:dots2-length", "0%");
+			xml.writeAttribute("draw:distance", "200%");
+			xml.writeEndElement();
+			break;
+		case Qt::DashDotLine:
+			xml.writeStartElement("draw:stroke-dash");
+			xml.writeAttribute("draw:name", dashStyleName(*dashIter));
+			xml.writeAttribute("draw:style", "round");
+			xml.writeAttribute("draw:dots1", "1");
+			xml.writeAttribute("draw:dots1-length", "300%");
+			xml.writeAttribute("draw:dots2", "1");
+			xml.writeAttribute("draw:dots2-length", "100%");
+			xml.writeAttribute("draw:distance", "200%");
+			xml.writeEndElement();
+			break;
+		case Qt::DashDotDotLine:
+			xml.writeStartElement("draw:stroke-dash");
+			xml.writeAttribute("draw:name", dashStyleName(*dashIter));
+			xml.writeAttribute("draw:style", "round");
+			xml.writeAttribute("draw:dots1", "1");
+			xml.writeAttribute("draw:dots1-length", "300%");
+			xml.writeAttribute("draw:dots2", "2");
+			xml.writeAttribute("draw:dots2-length", "100%");
+			xml.writeAttribute("draw:distance", "200%");
+			xml.writeEndElement();
+			break;
+		default:
+			break;
+		}
+	}
 }
 
 //==================================================================================================
@@ -540,6 +596,8 @@ void OdgWriter::writeItemStyle(QXmlStreamWriter& xml, DrawingItemStyle* style)
 		if (penStyle == Qt::DashLine || penStyle == Qt::DotLine || penStyle == Qt::DashDotLine || penStyle == Qt::DashDotDotLine)
 			xml.writeAttribute("draw:stroke-dash", dashStyleName(penStyle));
 	}
+	else if (style->hasValue(DrawingItemStyle::FontName))
+		xml.writeAttribute("draw:stroke", "none");
 
 	if (style->hasValue(DrawingItemStyle::PenWidth))
 		xml.writeAttribute("svg:stroke-width", QString::number(style->value(DrawingItemStyle::PenWidth).toReal() * mDiagramScale) + mDiagramUnits);
@@ -557,10 +615,13 @@ void OdgWriter::writeItemStyle(QXmlStreamWriter& xml, DrawingItemStyle* style)
 		xml.writeAttribute("draw:stroke-linejoin", penJoinStyleToString((Qt::PenJoinStyle)style->value(DrawingItemStyle::PenJoinStyle).toUInt()));
 
 	// Brush
-	xml.writeAttribute("draw:fill", "solid");
-
 	if (style->hasValue(DrawingItemStyle::BrushColor))
+	{
+		xml.writeAttribute("draw:fill", "solid");
 		xml.writeAttribute("draw:fill-color", colorToHexString(style->value(DrawingItemStyle::BrushColor).value<QColor>()));
+	}
+	else if (style->hasValue(DrawingItemStyle::FontName))
+		xml.writeAttribute("draw:fill", "none");
 
 	if (style->hasValue(DrawingItemStyle::BrushOpacity))
 		xml.writeAttribute("draw:opacity", QString::number((int)(style->value(DrawingItemStyle::BrushOpacity).toReal() * 100 + 0.5)) + "%");
@@ -571,24 +632,38 @@ void OdgWriter::writeItemStyle(QXmlStreamWriter& xml, DrawingItemStyle* style)
 		style->hasValue(DrawingItemStyle::PenWidth))
 	{
 		DrawingItemStyle::ArrowStyle arrowStyle = (DrawingItemStyle::ArrowStyle)style->value(DrawingItemStyle::StartArrowStyle).toUInt();
-		qreal arrowSize = style->value(DrawingItemStyle::EndArrowSize).toReal() * mDiagramScale;
-		qreal penWidth = style->value(DrawingItemStyle::PenWidth).toReal() * mDiagramScale;
+		qreal arrowSize = style->value(DrawingItemStyle::StartArrowSize).toReal();
+		qreal penWidth = style->value(DrawingItemStyle::PenWidth).toReal();
 
 		xml.writeAttribute("draw:marker-start", arrowStyleName(arrowStyle, arrowSize, penWidth));
 		xml.writeAttribute("draw:marker-start-center", arrowStyleCentered(arrowStyle) ? "true" : "false");
-		xml.writeAttribute("draw:marker-start-width", QString::number(arrowSize) + mDiagramUnits);
+		xml.writeAttribute("draw:marker-start-width", QString::number((arrowSize + penWidth) * mDiagramScale) + mDiagramUnits);
 	}
 
 	if (style->hasValue(DrawingItemStyle::EndArrowStyle) && style->hasValue(DrawingItemStyle::EndArrowSize) &&
 		style->hasValue(DrawingItemStyle::PenWidth))
 	{
 		DrawingItemStyle::ArrowStyle arrowStyle = (DrawingItemStyle::ArrowStyle)style->value(DrawingItemStyle::EndArrowStyle).toUInt();
-		qreal arrowSize = style->value(DrawingItemStyle::EndArrowSize).toReal() * mDiagramScale;
-		qreal penWidth = style->value(DrawingItemStyle::PenWidth).toReal() * mDiagramScale;
+		qreal arrowSize = style->value(DrawingItemStyle::EndArrowSize).toReal();
+		qreal penWidth = style->value(DrawingItemStyle::PenWidth).toReal();
 
 		xml.writeAttribute("draw:marker-end", arrowStyleName(arrowStyle, arrowSize, penWidth));
 		xml.writeAttribute("draw:marker-end-center", arrowStyleCentered(arrowStyle) ? "true" : "false");
-		xml.writeAttribute("draw:marker-end-width", QString::number(arrowSize) + mDiagramUnits);
+		xml.writeAttribute("draw:marker-end-width", QString::number((arrowSize + penWidth) * mDiagramScale) + mDiagramUnits);
+	}
+
+	// Text Alignment
+	if (style->hasValue(DrawingItemStyle::TextVerticalAlignment))
+		xml.writeAttribute("draw:textarea-vertical-align", alignmentToString((Qt::Alignment)style->value(DrawingItemStyle::TextVerticalAlignment).toUInt()));
+	else if (style->hasValue(DrawingItemStyle::FontName))
+		xml.writeAttribute("draw:textarea-vertical-align", "middle");
+
+	if (style->hasValue(DrawingItemStyle::FontName))
+	{
+		xml.writeAttribute("fo:padding-left", "0" + mDiagramUnits);
+		xml.writeAttribute("fo:padding-top", "0" + mDiagramUnits);
+		xml.writeAttribute("fo:padding-right", "0" + mDiagramUnits);
+		xml.writeAttribute("fo:padding-bottom", "0" + mDiagramUnits);
 	}
 
 	xml.writeEndElement();
@@ -608,6 +683,17 @@ void OdgWriter::writeItemStyle(QXmlStreamWriter& xml, DrawingItemStyle* style)
 void OdgWriter::writeItemParagraphStyle(QXmlStreamWriter& xml, DrawingItemStyle* style)
 {
 	xml.writeStartElement("style:paragraph-properties");
+
+	if (style->hasValue(DrawingItemStyle::TextHorizontalAlignment))
+		xml.writeAttribute("fo:text-align", alignmentToString((Qt::Alignment)style->value(DrawingItemStyle::TextHorizontalAlignment).toUInt()));
+	else if (style->hasValue(DrawingItemStyle::FontName))
+		xml.writeAttribute("fo:text-align", "center");
+
+	//if (style->hasValue(DrawingItemStyle::TextVerticalAlignment))
+	//	xml.writeAttribute("style:vertical-align", alignmentToString((Qt::Alignment)style->value(DrawingItemStyle::TextVerticalAlignment).toUInt()));
+	//else if (style->hasValue(DrawingItemStyle::FontName))
+	//	xml.writeAttribute("style:vertical-align", "middle");
+
 	xml.writeEndElement();
 
 	xml.writeStartElement("style:text-properties");
@@ -618,65 +704,27 @@ void OdgWriter::writeItemParagraphStyle(QXmlStreamWriter& xml, DrawingItemStyle*
 	if (style->hasValue(DrawingItemStyle::FontSize))
 		xml.writeAttribute("fo:font-size", QString::number(style->value(DrawingItemStyle::FontSize).toReal() * mDiagramScale * 96) + "pt");
 
-	/*
-	// Font
-	if (style->hasValue(DrawingItemStyle::FontName))
-		writeAttribute("font-name", style->value(DrawingItemStyle::FontName).toString());
-
-	if (style->hasValue(DrawingItemStyle::FontSize))
-		writeAttribute("font-size", QString::number(style->value(DrawingItemStyle::FontSize).toReal()));
-
 	if (style->hasValue(DrawingItemStyle::FontBold))
-	{
-		bool fontStyle = style->value(DrawingItemStyle::FontBold).toBool();
-		if (fontStyle) writeAttribute("font-bold", "true");
-	}
+		xml.writeAttribute("fo:font-weight", style->value(DrawingItemStyle::FontBold).toBool() ? "bold" : "normal");
 
 	if (style->hasValue(DrawingItemStyle::FontItalic))
-	{
-		bool fontStyle = style->value(DrawingItemStyle::FontItalic).toBool();
-		if (fontStyle) writeAttribute("font-italic", "true");
-	}
+		xml.writeAttribute("fo:font-style", style->value(DrawingItemStyle::FontItalic).toBool() ? "italic" : "normal");
 
 	if (style->hasValue(DrawingItemStyle::FontUnderline))
-	{
-		bool fontStyle = style->value(DrawingItemStyle::FontUnderline).toBool();
-		if (fontStyle) writeAttribute("font-underline", "true");
-	}
+		xml.writeAttribute("style:text-underline-style", style->value(DrawingItemStyle::FontUnderline).toBool() ? "solid" : "none");
 
 	if (style->hasValue(DrawingItemStyle::FontStrikeThrough))
-	{
-		bool fontStyle = style->value(DrawingItemStyle::FontStrikeThrough).toBool();
-		if (fontStyle) writeAttribute("font-strike-through", "true");
-	}
-
-	if (style->hasValue(DrawingItemStyle::TextHorizontalAlignment))
-	{
-		Qt::Alignment textAlign = ((Qt::Alignment)style->value(DrawingItemStyle::TextHorizontalAlignment).toUInt() & Qt::AlignHorizontal_Mask);
-		if (textAlign != Qt::AlignHCenter) writeAttribute("text-alignment-horizontal", alignmentToString(textAlign));
-	}
-
-	if (style->hasValue(DrawingItemStyle::TextVerticalAlignment))
-	{
-		Qt::Alignment textAlign = ((Qt::Alignment)style->value(DrawingItemStyle::TextVerticalAlignment).toUInt() & Qt::AlignVertical_Mask);
-		if (textAlign != Qt::AlignVCenter) writeAttribute("text-alignment-vertical", alignmentToString(textAlign));
-	}
+		xml.writeAttribute("style:text-line-through-style", style->value(DrawingItemStyle::FontStrikeThrough).toBool() ? "solid" : "none");
 
 	if (style->hasValue(DrawingItemStyle::TextColor))
-		writeAttribute("text-color", colorToString(style->value(DrawingItemStyle::TextColor).value<QColor>()));
-
-	if (style->hasValue(DrawingItemStyle::TextOpacity))
-	{
-		qreal opacity = style->value(DrawingItemStyle::TextOpacity).toReal();
-		if (opacity != 1.0) writeAttribute("text-opacity", QString::number(opacity));
-	}*/
+		xml.writeAttribute("fo:color", colorToHexString(style->value(DrawingItemStyle::TextColor).value<QColor>()));
 
 	xml.writeEndElement();
 }
 
 QString OdgWriter::itemStyleName(DrawingItemStyle* style)
 {
-	QString name = mItemStyles.indexOf(style) + 1;
+	QString name = QString::number(mItemStyles.indexOf(style) + 1);
 	if (name.size() < 4) name = "style" + QString(4 - name.size(), '0') + name;
 	return name;
 }
@@ -886,15 +934,24 @@ void OdgWriter::writePolygonItem(QXmlStreamWriter& xml, DrawingPolygonItem* item
 
 void OdgWriter::writeTextItem(QXmlStreamWriter& xml, DrawingTextItem* item)
 {
-	/*writeStartElement("text");
+	xml.writeStartElement("draw:rect");
 
-	writeAttribute("transform", transformToString(item->pos(), item->rotation(), item->isFlipped()));
+	xml.writeAttribute("draw:transform", transformToString(item->pos(), item->rotation(), item->isFlipped()));
 
-	writeItemStyle(item->style());
+	QRectF rect = item->boundingRect().normalized();
+	xml.writeAttribute("svg:x", QString::number(rect.left() * mDiagramScale) + mDiagramUnits);
+	xml.writeAttribute("svg:y", QString::number(rect.top() * mDiagramScale) + mDiagramUnits);
+	xml.writeAttribute("svg:width", QString::number(rect.width() * mDiagramScale) + mDiagramUnits);
+	xml.writeAttribute("svg:height", QString::number(rect.height() * mDiagramScale) + mDiagramUnits);
 
-	writeCharacters(item->caption());
+	xml.writeAttribute("draw:style-name", itemStyleName(item->style()));
 
-	writeEndElement();*/
+	xml.writeStartElement("text:p");
+	xml.writeAttribute("text:style-name", itemStyleName(item->style()) + "_paragraph");
+	xml.writeCharacters(item->caption());
+	xml.writeEndElement();
+
+	xml.writeEndElement();
 }
 
 void OdgWriter::writeTextRectItem(QXmlStreamWriter& xml, DrawingTextRectItem* item)
@@ -927,81 +984,98 @@ void OdgWriter::writeTextRectItem(QXmlStreamWriter& xml, DrawingTextRectItem* it
 
 void OdgWriter::writeTextEllipseItem(QXmlStreamWriter& xml, DrawingTextEllipseItem* item)
 {
-	/*writeStartElement("text-ellipse");
+	xml.writeStartElement("draw:ellipse");
 
-	writeAttribute("transform", transformToString(item->pos(), item->rotation(), item->isFlipped()));
+	xml.writeAttribute("draw:transform", transformToString(item->pos(), item->rotation(), item->isFlipped()));
 
 	QRectF rect = item->ellipse();
-	writeAttribute("left", QString::number(rect.left()));
-	writeAttribute("top", QString::number(rect.top()));
-	writeAttribute("width", QString::number(rect.width()));
-	writeAttribute("height", QString::number(rect.height()));
+	xml.writeAttribute("svg:x", QString::number(rect.left() * mDiagramScale) + mDiagramUnits);
+	xml.writeAttribute("svg:y", QString::number(rect.top() * mDiagramScale) + mDiagramUnits);
+	xml.writeAttribute("svg:width", QString::number(rect.width() * mDiagramScale) + mDiagramUnits);
+	xml.writeAttribute("svg:height", QString::number(rect.height() * mDiagramScale) + mDiagramUnits);
 
-	writeItemStyle(item->style());
+	xml.writeAttribute("draw:style-name", itemStyleName(item->style()));
 
-	writeCharacters(item->caption());
+	xml.writeStartElement("text:p");
+	xml.writeAttribute("text:style-name", itemStyleName(item->style()) + "_paragraph");
+	xml.writeCharacters(item->caption());
+	xml.writeEndElement();
 
-	writeEndElement();*/
+	xml.writeEndElement();
 }
 
 void OdgWriter::writeTextPolygonItem(QXmlStreamWriter& xml, DrawingTextPolygonItem* item)
 {
-	/*writeStartElement("text-polygon");
+	xml.writeStartElement("draw:polygon");
 
-	writeAttribute("transform", transformToString(item->pos(), item->rotation(), item->isFlipped()));
+	xml.writeAttribute("draw:transform", transformToString(item->pos(), item->rotation(), item->isFlipped()));
 
 	QPolygonF polygon;
 	QList<DrawingItemPoint*> points = item->points();
 	for(auto pointIter = points.begin(); pointIter != points.end(); pointIter++)
-		polygon.append((*pointIter)->pos());
-	if (!polygon.isEmpty()) writeAttribute("points", pointsToString(polygon));
+		polygon.append((*pointIter)->pos() * mDiagramScale);
+	QRectF rect = polygon.boundingRect();
 
-	writeItemStyle(item->style());
+	xml.writeAttribute("svg:x", QString::number(rect.left()) + mDiagramUnits);
+	xml.writeAttribute("svg:y", QString::number(rect.top()) + mDiagramUnits);
+	xml.writeAttribute("svg:width", QString::number(rect.width()) + mDiagramUnits);
+	xml.writeAttribute("svg:height", QString::number(rect.height()) + mDiagramUnits);
 
-	writeCharacters(item->caption());
+	xml.writeAttribute("svg:viewBox", QString::number(rect.left()) + " " + QString::number(rect.top()) + " " +
+		QString::number(rect.width()) + " " + QString::number(rect.height()));
 
-	writeEndElement();*/
+	if (!polygon.isEmpty()) xml.writeAttribute("draw:points", pointsToString(polygon));
+
+	xml.writeAttribute("draw:style-name", itemStyleName(item->style()));
+
+	xml.writeStartElement("text:p");
+	xml.writeAttribute("text:style-name", itemStyleName(item->style()) + "_paragraph");
+	xml.writeCharacters(item->caption());
+	xml.writeEndElement();
+
+	xml.writeEndElement();
 }
 
 void OdgWriter::writePathItem(QXmlStreamWriter& xml, DrawingPathItem* item)
 {
-	/*writeStartElement("path");
+	xml.writeStartElement("draw:path");
 
-	writeAttribute("name", item->name());
-
-	writeAttribute("transform", transformToString(item->pos(), item->rotation(), item->isFlipped()));
+	xml.writeAttribute("draw:transform", transformToString(item->pos(), item->rotation(), item->isFlipped()));
 
 	QRectF rect = item->rect();
-	writeAttribute("left", QString::number(rect.left()));
-	writeAttribute("top", QString::number(rect.top()));
-	writeAttribute("width", QString::number(rect.width()));
-	writeAttribute("height", QString::number(rect.height()));
+	xml.writeAttribute("svg:x", QString::number(rect.left() * mDiagramScale) + mDiagramUnits);
+	xml.writeAttribute("svg:y", QString::number(rect.top() * mDiagramScale) + mDiagramUnits);
+	xml.writeAttribute("svg:width", QString::number(rect.width() * mDiagramScale) + mDiagramUnits);
+	xml.writeAttribute("svg:height", QString::number(rect.height() * mDiagramScale) + mDiagramUnits);
 
-	writeItemStyle(item->style());
+	xml.writeAttribute("draw:style-name", itemStyleName(item->style()));
 
 	QRectF pathRect = item->pathRect();
-	writeAttribute("view-left", QString::number(pathRect.left()));
-	writeAttribute("view-top", QString::number(pathRect.top()));
-	writeAttribute("view-width", QString::number(pathRect.width()));
-	writeAttribute("view-height", QString::number(pathRect.height()));
+	xml.writeAttribute("svg:viewBox", QString::number(pathRect.left()) + " " + QString::number(pathRect.top()) + " " +
+		QString::number(pathRect.width()) + " " + QString::number(pathRect.height()));
 
-	writeAttribute("d", pathToString(item->path()));
+	xml.writeAttribute("svg:d", pathToString(item->path()));
 
-	QString glueStr = pointsToString(item->connectionPoints());
-	if (!glueStr.isEmpty()) writeAttribute("glue-points", glueStr);
-
-	writeEndElement();*/
+	xml.writeEndElement();
 }
 
 void OdgWriter::writeItemGroup(QXmlStreamWriter& xml, DrawingItemGroup* item)
 {
-	/*writeStartElement("group");
+	// Limited support for group items because <draw:g> element does not support transforms
 
-	writeAttribute("transform", transformToString(item->pos(), item->rotation(), item->isFlipped()));
+	QList<DrawingItem*> items = item->items();
 
-	writeItemElements(item->items());
+	xml.writeStartElement("draw:g");
 
-	writeEndElement();*/
+	for(auto itemIter = items.begin(); itemIter != items.end(); itemIter++)
+		(*itemIter)->setPos((*itemIter)->pos() + item->pos());
+
+	writeItems(xml, items);
+
+	for(auto itemIter = items.begin(); itemIter != items.end(); itemIter++)
+		(*itemIter)->setPos((*itemIter)->pos() - item->pos());
+
+	xml.writeEndElement();
 }
 
 //==================================================================================================
@@ -1083,14 +1157,24 @@ QString OdgWriter::arrowStyleName(DrawingItemStyle::ArrowStyle arrowStyle, qreal
 	return name;
 }
 
-/*QString OdgWriter::arrowStylePath(DrawingItemStyle::ArrowStyle arrowStyle, qreal arrowSize, 
+QString OdgWriter::arrowStylePath(DrawingItemStyle::ArrowStyle arrowStyle, qreal arrowSize,
 	qreal penWidth, QRectF& viewBox) const
 {
+	//const qreal sqrt2 = qSqrt(2);
+
 	QString pathString;
+	QPainterPath path;
 
 	switch (arrowStyle)
 	{
 	case DrawingItemStyle::ArrowNormal:
+		viewBox = QRectF(0, 0, arrowSize + penWidth, arrowSize + penWidth);
+		path.moveTo(viewBox.left(), viewBox.top());
+		path.lineTo(viewBox.right(), viewBox.top());
+		path.lineTo(viewBox.right(), viewBox.bottom());
+		path.lineTo(viewBox.left(), viewBox.bottom());
+		path.closeSubpath();
+		pathString = pathToString(path);
 		break;
 	case DrawingItemStyle::ArrowReverse:
 		break;
@@ -1103,12 +1187,29 @@ QString OdgWriter::arrowStyleName(DrawingItemStyle::ArrowStyle arrowStyle, qreal
 	case DrawingItemStyle::ArrowConcaveFilled:
 		break;
 	case DrawingItemStyle::ArrowCircle:
+		viewBox = QRectF(0, 0, arrowSize + penWidth, arrowSize + penWidth);
+		path.moveTo(viewBox.right(), viewBox.center().y());
+		path.arcTo(viewBox, 0, 360);
+		path.moveTo(viewBox.right(), viewBox.center().y());
+		path.arcTo(viewBox.left() + penWidth, viewBox.top() + penWidth, viewBox.width() - 2 * penWidth, viewBox.height() - 2 * penWidth, 0, 360);
+		pathString = pathToString(path);
 		break;
 	case DrawingItemStyle::ArrowCircleFilled:
+		viewBox = QRectF(0, 0, arrowSize + penWidth, arrowSize + penWidth);
+		path.moveTo(viewBox.right(), viewBox.center().y());
+		path.arcTo(viewBox, 0, 360);
+		pathString = pathToString(path);
 		break;
 	case DrawingItemStyle::ArrowDiamond:
 		break;
 	case DrawingItemStyle::ArrowDiamondFilled:
+		viewBox = QRectF(0, 0, arrowSize + penWidth, arrowSize + penWidth);
+		path.moveTo(viewBox.center().x(), viewBox.top());
+		path.lineTo(viewBox.right(), viewBox.center().y());
+		path.lineTo(viewBox.center().x(), viewBox.bottom());
+		path.lineTo(viewBox.left(), viewBox.center().y());
+		path.closeSubpath();
+		pathString = pathToString(path);
 		break;
 	case DrawingItemStyle::ArrowHarpoon:
 		break;
@@ -1121,7 +1222,7 @@ QString OdgWriter::arrowStyleName(DrawingItemStyle::ArrowStyle arrowStyle, qreal
 	}
 
 	return pathString;
-}*/
+}
 
 bool OdgWriter::arrowStyleCentered(DrawingItemStyle::ArrowStyle arrowStyle) const
 {
@@ -1133,6 +1234,20 @@ bool OdgWriter::arrowStyleCentered(DrawingItemStyle::ArrowStyle arrowStyle) cons
 }
 
 //==================================================================================================
+
+QString OdgWriter::alignmentToString(Qt::Alignment align) const
+{
+	QString str;
+
+	if (align & Qt::AlignLeft) str = "left";
+	else if (align & Qt::AlignRight) str = "right";
+	else if (align & Qt::AlignHCenter) str = "center";
+	else if (align & Qt::AlignTop) str = "top";
+	else if (align & Qt::AlignBottom) str = "bottom";
+	else if (align & Qt::AlignVCenter) str = "middle";
+
+	return str;
+}
 
 QString OdgWriter::colorToHexString(const QColor& color) const
 {
@@ -1146,6 +1261,34 @@ QString OdgWriter::colorToHexString(const QColor& color) const
 	str += QString::number(color.blue(), 16).toUpper();
 
 	return str;
+}
+
+QString OdgWriter::pathToString(const QPainterPath& path) const
+{
+	QString pathStr;
+
+	for(int i = 0; i < path.elementCount(); i++)
+	{
+		QPainterPath::Element element = path.elementAt(i);
+
+		switch (element.type)
+		{
+		case QPainterPath::MoveToElement:
+			pathStr += "M " + QString::number(element.x) + " " + QString::number(element.y) + " ";
+			break;
+		case QPainterPath::LineToElement:
+			pathStr += "L " + QString::number(element.x) + " " + QString::number(element.y) + " ";
+			break;
+		case QPainterPath::CurveToElement:
+			pathStr += "C " + QString::number(element.x) + " " + QString::number(element.y) + " ";
+			break;
+		case QPainterPath::CurveToDataElement:
+			pathStr += QString::number(element.x) + " " + QString::number(element.y) + " ";
+			break;
+		}
+	}
+
+	return pathStr.trimmed();
 }
 
 QString OdgWriter::penStyleToString(Qt::PenStyle style) const
@@ -1207,10 +1350,10 @@ QString OdgWriter::pointsToString(const QPolygonF& points) const
 QString OdgWriter::transformToString(const QPointF& pos, qreal rotation, bool flipped) const
 {
 	QPointF mappedPos = mDiagramTransform.map(pos);
-	
-	QString str = "translate(" + QString::number(mappedPos.x()) + mDiagramUnits + "," + 
+
+	QString str = "translate(" + QString::number(mappedPos.x()) + mDiagramUnits + "," +
 		QString::number(mappedPos.y()) + mDiagramUnits + ")";
-	str += (rotation != 0) ? " rotate(" + QString::number(rotation) + ")" : "";
-	str += (flipped) ? " scale(-1.0,1.0)" : "";
+	str = ((rotation != 0) ? "rotate(" + QString::number(-rotation * 3.141592654 / 180) + ") " : "") + str;
+	str = ((flipped) ? "scale(-1.0,1.0) " : "") + str;
 	return str;
 }

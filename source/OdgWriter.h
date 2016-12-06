@@ -111,7 +111,9 @@ private:
 	QString arrowStylePath(DrawingItemStyle::ArrowStyle arrowStyle, qreal arrowSize, qreal penWidth, QRectF& viewBox) const;
 	bool arrowStyleCentered(DrawingItemStyle::ArrowStyle arrowStyle) const;
 
+	QString alignmentToString(Qt::Alignment align) const;
 	QString colorToHexString(const QColor& color) const;
+	QString pathToString(const QPainterPath& path) const;
 	QString penStyleToString(Qt::PenStyle style) const;
 	QString penCapStyleToString(Qt::PenCapStyle style) const;
 	QString penJoinStyleToString(Qt::PenJoinStyle style) const;
