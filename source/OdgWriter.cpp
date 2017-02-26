@@ -636,7 +636,7 @@ void OdgWriter::writeItemStyle(QXmlStreamWriter& xml, DrawingItemStyle* style)
 		qreal penWidth = style->value(DrawingItemStyle::PenWidth).toReal();
 
 		xml.writeAttribute("draw:marker-start", arrowStyleName(arrowStyle, arrowSize, penWidth));
-		xml.writeAttribute("draw:marker-start-center", arrowStyleCentered(arrowStyle) ? "true" : "false");
+		xml.writeAttribute("draw:marker-start-center", arrowStyleCentered(arrowStyle) ? "0.5" : "0.0");
 		xml.writeAttribute("draw:marker-start-width", QString::number((arrowSize + penWidth) * mDiagramScale) + mDiagramUnits);
 	}
 
@@ -648,7 +648,7 @@ void OdgWriter::writeItemStyle(QXmlStreamWriter& xml, DrawingItemStyle* style)
 		qreal penWidth = style->value(DrawingItemStyle::PenWidth).toReal();
 
 		xml.writeAttribute("draw:marker-end", arrowStyleName(arrowStyle, arrowSize, penWidth));
-		xml.writeAttribute("draw:marker-end-center", arrowStyleCentered(arrowStyle) ? "true" : "false");
+		xml.writeAttribute("draw:marker-end-center", arrowStyleCentered(arrowStyle) ? "0.5" : "0.0");
 		xml.writeAttribute("draw:marker-end-width", QString::number((arrowSize + penWidth) * mDiagramScale) + mDiagramUnits);
 	}
 
@@ -1135,19 +1135,22 @@ QString OdgWriter::arrowStyleName(DrawingItemStyle::ArrowStyle arrowStyle, qreal
 	
 	switch (arrowStyle)
 	{
-	case DrawingItemStyle::ArrowNormal: name = "Normal"; break;
-	case DrawingItemStyle::ArrowReverse: name = "Reverse"; break;
-	case DrawingItemStyle::ArrowTriangle: name = "Triangle"; break;
-	case DrawingItemStyle::ArrowTriangleFilled: name = "TriangleFilled"; break;
-	case DrawingItemStyle::ArrowConcave: name = "Concave"; break;
-	case DrawingItemStyle::ArrowConcaveFilled: name = "ConcaveFilled"; break;
-	case DrawingItemStyle::ArrowCircle: name = "Circle"; break;
-	case DrawingItemStyle::ArrowCircleFilled: name = "CircleFilled"; break;
-	case DrawingItemStyle::ArrowDiamond: name = "Diamond"; break;
-	case DrawingItemStyle::ArrowDiamondFilled: name = "DiamondFilled"; break;
-	case DrawingItemStyle::ArrowHarpoon: name = "Harpoon"; break;
-	case DrawingItemStyle::ArrowHarpoonMirrored: name = "HarpoonMirrored"; break;
-	case DrawingItemStyle::ArrowX: name = "X"; break;
+	case DrawingItemStyle::ArrowNormal:
+	case DrawingItemStyle::ArrowTriangle:
+	case DrawingItemStyle::ArrowTriangleFilled:
+	case DrawingItemStyle::ArrowConcave:
+	case DrawingItemStyle::ArrowConcaveFilled:
+	case DrawingItemStyle::ArrowHarpoon:
+	case DrawingItemStyle::ArrowHarpoonMirrored:
+		name = "TriangleFilled"; break;
+	case DrawingItemStyle::ArrowReverse:
+		name = "Reverse"; break;
+	case DrawingItemStyle::ArrowCircle:
+	case DrawingItemStyle::ArrowCircleFilled:
+		name = "CircleFilled"; break;
+	case DrawingItemStyle::ArrowDiamond:
+	case DrawingItemStyle::ArrowDiamondFilled:
+		name = "DiamondFilled"; break;
 	default: break;
 	}
 	
@@ -1160,40 +1163,43 @@ QString OdgWriter::arrowStyleName(DrawingItemStyle::ArrowStyle arrowStyle, qreal
 QString OdgWriter::arrowStylePath(DrawingItemStyle::ArrowStyle arrowStyle, qreal arrowSize,
 	qreal penWidth, QRectF& viewBox) const
 {
-	//const qreal sqrt2 = qSqrt(2);
+	const qreal sqrt2 = qSqrt(2);
 
 	QString pathString;
 	QPainterPath path;
+	QRectF innerBox;
 
 	switch (arrowStyle)
 	{
 	case DrawingItemStyle::ArrowNormal:
-		viewBox = QRectF(0, 0, arrowSize + penWidth, arrowSize + penWidth);
-		path.moveTo(viewBox.left(), viewBox.top());
-		path.lineTo(viewBox.right(), viewBox.top());
-		path.lineTo(viewBox.right(), viewBox.bottom());
-		path.lineTo(viewBox.left(), viewBox.bottom());
+	case DrawingItemStyle::ArrowTriangle:
+	case DrawingItemStyle::ArrowTriangleFilled:
+	case DrawingItemStyle::ArrowConcave:
+	case DrawingItemStyle::ArrowConcaveFilled:
+	case DrawingItemStyle::ArrowHarpoon:
+	case DrawingItemStyle::ArrowHarpoonMirrored:
+		viewBox = QRectF(-arrowSize / 2 - penWidth / 2, -penWidth / 2, arrowSize + penWidth, arrowSize + penWidth);
+		/*path.moveTo(-penWidth * sqrt2 / 2, -penWidth * sqrt2 / 2);
+		path.lineTo(-arrowSize / 2 - penWidth * sqrt2 / 2, arrowSize - penWidth * sqrt2 / 2);
+		path.lineTo(-arrowSize / 2, arrowSize + penWidth / 2);
+		path.lineTo(arrowSize / 2, arrowSize + penWidth / 2);
+		path.lineTo(arrowSize / 2 + penWidth * sqrt2 / 2, arrowSize - penWidth * sqrt2 / 2);
+		path.lineTo(penWidth * sqrt2 / 2, -penWidth * sqrt2 / 2);*/
+		path.moveTo(0, -penWidth / 2);
+		path.lineTo(-arrowSize / 2 - penWidth / 2, arrowSize + penWidth / 2);
+		path.lineTo(arrowSize / 2 + penWidth / 2, arrowSize + penWidth / 2);
 		path.closeSubpath();
 		pathString = pathToString(path);
 		break;
 	case DrawingItemStyle::ArrowReverse:
-		break;
-	case DrawingItemStyle::ArrowTriangle:
-		break;
-	case DrawingItemStyle::ArrowTriangleFilled:
-		break;
-	case DrawingItemStyle::ArrowConcave:
-		break;
-	case DrawingItemStyle::ArrowConcaveFilled:
-		break;
-	case DrawingItemStyle::ArrowCircle:
-		viewBox = QRectF(0, 0, arrowSize + penWidth, arrowSize + penWidth);
-		path.moveTo(viewBox.right(), viewBox.center().y());
-		path.arcTo(viewBox, 0, 360);
-		path.moveTo(viewBox.right(), viewBox.center().y());
-		path.arcTo(viewBox.left() + penWidth, viewBox.top() + penWidth, viewBox.width() - 2 * penWidth, viewBox.height() - 2 * penWidth, 0, 360);
+		viewBox = QRectF(-arrowSize / 2 - penWidth / 2, -penWidth / 2, arrowSize + penWidth, arrowSize + penWidth);
+		path.moveTo(0, arrowSize + penWidth / 2);
+		path.lineTo(-arrowSize / 2 - penWidth / 2, -penWidth / 2);
+		path.lineTo(arrowSize / 2 + penWidth / 2, -penWidth / 2);
+		path.closeSubpath();
 		pathString = pathToString(path);
 		break;
+	case DrawingItemStyle::ArrowCircle:
 	case DrawingItemStyle::ArrowCircleFilled:
 		viewBox = QRectF(0, 0, arrowSize + penWidth, arrowSize + penWidth);
 		path.moveTo(viewBox.right(), viewBox.center().y());
@@ -1201,7 +1207,6 @@ QString OdgWriter::arrowStylePath(DrawingItemStyle::ArrowStyle arrowStyle, qreal
 		pathString = pathToString(path);
 		break;
 	case DrawingItemStyle::ArrowDiamond:
-		break;
 	case DrawingItemStyle::ArrowDiamondFilled:
 		viewBox = QRectF(0, 0, arrowSize + penWidth, arrowSize + penWidth);
 		path.moveTo(viewBox.center().x(), viewBox.top());
@@ -1210,12 +1215,6 @@ QString OdgWriter::arrowStylePath(DrawingItemStyle::ArrowStyle arrowStyle, qreal
 		path.lineTo(viewBox.left(), viewBox.center().y());
 		path.closeSubpath();
 		pathString = pathToString(path);
-		break;
-	case DrawingItemStyle::ArrowHarpoon:
-		break;
-	case DrawingItemStyle::ArrowHarpoonMirrored:
-		break;
-	case DrawingItemStyle::ArrowX:
 		break;
 	default:
 		break;
