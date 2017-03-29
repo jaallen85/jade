@@ -1,6 +1,6 @@
 /* DiagramReader.cpp
  *
- * Copyright (C) 2013-2016 Jason Allen
+ * Copyright (C) 2013-2017 Jason Allen
  *
  * This file is part of the jade application.
  *
@@ -33,91 +33,65 @@ void DiagramReader::read(DiagramWidget* diagram)
 	QList<DrawingItem*> items;
 	bool pageFound = false;
 
-	while (readNextStartElement())
+	if (diagram)
 	{
-		if (name() == "jade-drawing")
+		DrawingScene* scene = diagram->scene();
+
+		while (readNextStartElement())
 		{
-			while (readNextStartElement())
+			if (name() == "jade-drawing")
 			{
-				if (name() == "page" && !pageFound)
+				while (readNextStartElement())
 				{
-					// Read scene properties
-					QXmlStreamAttributes attr = attributes();
-
-					QRectF sceneRect = diagram->sceneRect();
-					if (attr.hasAttribute("view-left")) sceneRect.setLeft(attr.value("view-left").toDouble());
-					if (attr.hasAttribute("view-top")) sceneRect.setTop(attr.value("view-top").toDouble());
-					if (attr.hasAttribute("view-width")) sceneRect.setWidth(attr.value("view-width").toDouble());
-					if (attr.hasAttribute("view-height")) sceneRect.setHeight(attr.value("view-height").toDouble());
-					diagram->setSceneRect(sceneRect);
-
-					if (attr.hasAttribute("background-color"))
-						diagram->setBackgroundBrush(colorFromString(attr.value("background-color").toString()));
-
-					if (attr.hasAttribute("grid"))
-						diagram->setGrid(attr.value("grid").toDouble());
-
-					if (attr.hasAttribute("grid-color"))
-						diagram->setGridBrush(colorFromString(attr.value("grid-color").toString()));
-					if (attr.hasAttribute("grid-style"))
-						diagram->setGridStyle(gridStyleFromString(attr.value("grid-style").toString()));
-					if (attr.hasAttribute("grid-spacing-major"))
-						diagram->setGridSpacing(attr.value("grid-spacing-major").toInt(), diagram->gridSpacingMinor());
-					if (attr.hasAttribute("grid-spacing-minor"))
-						diagram->setGridSpacing(diagram->gridSpacingMajor(), attr.value("grid-spacing-minor").toInt());
-
-					// Read items
-					while (readNextStartElement())
+					if (name() == "page" && !pageFound)
 					{
-						if (name() == "items")
+						// Read scene properties
+						QXmlStreamAttributes attr = attributes();
+
+						if (scene)
 						{
-							items = readItemElements();
-							for(auto itemIter = items.begin(); itemIter != items.end(); itemIter++)
-								diagram->addItem(*itemIter);
+							QRectF sceneRect = scene->sceneRect();
+							if (attr.hasAttribute("view-left")) sceneRect.setLeft(attr.value("view-left").toDouble());
+							if (attr.hasAttribute("view-top")) sceneRect.setTop(attr.value("view-top").toDouble());
+							if (attr.hasAttribute("view-width")) sceneRect.setWidth(attr.value("view-width").toDouble());
+							if (attr.hasAttribute("view-height")) sceneRect.setHeight(attr.value("view-height").toDouble());
+							scene->setSceneRect(sceneRect);
 
-							// Connect items together
-							QList<DrawingItemPoint*> itemPoints, otherItemPoints;
-							qreal distance, threshold = diagram->grid() / 4000;
-							QPointF vec;
-							for(auto itemIter = items.begin(); itemIter != items.end(); itemIter++)
-							{
-								for(auto otherItemIter = itemIter + 1; otherItemIter != items.end(); otherItemIter++)
-								{
-									itemPoints = (*itemIter)->points();
-									otherItemPoints = (*otherItemIter)->points();
-
-									for(auto itemPointIter = itemPoints.begin(); itemPointIter != itemPoints.end(); itemPointIter++)
-									{
-										for(auto otherItemPointIter = otherItemPoints.begin();
-											otherItemPointIter != otherItemPoints.end(); otherItemPointIter++)
-										{
-											if ((*itemPointIter)->isConnectionPoint() && (*otherItemPointIter)->isConnectionPoint() &&
-												((*itemPointIter)->isFree() || (*otherItemPointIter)->isFree()))
-											{
-												vec = (*itemIter)->mapToScene((*itemPointIter)->pos()) -
-													(*otherItemIter)->mapToScene((*otherItemPointIter)->pos());
-												distance = qSqrt(vec.x() * vec.x() + vec.y() * vec.y());
-
-												if (distance <= threshold)
-												{
-													(*itemPointIter)->addConnection(*otherItemPointIter);
-													(*otherItemPointIter)->addConnection(*itemPointIter);
-												}
-											}
-										}
-									}
-								}
-							}
+							if (attr.hasAttribute("background-color"))
+								scene->setBackgroundBrush(colorFromString(attr.value("background-color").toString()));
 						}
-						else skipCurrentElement();
-					}
 
-					pageFound = true;
+						if (attr.hasAttribute("grid"))
+							diagram->setGrid(attr.value("grid").toDouble());
+
+						if (attr.hasAttribute("grid-color"))
+							diagram->setGridBrush(colorFromString(attr.value("grid-color").toString()));
+						if (attr.hasAttribute("grid-style"))
+							diagram->setGridStyle(gridStyleFromString(attr.value("grid-style").toString()));
+						if (attr.hasAttribute("grid-spacing-major"))
+							diagram->setGridSpacing(attr.value("grid-spacing-major").toInt(), diagram->gridSpacingMinor());
+						if (attr.hasAttribute("grid-spacing-minor"))
+							diagram->setGridSpacing(diagram->gridSpacingMajor(), attr.value("grid-spacing-minor").toInt());
+
+						// Read items
+						while (readNextStartElement())
+						{
+							if (name() == "items")
+							{
+								items = readItemElements();
+								for(auto itemIter = items.begin(); scene && itemIter != items.end(); itemIter++)
+									scene->addItem(*itemIter);
+							}
+							else skipCurrentElement();
+						}
+
+						pageFound = true;
+					}
+					else skipCurrentElement();
 				}
-				else skipCurrentElement();
 			}
+			else skipCurrentElement();
 		}
-		else skipCurrentElement();
 	}
 }
 
@@ -167,6 +141,40 @@ QList<DrawingItem*> DiagramReader::readItemElements()
 		else skipCurrentElement();
 
 		if (newItem) items.append(newItem);
+	}
+
+	// Connect items together
+	QList<DrawingItemPoint*> itemPoints, otherItemPoints;
+	qreal distance, threshold = 0.01;
+	QPointF vec;
+	for(auto itemIter = items.begin(); itemIter != items.end(); itemIter++)
+	{
+		for(auto otherItemIter = itemIter + 1; otherItemIter != items.end(); otherItemIter++)
+		{
+			itemPoints = (*itemIter)->points();
+			otherItemPoints = (*otherItemIter)->points();
+
+			for(auto itemPointIter = itemPoints.begin(); itemPointIter != itemPoints.end(); itemPointIter++)
+			{
+				for(auto otherItemPointIter = otherItemPoints.begin();
+					otherItemPointIter != otherItemPoints.end(); otherItemPointIter++)
+				{
+					if (((*itemPointIter)->flags() & DrawingItemPoint::Connection) && ((*otherItemPointIter)->flags() & DrawingItemPoint::Connection) &&
+						(((*itemPointIter)->flags() & DrawingItemPoint::Free) || ((*otherItemPointIter)->flags() & DrawingItemPoint::Free)))
+					{
+						vec = (*itemIter)->mapToScene((*itemPointIter)->position()) -
+							(*otherItemIter)->mapToScene((*otherItemPointIter)->position());
+						distance = qSqrt(vec.x() * vec.x() + vec.y() * vec.y());
+
+						if (distance <= threshold)
+						{
+							(*itemPointIter)->addConnection(*otherItemPointIter);
+							(*otherItemPointIter)->addConnection(*itemPointIter);
+						}
+					}
+				}
+			}
+		}
 	}
 
 	return items;
@@ -461,8 +469,6 @@ DrawingItemGroup* DiagramReader::readItemGroup()
 	if (attr.hasAttribute("transform")) transformFromString(attr.value("transform").toString(), item);
 
 	item->setItems(readItemElements());
-
-	skipCurrentElement();
 
 	return item;
 }
@@ -771,6 +777,7 @@ void DiagramReader::transformFromString(const QString& str, DrawingItem* item)
 		{
 			int endIndex = tokenIter->indexOf(")");
 			QStringList coords = tokenIter->mid(10, endIndex - 10).split(",");
+
 			if (coords.size() == 2)
 			{
 				item->setX(coords.first().toDouble());
@@ -781,13 +788,21 @@ void DiagramReader::transformFromString(const QString& str, DrawingItem* item)
 		{
 			int endIndex = tokenIter->indexOf(")");
 			QString angle = tokenIter->mid(7, endIndex - 7);
-			item->setRotation(angle.toDouble());
+
+			QTransform transform;
+			transform.rotate(angle.toDouble());
+			item->setTransform(transform, true);
 		}
 		else if (tokenIter->startsWith("scale("))
 		{
 			int endIndex = tokenIter->indexOf(")");
 			QStringList coords = tokenIter->mid(6, endIndex - 6).split(",");
-			if (coords.size() == 2) item->setFlipped(coords.first().toDouble() < 0);
+			if (coords.size() == 2)
+			{
+				QTransform transform;
+				transform.scale(coords.first().toDouble(), coords.last().toDouble());
+				item->setTransform(transform, true);
+			}
 		}
 	}
 }

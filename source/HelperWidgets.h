@@ -1,6 +1,6 @@
 /* HelperWidgets.h
  *
- * Copyright (C) 2013-2016 Jason Allen
+ * Copyright (C) 2013-2017 Jason Allen
  *
  * This file is part of the jade application.
  *
@@ -39,10 +39,10 @@ public:
 	~PositionWidget();
 
 public slots:
-	void setPos(const QPointF& pos);
+	void setPosition(const QPointF& pos);
 
 public:
-	QPointF pos() const;
+	QPointF position() const;
 
 signals:
 	void positionChanged(const QPointF& pos);
@@ -57,6 +57,9 @@ class PositionEdit : public QLineEdit
 {
 	Q_OBJECT
 
+private:
+	qreal mPosCached;
+
 public:
 	PositionEdit(qreal pos = 0);
 	~PositionEdit();
@@ -64,10 +67,10 @@ public:
 	QSize sizeHint() const;
 
 public slots:
-	void setPos(qreal pos);
+	void setPosition(qreal pos);
 
 public:
-	qreal pos() const;
+	qreal position() const;
 
 signals:
 	void positionChanged(qreal pos);
@@ -108,6 +111,9 @@ private slots:
 class SizeEdit : public QLineEdit
 {
 	Q_OBJECT
+
+private:
+	qreal mSizeCached;
 
 public:
 	SizeEdit(qreal size = 0);

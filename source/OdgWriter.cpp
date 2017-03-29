@@ -1,6 +1,6 @@
 /* OdgWriter.cpp
  *
- * Copyright (C) 2013-2016 Jason Allen
+ * Copyright (C) 2013-2017 Jason Allen
  *
  * This file is part of the jade application.
  *
@@ -66,7 +66,7 @@ void OdgWriter::analyzeDiagram()
 	QPrinter::Unit printerUnits = (mDiagramUnits == "mm") ? QPrinter::Millimeter : QPrinter::Inch;
 	QPageLayout::Unit pageLayoutUnits = (mDiagramUnits == "mm") ? QPageLayout::Millimeter : QPageLayout::Inch;
 
-	mVisibleRect = mDiagram->sceneRect();
+	mVisibleRect = mDiagram->scene()->sceneRect();
 
 	qreal pageAspect = mPrinter->pageRect(printerUnits).width() / (qreal)mPrinter->pageRect(printerUnits).height();
 	mDiagramScale = qMin(mPrinter->pageRect(printerUnits).width() / mVisibleRect.width(),
@@ -92,7 +92,7 @@ void OdgWriter::analyzeDiagram()
 void OdgWriter::analyzeItemStyles()
 {
 	mItemStyles.clear();
-	findItemStyles(mDiagram->items(), mItemStyles);
+	findItemStyles(mDiagram->scene()->items(), mItemStyles);
 	
 	mDashStyles.clear();
 	mFontDecls.clear();
@@ -198,7 +198,7 @@ QString OdgWriter::writeContent()
 	xml.writeAttribute("draw:name", "Page1");
 	xml.writeAttribute("draw:style-name", "Page1");
 	xml.writeAttribute("draw:master-page-name", "DefaultPage");
-	writeItems(xml, mDiagram->items());
+	writeItems(xml, mDiagram->scene()->items());
 	xml.writeEndElement();
 	xml.writeEndElement();
 	xml.writeEndElement();
@@ -443,7 +443,7 @@ void OdgWriter::writeDefaultPageStyle(QXmlStreamWriter& xml)
 	xml.writeStartElement("style:drawing-page-properties");
 	xml.writeAttribute("draw:background-size", "full");
 
-	QColor backgroundColor = mDiagram->backgroundBrush().color();
+	QColor backgroundColor = mDiagram->scene()->backgroundBrush().color();
 	if (backgroundColor.alpha() > 0)
 	{
 		xml.writeAttribute("draw:fill", "solid");
@@ -769,7 +769,7 @@ void OdgWriter::writeLineItem(QXmlStreamWriter& xml, DrawingLineItem* item)
 {
 	xml.writeStartElement("draw:line");
 
-	xml.writeAttribute("draw:transform", transformToString(item->pos(), item->rotation(), item->isFlipped()));
+	xml.writeAttribute("draw:transform", transformToString(item));
 
 	QLineF line = item->line();
 	xml.writeAttribute("svg:x1", QString::number(line.x1() * mDiagramScale) + mDiagramUnits);
@@ -786,7 +786,7 @@ void OdgWriter::writeArcItem(QXmlStreamWriter& xml, DrawingArcItem* item)
 {
 	xml.writeStartElement("draw:path");
 
-	xml.writeAttribute("draw:transform", transformToString(item->pos(), item->rotation(), item->isFlipped()));
+	xml.writeAttribute("draw:transform", transformToString(item));
 
 	QLineF line = item->arc();
 	QRectF rect = QRectF(line.p1() * mDiagramScale, line.p2() * mDiagramScale).normalized();
@@ -812,12 +812,12 @@ void OdgWriter::writePolylineItem(QXmlStreamWriter& xml, DrawingPolylineItem* it
 {
 	xml.writeStartElement("draw:polyline");
 
-	xml.writeAttribute("draw:transform", transformToString(item->pos(), item->rotation(), item->isFlipped()));
+	xml.writeAttribute("draw:transform", transformToString(item));
 
 	QPolygonF polygon;
 	QList<DrawingItemPoint*> points = item->points();
 	for(auto pointIter = points.begin(); pointIter != points.end(); pointIter++)
-		polygon.append((*pointIter)->pos() * mDiagramScale);
+		polygon.append((*pointIter)->position() * mDiagramScale);
 	QRectF rect = polygon.boundingRect();
 
 	xml.writeAttribute("svg:x", QString::number(rect.left()) + mDiagramUnits);
@@ -839,12 +839,12 @@ void OdgWriter::writeCurveItem(QXmlStreamWriter& xml, DrawingCurveItem* item)
 {
 	xml.writeStartElement("draw:path");
 
-	xml.writeAttribute("draw:transform", transformToString(item->pos(), item->rotation(), item->isFlipped()));
+	xml.writeAttribute("draw:transform", transformToString(item));
 
 	QPolygonF polygon;
 	QList<DrawingItemPoint*> points = item->points();
 	for(auto pointIter = points.begin(); pointIter != points.end(); pointIter++)
-		polygon.append((*pointIter)->pos() * mDiagramScale);
+		polygon.append((*pointIter)->position() * mDiagramScale);
 	QRectF rect = polygon.boundingRect();
 
 	xml.writeAttribute("svg:x", QString::number(rect.left()) + mDiagramUnits);
@@ -869,7 +869,7 @@ void OdgWriter::writeRectItem(QXmlStreamWriter& xml, DrawingRectItem* item)
 {
 	xml.writeStartElement("draw:rect");
 
-	xml.writeAttribute("draw:transform", transformToString(item->pos(), item->rotation(), item->isFlipped()));
+	xml.writeAttribute("draw:transform", transformToString(item));
 
 	QRectF rect = item->rect();
 	xml.writeAttribute("svg:x", QString::number(rect.left() * mDiagramScale) + mDiagramUnits);
@@ -892,7 +892,7 @@ void OdgWriter::writeEllipseItem(QXmlStreamWriter& xml, DrawingEllipseItem* item
 {
 	xml.writeStartElement("draw:ellipse");
 
-	xml.writeAttribute("draw:transform", transformToString(item->pos(), item->rotation(), item->isFlipped()));
+	xml.writeAttribute("draw:transform", transformToString(item));
 
 	QRectF rect = item->ellipse();
 	xml.writeAttribute("svg:x", QString::number(rect.left() * mDiagramScale) + mDiagramUnits);
@@ -909,12 +909,12 @@ void OdgWriter::writePolygonItem(QXmlStreamWriter& xml, DrawingPolygonItem* item
 {
 	xml.writeStartElement("draw:polygon");
 
-	xml.writeAttribute("draw:transform", transformToString(item->pos(), item->rotation(), item->isFlipped()));
+	xml.writeAttribute("draw:transform", transformToString(item));
 
 	QPolygonF polygon;
 	QList<DrawingItemPoint*> points = item->points();
 	for(auto pointIter = points.begin(); pointIter != points.end(); pointIter++)
-		polygon.append((*pointIter)->pos() * mDiagramScale);
+		polygon.append((*pointIter)->position() * mDiagramScale);
 	QRectF rect = polygon.boundingRect();
 
 	xml.writeAttribute("svg:x", QString::number(rect.left()) + mDiagramUnits);
@@ -936,7 +936,7 @@ void OdgWriter::writeTextItem(QXmlStreamWriter& xml, DrawingTextItem* item)
 {
 	xml.writeStartElement("draw:rect");
 
-	xml.writeAttribute("draw:transform", transformToString(item->pos(), item->rotation(), item->isFlipped()));
+	xml.writeAttribute("draw:transform", transformToString(item));
 
 	QRectF rect = item->boundingRect().normalized();
 	xml.writeAttribute("svg:x", QString::number(rect.left() * mDiagramScale) + mDiagramUnits);
@@ -958,7 +958,7 @@ void OdgWriter::writeTextRectItem(QXmlStreamWriter& xml, DrawingTextRectItem* it
 {
 	xml.writeStartElement("draw:rect");
 
-	xml.writeAttribute("draw:transform", transformToString(item->pos(), item->rotation(), item->isFlipped()));
+	xml.writeAttribute("draw:transform", transformToString(item));
 
 	QRectF rect = item->rect();
 	xml.writeAttribute("svg:x", QString::number(rect.left() * mDiagramScale) + mDiagramUnits);
@@ -986,7 +986,7 @@ void OdgWriter::writeTextEllipseItem(QXmlStreamWriter& xml, DrawingTextEllipseIt
 {
 	xml.writeStartElement("draw:ellipse");
 
-	xml.writeAttribute("draw:transform", transformToString(item->pos(), item->rotation(), item->isFlipped()));
+	xml.writeAttribute("draw:transform", transformToString(item));
 
 	QRectF rect = item->ellipse();
 	xml.writeAttribute("svg:x", QString::number(rect.left() * mDiagramScale) + mDiagramUnits);
@@ -1008,12 +1008,12 @@ void OdgWriter::writeTextPolygonItem(QXmlStreamWriter& xml, DrawingTextPolygonIt
 {
 	xml.writeStartElement("draw:polygon");
 
-	xml.writeAttribute("draw:transform", transformToString(item->pos(), item->rotation(), item->isFlipped()));
+	xml.writeAttribute("draw:transform", transformToString(item));
 
 	QPolygonF polygon;
 	QList<DrawingItemPoint*> points = item->points();
 	for(auto pointIter = points.begin(); pointIter != points.end(); pointIter++)
-		polygon.append((*pointIter)->pos() * mDiagramScale);
+		polygon.append((*pointIter)->position() * mDiagramScale);
 	QRectF rect = polygon.boundingRect();
 
 	xml.writeAttribute("svg:x", QString::number(rect.left()) + mDiagramUnits);
@@ -1040,7 +1040,7 @@ void OdgWriter::writePathItem(QXmlStreamWriter& xml, DrawingPathItem* item)
 {
 	xml.writeStartElement("draw:path");
 
-	xml.writeAttribute("draw:transform", transformToString(item->pos(), item->rotation(), item->isFlipped()));
+	xml.writeAttribute("draw:transform", transformToString(item));
 
 	QRectF rect = item->rect();
 	xml.writeAttribute("svg:x", QString::number(rect.left() * mDiagramScale) + mDiagramUnits);
@@ -1068,12 +1068,12 @@ void OdgWriter::writeItemGroup(QXmlStreamWriter& xml, DrawingItemGroup* item)
 	xml.writeStartElement("draw:g");
 
 	for(auto itemIter = items.begin(); itemIter != items.end(); itemIter++)
-		(*itemIter)->setPos((*itemIter)->pos() + item->pos());
+		(*itemIter)->setPosition((*itemIter)->position() + item->position());
 
 	writeItems(xml, items);
 
 	for(auto itemIter = items.begin(); itemIter != items.end(); itemIter++)
-		(*itemIter)->setPos((*itemIter)->pos() - item->pos());
+		(*itemIter)->setPosition((*itemIter)->position() - item->position());
 
 	xml.writeEndElement();
 }
@@ -1163,7 +1163,7 @@ QString OdgWriter::arrowStyleName(DrawingItemStyle::ArrowStyle arrowStyle, qreal
 QString OdgWriter::arrowStylePath(DrawingItemStyle::ArrowStyle arrowStyle, qreal arrowSize,
 	qreal penWidth, QRectF& viewBox) const
 {
-	const qreal sqrt2 = qSqrt(2);
+	//const qreal sqrt2 = qSqrt(2);
 
 	QString pathString;
 	QPainterPath path;
@@ -1346,13 +1346,21 @@ QString OdgWriter::pointsToString(const QPolygonF& points) const
 	return pointsStr.trimmed();
 }
 
-QString OdgWriter::transformToString(const QPointF& pos, qreal rotation, bool flipped) const
+QString OdgWriter::transformToString(DrawingItem* item) const
 {
-	QPointF mappedPos = mDiagramTransform.map(pos);
+	QPointF mappedPos = mDiagramTransform.map(item->position());
+	QTransform transform = item->transform();
 
-	QString str = "translate(" + QString::number(mappedPos.x()) + mDiagramUnits + "," +
+	qreal rotation = qAsin(transform.m12());
+	transform.rotate(-rotation * 180 / 3.141592654);
+
+	qreal hScale = transform.m11();
+	qreal vScale = transform.m22();
+
+	QString str;
+	str += (hScale != 1.0 || vScale != 1.0) ? "scale(" + QString::number(hScale) + "," + QString::number(vScale) + ") " : "";
+	str += (rotation != 0) ? "rotate(" + QString::number(rotation) + ") " : "";
+	str += "translate(" + QString::number(mappedPos.x()) + mDiagramUnits + "," +
 		QString::number(mappedPos.y()) + mDiagramUnits + ")";
-	str = ((rotation != 0) ? "rotate(" + QString::number(-rotation * 3.141592654 / 180) + ") " : "") + str;
-	str = ((flipped) ? "scale(-1.0,1.0) " : "") + str;
 	return str;
 }

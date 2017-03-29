@@ -1,6 +1,6 @@
 /* DynamicPropertiesWidget.cpp
  *
- * Copyright (C) 2013-2016 Jason Allen
+ * Copyright (C) 2013-2017 Jason Allen
  *
  * This file is part of the jade application.
  *
@@ -82,11 +82,9 @@ void DynamicPropertiesWidget::setSelectedItems(const QList<DrawingItem*>& select
 	}
 }
 
-void DynamicPropertiesWidget::setNewItem(DrawingItem* item)
+void DynamicPropertiesWidget::setNewItems(const QList<DrawingItem*>& newItems)
 {
-	QList<DrawingItem*> items;
-	if (item) items.append(item);
-	setSelectedItems(items);
+	setSelectedItems(newItems);
 }
 
 void DynamicPropertiesWidget::clear()
@@ -143,32 +141,32 @@ void DynamicPropertiesWidget::setItemGeometry(const QList<DrawingItem*>& items)
 	{
 		QList<DrawingItemPoint*> itemPoints = item->points();
 
-		if (mPositionWidget) mPositionWidget->setPos(item->pos());
+		if (mPositionWidget) mPositionWidget->setPosition(item->position());
 
 		if (mStartPositionWidget && itemPoints.size() >= 2)
-			mStartPositionWidget->setPos(item->mapToScene(itemPoints.first()->pos()));
+			mStartPositionWidget->setPosition(item->mapToScene(itemPoints.first()->position()));
 		if (mEndPositionWidget && itemPoints.size() >= 2)
-			mEndPositionWidget->setPos(item->mapToScene(itemPoints.last()->pos()));
+			mEndPositionWidget->setPosition(item->mapToScene(itemPoints.last()->position()));
 
 		if (mCurveStartPositionWidget && itemPoints.size() >= 4)
-			mCurveStartPositionWidget->setPos(item->mapToScene(itemPoints[0]->pos()));
+			mCurveStartPositionWidget->setPosition(item->mapToScene(itemPoints[0]->position()));
 		if (mCurveEndPositionWidget && itemPoints.size() >= 4)
-			mCurveEndPositionWidget->setPos(item->mapToScene(itemPoints[3]->pos()));
+			mCurveEndPositionWidget->setPosition(item->mapToScene(itemPoints[3]->position()));
 		if (mCurveStartControlPositionWidget && itemPoints.size() >= 4)
-			mCurveStartControlPositionWidget->setPos(item->mapToScene(itemPoints[1]->pos()));
+			mCurveStartControlPositionWidget->setPosition(item->mapToScene(itemPoints[1]->position()));
 		if (mCurveEndControlPositionWidget && itemPoints.size() >= 4)
-			mCurveEndControlPositionWidget->setPos(item->mapToScene(itemPoints[2]->pos()));
+			mCurveEndControlPositionWidget->setPosition(item->mapToScene(itemPoints[2]->position()));
 
 		if (mRectTopLeftWidget && itemPoints.size() >= 8)
-			mRectTopLeftWidget->setPos(item->mapToScene(itemPoints[0]->pos()));
+			mRectTopLeftWidget->setPosition(item->mapToScene(itemPoints[0]->position()));
 		if (mRectBottomRightWidget && itemPoints.size() >= 8)
-			mRectBottomRightWidget->setPos(item->mapToScene(itemPoints[4]->pos()));
+			mRectBottomRightWidget->setPosition(item->mapToScene(itemPoints[1]->position()));
 
 		if (mPointPositionStackedWidget)
 		{
 			if (itemPoints.size() != mPointPositionWidgets.size()) fillPointsWidgets();
 			for(int i = 0; i < itemPoints.size() && i < mPointPositionWidgets.size(); i++)
-				mPointPositionWidgets[i]->setPos(item->mapToScene(itemPoints[i]->pos()));
+				mPointPositionWidgets[i]->setPosition(item->mapToScene(itemPoints[i]->position()));
 		}
 	}
 }
@@ -384,7 +382,7 @@ void DynamicPropertiesWidget::setDiagramProperties(const QHash<DiagramWidget::Pr
 	if (properties.contains(DiagramWidget::SceneRect))
 	{
 		QRectF sceneRect = properties.value(DiagramWidget::SceneRect).toRectF();
-		mDiagramTopLeftWidget->setPos(sceneRect.topLeft());
+		mDiagramTopLeftWidget->setPosition(sceneRect.topLeft());
 		mDiagramRectSizeWidget->setSize(sceneRect.size());
 	}
 
@@ -416,7 +414,7 @@ void DynamicPropertiesWidget::handleItemGeometryChange()
 	QObject* sender = DynamicPropertiesWidget::sender();
 
 	if (mPositionWidget && sender == mPositionWidget)
-		emit selectedItemMoved(mPositionWidget->pos());
+		emit selectedItemMoved(mPositionWidget->position());
 	else if (mCornerRadiusWidget && sender == mCornerRadiusWidget)
 		emit selectedItemCornerRadiusChanged(mCornerRadiusWidget->size().width(), mCornerRadiusWidget->size().height());
 	else if (mCaptionEdit && sender == mCaptionEdit)
@@ -426,27 +424,27 @@ void DynamicPropertiesWidget::handleItemGeometryChange()
 		QList<DrawingItemPoint*> itemPoints = mItem->points();
 
 		if (mStartPositionWidget && sender == mStartPositionWidget && itemPoints.size() >= 2)
-			emit selectedItemResized(itemPoints.first(), mStartPositionWidget->pos());
+			emit selectedItemResized(itemPoints.first(), mStartPositionWidget->position());
 		else if (mEndPositionWidget && sender == mEndPositionWidget && itemPoints.size() >= 2)
-			emit selectedItemResized(itemPoints.last(), mEndPositionWidget->pos());
+			emit selectedItemResized(itemPoints.last(), mEndPositionWidget->position());
 		else if (mCurveStartPositionWidget && sender == mCurveStartPositionWidget && itemPoints.size() >= 4)
-			emit selectedItemResized(itemPoints[0], mCurveStartPositionWidget->pos());
+			emit selectedItemResized(itemPoints[0], mCurveStartPositionWidget->position());
 		else if (mCurveStartControlPositionWidget && sender == mCurveStartControlPositionWidget && itemPoints.size() >= 4)
-			emit selectedItemResized(itemPoints[1], mCurveStartControlPositionWidget->pos());
+			emit selectedItemResized(itemPoints[1], mCurveStartControlPositionWidget->position());
 		else if (mCurveEndPositionWidget && sender == mCurveEndPositionWidget && itemPoints.size() >= 4)
-			emit selectedItemResized(itemPoints[3], mCurveEndPositionWidget->pos());
+			emit selectedItemResized(itemPoints[3], mCurveEndPositionWidget->position());
 		else if (mCurveEndControlPositionWidget && sender == mCurveEndControlPositionWidget && itemPoints.size() >= 4)
-			emit selectedItemResized(itemPoints[2], mCurveEndControlPositionWidget->pos());
+			emit selectedItemResized(itemPoints[2], mCurveEndControlPositionWidget->position());
 		else if (mRectTopLeftWidget && sender == mRectTopLeftWidget && itemPoints.size() >= 8)
-			emit selectedItemResized(itemPoints[0], mRectTopLeftWidget->pos());
+			emit selectedItemResized(itemPoints[0], mRectTopLeftWidget->position());
 		else if (mRectBottomRightWidget && sender == mRectBottomRightWidget && itemPoints.size() >= 8)
-			emit selectedItemResized(itemPoints[4], mRectBottomRightWidget->pos());
+			emit selectedItemResized(itemPoints[1], mRectBottomRightWidget->position());
 		else if	(!mPointPositionWidgets.isEmpty())
 		{
 			for(int i = 0; i < itemPoints.size() && i < mPointPositionWidgets.size(); i++)
 			{
 				if (sender == mPointPositionWidgets[i])
-					emit selectedItemResized(itemPoints[i], mPointPositionWidgets[i]->pos());
+					emit selectedItemResized(itemPoints[i], mPointPositionWidgets[i]->position());
 			}
 		}
 	}
@@ -568,7 +566,7 @@ void DynamicPropertiesWidget::handleDiagramChange()
 		mDiagramGridSpacingMinorWidget->setEnabled(mDiagramGridStyleCombo->currentIndex() == 3);
 
 	if (sender == mDiagramTopLeftWidget || sender == mDiagramRectSizeWidget)
-		newProperties[DiagramWidget::SceneRect] = QRectF(mDiagramTopLeftWidget->pos(), mDiagramRectSizeWidget->size());
+		newProperties[DiagramWidget::SceneRect] = QRectF(mDiagramTopLeftWidget->position(), mDiagramRectSizeWidget->size());
 	else if (sender == mDiagramBackgroundColorWidget)
 		newProperties[DiagramWidget::BackgroundColor] = mDiagramBackgroundColorWidget->color();
 	else if (sender == mDiagramGridEdit)
@@ -615,11 +613,13 @@ QWidget* DynamicPropertiesWidget::createDiagramWidget()
 
 	mDiagramGridSpacingMajorWidget = new QLineEdit();
 	mDiagramGridSpacingMajorWidget->setValidator(new QIntValidator(1, 1E6));
-	connect(mDiagramGridSpacingMajorWidget, SIGNAL(returnPressed()), this, SLOT(handleDiagramChange()));
+	//connect(mDiagramGridSpacingMajorWidget, SIGNAL(returnPressed()), this, SLOT(handleDiagramChange()));
+	connect(mDiagramGridSpacingMajorWidget, SIGNAL(editingFinished()), this, SLOT(handleDiagramChange()));
 
 	mDiagramGridSpacingMinorWidget = new QLineEdit();
 	mDiagramGridSpacingMinorWidget->setValidator(new QIntValidator(1, 1E6));
-	connect(mDiagramGridSpacingMinorWidget, SIGNAL(returnPressed()), this, SLOT(handleDiagramChange()));
+	//connect(mDiagramGridSpacingMinorWidget, SIGNAL(returnPressed()), this, SLOT(handleDiagramChange()));
+	connect(mDiagramGridSpacingMinorWidget, SIGNAL(editingFinished()), this, SLOT(handleDiagramChange()));
 
 	// Assemble layout
 	groupBox = new QGroupBox("Diagram");
@@ -792,43 +792,43 @@ void DynamicPropertiesWidget::createGeometryWidgets()
 	// Position widget
 	if (pathItem || polygonItem || polylineItem || textItem || textPolygonItem || groupItem)
 	{
-		mPositionWidget = new PositionWidget(mItem->pos());
+		mPositionWidget = new PositionWidget(mItem->position());
 		connect(mPositionWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleItemGeometryChange()));
 	}
 
 	// Line/arc widgets
 	if (arcItem || lineItem)
 	{
-		mStartPositionWidget = new PositionWidget(mItem->mapToScene(mItem->points().first()->pos()));
+		mStartPositionWidget = new PositionWidget(mItem->mapToScene(mItem->points().first()->position()));
 		connect(mStartPositionWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleItemGeometryChange()));
 
-		mEndPositionWidget = new PositionWidget(mItem->mapToScene(mItem->points().last()->pos()));
+		mEndPositionWidget = new PositionWidget(mItem->mapToScene(mItem->points().last()->position()));
 		connect(mEndPositionWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleItemGeometryChange()));
 	}
 
 	// Curve widgets
 	if (curveItem)
 	{
-		mCurveStartPositionWidget = new PositionWidget(mItem->mapToScene(mItem->points()[0]->pos()));
+		mCurveStartPositionWidget = new PositionWidget(mItem->mapToScene(mItem->points()[0]->position()));
 		connect(mCurveStartPositionWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleItemGeometryChange()));
 
-		mCurveEndPositionWidget = new PositionWidget(mItem->mapToScene(mItem->points()[3]->pos()));
+		mCurveEndPositionWidget = new PositionWidget(mItem->mapToScene(mItem->points()[3]->position()));
 		connect(mCurveEndPositionWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleItemGeometryChange()));
 
-		mCurveStartControlPositionWidget = new PositionWidget(mItem->mapToScene(mItem->points()[1]->pos()));
+		mCurveStartControlPositionWidget = new PositionWidget(mItem->mapToScene(mItem->points()[1]->position()));
 		connect(mCurveStartControlPositionWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleItemGeometryChange()));
 
-		mCurveEndControlPositionWidget = new PositionWidget(mItem->mapToScene(mItem->points()[2]->pos()));
+		mCurveEndControlPositionWidget = new PositionWidget(mItem->mapToScene(mItem->points()[2]->position()));
 		connect(mCurveEndControlPositionWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleItemGeometryChange()));
 	}
 
 	// Rect widgets
 	if (ellipseItem || pathItem || rectItem || textEllipseItem || textRectItem)
 	{
-		mRectTopLeftWidget = new PositionWidget(mItem->mapToScene(mItem->points()[0]->pos()));
+		mRectTopLeftWidget = new PositionWidget(mItem->mapToScene(mItem->points()[0]->position()));
 		connect(mRectTopLeftWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleItemGeometryChange()));
 
-		mRectBottomRightWidget = new PositionWidget(mItem->mapToScene(mItem->points()[4]->pos()));
+		mRectBottomRightWidget = new PositionWidget(mItem->mapToScene(mItem->points()[1]->position()));
 		connect(mRectBottomRightWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleItemGeometryChange()));
 	}
 
@@ -1194,7 +1194,7 @@ void DynamicPropertiesWidget::fillPointsWidgets()
 	QList<DrawingItemPoint*> points = mItem->points();
 	for(int i = 0; i < points.size(); i++)
 	{
-		PositionWidget* posWidget = new PositionWidget(mItem->mapToScene(points[i]->pos()));
+		PositionWidget* posWidget = new PositionWidget(mItem->mapToScene(points[i]->position()));
 		connect(posWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleItemGeometryChange()));
 		mPointPositionWidgets.append(posWidget);
 	}
