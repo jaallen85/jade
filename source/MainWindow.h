@@ -1,6 +1,6 @@
 /* MainWindow.h
  *
- * Copyright (C) 2013-2016 Jason Allen
+ * Copyright (C) 2013-2017 Jason Allen
  *
  * This file is part of the jade application.
  *
@@ -112,9 +112,9 @@ private slots:
 	void setWindowTitle(const QString& filePath);
 
 	void setModeFromAction(QAction* action);
-	void setModeFromDiagram(DrawingWidget::Mode mode);
+	void setModeFromDiagram(DrawingView::Mode mode);
 
-	void setModeText(DrawingWidget::Mode mode);
+	void setModeText(DrawingView::Mode mode);
 	void setModifiedText(bool clean);
 	void setNumberOfItemsText(int itemCount);
 

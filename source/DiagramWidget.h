@@ -1,6 +1,6 @@
 /* DiagramWidget.h
  *
- * Copyright (C) 2013-2016 Jason Allen
+ * Copyright (C) 2013-2017 Jason Allen
  *
  * This file is part of the jade application.
  *
@@ -23,14 +23,9 @@
 
 #include <Drawing.h>
 
-class DiagramWidget : public DrawingWidget
+class DiagramWidget : public DrawingView
 {
 	Q_OBJECT
-
-	friend class DiagramSetItemsStyleCommand;
-	friend class DiagramSetItemCornerRadiusCommand;
-	friend class DiagramSetItemCaptionCommand;
-	friend class DiagramSetPropertiesCommand;
 
 public:
 	enum GridRenderStyle { GridNone, GridDots, GridLines, GridGraphPaper };
@@ -72,6 +67,7 @@ public:
 	void setProperties(const QHash<DiagramWidget::Property,QVariant>& properties);
 	QHash<DiagramWidget::Property,QVariant> properties() const;
 
+	void render(QPainter* painter);
 	void renderExport(QPainter* painter);
 
 public slots:
@@ -83,6 +79,11 @@ public slots:
 	void setSelectionCornerRadius(qreal radiusX, qreal radiusY);
 	void setSelectionCaption(const QString& newCaption);
 	void setDiagramProperties(const QHash<DiagramWidget::Property,QVariant>& properties);
+
+	void setItemsStyle(const QHash< DrawingItem*, QHash<DrawingItemStyle::Property,QVariant> >& properties);
+	void setItemCornerRadius(DrawingItem* item, qreal radiusX, qreal radiusY);
+	void setItemCaption(DrawingItem* item, const QString& caption);
+	void setViewProperties(const QHash<DiagramWidget::Property,QVariant>& properties);
 
 signals:
 	void propertiesTriggered();
@@ -103,12 +104,6 @@ private slots:
 	void updateActionsFromSelection();
 
 private:
-	// Functions called by undo command classes
-	void setItemsStyle(const QHash< DrawingItem*, QHash<DrawingItemStyle::Property,QVariant> >& properties);
-	void setItemCornerRadius(DrawingItem* item, qreal radiusX, qreal radiusY);
-	void setItemCaption(DrawingItem* item, const QString& caption);
-	void setSceneProperties(const QHash<DiagramWidget::Property,QVariant>& properties);
-
 	void addActions();
 	void createContextMenu();
 	QAction* addAction(const QString& text, QObject* slotObj, const char* slotFunction,

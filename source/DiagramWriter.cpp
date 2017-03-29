@@ -1,6 +1,6 @@
 /* DiagramWriter.cpp
  *
- * Copyright (C) 2013-2016 Jason Allen
+ * Copyright (C) 2013-2017 Jason Allen
  *
  * This file is part of the jade application.
  *
@@ -45,13 +45,18 @@ void DiagramWriter::write(DiagramWidget* diagram)
 
 	if (diagram)
 	{
-		QRectF sceneRect = diagram->sceneRect();
-		writeAttribute("view-left", QString::number(sceneRect.left()));
-		writeAttribute("view-top", QString::number(sceneRect.top()));
-		writeAttribute("view-width", QString::number(sceneRect.width()));
-		writeAttribute("view-height", QString::number(sceneRect.height()));
+		DrawingScene* scene = diagram->scene();
 
-		writeAttribute("background-color", colorToString(diagram->backgroundBrush().color()));
+		if (scene)
+		{
+			QRectF sceneRect = scene->sceneRect();
+			writeAttribute("view-left", QString::number(sceneRect.left()));
+			writeAttribute("view-top", QString::number(sceneRect.top()));
+			writeAttribute("view-width", QString::number(sceneRect.width()));
+			writeAttribute("view-height", QString::number(sceneRect.height()));
+
+			writeAttribute("background-color", colorToString(scene->backgroundBrush().color()));
+		}
 
 		writeAttribute("grid", QString::number(diagram->grid()));
 
@@ -60,9 +65,12 @@ void DiagramWriter::write(DiagramWidget* diagram)
 		writeAttribute("grid-spacing-major", QString::number(diagram->gridSpacingMajor()));
 		writeAttribute("grid-spacing-minor", QString::number(diagram->gridSpacingMinor()));
 
-		writeStartElement("items");
-		writeItemElements(diagram->items());
-		writeEndElement();
+		if (scene)
+		{
+			writeStartElement("items");
+			writeItemElements(scene->items());
+			writeEndElement();
+		}
 	}
 
 	writeEndElement();
@@ -126,7 +134,7 @@ void DiagramWriter::writeLineItem(DrawingLineItem* item)
 {
 	writeStartElement("line");
 
-	writeAttribute("transform", transformToString(item->pos(), item->rotation(), item->isFlipped()));
+	writeAttribute("transform", transformToString(item));
 
 	QLineF line = item->line();
 	writeAttribute("x1", QString::number(line.x1()));
@@ -143,7 +151,7 @@ void DiagramWriter::writeArcItem(DrawingArcItem* item)
 {
 	writeStartElement("arc");
 
-	writeAttribute("transform", transformToString(item->pos(), item->rotation(), item->isFlipped()));
+	writeAttribute("transform", transformToString(item));
 
 	QLineF line = item->arc();
 	writeAttribute("x1", QString::number(line.x1()));
@@ -160,12 +168,12 @@ void DiagramWriter::writePolylineItem(DrawingPolylineItem* item)
 {
 	writeStartElement("polyline");
 
-	writeAttribute("transform", transformToString(item->pos(), item->rotation(), item->isFlipped()));
+	writeAttribute("transform", transformToString(item));
 
 	QPolygonF polygon;
 	QList<DrawingItemPoint*> points = item->points();
 	for(auto pointIter = points.begin(); pointIter != points.end(); pointIter++)
-		polygon.append((*pointIter)->pos());
+		polygon.append((*pointIter)->position());
 	if (!polygon.isEmpty()) writeAttribute("points", pointsToString(polygon));
 
 	writeItemStyle(item->style());
@@ -177,7 +185,7 @@ void DiagramWriter::writeCurveItem(DrawingCurveItem* item)
 {
 	writeStartElement("curve");
 
-	writeAttribute("transform", transformToString(item->pos(), item->rotation(), item->isFlipped()));
+	writeAttribute("transform", transformToString(item));
 
 	writeAttribute("x1", QString::number(item->curveStartPos().x()));
 	writeAttribute("y1", QString::number(item->curveStartPos().y()));
@@ -197,7 +205,7 @@ void DiagramWriter::writeRectItem(DrawingRectItem* item)
 {
 	writeStartElement("rect");
 
-	writeAttribute("transform", transformToString(item->pos(), item->rotation(), item->isFlipped()));
+	writeAttribute("transform", transformToString(item));
 
 	QRectF rect = item->rect();
 	writeAttribute("left", QString::number(rect.left()));
@@ -217,7 +225,7 @@ void DiagramWriter::writeEllipseItem(DrawingEllipseItem* item)
 {
 	writeStartElement("ellipse");
 
-	writeAttribute("transform", transformToString(item->pos(), item->rotation(), item->isFlipped()));
+	writeAttribute("transform", transformToString(item));
 
 	QRectF rect = item->ellipse();
 	writeAttribute("left", QString::number(rect.left()));
@@ -234,12 +242,12 @@ void DiagramWriter::writePolygonItem(DrawingPolygonItem* item)
 {
 	writeStartElement("polygon");
 
-	writeAttribute("transform", transformToString(item->pos(), item->rotation(), item->isFlipped()));
+	writeAttribute("transform", transformToString(item));
 
 	QPolygonF polygon;
 	QList<DrawingItemPoint*> points = item->points();
 	for(auto pointIter = points.begin(); pointIter != points.end(); pointIter++)
-		polygon.append((*pointIter)->pos());
+		polygon.append((*pointIter)->position());
 	if (!polygon.isEmpty()) writeAttribute("points", pointsToString(polygon));
 
 	writeItemStyle(item->style());
@@ -251,7 +259,7 @@ void DiagramWriter::writeTextItem(DrawingTextItem* item)
 {
 	writeStartElement("text");
 
-	writeAttribute("transform", transformToString(item->pos(), item->rotation(), item->isFlipped()));
+	writeAttribute("transform", transformToString(item));
 
 	writeItemStyle(item->style());
 
@@ -264,7 +272,7 @@ void DiagramWriter::writeTextRectItem(DrawingTextRectItem* item)
 {
 	writeStartElement("text-rect");
 
-	writeAttribute("transform", transformToString(item->pos(), item->rotation(), item->isFlipped()));
+	writeAttribute("transform", transformToString(item));
 
 	QRectF rect = item->rect();
 	writeAttribute("left", QString::number(rect.left()));
@@ -286,7 +294,7 @@ void DiagramWriter::writeTextEllipseItem(DrawingTextEllipseItem* item)
 {
 	writeStartElement("text-ellipse");
 
-	writeAttribute("transform", transformToString(item->pos(), item->rotation(), item->isFlipped()));
+	writeAttribute("transform", transformToString(item));
 
 	QRectF rect = item->ellipse();
 	writeAttribute("left", QString::number(rect.left()));
@@ -305,12 +313,12 @@ void DiagramWriter::writeTextPolygonItem(DrawingTextPolygonItem* item)
 {
 	writeStartElement("text-polygon");
 
-	writeAttribute("transform", transformToString(item->pos(), item->rotation(), item->isFlipped()));
+	writeAttribute("transform", transformToString(item));
 
 	QPolygonF polygon;
 	QList<DrawingItemPoint*> points = item->points();
 	for(auto pointIter = points.begin(); pointIter != points.end(); pointIter++)
-		polygon.append((*pointIter)->pos());
+		polygon.append((*pointIter)->position());
 	if (!polygon.isEmpty()) writeAttribute("points", pointsToString(polygon));
 
 	writeItemStyle(item->style());
@@ -326,7 +334,7 @@ void DiagramWriter::writePathItem(DrawingPathItem* item)
 
 	writeAttribute("name", item->name());
 
-	writeAttribute("transform", transformToString(item->pos(), item->rotation(), item->isFlipped()));
+	writeAttribute("transform", transformToString(item));
 
 	QRectF rect = item->rect();
 	writeAttribute("left", QString::number(rect.left()));
@@ -354,7 +362,7 @@ void DiagramWriter::writeItemGroup(DrawingItemGroup* item)
 {
 	writeStartElement("group");
 
-	writeAttribute("transform", transformToString(item->pos(), item->rotation(), item->isFlipped()));
+	writeAttribute("transform", transformToString(item));
 
 	writeItemElements(item->items());
 
@@ -629,10 +637,19 @@ QString DiagramWriter::pointsToString(const QPolygonF& points) const
 	return pointsStr.trimmed();
 }
 
-QString DiagramWriter::transformToString(const QPointF& pos, qreal rotation, bool flipped) const
+QString DiagramWriter::transformToString(DrawingItem* item) const
 {
+	QPointF pos = item->position();
+	QTransform transform = item->transform();
+
+	qreal rotation = qAsin(transform.m12()) * 180 / 3.141592654;
+	transform.rotate(-rotation);
+
+	qreal hScale = transform.m11();
+	qreal vScale = transform.m22();
+
 	QString str = "translate(" + QString::number(pos.x()) + "," + QString::number(pos.y()) + ")";
 	str += (rotation != 0) ? " rotate(" + QString::number(rotation) + ")" : "";
-	str += (flipped) ? " scale(-1.0,1.0)" : "";
+	str += (hScale != 1.0 || vScale != 1.0) ? " scale(" + QString::number(hScale) + "," + QString::number(vScale) + ")" : "";
 	return str;
 }

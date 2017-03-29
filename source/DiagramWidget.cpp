@@ -1,6 +1,6 @@
 /* DiagramWidget.cpp
  *
- * Copyright (C) 2013-2016 Jason Allen
+ * Copyright (C) 2013-2017 Jason Allen
  *
  * This file is part of the jade application.
  *
@@ -23,9 +23,9 @@
 #include "DiagramReader.h"
 #include "DiagramWriter.h"
 
-DiagramWidget::DiagramWidget() : DrawingWidget()
+DiagramWidget::DiagramWidget() : DrawingView()
 {
-	setFlags(UndoableSelectCommands | SendsMouseMoveInfo);
+	setFlags(ViewOwnsScene | UndoableSelectCommands | SendsMouseMoveInfo);
 
 	mGridStyle = GridGraphPaper;
 	mGridBrush = QColor(0, 128, 128);
@@ -83,8 +83,10 @@ int DiagramWidget::gridSpacingMinor() const
 
 void DiagramWidget::setProperties(const QHash<DiagramWidget::Property,QVariant>& properties)
 {
-	if (properties.contains(SceneRect)) setSceneRect(properties[SceneRect].toRectF());
-	if (properties.contains(BackgroundColor)) setBackgroundBrush(properties[BackgroundColor].value<QColor>());
+	DrawingScene* scene = DiagramWidget::scene();
+
+	if (scene && properties.contains(SceneRect)) scene->setSceneRect(properties[SceneRect].toRectF());
+	if (scene && properties.contains(BackgroundColor)) scene->setBackgroundBrush(properties[BackgroundColor].value<QColor>());
 	if (properties.contains(Grid)) setGrid(properties[Grid].toReal());
 	if (properties.contains(GridStyle)) setGridStyle((GridRenderStyle)properties[GridStyle].toUInt());
 	if (properties.contains(GridColor)) setGridBrush(properties[GridColor].value<QColor>());
@@ -95,9 +97,10 @@ void DiagramWidget::setProperties(const QHash<DiagramWidget::Property,QVariant>&
 QHash<DiagramWidget::Property,QVariant> DiagramWidget::properties() const
 {
 	QHash<DiagramWidget::Property,QVariant> properties;
+	DrawingScene* scene = DiagramWidget::scene();
 
-	properties[SceneRect] = sceneRect();
-	properties[BackgroundColor] = backgroundBrush().color();
+	if (scene) properties[SceneRect] = scene->sceneRect();
+	if (scene) properties[BackgroundColor] = scene->backgroundBrush().color();
 	properties[Grid] = grid();
 	properties[GridStyle] = (uint)gridStyle();
 	properties[GridColor] = gridBrush().color();
@@ -109,13 +112,24 @@ QHash<DiagramWidget::Property,QVariant> DiagramWidget::properties() const
 
 //==================================================================================================
 
+void DiagramWidget::render(QPainter* painter)
+{
+	drawBackground(painter);
+	drawItems(painter);
+	drawForeground(painter);
+}
+
 void DiagramWidget::renderExport(QPainter* painter)
 {
-	painter->setBrush(backgroundBrush());
-	painter->setPen(Qt::NoPen);
-	painter->drawRect(sceneRect());
+	DrawingScene* scene = DiagramWidget::scene();
+	if (scene)
+	{
+		painter->setBrush(scene->backgroundBrush());
+		painter->setPen(Qt::NoPen);
+		painter->drawRect(scene->sceneRect());
 
-	drawItems(painter);
+		drawItems(painter);
+	}
 }
 
 //==================================================================================================
@@ -130,6 +144,8 @@ void DiagramWidget::copy()
 {
 	if (mode() == DefaultMode)
 	{
+		//DrawingView::copy();
+
 		QClipboard* clipboard = QApplication::clipboard();
 		QList<DrawingItem*> selectedItems = DiagramWidget::selectedItems();
 
@@ -149,6 +165,8 @@ void DiagramWidget::paste()
 {
 	if (mode() == DefaultMode)
 	{
+		//DrawingView::paste();
+
 		QClipboard* clipboard = QApplication::clipboard();
 		QList<DrawingItem*> newItems;
 
@@ -162,27 +180,11 @@ void DiagramWidget::paste()
 
 		if (!newItems.isEmpty())
 		{
-			QUndoCommand* pasteCommand = new QUndoCommand("Paste Items");
-
-			// Offset items based on mConsecutivePastes
-			qreal offset = 2 * mConsecutivePastes * grid();
-			QPointF deltaPosition = QPointF(offset, offset) +
-				roundToGrid(mButtonDownScenePos - newItems.first()->pos());
-
 			for(auto itemIter = newItems.begin(); itemIter != newItems.end(); itemIter++)
-			{
-				(*itemIter)->setPos((*itemIter)->pos() + deltaPosition);
-				(*itemIter)->setSelected(false);
-			}
+				(*itemIter)->setFlags((*itemIter)->flags() & (~DrawingItem::PlaceByMousePressAndRelease));
 
-			// Add new items to scene and select them
-			addItemsCommand(newItems, false, pasteCommand);
-			selectItemsCommand(newItems, true, pasteCommand);
-
-			pushUndoCommand(pasteCommand);
-
-			mConsecutivePastes++;
-			viewport()->update();
+			selectNone();
+			setPlaceMode(newItems);
 		}
 	}
 }
@@ -230,162 +232,6 @@ void DiagramWidget::setDiagramProperties(const QHash<DiagramWidget::Property,QVa
 {
 	if (!properties.isEmpty())
 		pushUndoCommand(new DiagramSetPropertiesCommand(this, properties));
-}
-
-//==================================================================================================
-
-void DiagramWidget::drawBackground(QPainter* painter)
-{
-	QRectF visibleRect = DrawingWidget::visibleRect();
-	QBrush backgroundBrush = DiagramWidget::backgroundBrush();
-	qreal grid = DiagramWidget::grid();
-
-	QPainter::RenderHints renderHints = painter->renderHints();
-	painter->setRenderHints(renderHints, false);
-
-	// Draw background
-	painter->setBrush(backgroundBrush);
-	painter->setPen(Qt::NoPen);
-	painter->drawRect(visibleRect);
-
-	// Draw grid
-	QPen gridPen(mGridBrush, devicePixelRatio());
-	gridPen.setCosmetic(true);
-
-	if (mGridStyle != GridNone && grid >= 0)
-	{
-		painter->setPen(gridPen);
-
-		if (mGridStyle == GridDots && mGridSpacingMajor > 0)
-		{
-			qreal spacing = grid * mGridSpacingMajor;
-			for(qreal y = qCeil(visibleRect.top() / spacing) * spacing; y < visibleRect.bottom(); y += spacing)
-			{
-				for(qreal x = qCeil(visibleRect.left() / spacing) * spacing; x < visibleRect.right(); x += spacing)
-					painter->drawPoint(QPointF(x, y));
-			}
-		}
-
-		if (mGridStyle == GridGraphPaper && mGridSpacingMinor > 0)
-		{
-			gridPen.setStyle(Qt::DotLine);
-			painter->setPen(gridPen);
-
-			qreal spacing = grid * mGridSpacingMinor;
-			for(qreal y = qCeil(visibleRect.top() / spacing) * spacing; y < visibleRect.bottom(); y += spacing)
-				painter->drawLine(QPointF(visibleRect.left(), y), QPointF(visibleRect.right(), y));
-			for(qreal x = qCeil(visibleRect.left() / spacing) * spacing; x < visibleRect.right(); x += spacing)
-				painter->drawLine(QPointF(x, visibleRect.top()), QPointF(x, visibleRect.bottom()));
-		}
-
-		if ((mGridStyle == GridLines || mGridStyle == GridGraphPaper) && mGridSpacingMajor > 0)
-		{
-			gridPen.setStyle(Qt::SolidLine);
-			painter->setPen(gridPen);
-
-			qreal spacing = grid * mGridSpacingMajor;
-			for(qreal y = qCeil(visibleRect.top() / spacing) * spacing; y < visibleRect.bottom(); y += spacing)
-				painter->drawLine(QPointF(visibleRect.left(), y), QPointF(visibleRect.right(), y));
-			for(qreal x = qCeil(visibleRect.left() / spacing) * spacing; x < visibleRect.right(); x += spacing)
-				painter->drawLine(QPointF(x, visibleRect.top()), QPointF(x, visibleRect.bottom()));
-		}
-	}
-
-	// Draw origin
-	painter->save();
-	painter->setBrush(Qt::transparent);
-	painter->setPen(gridPen);
-	painter->resetTransform();
-	painter->drawEllipse(mapFromScene(QPointF(0, 0)), 4, 4);
-	painter->restore();
-
-	// Draw border
-	QPen borderPen((backgroundBrush == Qt::black) ? Qt::white : Qt::black, devicePixelRatio() * 2);
-	borderPen.setCosmetic(true);
-
-	painter->setBrush(Qt::transparent);
-	painter->setPen(borderPen);
-	painter->drawRect(sceneRect());
-
-	painter->setRenderHints(renderHints);
-	painter->setBrush(backgroundBrush);
-}
-
-//==================================================================================================
-
-void DiagramWidget::mousePressEvent(QMouseEvent* event)
-{
-	DrawingWidget::mousePressEvent(event);
-
-	mButtonDownScenePos = mapToScene(event->pos());
-}
-
-void DiagramWidget::mouseReleaseEvent(QMouseEvent* event)
-{
-	if (event->button() == Qt::RightButton)
-	{
-		if (mode() == DefaultMode)
-		{
-			DrawingItem* mouseDownItem = itemAt(mapToScene(event->pos()));
-
-			if (mouseDownItem && mouseDownItem->isSelected() && selectedItems().size() == 1)
-			{
-				if (actions()[InsertPointAction]->isEnabled())
-					mSinglePolyItemContextMenu.popup(event->globalPos() + QPoint(2, 2));
-				else
-					mSingleItemContextMenu.popup(event->globalPos() + QPoint(2, 2));
-			}
-			else if (mouseDownItem && mouseDownItem->isSelected())
-			{
-				mMultipleItemContextMenu.popup(event->globalPos() + QPoint(2, 2));
-			}
-			else
-			{
-				if (mouseDownItem == nullptr) clearSelection();
-				mDrawingContextMenu.popup(event->globalPos() + QPoint(2, 2));
-			}
-		}
-		else setDefaultMode();
-
-		viewport()->update();
-	}
-	else DrawingWidget::mouseReleaseEvent(event);
-
-	mConsecutivePastes = 0;
-}
-
-void DiagramWidget::mouseDoubleClickEvent(QMouseEvent* event)
-{
-	DrawingWidget::mouseDoubleClickEvent(event);
-
-	if (mouseDownItem()) emit propertiesTriggered();
-}
-
-//==================================================================================================
-
-void DiagramWidget::updateActionsFromSelection()
-{
-	QList<QAction*> actions = DiagramWidget::actions();
-	QList<DrawingItem*> selectedItems = DiagramWidget::selectedItems();
-
-	bool canInsertRemovePoints = false;
-	bool canGroup = (selectedItems.size() > 1);
-	bool canUngroup = false;
-
-	if (selectedItems.size() == 1)
-	{
-		DrawingItem* item = selectedItems.first();
-		DrawingItemGroup* groupItem = dynamic_cast<DrawingItemGroup*>(item);
-
-		canInsertRemovePoints = ((item->flags() & DrawingItem::CanInsertPoints) ||
-			(item->flags() & DrawingItem::CanRemovePoints));
-		canUngroup = (groupItem);
-	}
-
-	actions[InsertPointAction]->setEnabled(canInsertRemovePoints);
-	actions[RemovePointAction]->setEnabled(canInsertRemovePoints);
-	actions[GroupAction]->setEnabled(canGroup);
-	actions[UngroupAction]->setEnabled(canUngroup);
 }
 
 //==================================================================================================
@@ -443,11 +289,172 @@ void DiagramWidget::setItemCaption(DrawingItem* item, const QString& caption)
 	}
 }
 
-void DiagramWidget::setSceneProperties(const QHash<DiagramWidget::Property,QVariant>& properties)
+void DiagramWidget::setViewProperties(const QHash<DiagramWidget::Property,QVariant>& properties)
 {
 	setProperties(properties);
 	emit diagramPropertiesChanged(properties);
 	viewport()->update();
+}
+
+//==================================================================================================
+
+void DiagramWidget::drawBackground(QPainter* painter)
+{
+	DrawingScene* scene = DiagramWidget::scene();
+
+	if (scene)
+	{
+		QBrush backgroundBrush = scene->backgroundBrush();
+		qreal grid = DiagramWidget::grid();
+		QRectF visibleRect = DiagramWidget::visibleRect();
+
+		QPainter::RenderHints renderHints = painter->renderHints();
+		painter->setRenderHints(renderHints, false);
+
+		// Draw background
+		painter->setBrush(backgroundBrush);
+		painter->setPen(Qt::NoPen);
+		painter->drawRect(visibleRect);
+
+		// Draw grid
+		QPen gridPen(mGridBrush, devicePixelRatio());
+		gridPen.setCosmetic(true);
+
+		if (mGridStyle != GridNone && grid >= 0)
+		{
+			painter->setPen(gridPen);
+
+			if (mGridStyle == GridDots && mGridSpacingMajor > 0)
+			{
+				qreal spacing = grid * mGridSpacingMajor;
+				for(qreal y = qCeil(visibleRect.top() / spacing) * spacing; y < visibleRect.bottom(); y += spacing)
+				{
+					for(qreal x = qCeil(visibleRect.left() / spacing) * spacing; x < visibleRect.right(); x += spacing)
+						painter->drawPoint(QPointF(x, y));
+				}
+			}
+
+			if (mGridStyle == GridGraphPaper && mGridSpacingMinor > 0)
+			{
+				gridPen.setStyle(Qt::DotLine);
+				painter->setPen(gridPen);
+
+				qreal spacing = grid * mGridSpacingMinor;
+				for(qreal y = qCeil(visibleRect.top() / spacing) * spacing; y < visibleRect.bottom(); y += spacing)
+					painter->drawLine(QPointF(visibleRect.left(), y), QPointF(visibleRect.right(), y));
+				for(qreal x = qCeil(visibleRect.left() / spacing) * spacing; x < visibleRect.right(); x += spacing)
+					painter->drawLine(QPointF(x, visibleRect.top()), QPointF(x, visibleRect.bottom()));
+			}
+
+			if ((mGridStyle == GridLines || mGridStyle == GridGraphPaper) && mGridSpacingMajor > 0)
+			{
+				gridPen.setStyle(Qt::SolidLine);
+				painter->setPen(gridPen);
+
+				qreal spacing = grid * mGridSpacingMajor;
+				for(qreal y = qCeil(visibleRect.top() / spacing) * spacing; y < visibleRect.bottom(); y += spacing)
+					painter->drawLine(QPointF(visibleRect.left(), y), QPointF(visibleRect.right(), y));
+				for(qreal x = qCeil(visibleRect.left() / spacing) * spacing; x < visibleRect.right(); x += spacing)
+					painter->drawLine(QPointF(x, visibleRect.top()), QPointF(x, visibleRect.bottom()));
+			}
+		}
+
+		// Draw origin
+		painter->save();
+		painter->setBrush(Qt::transparent);
+		painter->setPen(gridPen);
+		painter->resetTransform();
+		painter->drawEllipse(mapFromScene(QPointF(0, 0)), 4, 4);
+		painter->restore();
+
+		// Draw border
+		QPen borderPen((backgroundBrush == Qt::black) ? Qt::white : Qt::black, devicePixelRatio() * 2);
+		borderPen.setCosmetic(true);
+
+		painter->setBrush(Qt::transparent);
+		painter->setPen(borderPen);
+		painter->drawRect(scene->sceneRect());
+
+		painter->setRenderHints(renderHints);
+		painter->setBrush(backgroundBrush);
+	}
+}
+
+//==================================================================================================
+
+void DiagramWidget::mousePressEvent(QMouseEvent* event)
+{
+	DrawingView::mousePressEvent(event);
+
+	mButtonDownScenePos = mapToScene(event->pos());
+}
+
+void DiagramWidget::mouseReleaseEvent(QMouseEvent* event)
+{
+	if (event->button() == Qt::RightButton)
+	{
+		if (mode() == DefaultMode)
+		{
+			DrawingItem* mouseDownItem = itemAt(mapToScene(event->pos()));
+
+			if (mouseDownItem && mouseDownItem->isSelected() && selectedItems().size() == 1)
+			{
+				if (actions()[InsertPointAction]->isEnabled())
+					mSinglePolyItemContextMenu.popup(event->globalPos() + QPoint(2, 2));
+				else
+					mSingleItemContextMenu.popup(event->globalPos() + QPoint(2, 2));
+			}
+			else if (mouseDownItem && mouseDownItem->isSelected())
+			{
+				mMultipleItemContextMenu.popup(event->globalPos() + QPoint(2, 2));
+			}
+			else
+			{
+				if (mouseDownItem == nullptr) clearSelection();
+				mDrawingContextMenu.popup(event->globalPos() + QPoint(2, 2));
+			}
+		}
+		else setDefaultMode();
+
+		viewport()->update();
+	}
+	else DrawingView::mouseReleaseEvent(event);
+
+	mConsecutivePastes = 0;
+}
+
+void DiagramWidget::mouseDoubleClickEvent(QMouseEvent* event)
+{
+	DrawingView::mouseDoubleClickEvent(event);
+
+	if (mouseDownItem()) emit propertiesTriggered();
+}
+
+//==================================================================================================
+
+void DiagramWidget::updateActionsFromSelection()
+{
+	QList<QAction*> actions = DiagramWidget::actions();
+	QList<DrawingItem*> selectedItems = DiagramWidget::selectedItems();
+
+	bool canInsertRemovePoints = false;
+	bool canGroup = (selectedItems.size() > 1);
+	bool canUngroup = false;
+
+	if (selectedItems.size() == 1)
+	{
+		DrawingItem* item = selectedItems.first();
+		DrawingItemGroup* groupItem = dynamic_cast<DrawingItemGroup*>(item);
+
+		canInsertRemovePoints = ((item->flags() & DrawingItem::CanInsertPoints) ||
+			(item->flags() & DrawingItem::CanRemovePoints));
+		canUngroup = (groupItem);
+	}
+
+	actions[InsertPointAction]->setEnabled(canInsertRemovePoints);
+	actions[RemovePointAction]->setEnabled(canInsertRemovePoints);
+	actions[GroupAction]->setEnabled(canGroup);
+	actions[UngroupAction]->setEnabled(canUngroup);
 }
 
 //==================================================================================================
@@ -465,7 +472,7 @@ void DiagramWidget::addActions()
 
 	addAction("Rotate", this, SLOT(rotateSelection()), ":/icons/oxygen/object-rotate-right.png", "R");
 	addAction("Rotate Back", this, SLOT(rotateBackSelection()), ":/icons/oxygen/object-rotate-left.png", "Shift+R");
-	addAction("Flip", this, SLOT(flipSelection()), ":/icons/oxygen/object-flip-horizontal.png", "F");
+	addAction("Flip", this, SLOT(flipSelectionHorizontal()), ":/icons/oxygen/object-flip-horizontal.png", "F");
 
 	addAction("Bring Forward", this, SLOT(bringForward()), ":/icons/oxygen/object-bring-forward.png");
 	addAction("Send Backward", this, SLOT(sendBackward()), ":/icons/oxygen/object-send-backward.png");
@@ -487,7 +494,7 @@ void DiagramWidget::addActions()
 
 void DiagramWidget::createContextMenu()
 {
-	QList<QAction*> actions = DrawingWidget::actions();
+	QList<QAction*> actions = DrawingView::actions();
 
 	mSingleItemContextMenu.addAction(actions[CutAction]);
 	mSingleItemContextMenu.addAction(actions[CopyAction]);

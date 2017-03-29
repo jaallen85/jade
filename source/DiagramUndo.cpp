@@ -1,6 +1,6 @@
 /* DiagramUndo.cpp
  *
- * Copyright (C) 2013-2016 Jason Allen
+ * Copyright (C) 2013-2017 Jason Allen
  *
  * This file is part of the jade application.
  *
@@ -178,10 +178,12 @@ DiagramSetPropertiesCommand::DiagramSetPropertiesCommand(DiagramWidget* diagram,
 
 	if (mDiagram)
 	{
-		if (properties.contains(DiagramWidget::SceneRect))
-			mOriginalProperties[DiagramWidget::SceneRect] = mDiagram->sceneRect();
-		if (properties.contains(DiagramWidget::BackgroundColor))
-			mOriginalProperties[DiagramWidget::BackgroundColor] = mDiagram->backgroundBrush().color();
+		DrawingScene* scene = mDiagram->scene();
+
+		if (scene && properties.contains(DiagramWidget::SceneRect))
+			mOriginalProperties[DiagramWidget::SceneRect] = scene->sceneRect();
+		if (scene && properties.contains(DiagramWidget::BackgroundColor))
+			mOriginalProperties[DiagramWidget::BackgroundColor] = scene->backgroundBrush().color();
 		if (properties.contains(DiagramWidget::Grid))
 			mOriginalProperties[DiagramWidget::Grid] = mDiagram->grid();
 		if (properties.contains(DiagramWidget::GridStyle))
@@ -204,12 +206,12 @@ int DiagramSetPropertiesCommand::id() const
 
 void DiagramSetPropertiesCommand::redo()
 {
-	if (mDiagram) mDiagram->setSceneProperties(mProperties);
+	if (mDiagram) mDiagram->setViewProperties(mProperties);
 	QUndoCommand::redo();
 }
 
 void DiagramSetPropertiesCommand::undo()
 {
 	QUndoCommand::undo();
-	if (mDiagram) mDiagram->setSceneProperties(mOriginalProperties);
+	if (mDiagram) mDiagram->setViewProperties(mOriginalProperties);
 }

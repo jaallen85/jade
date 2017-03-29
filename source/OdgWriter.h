@@ -1,6 +1,6 @@
 /* OdgWriter.h
  *
- * Copyright (C) 2013-2016 Jason Allen
+ * Copyright (C) 2013-2017 Jason Allen
  *
  * This file is part of the jade application.
  *
@@ -118,7 +118,7 @@ private:
 	QString penCapStyleToString(Qt::PenCapStyle style) const;
 	QString penJoinStyleToString(Qt::PenJoinStyle style) const;
 	QString pointsToString(const QPolygonF& points) const;
-	QString transformToString(const QPointF& pos, qreal rotation, bool flipped) const;
+	QString transformToString(DrawingItem* item) const;
 };
 
 #endif

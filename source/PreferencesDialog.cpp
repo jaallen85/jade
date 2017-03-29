@@ -1,6 +1,6 @@
 /* PreferencesDialog.cpp
  *
- * Copyright (C) 2013-2016 Jason Allen
+ * Copyright (C) 2013-2017 Jason Allen
  *
  * This file is part of the jade application.
  *
@@ -85,7 +85,7 @@ void PreferencesDialog::setDiagramProperties(const QHash<DiagramWidget::Property
 	if (properties.contains(DiagramWidget::SceneRect))
 	{
 		QRectF sceneRect = properties.value(DiagramWidget::SceneRect).toRectF();
-		mDiagramTopLeftWidget->setPos(sceneRect.topLeft());
+		mDiagramTopLeftWidget->setPosition(sceneRect.topLeft());
 		mDiagramRectSizeWidget->setSize(sceneRect.size());
 	}
 
@@ -114,7 +114,7 @@ QHash<DiagramWidget::Property,QVariant> PreferencesDialog::diagramProperties() c
 {
 	QHash<DiagramWidget::Property,QVariant> properties;
 
-	properties[DiagramWidget::SceneRect] = QRectF(mDiagramTopLeftWidget->pos(), mDiagramRectSizeWidget->size());
+	properties[DiagramWidget::SceneRect] = QRectF(mDiagramTopLeftWidget->position(), mDiagramRectSizeWidget->size());
 	properties[DiagramWidget::BackgroundColor] = mDiagramBackgroundColorWidget->color();
 	properties[DiagramWidget::Grid] = mDiagramGridEdit->size();
 	properties[DiagramWidget::GridStyle] = (uint)mDiagramGridStyleCombo->style();

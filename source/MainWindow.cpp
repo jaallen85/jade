@@ -1,6 +1,6 @@
 /* MainWindow.cpp
  *
- * Copyright (C) 2013-2016 Jason Allen
+ * Copyright (C) 2013-2017 Jason Allen
  *
  * This file is part of the jade application.
  *
@@ -389,7 +389,7 @@ void MainWindow::exportPng()
 		filePath = QFileDialog::getSaveFileName(this, "Export PNG", filePath, "Portable Network Graphics (*.png);;All Files (*)", nullptr, options);
 		if (!filePath.isEmpty())
 		{
-			ExportOptionsDialog exportDialog(mDiagramWidget->sceneRect(), QSize(), mPrevMaintainAspectRatio, 0.2, this);
+			ExportOptionsDialog exportDialog(mDiagramWidget->scene()->sceneRect(), QSize(), mPrevMaintainAspectRatio, 0.2, this);
 
 			if (exportDialog.exec() == QDialog::Accepted)
 			{
@@ -397,7 +397,7 @@ void MainWindow::exportPng()
 
 				QImage pngImage(exportDialog.exportSize(), QImage::Format_ARGB32);
 				QPainter painter;
-				QRectF visibleRect = mDiagramWidget->sceneRect();
+				QRectF visibleRect = mDiagramWidget->scene()->sceneRect();
 
 				mDiagramWidget->clearSelection();
 
@@ -430,7 +430,7 @@ void MainWindow::exportSvg()
 		filePath = QFileDialog::getSaveFileName(this, "Export SVG", filePath, "Scalable Vector Graphics (*.svg);;All Files (*)", nullptr, options);
 		if (!filePath.isEmpty())
 		{
-			ExportOptionsDialog exportDialog(mDiagramWidget->sceneRect(), QSize(), mPrevMaintainAspectRatio, 0.1, this);
+			ExportOptionsDialog exportDialog(mDiagramWidget->scene()->sceneRect(), QSize(), mPrevMaintainAspectRatio, 0.1, this);
 
 			if (exportDialog.exec() == QDialog::Accepted)
 			{
@@ -438,7 +438,7 @@ void MainWindow::exportSvg()
 
 				QSvgGenerator svgImage;
 				QPainter painter;
-				QRectF visibleRect = mDiagramWidget->sceneRect();
+				QRectF visibleRect = mDiagramWidget->scene()->sceneRect();
 
 				mDiagramWidget->selectNone();
 
@@ -582,7 +582,7 @@ void MainWindow::showDiagram()
 	mDiagramWidget->zoomFit();
 
 	setModifiedText(mDiagramWidget->isClean());
-	setNumberOfItemsText(mDiagramWidget->items().size());
+	setNumberOfItemsText(mDiagramWidget->scene()->items().size());
 	mMouseInfoLabel->setText("");
 
 	mPrevExportSize = QSize();
@@ -643,52 +643,59 @@ void MainWindow::setModeFromAction(QAction* action)
 {
 	if (action->text() == "Scroll Mode") mDiagramWidget->setScrollMode();
 	else if (action->text() == "Zoom Mode") mDiagramWidget->setZoomMode();
-	else if (action->text() == "Place Arc") mDiagramWidget->setPlaceMode(new DrawingArcItem());
-	else if (action->text() == "Place Curve") mDiagramWidget->setPlaceMode(new DrawingCurveItem());
-	else if (action->text() == "Place Ellipse") mDiagramWidget->setPlaceMode(new DrawingEllipseItem());
-	else if (action->text() == "Place Line") mDiagramWidget->setPlaceMode(new DrawingLineItem());
-	else if (action->text() == "Place Polygon") mDiagramWidget->setPlaceMode(new DrawingPolygonItem());
-	else if (action->text() == "Place Polyline") mDiagramWidget->setPlaceMode(new DrawingPolylineItem());
-	else if (action->text() == "Place Rect") mDiagramWidget->setPlaceMode(new DrawingRectItem());
-	else if (action->text() == "Place Text") mDiagramWidget->setPlaceMode(new DrawingTextItem());
-	else if (action->text() == "Place Text Rect") mDiagramWidget->setPlaceMode(new DrawingTextRectItem());
-	else if (action->text() == "Place Text Ellipse") mDiagramWidget->setPlaceMode(new DrawingTextEllipseItem());
-	else if (action->text() == "Place Text Polygon") mDiagramWidget->setPlaceMode(new DrawingTextPolygonItem());
 	else
 	{
-		DrawingPathItem* matchItem = nullptr;
-		QString text;
+		QList<DrawingItem*> newItems;
 
-		for(auto itemIter = mPathItems.begin(); matchItem == nullptr && itemIter != mPathItems.end(); itemIter++)
+		if (action->text() == "Place Arc") newItems.append(new DrawingArcItem());
+		else if (action->text() == "Place Curve") newItems.append(new DrawingCurveItem());
+		else if (action->text() == "Place Ellipse") newItems.append(new DrawingEllipseItem());
+		else if (action->text() == "Place Line") newItems.append(new DrawingLineItem());
+		else if (action->text() == "Place Polygon") newItems.append(new DrawingPolygonItem());
+		else if (action->text() == "Place Polyline") newItems.append(new DrawingPolylineItem());
+		else if (action->text() == "Place Rect") newItems.append(new DrawingRectItem());
+		else if (action->text() == "Place Text") newItems.append(new DrawingTextItem());
+		else if (action->text() == "Place Text Rect") newItems.append(new DrawingTextRectItem());
+		else if (action->text() == "Place Text Ellipse") newItems.append(new DrawingTextEllipseItem());
+		else if (action->text() == "Place Text Polygon") newItems.append(new DrawingTextPolygonItem());
+		else
 		{
-			text = action->text();
-			if (text.right(text.size() - 6) == (*itemIter)->name()) matchItem = *itemIter;
+			DrawingPathItem* matchItem = nullptr;
+			QString text;
+
+			for(auto itemIter = mPathItems.begin(); matchItem == nullptr && itemIter != mPathItems.end(); itemIter++)
+			{
+				text = action->text();
+				if (text.right(text.size() - 6) == (*itemIter)->name()) matchItem = *itemIter;
+			}
+
+			if (matchItem)
+			{
+				DrawingPathItem* newItem = new DrawingPathItem();
+				newItem->setName(matchItem->name());
+				newItem->setPath(matchItem->path(), matchItem->pathRect());
+				newItem->setRect(matchItem->rect());
+				newItem->addConnectionPoints(matchItem->connectionPoints());
+				newItems.append(newItem);
+			}
 		}
 
-		if (matchItem)
-		{
-			DrawingPathItem* newItem = new DrawingPathItem();
-			newItem->setName(matchItem->name());
-			newItem->setPath(matchItem->path(), matchItem->pathRect());
-			newItem->setRect(matchItem->rect());
-			newItem->addConnectionPoints(matchItem->connectionPoints());
-			mDiagramWidget->setPlaceMode(newItem);
-		}
+		if (!newItems.isEmpty()) mDiagramWidget->setPlaceMode(newItems);
 		else mDiagramWidget->setDefaultMode();
 	}
 }
 
-void MainWindow::setModeFromDiagram(DrawingWidget::Mode mode)
+void MainWindow::setModeFromDiagram(DrawingView::Mode mode)
 {
 	switch (mode)
 	{
-	case DrawingWidget::ScrollMode:
+	case DrawingView::ScrollMode:
 		mModeActionGroup->actions()[ScrollModeAction]->setChecked(true);
 		break;
-	case DrawingWidget::ZoomMode:
+	case DrawingView::ZoomMode:
 		mModeActionGroup->actions()[ZoomModeAction]->setChecked(true);
 		break;
-	case DrawingWidget::DefaultMode:
+	case DrawingView::DefaultMode:
 		mModeActionGroup->actions()[DefaultModeAction]->setChecked(true);
 		break;
 	default:
@@ -698,15 +705,15 @@ void MainWindow::setModeFromDiagram(DrawingWidget::Mode mode)
 
 //==================================================================================================
 
-void MainWindow::setModeText(DrawingWidget::Mode mode)
+void MainWindow::setModeText(DrawingView::Mode mode)
 {
 	QString modeText = "Select Mode";
 
 	switch (mode)
 	{
-	case DrawingWidget::ScrollMode: modeText = "Scroll Mode"; break;
-	case DrawingWidget::ZoomMode: modeText = "Zoom Mode"; break;
-	case DrawingWidget::PlaceMode: modeText = "Place Mode"; break;
+	case DrawingView::ScrollMode: modeText = "Scroll Mode"; break;
+	case DrawingView::ZoomMode: modeText = "Zoom Mode"; break;
+	case DrawingView::PlaceMode: modeText = "Place Mode"; break;
 	default: break;
 	}
 
@@ -758,7 +765,7 @@ void MainWindow::setZoomLevel(const QString& text)
 void MainWindow::printPages(QPrinter* printer)
 {
 	QPainter painter;
-	QRectF visibleRect = mDiagramWidget->sceneRect();
+	QRectF visibleRect = mDiagramWidget->scene()->sceneRect();
 	qreal pageAspect, scale;
 
 	pageAspect = printer->pageRect().width() / (qreal)printer->pageRect().height();
@@ -866,7 +873,7 @@ bool MainWindow::loadDiagramFromFile(const QString& filePath)
 void MainWindow::clearDiagram()
 {
 	mDiagramWidget->setDefaultMode();
-	mDiagramWidget->clearItems();
+	mDiagramWidget->scene()->clearItems();
 }
 
 //==================================================================================================
@@ -882,7 +889,7 @@ void MainWindow::createPropertiesDock()
 	addDockWidget(Qt::RightDockWidgetArea, mPropertiesDock);
 
 	connect(mDiagramWidget, SIGNAL(selectionChanged(const QList<DrawingItem*>&)), mPropertiesWidget, SLOT(setSelectedItems(const QList<DrawingItem*>&)));
-	connect(mDiagramWidget, SIGNAL(newItemChanged(DrawingItem*)), mPropertiesWidget, SLOT(setNewItem(DrawingItem*)));
+	connect(mDiagramWidget, SIGNAL(newItemsChanged(const QList<DrawingItem*>&)), mPropertiesWidget, SLOT(setNewItems(const QList<DrawingItem*>&)));
 	connect(mDiagramWidget, SIGNAL(itemsGeometryChanged(const QList<DrawingItem*>&)), mPropertiesWidget, SLOT(setItemGeometry(const QList<DrawingItem*>&)));
 	connect(mDiagramWidget, SIGNAL(itemsStyleChanged(const QList<DrawingItem*>&)), mPropertiesWidget, SLOT(setItemsStyleProperties(const QList<DrawingItem*>&)));
 	connect(mDiagramWidget, SIGNAL(itemCornerRadiusChanged(DrawingItem*)), mPropertiesWidget, SLOT(setItemCornerRadius(DrawingItem*)));
@@ -915,7 +922,7 @@ void MainWindow::createStatusBar()
 	statusBar()->addWidget(mNumberOfItemsLabel);
 	statusBar()->addWidget(mMouseInfoLabel, 100);
 
-	connect(mDiagramWidget, SIGNAL(modeChanged(DrawingWidget::Mode)), this, SLOT(setModeText(DrawingWidget::Mode)));
+	connect(mDiagramWidget, SIGNAL(modeChanged(DrawingView::Mode)), this, SLOT(setModeText(DrawingView::Mode)));
 	connect(mDiagramWidget, SIGNAL(cleanChanged(bool)), this, SLOT(setModifiedText(bool)));
 	connect(mDiagramWidget, SIGNAL(numberOfItemsChanged(int)), this, SLOT(setNumberOfItemsText(int)));
 	connect(mDiagramWidget, SIGNAL(mouseInfoChanged(const QString&)), mMouseInfoLabel, SLOT(setText(const QString&)));
@@ -945,7 +952,7 @@ void MainWindow::createActions()
 
 	mModeActionGroup = new QActionGroup(this);
 	connect(mModeActionGroup, SIGNAL(triggered(QAction*)), this, SLOT(setModeFromAction(QAction*)));
-	connect(mDiagramWidget, SIGNAL(modeChanged(DrawingWidget::Mode)), this, SLOT(setModeFromDiagram(DrawingWidget::Mode)));
+	connect(mDiagramWidget, SIGNAL(modeChanged(DrawingView::Mode)), this, SLOT(setModeFromDiagram(DrawingView::Mode)));
 
 	addModeAction("Select Mode", ":/icons/oxygen/edit-select.png", "Escape");
 	addModeAction("Scroll Mode", ":/icons/oxygen/transform-move.png", "");

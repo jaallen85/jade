@@ -1,6 +1,6 @@
 /* HelperWidgets.cpp
  *
- * Copyright (C) 2013-2016 Jason Allen
+ * Copyright (C) 2013-2017 Jason Allen
  *
  * This file is part of the jade application.
  *
@@ -40,15 +40,15 @@ PositionWidget::~PositionWidget() { }
 
 //==================================================================================================
 
-void PositionWidget::setPos(const QPointF& pos)
+void PositionWidget::setPosition(const QPointF& pos)
 {
-	mXEdit->setPos(pos.x());
-	mYEdit->setPos(pos.y());
+	mXEdit->setPosition(pos.x());
+	mYEdit->setPosition(pos.y());
 }
 
-QPointF PositionWidget::pos() const
+QPointF PositionWidget::position() const
 {
-	return QPointF(mXEdit->pos(), mYEdit->pos());
+	return QPointF(mXEdit->position(), mYEdit->position());
 }
 
 //==================================================================================================
@@ -65,9 +65,10 @@ void PositionWidget::sendPositionChanged()
 PositionEdit::PositionEdit(qreal pos) : QLineEdit()
 {
 	setValidator(new QDoubleValidator(-std::numeric_limits<qreal>::max(), std::numeric_limits<qreal>::max(), 8));
-	setPos(pos);
+	setPosition(pos);
 
-	connect(this, SIGNAL(returnPressed()), this, SLOT(sendPositionChanged()));
+	//connect(this, SIGNAL(returnPressed()), this, SLOT(sendPositionChanged()));
+	connect(this, SIGNAL(editingFinished()), this, SLOT(sendPositionChanged()));
 }
 
 PositionEdit::~PositionEdit() { }
@@ -82,12 +83,13 @@ QSize PositionEdit::sizeHint() const
 
 //==================================================================================================
 
-void PositionEdit::setPos(qreal pos)
+void PositionEdit::setPosition(qreal pos)
 {
 	setText(QString::number(pos, 'g', 8));
+	mPosCached = pos;
 }
 
-qreal PositionEdit::pos() const
+qreal PositionEdit::position() const
 {
 	bool ok = false;
 	qreal value = text().toDouble(&ok);
@@ -98,7 +100,12 @@ qreal PositionEdit::pos() const
 
 void PositionEdit::sendPositionChanged()
 {
-	emit positionChanged(pos());
+	qreal pos = PositionEdit::position();
+	if (mPosCached != pos)
+	{
+		mPosCached = pos;
+		emit positionChanged(pos);
+	}
 }
 
 //==================================================================================================
@@ -152,7 +159,8 @@ SizeEdit::SizeEdit(qreal size) : QLineEdit()
 	setValidator(new QDoubleValidator(0, std::numeric_limits<qreal>::max(), 8));
 	setSize(size);
 
-	connect(this, SIGNAL(returnPressed()), this, SLOT(sendSizeChanged()));
+	//connect(this, SIGNAL(returnPressed()), this, SLOT(sendSizeChanged()));
+	connect(this, SIGNAL(editingFinished()), this, SLOT(sendSizeChanged()));
 }
 
 SizeEdit::~SizeEdit() { }
@@ -170,6 +178,7 @@ QSize SizeEdit::sizeHint() const
 void SizeEdit::setSize(qreal size)
 {
 	setText(QString::number(size, 'g', 8));
+	mSizeCached = size;
 }
 
 qreal SizeEdit::size() const
@@ -183,7 +192,12 @@ qreal SizeEdit::size() const
 
 void SizeEdit::sendSizeChanged()
 {
-	emit sizeChanged(size());
+	qreal size = SizeEdit::size();
+	if (mSizeCached != size)
+	{
+		mSizeCached = size;
+		emit sizeChanged(size);
+	}
 }
 
 //==================================================================================================

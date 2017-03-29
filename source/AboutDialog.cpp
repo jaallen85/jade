@@ -1,6 +1,6 @@
 /* AboutDialog.cpp
  *
- * Copyright (C) 2013-2016 Jason Allen
+ * Copyright (C) 2013-2017 Jason Allen
  *
  * This file is part of the jade application.
  *
@@ -21,8 +21,8 @@
 #include "AboutDialog.h"
 #include "MainWindow.h"
 
-const static QString sVersion = "1.1.0d0";
-const static QString sDates = "2014-2016";
+const static QString sVersion = "1.2.0d0";
+const static QString sDates = "2014-2017";
 
 AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
 {
