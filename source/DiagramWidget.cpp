@@ -395,7 +395,7 @@ void DiagramWidget::mouseReleaseEvent(QMouseEvent* event)
 	{
 		if (mode() == DefaultMode)
 		{
-			DrawingItem* mouseDownItem = itemAt(mapToScene(event->pos()));
+			DrawingItem* mouseDownItem = visibleItemAt(mapToScene(event->pos()));
 
 			if (mouseDownItem && mouseDownItem->isSelected() && selectedItems().size() == 1)
 			{
