@@ -890,7 +890,10 @@ void MainWindow::createPropertiesDock()
 
 	connect(mDiagramWidget, SIGNAL(selectionChanged(const QList<DrawingItem*>&)), mPropertiesWidget, SLOT(setSelectedItems(const QList<DrawingItem*>&)));
 	connect(mDiagramWidget, SIGNAL(newItemsChanged(const QList<DrawingItem*>&)), mPropertiesWidget, SLOT(setNewItems(const QList<DrawingItem*>&)));
+	connect(mDiagramWidget, SIGNAL(itemsPositionChanged(const QList<DrawingItem*>&)), mPropertiesWidget, SLOT(setItemGeometry(const QList<DrawingItem*>&)));
+	connect(mDiagramWidget, SIGNAL(itemsTransformChanged(const QList<DrawingItem*>&)), mPropertiesWidget, SLOT(setItemGeometry(const QList<DrawingItem*>&)));
 	connect(mDiagramWidget, SIGNAL(itemsGeometryChanged(const QList<DrawingItem*>&)), mPropertiesWidget, SLOT(setItemGeometry(const QList<DrawingItem*>&)));
+	connect(mDiagramWidget, SIGNAL(itemsVisibilityChanged(const QList<DrawingItem*>&)), mPropertiesWidget, SLOT(setItemGeometry(const QList<DrawingItem*>&)));
 	connect(mDiagramWidget, SIGNAL(itemsStyleChanged(const QList<DrawingItem*>&)), mPropertiesWidget, SLOT(setItemsStyleProperties(const QList<DrawingItem*>&)));
 	connect(mDiagramWidget, SIGNAL(itemCornerRadiusChanged(DrawingItem*)), mPropertiesWidget, SLOT(setItemCornerRadius(DrawingItem*)));
 	connect(mDiagramWidget, SIGNAL(itemCaptionChanged(DrawingItem*)), mPropertiesWidget, SLOT(setItemCaption(DrawingItem*)));

@@ -144,9 +144,9 @@ void DynamicPropertiesWidget::setItemGeometry(const QList<DrawingItem*>& items)
 		if (mPositionWidget) mPositionWidget->setPosition(item->position());
 
 		if (mStartPositionWidget && itemPoints.size() >= 2)
-			mStartPositionWidget->setPosition(item->mapToScene(itemPoints.first()->position()));
+			mStartPositionWidget->setPosition(item->mapToScene(itemPoints[0]->position()));
 		if (mEndPositionWidget && itemPoints.size() >= 2)
-			mEndPositionWidget->setPosition(item->mapToScene(itemPoints.last()->position()));
+			mEndPositionWidget->setPosition(item->mapToScene(itemPoints[1]->position()));
 
 		if (mCurveStartPositionWidget && itemPoints.size() >= 4)
 			mCurveStartPositionWidget->setPosition(item->mapToScene(itemPoints[0]->position()));
