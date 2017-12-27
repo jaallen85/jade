@@ -45,6 +45,10 @@ MainWindow::MainWindow(const QString& filePath) : QMainWindow()
 
 	mPrevMaintainAspectRatio = true;
 
+	QMainWindow::setWindowTitle("Jade");
+	setWindowIcon(QIcon(":/icons/jade/diagram.png"));
+	resize(1290, 760);
+
 	loadSettings();
 
 	mDiagramWidget = new DiagramWidget();
@@ -61,10 +65,6 @@ MainWindow::MainWindow(const QString& filePath) : QMainWindow()
 	createActions();
 	createMenus();
 	createToolBars();
-
-	QMainWindow::setWindowTitle("Jade");
-	setWindowIcon(QIcon(":/icons/jade/diagram.png"));
-	resize(1290, 760);
 
 	if (!filePath.isEmpty() && loadDiagramFromFile(filePath)) showDiagram();
 	else newDiagram();
@@ -381,7 +381,7 @@ void MainWindow::exportPng()
 	if (isDiagramVisible())
 	{
 		QString filePath = mFilePath;
-		QFileDialog::Options options = (mPromptOverwrite) ? 0 : QFileDialog::DontConfirmOverwrite;
+		QFileDialog::Options options = (mPromptOverwrite) ? (QFileDialog::Options)0 : QFileDialog::DontConfirmOverwrite;
 
 		if (filePath.startsWith("Untitled")) filePath = mWorkingDir.path();
 		else filePath = filePath.left(filePath.length() - mFileSuffix.length() - 1) + ".png";
@@ -422,7 +422,7 @@ void MainWindow::exportSvg()
 	if (isDiagramVisible())
 	{
 		QString filePath = mFilePath;
-		QFileDialog::Options options = (mPromptOverwrite) ? 0 : QFileDialog::DontConfirmOverwrite;
+		QFileDialog::Options options = (mPromptOverwrite) ? (QFileDialog::Options)0 : QFileDialog::DontConfirmOverwrite;
 
 		if (filePath.startsWith("Untitled")) filePath = mWorkingDir.path();
 		else filePath = filePath.left(filePath.length() - mFileSuffix.length() - 1) + ".svg";
@@ -465,7 +465,7 @@ void MainWindow::exportOdg()
 	if (isDiagramVisible())
 	{
 		QString filePath = mFilePath;
-		QFileDialog::Options options = (mPromptOverwrite) ? 0 : QFileDialog::DontConfirmOverwrite;
+		QFileDialog::Options options = (mPromptOverwrite) ? (QFileDialog::Options)0 : QFileDialog::DontConfirmOverwrite;
 
 		if (filePath.startsWith("Untitled")) filePath = mWorkingDir.path();
 		else filePath = filePath.left(filePath.length() - mFileSuffix.length() - 1) + ".odg";
@@ -529,7 +529,7 @@ void MainWindow::printPdf()
 	if (isDiagramVisible())
 	{
 		QString filePath = mFilePath;
-		QFileDialog::Options options = (mPromptOverwrite) ? 0 : QFileDialog::DontConfirmOverwrite;
+		QFileDialog::Options options = (mPromptOverwrite) ? (QFileDialog::Options)0 : QFileDialog::DontConfirmOverwrite;
 
 		if (filePath.startsWith("Untitled")) filePath = mWorkingDir.path();
 		else filePath = filePath.left(filePath.length() - mFileSuffix.length() - 1) + ".pdf";

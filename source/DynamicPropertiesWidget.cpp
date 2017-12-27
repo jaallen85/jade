@@ -413,8 +413,8 @@ void DynamicPropertiesWidget::handleItemGeometryChange()
 {
 	QObject* sender = DynamicPropertiesWidget::sender();
 
-	if (mPositionWidget && sender == mPositionWidget)
-		emit selectedItemMoved(mPositionWidget->position());
+	if (mPositionWidget && sender == mPositionWidget && mItems.size() > 0)
+		emit selectedItemMoved(mPositionWidget->position() - mItems.first()->position());
 	else if (mCornerRadiusWidget && sender == mCornerRadiusWidget)
 		emit selectedItemCornerRadiusChanged(mCornerRadiusWidget->size().width(), mCornerRadiusWidget->size().height());
 	else if (mCaptionEdit && sender == mCaptionEdit)
@@ -424,9 +424,9 @@ void DynamicPropertiesWidget::handleItemGeometryChange()
 		QList<DrawingItemPoint*> itemPoints = mItem->points();
 
 		if (mStartPositionWidget && sender == mStartPositionWidget && itemPoints.size() >= 2)
-			emit selectedItemResized(itemPoints.first(), mStartPositionWidget->position());
+			emit selectedItemResized(itemPoints[0], mStartPositionWidget->position());
 		else if (mEndPositionWidget && sender == mEndPositionWidget && itemPoints.size() >= 2)
-			emit selectedItemResized(itemPoints.last(), mEndPositionWidget->position());
+			emit selectedItemResized(itemPoints[1], mEndPositionWidget->position());
 		else if (mCurveStartPositionWidget && sender == mCurveStartPositionWidget && itemPoints.size() >= 4)
 			emit selectedItemResized(itemPoints[0], mCurveStartPositionWidget->position());
 		else if (mCurveStartControlPositionWidget && sender == mCurveStartControlPositionWidget && itemPoints.size() >= 4)
@@ -799,10 +799,10 @@ void DynamicPropertiesWidget::createGeometryWidgets()
 	// Line/arc widgets
 	if (arcItem || lineItem)
 	{
-		mStartPositionWidget = new PositionWidget(mItem->mapToScene(mItem->points().first()->position()));
+		mStartPositionWidget = new PositionWidget(mItem->mapToScene(mItem->points()[0]->position()));
 		connect(mStartPositionWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleItemGeometryChange()));
 
-		mEndPositionWidget = new PositionWidget(mItem->mapToScene(mItem->points().last()->position()));
+		mEndPositionWidget = new PositionWidget(mItem->mapToScene(mItem->points()[1]->position()));
 		connect(mEndPositionWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleItemGeometryChange()));
 	}
 

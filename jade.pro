@@ -15,11 +15,11 @@ QT += widgets printsupport svg
 !win32:RCC_DIR = release
 
 INCLUDEPATH += ../libjade/include
-LIBS += ../libjade/lib/jade.lib
+LIBS += -L../libjade/lib/ -ljade
 
 # QuaZIP
 INCLUDEPATH += C:/Development/quazip-0.7.1/quazip $$[QT_INSTALL_HEADERS]/QtZlib
-LIBS += C:/Development/quazip-0.7.1/quazip/release/quazip.lib
+LIBS += -LC:/Development/quazip-0.7.1/quazip/release/ -lquazip
 
 # --------------------------------------------------------------------------------------------------
 

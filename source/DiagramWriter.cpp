@@ -462,11 +462,10 @@ void DiagramWriter::writeItemStyle(DrawingItemStyle* style)
 			DrawingItemStyle::ArrowStyle arrow = (DrawingItemStyle::ArrowStyle)style->value(DrawingItemStyle::StartArrowStyle).toUInt();
 			qreal arrowSize = style->value(DrawingItemStyle::StartArrowSize).toReal();
 
-			if (arrow != DrawingItemStyle::ArrowNone && arrowSize != 0)
-			{
+			if (arrow != DrawingItemStyle::ArrowNone)
 				writeAttribute("arrow-start-style", arrowStyleToString(arrow));
+			if (arrowSize != 0)
 				writeAttribute("arrow-start-size", QString::number(arrowSize));
-			}
 		}
 
 		if (style->hasValue(DrawingItemStyle::EndArrowStyle) && style->hasValue(DrawingItemStyle::EndArrowSize))
@@ -474,11 +473,10 @@ void DiagramWriter::writeItemStyle(DrawingItemStyle* style)
 			DrawingItemStyle::ArrowStyle arrow = (DrawingItemStyle::ArrowStyle)style->value(DrawingItemStyle::EndArrowStyle).toUInt();
 			qreal arrowSize = style->value(DrawingItemStyle::EndArrowSize).toReal();
 
-			if (arrow != DrawingItemStyle::ArrowNone && arrowSize != 0)
-			{
+			if (arrow != DrawingItemStyle::ArrowNone)
 				writeAttribute("arrow-end-style", arrowStyleToString(arrow));
+			if (arrowSize != 0)
 				writeAttribute("arrow-end-size", QString::number(arrowSize));
-			}
 		}
 	}
 }

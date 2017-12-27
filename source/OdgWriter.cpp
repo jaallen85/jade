@@ -1095,6 +1095,7 @@ QString OdgWriter::dashStyleName(Qt::PenStyle penStyle) const
 	case Qt::DotLine: str = "Dotted"; break;
 	case Qt::DashDotLine: str = "DashDotted"; break;
 	case Qt::DashDotDotLine: str = "DashDotDotted"; break;
+	default: break;
 	}
 
 	return str;
