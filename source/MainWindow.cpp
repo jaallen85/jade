@@ -28,6 +28,7 @@
 #include "ElectricItems.h"
 #include "LogicItems.h"
 #include "OdgWriter.h"
+#include "VsdxWriter.h"
 
 //#define RELEASE_BUILD
 #undef RELEASE_BUILD
@@ -484,6 +485,30 @@ void MainWindow::exportOdg()
 	}
 }
 
+void MainWindow::exportVsdx()
+{
+	if (isDiagramVisible())
+	{
+		QString filePath = mFilePath;
+		QFileDialog::Options options = (mPromptOverwrite) ? (QFileDialog::Options)0 : QFileDialog::DontConfirmOverwrite;
+
+		if (filePath.startsWith("Untitled")) filePath = mWorkingDir.path();
+		else filePath = filePath.left(filePath.length() - mFileSuffix.length() - 1) + ".vsdx";
+
+		filePath = QFileDialog::getSaveFileName(this, "Export to VSDX", filePath, "Visio Drawings (*.vsdx);;All Files (*)", nullptr, options);
+		if (!filePath.isEmpty())
+		{
+			if (!filePath.endsWith(".vsdx", Qt::CaseInsensitive)) filePath += ".vsdx";
+
+			mDiagramWidget->selectNone();
+
+			VsdxWriter writer;
+			if (!writer.write(mDiagramWidget, &mPrinter, filePath))
+				QMessageBox::critical(this, "VSDX Export Error", writer.errorMessage());
+		}
+	}
+}
+
 //==================================================================================================
 
 void MainWindow::printPreview()
@@ -620,6 +645,7 @@ void MainWindow::setDiagramVisible(bool visible)
 	actions[ExportPngAction]->setEnabled(visible);
 	actions[ExportSvgAction]->setEnabled(visible);
 	actions[ExportOdgAction]->setEnabled(visible);
+	actions[ExportVsdxAction]->setEnabled(visible);
 	actions[PrintPreviewAction]->setEnabled(visible);
 	actions[PrintSetupAction]->setEnabled(visible);
 	actions[PrintAction]->setEnabled(visible);
@@ -943,6 +969,7 @@ void MainWindow::createActions()
 	addAction("Export PNG...", this, SLOT(exportPng()), ":/icons/oxygen/image-x-generic.png");
 	addAction("Export SVG...", this, SLOT(exportSvg()), ":/icons/oxygen/image-svg+xml.png");
 	addAction("Export ODG...", this, SLOT(exportOdg()), ":/icons/oxygen/application-vnd.oasis.opendocument.graphics.png");
+	addAction("Export VSDX...", this, SLOT(exportVsdx()), ":/icons/oxygen/application-msword.png");
 	addAction("Print Preview...", this, SLOT(printPreview()), ":/icons/oxygen/document-preview.png");
 	addAction("Print Setup...", this, SLOT(printSetup()), "");
 	addAction("Print...", this, SLOT(printDiagram()), ":/icons/oxygen/document-print.png", "Ctrl+P");
@@ -997,6 +1024,7 @@ void MainWindow::createMenus()
 	menu->addAction(actions[ExportPngAction]);
 	menu->addAction(actions[ExportSvgAction]);
 	menu->addAction(actions[ExportOdgAction]);
+	menu->addAction(actions[ExportVsdxAction]);
 	menu->addSeparator();
 	menu->addAction(actions[PrintPreviewAction]);
 	menu->addAction(actions[PrintSetupAction]);
