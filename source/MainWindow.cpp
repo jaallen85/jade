@@ -28,6 +28,7 @@
 #include "ElectricItems.h"
 #include "LogicItems.h"
 #include "OdgWriter.h"
+#include "VsdxWriter.h"
 
 //#define RELEASE_BUILD
 #undef RELEASE_BUILD
@@ -45,6 +46,10 @@ MainWindow::MainWindow(const QString& filePath) : QMainWindow()
 
 	mPrevMaintainAspectRatio = true;
 
+	QMainWindow::setWindowTitle("Jade");
+	setWindowIcon(QIcon(":/icons/jade/diagram.png"));
+	resize(1290, 760);
+
 	loadSettings();
 
 	mDiagramWidget = new DiagramWidget();
@@ -61,10 +66,6 @@ MainWindow::MainWindow(const QString& filePath) : QMainWindow()
 	createActions();
 	createMenus();
 	createToolBars();
-
-	QMainWindow::setWindowTitle("Jade");
-	setWindowIcon(QIcon(":/icons/jade/diagram.png"));
-	resize(1290, 760);
 
 	if (!filePath.isEmpty() && loadDiagramFromFile(filePath)) showDiagram();
 	else newDiagram();
@@ -381,7 +382,7 @@ void MainWindow::exportPng()
 	if (isDiagramVisible())
 	{
 		QString filePath = mFilePath;
-		QFileDialog::Options options = (mPromptOverwrite) ? 0 : QFileDialog::DontConfirmOverwrite;
+		QFileDialog::Options options = (mPromptOverwrite) ? (QFileDialog::Options)0 : QFileDialog::DontConfirmOverwrite;
 
 		if (filePath.startsWith("Untitled")) filePath = mWorkingDir.path();
 		else filePath = filePath.left(filePath.length() - mFileSuffix.length() - 1) + ".png";
@@ -422,7 +423,7 @@ void MainWindow::exportSvg()
 	if (isDiagramVisible())
 	{
 		QString filePath = mFilePath;
-		QFileDialog::Options options = (mPromptOverwrite) ? 0 : QFileDialog::DontConfirmOverwrite;
+		QFileDialog::Options options = (mPromptOverwrite) ? (QFileDialog::Options)0 : QFileDialog::DontConfirmOverwrite;
 
 		if (filePath.startsWith("Untitled")) filePath = mWorkingDir.path();
 		else filePath = filePath.left(filePath.length() - mFileSuffix.length() - 1) + ".svg";
@@ -465,7 +466,7 @@ void MainWindow::exportOdg()
 	if (isDiagramVisible())
 	{
 		QString filePath = mFilePath;
-		QFileDialog::Options options = (mPromptOverwrite) ? 0 : QFileDialog::DontConfirmOverwrite;
+		QFileDialog::Options options = (mPromptOverwrite) ? (QFileDialog::Options)0 : QFileDialog::DontConfirmOverwrite;
 
 		if (filePath.startsWith("Untitled")) filePath = mWorkingDir.path();
 		else filePath = filePath.left(filePath.length() - mFileSuffix.length() - 1) + ".odg";
@@ -480,6 +481,30 @@ void MainWindow::exportOdg()
 			OdgWriter writer;
 			if (!writer.write(mDiagramWidget, &mPrinter, filePath))
 				QMessageBox::critical(this, "ODG Export Error", writer.errorMessage());
+		}
+	}
+}
+
+void MainWindow::exportVsdx()
+{
+	if (isDiagramVisible())
+	{
+		QString filePath = mFilePath;
+		QFileDialog::Options options = (mPromptOverwrite) ? (QFileDialog::Options)0 : QFileDialog::DontConfirmOverwrite;
+
+		if (filePath.startsWith("Untitled")) filePath = mWorkingDir.path();
+		else filePath = filePath.left(filePath.length() - mFileSuffix.length() - 1) + ".vsdx";
+
+		filePath = QFileDialog::getSaveFileName(this, "Export to VSDX", filePath, "Visio Drawings (*.vsdx);;All Files (*)", nullptr, options);
+		if (!filePath.isEmpty())
+		{
+			if (!filePath.endsWith(".vsdx", Qt::CaseInsensitive)) filePath += ".vsdx";
+
+			mDiagramWidget->selectNone();
+
+			VsdxWriter writer;
+			if (!writer.write(mDiagramWidget, &mPrinter, filePath))
+				QMessageBox::critical(this, "VSDX Export Error", writer.errorMessage());
 		}
 	}
 }
@@ -529,7 +554,7 @@ void MainWindow::printPdf()
 	if (isDiagramVisible())
 	{
 		QString filePath = mFilePath;
-		QFileDialog::Options options = (mPromptOverwrite) ? 0 : QFileDialog::DontConfirmOverwrite;
+		QFileDialog::Options options = (mPromptOverwrite) ? (QFileDialog::Options)0 : QFileDialog::DontConfirmOverwrite;
 
 		if (filePath.startsWith("Untitled")) filePath = mWorkingDir.path();
 		else filePath = filePath.left(filePath.length() - mFileSuffix.length() - 1) + ".pdf";
@@ -620,6 +645,7 @@ void MainWindow::setDiagramVisible(bool visible)
 	actions[ExportPngAction]->setEnabled(visible);
 	actions[ExportSvgAction]->setEnabled(visible);
 	actions[ExportOdgAction]->setEnabled(visible);
+	actions[ExportVsdxAction]->setEnabled(visible);
 	actions[PrintPreviewAction]->setEnabled(visible);
 	actions[PrintSetupAction]->setEnabled(visible);
 	actions[PrintAction]->setEnabled(visible);
@@ -890,7 +916,10 @@ void MainWindow::createPropertiesDock()
 
 	connect(mDiagramWidget, SIGNAL(selectionChanged(const QList<DrawingItem*>&)), mPropertiesWidget, SLOT(setSelectedItems(const QList<DrawingItem*>&)));
 	connect(mDiagramWidget, SIGNAL(newItemsChanged(const QList<DrawingItem*>&)), mPropertiesWidget, SLOT(setNewItems(const QList<DrawingItem*>&)));
+	connect(mDiagramWidget, SIGNAL(itemsPositionChanged(const QList<DrawingItem*>&)), mPropertiesWidget, SLOT(setItemGeometry(const QList<DrawingItem*>&)));
+	connect(mDiagramWidget, SIGNAL(itemsTransformChanged(const QList<DrawingItem*>&)), mPropertiesWidget, SLOT(setItemGeometry(const QList<DrawingItem*>&)));
 	connect(mDiagramWidget, SIGNAL(itemsGeometryChanged(const QList<DrawingItem*>&)), mPropertiesWidget, SLOT(setItemGeometry(const QList<DrawingItem*>&)));
+	connect(mDiagramWidget, SIGNAL(itemsVisibilityChanged(const QList<DrawingItem*>&)), mPropertiesWidget, SLOT(setItemGeometry(const QList<DrawingItem*>&)));
 	connect(mDiagramWidget, SIGNAL(itemsStyleChanged(const QList<DrawingItem*>&)), mPropertiesWidget, SLOT(setItemsStyleProperties(const QList<DrawingItem*>&)));
 	connect(mDiagramWidget, SIGNAL(itemCornerRadiusChanged(DrawingItem*)), mPropertiesWidget, SLOT(setItemCornerRadius(DrawingItem*)));
 	connect(mDiagramWidget, SIGNAL(itemCaptionChanged(DrawingItem*)), mPropertiesWidget, SLOT(setItemCaption(DrawingItem*)));
@@ -940,6 +969,7 @@ void MainWindow::createActions()
 	addAction("Export PNG...", this, SLOT(exportPng()), ":/icons/oxygen/image-x-generic.png");
 	addAction("Export SVG...", this, SLOT(exportSvg()), ":/icons/oxygen/image-svg+xml.png");
 	addAction("Export ODG...", this, SLOT(exportOdg()), ":/icons/oxygen/application-vnd.oasis.opendocument.graphics.png");
+	addAction("Export VSDX...", this, SLOT(exportVsdx()), ":/icons/oxygen/application-msword.png");
 	addAction("Print Preview...", this, SLOT(printPreview()), ":/icons/oxygen/document-preview.png");
 	addAction("Print Setup...", this, SLOT(printSetup()), "");
 	addAction("Print...", this, SLOT(printDiagram()), ":/icons/oxygen/document-print.png", "Ctrl+P");
@@ -994,6 +1024,7 @@ void MainWindow::createMenus()
 	menu->addAction(actions[ExportPngAction]);
 	menu->addAction(actions[ExportSvgAction]);
 	menu->addAction(actions[ExportOdgAction]);
+	menu->addAction(actions[ExportVsdxAction]);
 	menu->addSeparator();
 	menu->addAction(actions[PrintPreviewAction]);
 	menu->addAction(actions[PrintSetupAction]);

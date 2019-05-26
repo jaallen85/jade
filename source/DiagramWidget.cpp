@@ -293,6 +293,7 @@ void DiagramWidget::setViewProperties(const QHash<DiagramWidget::Property,QVaria
 {
 	setProperties(properties);
 	emit diagramPropertiesChanged(properties);
+	if (properties.contains(SceneRect)) zoomFit();
 	viewport()->update();
 }
 
@@ -395,7 +396,7 @@ void DiagramWidget::mouseReleaseEvent(QMouseEvent* event)
 	{
 		if (mode() == DefaultMode)
 		{
-			DrawingItem* mouseDownItem = itemAt(mapToScene(event->pos()));
+			DrawingItem* mouseDownItem = visibleItemAt(mapToScene(event->pos()));
 
 			if (mouseDownItem && mouseDownItem->isSelected() && selectedItems().size() == 1)
 			{
@@ -505,6 +506,11 @@ void DiagramWidget::createContextMenu()
 	mSingleItemContextMenu.addAction(actions[FlipAction]);
 	mSingleItemContextMenu.addAction(actions[DeleteAction]);
 	mSingleItemContextMenu.addSeparator();
+	mSingleItemContextMenu.addAction(actions[BringForwardAction]);
+	mSingleItemContextMenu.addAction(actions[SendBackwardAction]);
+	mSingleItemContextMenu.addAction(actions[BringToFrontAction]);
+	mSingleItemContextMenu.addAction(actions[SendToBackAction]);
+	mSingleItemContextMenu.addSeparator();
 	mSingleItemContextMenu.addAction(actions[GroupAction]);
 	mSingleItemContextMenu.addAction(actions[UngroupAction]);
 
@@ -520,6 +526,11 @@ void DiagramWidget::createContextMenu()
 	mSinglePolyItemContextMenu.addAction(actions[FlipAction]);
 	mSinglePolyItemContextMenu.addAction(actions[DeleteAction]);
 	mSinglePolyItemContextMenu.addSeparator();
+	mSinglePolyItemContextMenu.addAction(actions[BringForwardAction]);
+	mSinglePolyItemContextMenu.addAction(actions[SendBackwardAction]);
+	mSinglePolyItemContextMenu.addAction(actions[BringToFrontAction]);
+	mSinglePolyItemContextMenu.addAction(actions[SendToBackAction]);
+	mSinglePolyItemContextMenu.addSeparator();
 	mSinglePolyItemContextMenu.addAction(actions[GroupAction]);
 	mSinglePolyItemContextMenu.addAction(actions[UngroupAction]);
 
@@ -531,6 +542,11 @@ void DiagramWidget::createContextMenu()
 	mMultipleItemContextMenu.addAction(actions[RotateBackAction]);
 	mMultipleItemContextMenu.addAction(actions[FlipAction]);
 	mMultipleItemContextMenu.addAction(actions[DeleteAction]);
+	mMultipleItemContextMenu.addSeparator();
+	mMultipleItemContextMenu.addAction(actions[BringForwardAction]);
+	mMultipleItemContextMenu.addAction(actions[SendBackwardAction]);
+	mMultipleItemContextMenu.addAction(actions[BringToFrontAction]);
+	mMultipleItemContextMenu.addAction(actions[SendToBackAction]);
 	mMultipleItemContextMenu.addSeparator();
 	mMultipleItemContextMenu.addAction(actions[GroupAction]);
 	mMultipleItemContextMenu.addAction(actions[UngroupAction]);

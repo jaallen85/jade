@@ -85,10 +85,10 @@
         <file>items/resistor1.png</file>
         <file>items/resistor2.png</file>
         <file>items/schottky_diode.png</file>
-		<file>items/textellipse.png</file>
-		<file>items/textpolygon.png</file>
-		<file>items/textrect.png</file>
-		<file>items/tristate_buffer.png</file>
+        <file>items/textellipse.png</file>
+        <file>items/textpolygon.png</file>
+        <file>items/textrect.png</file>
+        <file>items/tristate_buffer.png</file>
         <file>items/tristate_buffer2.png</file>
         <file>items/vac.png</file>
         <file>items/vdc.png</file>
@@ -109,5 +109,6 @@
         <file>arrow/arrow_triangle.png</file>
         <file>arrow/arrow_triangle_filled.png</file>
         <file>arrow/arrow_x.png</file>
+        <file>oxygen/application-msword.png</file>
     </qresource>
 </RCC>

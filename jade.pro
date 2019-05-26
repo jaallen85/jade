@@ -15,11 +15,11 @@ QT += widgets printsupport svg
 !win32:RCC_DIR = release
 
 INCLUDEPATH += ../libjade/include
-LIBS += ../libjade/lib/jade.lib
+LIBS += -L../libjade/lib/ -ljade
 
 # QuaZIP
 INCLUDEPATH += C:/Development/quazip-0.7.1/quazip $$[QT_INSTALL_HEADERS]/QtZlib
-LIBS += C:/Development/quazip-0.7.1/quazip/release/quazip.lib
+LIBS += -LC:/Development/quazip-0.7.1/quazip/release/ -lquazip
 
 # --------------------------------------------------------------------------------------------------
 
@@ -37,7 +37,8 @@ SOURCES += \
 	source/MainWindow.cpp \
 	source/OdgWriter.cpp \
 	source/PreferencesDialog.cpp \
-	source/main.cpp
+    source/VsdxWriter.cpp \
+    source/main.cpp
 
 HEADERS += \
 	source/AboutDialog.h \
@@ -52,7 +53,8 @@ HEADERS += \
 	source/LogicItems.h \
 	source/MainWindow.h \
 	source/OdgWriter.h \
-	source/PreferencesDialog.h
+    source/PreferencesDialog.h \
+    source/VsdxWriter.h
 
 RESOURCES += icons/icons.qrc
 

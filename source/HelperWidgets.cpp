@@ -282,7 +282,7 @@ void ColorWidget::runColorDialog()
 
 		if (!standardColor && !customColor)
 		{
-			for(int i = ColorSelectWidget::customColors.size(); i > 0; i--)
+			for(int i = ColorSelectWidget::customColors.size() - 1; i > 0; i--)
 				ColorSelectWidget::customColors[i] = ColorSelectWidget::customColors[i-1];
 			ColorSelectWidget::customColors[0] = colorDialog.currentColor();
 		}

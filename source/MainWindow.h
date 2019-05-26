@@ -33,7 +33,7 @@ class MainWindow : public QMainWindow
 
 public:
 	enum ActionIndex { NewAction, OpenAction, SaveAction, SaveAsAction, CloseAction,
-		ExportPngAction, ExportSvgAction, ExportOdgAction,
+		ExportPngAction, ExportSvgAction, ExportOdgAction, ExportVsdxAction,
 		PrintPreviewAction, PrintSetupAction, PrintAction, PrintPdfAction,
 		PreferencesAction, ExitAction,
 		AboutAction, AboutQtAction, NumberOfActions };
@@ -95,6 +95,7 @@ public slots:
 	void exportPng();
 	void exportSvg();
 	void exportOdg();
+	void exportVsdx();
 
 	void printPreview();
 	void printSetup();
