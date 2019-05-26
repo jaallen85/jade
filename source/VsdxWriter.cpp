@@ -1101,10 +1101,6 @@ QString VsdxWriter::writePathItem(DrawingPathItem* item, int& index)
 				transform.translate(-prevPoint.x(), -prevPoint.y());
 				QPointF curveStartControlRel = transform.map(curveStartControlPoint);
 				QPointF curveEndControlRel = transform.map(curveEndControlPoint);
-				qreal a = curveStartControlRel.x();
-				qreal b = curveStartControlRel.y() + 0.5;
-				qreal c = curveEndControlRel.x();
-				qreal d = curveEndControlRel.y() + 0.5;
 
 				itemStr += "		<Row T=\"RelCubBezTo\" IX=\"" + QString::number(pathIndex) + "\">\n";
 				itemStr += "		  <Cell N=\"X\" V=\"" + QString::number(curveEndPoint.x()) + "\"/>\n";

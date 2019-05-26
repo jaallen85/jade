@@ -37,7 +37,8 @@ SOURCES += \
 	source/MainWindow.cpp \
 	source/OdgWriter.cpp \
 	source/PreferencesDialog.cpp \
-	source/main.cpp
+    source/VsdxWriter.cpp \
+    source/main.cpp
 
 HEADERS += \
 	source/AboutDialog.h \
@@ -52,7 +53,8 @@ HEADERS += \
 	source/LogicItems.h \
 	source/MainWindow.h \
 	source/OdgWriter.h \
-	source/PreferencesDialog.h
+    source/PreferencesDialog.h \
+    source/VsdxWriter.h
 
 RESOURCES += icons/icons.qrc
 
