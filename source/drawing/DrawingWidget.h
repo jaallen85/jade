@@ -19,6 +19,7 @@
 
 #include <DrawingTypes.h>
 #include <QAbstractScrollArea>
+#include <QTimer>
 
 class QActionGroup;
 
@@ -44,6 +45,15 @@ private:
 	QTransform mSceneTransform;
 
 	Drawing::Mode mMode;
+
+	QPoint mMouseLeftButtonDownPos;
+	bool mMouseLeftDragged;
+	int mMouseButtonDownHorizontalScrollValue;
+	int mMouseButtonDownVerticalScrollValue;
+	QRect mRubberBandZoomRect;
+	QPoint mPanStartPos;
+	QPoint mPanCurrentPos;
+	QTimer mPanTimer;
 
 	QActionGroup* mModeActionGroup;
 
@@ -73,7 +83,9 @@ public:
 	void scaleBy(qreal scale);
 	qreal scale() const;
 	QPoint mapFromScene(const QPointF& point) const;
+	QRect mapFromScene(const QRectF& rect) const;
 	QPointF mapToScene(const QPoint& point) const;
+	QRectF mapToScene(const QRect& rect) const;
 
 	Drawing::Mode mode() const;
 
@@ -101,16 +113,24 @@ protected:
 	virtual void paintEvent(QPaintEvent* event) override;
 	virtual void resizeEvent(QResizeEvent* event) override;
 
+	virtual void mousePressEvent(QMouseEvent* event) override;
+	virtual void mouseMoveEvent(QMouseEvent* event) override;
+	virtual void mouseReleaseEvent(QMouseEvent* event) override;
+	virtual void mouseDoubleClickEvent(QMouseEvent* event) override;
 	virtual void wheelEvent(QWheelEvent* event) override;
 
 	virtual void drawBackground(QPainter* painter);
+	virtual void drawRubberBand(QPainter* painter, const QRect& rect);
 
 private slots:
 	void setModeFromAction(QAction* action);
 
+	void mousePanEvent();
+
 private:
 	void recalculateContentSize(const QRectF& rect = QRectF());
 	QRectF scrollBarDefinedRect() const;
+	QRectF visibleRect() const;
 
 	void addActions();
 };

@@ -17,9 +17,12 @@
 #include "DrawingWidget.h"
 #include <QAction>
 #include <QActionGroup>
+#include <QApplication>
 #include <QPainter>
 #include <QScrollBar>
 #include <QStyle>
+#include <QStyleHintReturnMask>
+#include <QStyleOptionRubberBand>
 #include <QtMath>
 #include <QWheelEvent>
 
@@ -39,6 +42,13 @@ DrawingWidget::DrawingWidget(QWidget* parent) : QAbstractScrollArea(parent)
 
 	mScale = 1.0;
 	mMode = Drawing::DefaultMode;
+
+	mMouseLeftDragged = false;
+	mMouseButtonDownHorizontalScrollValue = 0;
+	mMouseButtonDownVerticalScrollValue = 0;
+
+	mPanTimer.setInterval(16);
+	connect(&mPanTimer, SIGNAL(timeout()), this, SLOT(mousePanEvent()));
 
 	addActions();
 }
@@ -180,12 +190,22 @@ QPointF DrawingWidget::mapToScene(const QPoint& point) const
 	return mSceneTransform.map(p);
 }
 
+QRectF DrawingWidget::mapToScene(const QRect& rect) const
+{
+	return QRectF(mapToScene(rect.topLeft()), mapToScene(rect.bottomRight()));
+}
+
 QPoint DrawingWidget::mapFromScene(const QPointF& point) const
 {
 	QPointF p = mViewportTransform.map(point);
 	p.setX(p.x() - horizontalScrollBar()->value());
 	p.setY(p.y() - verticalScrollBar()->value());
 	return p.toPoint();
+}
+
+QRect DrawingWidget::mapFromScene(const QRectF& rect) const
+{
+	return QRect(mapFromScene(rect.topLeft()), mapFromScene(rect.bottomRight()));
 }
 
 //==================================================================================================
@@ -344,6 +364,7 @@ void DrawingWidget::paintEvent(QPaintEvent* event)
 	painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
 
 	drawBackground(&painter);
+	drawRubberBand(&painter, mRubberBandZoomRect);
 
 	painter.end();
 
@@ -361,6 +382,136 @@ void DrawingWidget::resizeEvent(QResizeEvent* event)
 }
 
 //==================================================================================================
+
+void DrawingWidget::mousePressEvent(QMouseEvent* event)
+{
+	if (event->button() == Qt::LeftButton)
+	{
+		// Update button down screen and scene position
+		mMouseLeftButtonDownPos = event->pos();
+		mMouseLeftDragged = false;
+		mRubberBandZoomRect = QRect();
+
+		switch (mMode)
+		{
+		case Drawing::DefaultMode:
+			// Nothing to do here.
+			break;
+		case Drawing::ScrollMode:
+			setCursor(Qt::ClosedHandCursor);
+			mMouseButtonDownHorizontalScrollValue = horizontalScrollBar()->value();
+			mMouseButtonDownVerticalScrollValue = verticalScrollBar()->value();
+			break;
+		case Drawing::ZoomMode:
+			// Nothing to do here.
+			break;
+		default:
+			// Nothing to do here.
+			break;
+		}
+	}
+	else if (event->button() == Qt::MiddleButton)
+	{
+		setCursor(Qt::SizeAllCursor);
+		mPanStartPos = event->pos();
+		mPanCurrentPos = event->pos();
+		mPanTimer.start();
+	}
+
+	viewport()->update();
+}
+
+void DrawingWidget::mouseMoveEvent(QMouseEvent* event)
+{
+	if (event->buttons() & Qt::LeftButton)
+	{
+		mMouseLeftDragged = (mMouseLeftDragged |
+			((mMouseLeftButtonDownPos - event->pos()).manhattanLength() >= QApplication::startDragDistance()));
+	}
+
+	switch (mMode)
+	{
+	case Drawing::DefaultMode:
+		// Nothing to do here.
+		break;
+	case Drawing::ScrollMode:
+		if ((event->buttons() & Qt::LeftButton) && mMouseLeftDragged)
+		{
+			horizontalScrollBar()->setValue(
+				mMouseButtonDownHorizontalScrollValue - (event->pos().x() - mMouseLeftButtonDownPos.x()));
+			verticalScrollBar()->setValue(
+				mMouseButtonDownVerticalScrollValue - (event->pos().y() - mMouseLeftButtonDownPos.y()));
+		}
+		break;
+	case Drawing::ZoomMode:
+		if ((event->buttons() & Qt::LeftButton) && mMouseLeftDragged)
+		{
+			mRubberBandZoomRect = QRect(event->pos(), mMouseLeftButtonDownPos).normalized();
+		}
+		break;
+	default:
+		// Nothing to do here.
+		break;
+	}
+
+	if (mPanTimer.isActive()) mPanCurrentPos = event->pos();
+
+	if (event->buttons() != Qt::NoButton) viewport()->update();
+}
+
+void DrawingWidget::mouseReleaseEvent(QMouseEvent* event)
+{
+	if (event->button() == Qt::LeftButton)
+	{
+		switch (mMode)
+		{
+		case Drawing::DefaultMode:
+			// Nothing to do here.
+			break;
+		case Drawing::ScrollMode:
+			setCursor(Qt::OpenHandCursor);
+			break;
+		case Drawing::ZoomMode:
+			if (mRubberBandZoomRect.isValid())
+			{
+				fitToView(mapToScene(mRubberBandZoomRect));
+				emit scaleChanged(mScale);
+				setDefaultMode();
+			}
+			break;
+		default:
+			// Nothing to do here.
+			break;
+		}
+	}
+	else if (event->button() == Qt::RightButton)
+	{
+		if (mMode != Drawing::DefaultMode) setDefaultMode();
+	}
+
+	// Disable panning mode, if it is active
+	if (mPanTimer.isActive())
+	{
+		setCursor(Qt::ArrowCursor);
+		mPanTimer.stop();
+	}
+
+	// Clear mouse state variables
+	mRubberBandZoomRect = QRect();
+
+	viewport()->update();
+}
+
+void DrawingWidget::mouseDoubleClickEvent(QMouseEvent* event)
+{
+	if (event->button() == Qt::LeftButton)
+	{
+		if (mMode == Drawing::DefaultMode)
+			mousePressEvent(event);
+		else
+			setDefaultMode();
+	}
+}
 
 void DrawingWidget::wheelEvent(QWheelEvent* event)
 {
@@ -439,6 +590,28 @@ void DrawingWidget::drawBackground(QPainter* painter)
 	painter->setBrush(mBackgroundBrush);
 }
 
+void DrawingWidget::drawRubberBand(QPainter* painter, const QRect& rect)
+{
+	if (rect.isValid())
+	{
+		QStyleOptionRubberBand option;
+		option.initFrom(viewport());
+		option.rect = rect;
+		option.shape = QRubberBand::Rectangle;
+
+		painter->save();
+		painter->resetTransform();
+
+		QStyleHintReturnMask mask;
+		if (viewport()->style()->styleHint(QStyle::SH_RubberBand_Mask, &option, viewport(), &mask))
+			painter->setClipRegion(mask.region, Qt::IntersectClip);
+
+		viewport()->style()->drawControl(QStyle::CE_RubberBand, &option, painter, viewport());
+
+		painter->restore();
+	}
+}
+
 //==================================================================================================
 
 void DrawingWidget::setModeFromAction(QAction* action)
@@ -449,6 +622,81 @@ void DrawingWidget::setModeFromAction(QAction* action)
 	else if (action == modeActionList[ScrollModeAction]) setScrollMode();
 	else if (action == modeActionList[ZoomModeAction]) setZoomMode();
 	else setDefaultMode();
+}
+
+//==================================================================================================
+
+void DrawingWidget::mousePanEvent()
+{
+	QRectF visibleRect = DrawingWidget::visibleRect();
+
+	if (horizontalScrollBar()->maximum() - horizontalScrollBar()->minimum() > 0)
+	{
+		if (mPanCurrentPos.x() - mPanStartPos.x() < 0)
+		{
+			int delta = (mPanCurrentPos.x() - mPanStartPos.x()) / 16;
+
+			if (horizontalScrollBar()->value() + delta < horizontalScrollBar()->minimum())
+			{
+				if (horizontalScrollBar()->minimum() >= horizontalScrollBar()->maximum())
+					horizontalScrollBar()->setMinimum(qFloor((visibleRect.left() - mSceneRect.left()) * mScale) + delta);
+				else
+					horizontalScrollBar()->setMinimum(horizontalScrollBar()->value() + delta);
+
+				horizontalScrollBar()->setValue(horizontalScrollBar()->minimum());
+			}
+			else horizontalScrollBar()->setValue(horizontalScrollBar()->value() + delta);
+		}
+		else if (mPanCurrentPos.x() - mPanStartPos.x() > 0)
+		{
+			int delta = (mPanCurrentPos.x() - mPanStartPos.x()) / 16;
+
+			if (horizontalScrollBar()->value() + delta > horizontalScrollBar()->maximum())
+			{
+				if (horizontalScrollBar()->minimum() > horizontalScrollBar()->maximum())
+					horizontalScrollBar()->setMaximum(qFloor((mSceneRect.right() - visibleRect.right()) * mScale) + delta);
+				else
+					horizontalScrollBar()->setMaximum(horizontalScrollBar()->value() + delta);
+
+				horizontalScrollBar()->setValue(horizontalScrollBar()->maximum());
+			}
+			else horizontalScrollBar()->setValue(horizontalScrollBar()->value() + delta);
+		}
+	}
+
+	if (verticalScrollBar()->maximum() - verticalScrollBar()->minimum() > 0)
+	{
+		if (mPanCurrentPos.y() - mPanStartPos.y() < 0)
+		{
+			int delta = (mPanCurrentPos.y() - mPanStartPos.y()) / 16;
+
+			if (verticalScrollBar()->value() + delta < verticalScrollBar()->minimum())
+			{
+				if (verticalScrollBar()->minimum() >= verticalScrollBar()->maximum())
+					verticalScrollBar()->setMinimum(qFloor((visibleRect.top() - mSceneRect.top()) * mScale) + delta);
+				else
+					verticalScrollBar()->setMinimum(verticalScrollBar()->value() + delta);
+
+				verticalScrollBar()->setValue(verticalScrollBar()->minimum());
+			}
+			else verticalScrollBar()->setValue(verticalScrollBar()->value() + delta);
+		}
+		else if (mPanCurrentPos.y() - mPanStartPos.y() > 0)
+		{
+			int delta = (mPanCurrentPos.y() - mPanStartPos.y()) / 16;
+
+			if (verticalScrollBar()->value() + delta > verticalScrollBar()->maximum())
+			{
+				if (verticalScrollBar()->minimum() >= verticalScrollBar()->maximum())
+					verticalScrollBar()->setMaximum(qFloor((mSceneRect.bottom() - visibleRect.bottom()) * mScale) + delta);
+				else
+					verticalScrollBar()->setMaximum(verticalScrollBar()->value() + delta);
+
+				verticalScrollBar()->setValue(verticalScrollBar()->maximum());
+			}
+			else verticalScrollBar()->setValue(verticalScrollBar()->value() + delta);
+		}
+	}
 }
 
 //==================================================================================================
@@ -531,6 +779,11 @@ QRectF DrawingWidget::scrollBarDefinedRect() const
 	}
 
 	return scrollBarRect;
+}
+
+QRectF DrawingWidget::visibleRect() const
+{
+	return QRectF(mapToScene(QPoint(0, 0)), mapToScene(QPoint(viewport()->width(), viewport()->height())));
 }
 
 //==================================================================================================
