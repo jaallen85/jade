@@ -14,6 +14,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 INCLUDEPATH += source source/drawing
 
 SOURCES += \
+	source/drawing/DrawingCanvas.cpp \
 	source/drawing/DrawingTypes.cpp \
 	source/drawing/DrawingWidget.cpp \
 	source/drawing/DrawingWindow.cpp \
@@ -22,6 +23,7 @@ SOURCES += \
 	source/main.cpp
 
 HEADERS += \
+	source/drawing/DrawingCanvas.h \
 	source/drawing/DrawingTypes.h \
 	source/drawing/DrawingWidget.h \
 	source/drawing/DrawingWindow.h \

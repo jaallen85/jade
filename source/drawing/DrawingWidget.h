@@ -17,122 +17,20 @@
 #ifndef DRAWINGWIDGET_H
 #define DRAWINGWIDGET_H
 
-#include <DrawingTypes.h>
-#include <QAbstractScrollArea>
-#include <QTimer>
+#include <DrawingCanvas.h>
 
 class QActionGroup;
 
-class DrawingWidget : public QAbstractScrollArea
+class DrawingWidget : public DrawingCanvas
 {
 	Q_OBJECT
 
-public:
-	enum ActionIndex { ZoomInAction, ZoomOutAction, ZoomFitAction, NumberOfActions };
-	enum ModeActionIndex { DefaultModeAction, ScrollModeAction, ZoomModeAction, NumberOfModeActions };
-
 private:
-	QRectF mSceneRect;
-	QBrush mBackgroundBrush;
 
-	qreal mGrid;
-	Drawing::GridStyle mGridStyle;
-	QBrush mGridBrush;
-	int mGridSpacingMajor, mGridSpacingMinor;
-
-	qreal mScale;
-	QTransform mViewportTransform;
-	QTransform mSceneTransform;
-
-	Drawing::Mode mMode;
-
-	QPoint mMouseLeftButtonDownPos;
-	bool mMouseLeftDragged;
-	int mMouseButtonDownHorizontalScrollValue;
-	int mMouseButtonDownVerticalScrollValue;
-	QRect mRubberBandZoomRect;
-	QPoint mPanStartPos;
-	QPoint mPanCurrentPos;
-	QTimer mPanTimer;
-
-	QActionGroup* mModeActionGroup;
 
 public:
 	DrawingWidget(QWidget* parent = nullptr);
 	virtual ~DrawingWidget();
-
-	void setSceneRect(const QRectF& rect);
-	QRectF sceneRect() const;
-
-	void setBackgroundBrush(const QBrush& brush);
-	QBrush backgroundBrush() const;
-
-	void setGrid(qreal grid);
-	void setGridStyle(Drawing::GridStyle style);
-	void setGridBrush(const QBrush& brush);
-	void setGridSpacing(int majorSpacing, int minorSpacing = 1);
-	qreal grid() const;
-	Drawing::GridStyle gridStyle() const;
-	QBrush gridBrush() const;
-	int gridSpacingMajor() const;
-	int gridSpacingMinor() const;
-
-	void centerOn(const QPointF& position);
-	void centerOnCursor(const QPointF& position);
-	void fitToView(const QRectF& rect);
-	void scaleBy(qreal scale);
-	qreal scale() const;
-	QPoint mapFromScene(const QPointF& point) const;
-	QRect mapFromScene(const QRectF& rect) const;
-	QPointF mapToScene(const QPoint& point) const;
-	QRectF mapToScene(const QRect& rect) const;
-
-	Drawing::Mode mode() const;
-
-	QAction* addAction(const QString& text, QObject* slotObj, const char* slotFunction,
-		const QString& iconPath = QString(), const QString& shortcut = QString());
-	QAction* addModeAction(const QString& text,
-		const QString& iconPath = QString(), const QString& shortcut = QString());
-	QList<QAction*> modeActions() const;
-
-signals:
-	void scaleChanged(qreal scale);
-	void modeChanged(Drawing::Mode mode);
-
-public slots:
-	void setScale(qreal scale);
-	void zoomIn();
-	void zoomOut();
-	void zoomFit();
-
-	void setDefaultMode();
-	void setScrollMode();
-	void setZoomMode();
-
-protected:
-	virtual void paintEvent(QPaintEvent* event) override;
-	virtual void resizeEvent(QResizeEvent* event) override;
-
-	virtual void mousePressEvent(QMouseEvent* event) override;
-	virtual void mouseMoveEvent(QMouseEvent* event) override;
-	virtual void mouseReleaseEvent(QMouseEvent* event) override;
-	virtual void mouseDoubleClickEvent(QMouseEvent* event) override;
-	virtual void wheelEvent(QWheelEvent* event) override;
-
-	virtual void drawBackground(QPainter* painter);
-	virtual void drawRubberBand(QPainter* painter, const QRect& rect);
-
-private slots:
-	void setModeFromAction(QAction* action);
-
-	void mousePanEvent();
-
-private:
-	void recalculateContentSize(const QRectF& rect = QRectF());
-	QRectF scrollBarDefinedRect() const;
-	QRectF visibleRect() const;
-
-	void addActions();
 };
 
 #endif
