@@ -166,11 +166,8 @@ void DrawingCanvas::scaleBy(qreal scale)
 {
 	if (scale > 0)
 	{
-		QRectF scrollBarRect = scrollBarDefinedRect();
-
 		mScale *= scale;
-
-		recalculateContentSize(scrollBarRect);
+		recalculateContentSize();
 	}
 }
 
@@ -751,7 +748,7 @@ void DrawingCanvas::recalculateContentSize(const QRectF& rect)
 		dy += -(targetRect.height() * mScale - viewportHeight) / 2;
 
 	mViewportTransform = QTransform();
-	mViewportTransform.translate(qRound(dx), qRound(dy));
+	mViewportTransform.translate(dx, dy);
 	mViewportTransform.scale(mScale, mScale);
 
 	mSceneTransform = mViewportTransform.inverted();
