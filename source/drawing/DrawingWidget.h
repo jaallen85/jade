@@ -24,6 +24,9 @@ class DrawingWidget : public QAbstractScrollArea
 {
 	Q_OBJECT
 
+public:
+	enum ActionIndex { ZoomInAction, ZoomOutAction, ZoomFitAction, NumberOfActions };
+
 private:
 	QRectF mSceneRect;
 	QBrush mBackgroundBrush;
@@ -33,7 +36,9 @@ private:
 	QBrush mGridBrush;
 	int mGridSpacingMajor, mGridSpacingMinor;
 
+	qreal mScale;
 	QTransform mViewportTransform;
+	QTransform mSceneTransform;
 
 public:
 	DrawingWidget(QWidget* parent = nullptr);
@@ -55,10 +60,39 @@ public:
 	int gridSpacingMajor() const;
 	int gridSpacingMinor() const;
 
+	void centerOn(const QPointF& position);
+	void centerOnCursor(const QPointF& position);
+	void fitToView(const QRectF& rect);
+	void scaleBy(qreal scale);
+	qreal scale() const;
+	QPoint mapFromScene(const QPointF& point) const;
+	QPointF mapToScene(const QPoint& point) const;
+
+	QAction* addAction(const QString& text, QObject* slotObj, const char* slotFunction,
+		const QString& iconPath = QString(), const QString& shortcut = QString());
+
+signals:
+	void scaleChanged(qreal scale);
+
+public slots:
+	void setScale(qreal scale);
+	void zoomIn();
+	void zoomOut();
+	void zoomFit();
+
 protected:
-	void paintEvent(QPaintEvent* event) override;
+	virtual void paintEvent(QPaintEvent* event) override;
+	virtual void resizeEvent(QResizeEvent* event) override;
+
+	virtual void wheelEvent(QWheelEvent* event) override;
 
 	virtual void drawBackground(QPainter* painter);
+
+private:
+	void recalculateContentSize(const QRectF& rect = QRectF());
+	QRectF scrollBarDefinedRect() const;
+
+	void addActions();
 };
 
 #endif

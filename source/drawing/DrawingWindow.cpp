@@ -16,6 +16,7 @@
 
 #include "DrawingWindow.h"
 #include "DrawingWidget.h"
+#include <QShowEvent>
 
 DrawingWindow::DrawingWindow(QWidget* parent, Qt::WindowFlags f) : QMainWindow(parent, f)
 {
@@ -26,4 +27,19 @@ DrawingWindow::DrawingWindow(QWidget* parent, Qt::WindowFlags f) : QMainWindow(p
 DrawingWindow::~DrawingWindow()
 {
 
+}
+
+//==================================================================================================
+
+DrawingWidget* DrawingWindow::drawing() const
+{
+	return mDrawingWidget;
+}
+
+//==================================================================================================
+
+void DrawingWindow::showEvent(QShowEvent* event)
+{
+	QMainWindow::showEvent(event);
+	if (!event->spontaneous() && mDrawingWidget) mDrawingWidget->zoomFit();
 }

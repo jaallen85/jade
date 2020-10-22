@@ -19,16 +19,27 @@
 
 #include <DrawingWindow.h>
 
+class QComboBox;
+
 class MainWindow : public DrawingWindow
 {
 	Q_OBJECT
 
 private:
-
+	QComboBox* mZoomCombo;
 
 public:
 	MainWindow(const QString& filePath = QString());
 	~MainWindow();
+
+private slots:
+	void setZoomComboText(qreal scale);
+	void setZoomLevel(const QString& text);
+
+private:
+	void addActions();
+	void createMenus();
+	void createToolBars();
 };
 
 #endif

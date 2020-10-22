@@ -31,6 +31,11 @@ private:
 public:
 	DrawingWindow(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
 	virtual ~DrawingWindow();
+
+	DrawingWidget* drawing() const;
+
+protected:
+	virtual void showEvent(QShowEvent* event) override;
 };
 
 #endif
