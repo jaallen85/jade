@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file>jade/jade.png</file>
+    </qresource>
+</RCC>
