@@ -16,6 +16,7 @@
 
 #include "DrawingWidget.h"
 #include <QAction>
+#include <QActionGroup>
 #include <QPainter>
 #include <QScrollBar>
 #include <QStyle>
@@ -37,6 +38,7 @@ DrawingWidget::DrawingWidget(QWidget* parent) : QAbstractScrollArea(parent)
 	mGridSpacingMinor = 2;
 
 	mScale = 1.0;
+	mMode = Drawing::DefaultMode;
 
 	addActions();
 }
@@ -188,6 +190,13 @@ QPoint DrawingWidget::mapFromScene(const QPointF& point) const
 
 //==================================================================================================
 
+Drawing::Mode DrawingWidget::mode() const
+{
+	return mMode;
+}
+
+//==================================================================================================
+
 QAction* DrawingWidget::addAction(const QString& text, QObject* slotObj, const char* slotFunction,
 	const QString& iconPath, const QString& shortcut)
 {
@@ -200,6 +209,25 @@ QAction* DrawingWidget::addAction(const QString& text, QObject* slotObj, const c
 	QAbstractScrollArea::addAction(action);
 
 	return action;
+}
+
+QAction* DrawingWidget::addModeAction(const QString& text,
+	const QString& iconPath, const QString& shortcut)
+{
+	QAction* action = new QAction(text, mModeActionGroup);
+
+	if (!iconPath.isEmpty()) action->setIcon(QIcon(iconPath));
+	if (!shortcut.isEmpty()) action->setShortcut(QKeySequence(shortcut));
+
+	action->setCheckable(true);
+	action->setActionGroup(mModeActionGroup);
+
+	return action;
+}
+
+QList<QAction*> DrawingWidget::modeActions() const
+{
+	return mModeActionGroup->actions();
 }
 
 //==================================================================================================
@@ -252,7 +280,52 @@ void DrawingWidget::zoomOut()
 void DrawingWidget::zoomFit()
 {
 	fitToView(mSceneRect);
+
 	emit scaleChanged(mScale);
+	viewport()->update();
+}
+
+//==================================================================================================
+
+void DrawingWidget::setDefaultMode()
+{
+	mMode = Drawing::DefaultMode;
+
+	setCursor(Qt::ArrowCursor);
+
+	QList<QAction*> modeActionList = modeActions();
+	if (!modeActionList[DefaultModeAction]->isChecked())
+		modeActionList[DefaultModeAction]->setChecked(true);
+
+	emit modeChanged(mMode);
+	viewport()->update();
+}
+
+void DrawingWidget::setScrollMode()
+{
+	mMode = Drawing::ScrollMode;
+
+	setCursor(Qt::OpenHandCursor);
+
+	QList<QAction*> modeActionList = modeActions();
+	if (!modeActionList[ScrollModeAction]->isChecked())
+		modeActionList[ScrollModeAction]->setChecked(true);
+
+	emit modeChanged(mMode);
+	viewport()->update();
+}
+
+void DrawingWidget::setZoomMode()
+{
+	mMode = Drawing::ZoomMode;
+
+	setCursor(Qt::CrossCursor);
+
+	QList<QAction*> modeActionList = modeActions();
+	if (!modeActionList[ZoomModeAction]->isChecked())
+		modeActionList[ZoomModeAction]->setChecked(true);
+
+	emit modeChanged(mMode);
 	viewport()->update();
 }
 
@@ -368,6 +441,18 @@ void DrawingWidget::drawBackground(QPainter* painter)
 
 //==================================================================================================
 
+void DrawingWidget::setModeFromAction(QAction* action)
+{
+	QList<QAction*> modeActionList = modeActions();
+
+	if (action == modeActionList[DefaultModeAction]) setDefaultMode();
+	else if (action == modeActionList[ScrollModeAction]) setScrollMode();
+	else if (action == modeActionList[ZoomModeAction]) setZoomMode();
+	else setDefaultMode();
+}
+
+//==================================================================================================
+
 void DrawingWidget::recalculateContentSize(const QRectF& rect)
 {
 	QRectF targetRect = mSceneRect;
@@ -455,4 +540,13 @@ void DrawingWidget::addActions()
 	addAction("Zoom In", this, SLOT(zoomIn()), "", ".");
 	addAction("Zoom Out", this, SLOT(zoomOut()), "", ",");
 	addAction("Zoom Fit", this, SLOT(zoomFit()), "", "/");
+
+	mModeActionGroup = new QActionGroup(this);
+	connect(mModeActionGroup, SIGNAL(triggered(QAction*)), this, SLOT(setModeFromAction(QAction*)));
+
+	QAction* defaultModeAction = addModeAction("Default Mode", "", "Escape");
+	addModeAction("Scroll Mode");
+	addModeAction("Zoom Mode");
+
+	defaultModeAction->setChecked(true);
 }

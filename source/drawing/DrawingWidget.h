@@ -20,12 +20,15 @@
 #include <DrawingTypes.h>
 #include <QAbstractScrollArea>
 
+class QActionGroup;
+
 class DrawingWidget : public QAbstractScrollArea
 {
 	Q_OBJECT
 
 public:
 	enum ActionIndex { ZoomInAction, ZoomOutAction, ZoomFitAction, NumberOfActions };
+	enum ModeActionIndex { DefaultModeAction, ScrollModeAction, ZoomModeAction, NumberOfModeActions };
 
 private:
 	QRectF mSceneRect;
@@ -39,6 +42,10 @@ private:
 	qreal mScale;
 	QTransform mViewportTransform;
 	QTransform mSceneTransform;
+
+	Drawing::Mode mMode;
+
+	QActionGroup* mModeActionGroup;
 
 public:
 	DrawingWidget(QWidget* parent = nullptr);
@@ -68,17 +75,27 @@ public:
 	QPoint mapFromScene(const QPointF& point) const;
 	QPointF mapToScene(const QPoint& point) const;
 
+	Drawing::Mode mode() const;
+
 	QAction* addAction(const QString& text, QObject* slotObj, const char* slotFunction,
 		const QString& iconPath = QString(), const QString& shortcut = QString());
+	QAction* addModeAction(const QString& text,
+		const QString& iconPath = QString(), const QString& shortcut = QString());
+	QList<QAction*> modeActions() const;
 
 signals:
 	void scaleChanged(qreal scale);
+	void modeChanged(Drawing::Mode mode);
 
 public slots:
 	void setScale(qreal scale);
 	void zoomIn();
 	void zoomOut();
 	void zoomFit();
+
+	void setDefaultMode();
+	void setScrollMode();
+	void setZoomMode();
 
 protected:
 	virtual void paintEvent(QPaintEvent* event) override;
@@ -87,6 +104,9 @@ protected:
 	virtual void wheelEvent(QWheelEvent* event) override;
 
 	virtual void drawBackground(QPainter* painter);
+
+private slots:
+	void setModeFromAction(QAction* action);
 
 private:
 	void recalculateContentSize(const QRectF& rect = QRectF());

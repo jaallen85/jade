@@ -18,20 +18,22 @@
 #include <DrawingWidget.h>
 #include <QComboBox>
 #include <QHBoxLayout>
+#include <QLabel>
 #include <QMenu>
 #include <QMenuBar>
+#include <QStatusBar>
 #include <QToolBar>
-#include <QDebug>
 
 MainWindow::MainWindow(const QString& filePath) : DrawingWindow()
 {
 	addActions();
 	createMenus();
 	createToolBars();
+	createStatusBar();
 
 	setWindowTitle("Jade");
 	setWindowIcon(QIcon(":/icons/jade/jade.png"));
-	resize(983, 800);
+	resize(990, 800);
 }
 
 MainWindow::~MainWindow()
@@ -65,19 +67,47 @@ void MainWindow::setZoomLevel(const QString& text)
 
 //==================================================================================================
 
+void MainWindow::setModeText(Drawing::Mode mode)
+{
+	QString modeText = "Select Mode";
+
+	switch (mode)
+	{
+	case Drawing::ScrollMode: modeText = "Scroll Mode"; break;
+	case Drawing::ZoomMode: modeText = "Zoom Mode"; break;
+	default: break;
+	}
+
+	mModeLabel->setText(modeText);
+}
+
+//==================================================================================================
+
 void MainWindow::addActions()
 {
 	QList<QAction*> drawingActionList = drawing()->actions();
-
 	drawingActionList[DrawingWidget::ZoomInAction]->setIcon(QIcon(":/icons/oxygen/zoom-in.png"));
 	drawingActionList[DrawingWidget::ZoomOutAction]->setIcon(QIcon(":/icons/oxygen/zoom-out.png"));
 	drawingActionList[DrawingWidget::ZoomFitAction]->setIcon(QIcon(":/icons/oxygen/zoom-fit-best.png"));
+
+	QList<QAction*> drawingModeActionList = drawing()->modeActions();
+	drawingModeActionList[DrawingWidget::DefaultModeAction]->setText("Select Mode");
+	drawingModeActionList[DrawingWidget::DefaultModeAction]->setIcon(QIcon(":/icons/oxygen/edit-select.png"));
+	drawingModeActionList[DrawingWidget::ScrollModeAction]->setIcon(QIcon(":/icons/oxygen/transform-move.png"));
+	drawingModeActionList[DrawingWidget::ZoomModeAction]->setIcon(QIcon(":/icons/oxygen/page-zoom.png"));
+
 }
 
 void MainWindow::createMenus()
 {
 	QList<QAction*> drawingActionList = drawing()->actions();
+	QList<QAction*> drawingModeActionList = drawing()->modeActions();
 	QMenu* menu;
+
+	menu = menuBar()->addMenu("Place");
+	menu->addAction(drawingModeActionList[DrawingWidget::DefaultModeAction]);
+	menu->addAction(drawingModeActionList[DrawingWidget::ScrollModeAction]);
+	menu->addAction(drawingModeActionList[DrawingWidget::ZoomModeAction]);
 
 	menu = menuBar()->addMenu("View");
 	menu->addAction(drawingActionList[DrawingWidget::ZoomInAction]);
@@ -103,6 +133,7 @@ void MainWindow::createToolBars()
 	zoomWidget->setLayout(zoomLayout);
 
 	QList<QAction*> drawingActionList = drawing()->actions();
+	QList<QAction*> drawingModeActionList = drawing()->modeActions();
 	QToolBar* toolBar;
 	int size = mZoomCombo->sizeHint().height();
 
@@ -113,4 +144,21 @@ void MainWindow::createToolBars()
 	toolBar->addWidget(zoomWidget);
 	toolBar->addAction(drawingActionList[DrawingWidget::ZoomOutAction]);
 	addToolBar(toolBar);
+
+	toolBar = new QToolBar("Place");
+	toolBar->setObjectName("PlaceToolBar");
+	toolBar->setIconSize(QSize(size + 2, size + 2));
+	toolBar->addAction(drawingModeActionList[DrawingWidget::DefaultModeAction]);
+	toolBar->addAction(drawingModeActionList[DrawingWidget::ScrollModeAction]);
+	toolBar->addAction(drawingModeActionList[DrawingWidget::ZoomModeAction]);
+	addToolBar(Qt::LeftToolBarArea, toolBar);
 }
+
+void MainWindow::createStatusBar()
+{
+	mModeLabel = new QLabel("Select Mode");
+	mModeLabel->setMinimumWidth(QFontMetrics(mModeLabel->font()).boundingRect("Select Mode").width() + 64);
+	statusBar()->addWidget(mModeLabel);
+	connect(drawing(), SIGNAL(modeChanged(Drawing::Mode)), this, SLOT(setModeText(Drawing::Mode)));
+}
+

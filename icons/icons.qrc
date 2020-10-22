@@ -4,5 +4,8 @@
         <file>oxygen/zoom-fit-best.png</file>
         <file>oxygen/zoom-in.png</file>
         <file>oxygen/zoom-out.png</file>
+        <file>oxygen/edit-select.png</file>
+        <file>oxygen/page-zoom.png</file>
+        <file>oxygen/transform-move.png</file>
     </qresource>
 </RCC>

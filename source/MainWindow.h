@@ -18,8 +18,10 @@
 #define MAINWINDOW_H
 
 #include <DrawingWindow.h>
+#include <DrawingTypes.h>
 
 class QComboBox;
+class QLabel;
 
 class MainWindow : public DrawingWindow
 {
@@ -27,6 +29,8 @@ class MainWindow : public DrawingWindow
 
 private:
 	QComboBox* mZoomCombo;
+
+	QLabel* mModeLabel;
 
 public:
 	MainWindow(const QString& filePath = QString());
@@ -36,10 +40,13 @@ private slots:
 	void setZoomComboText(qreal scale);
 	void setZoomLevel(const QString& text);
 
+	void setModeText(Drawing::Mode mode);
+
 private:
 	void addActions();
 	void createMenus();
 	void createToolBars();
+	void createStatusBar();
 };
 
 #endif
