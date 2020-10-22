@@ -17,6 +17,7 @@
 #ifndef DRAWINGWIDGET_H
 #define DRAWINGWIDGET_H
 
+#include <DrawingTypes.h>
 #include <QAbstractScrollArea>
 
 class DrawingWidget : public QAbstractScrollArea
@@ -24,11 +25,40 @@ class DrawingWidget : public QAbstractScrollArea
 	Q_OBJECT
 
 private:
+	QRectF mSceneRect;
+	QBrush mBackgroundBrush;
 
+	qreal mGrid;
+	Drawing::GridStyle mGridStyle;
+	QBrush mGridBrush;
+	int mGridSpacingMajor, mGridSpacingMinor;
+
+	QTransform mViewportTransform;
 
 public:
 	DrawingWidget(QWidget* parent = nullptr);
 	virtual ~DrawingWidget();
+
+	void setSceneRect(const QRectF& rect);
+	QRectF sceneRect() const;
+
+	void setBackgroundBrush(const QBrush& brush);
+	QBrush backgroundBrush() const;
+
+	void setGrid(qreal grid);
+	void setGridStyle(Drawing::GridStyle style);
+	void setGridBrush(const QBrush& brush);
+	void setGridSpacing(int majorSpacing, int minorSpacing = 1);
+	qreal grid() const;
+	Drawing::GridStyle gridStyle() const;
+	QBrush gridBrush() const;
+	int gridSpacingMajor() const;
+	int gridSpacingMinor() const;
+
+protected:
+	void paintEvent(QPaintEvent* event) override;
+
+	virtual void drawBackground(QPainter* painter);
 };
 
 #endif
