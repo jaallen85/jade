@@ -24,6 +24,11 @@
 DrawingPropertiesWidget::DrawingPropertiesWidget(const QString& propertyName, QWidget* parent) : QWidget(parent)
 {
 	mPropertyName = propertyName;
+
+	mLayout = new QGridLayout();
+	mLayout->setColumnStretch(1, 100);
+	mLayout->setContentsMargins(0, 0, 0, 0);
+	setLayout(mLayout);
 }
 
 DrawingPropertiesWidget::~DrawingPropertiesWidget() { }
@@ -33,6 +38,30 @@ DrawingPropertiesWidget::~DrawingPropertiesWidget() { }
 QString DrawingPropertiesWidget::propertyName() const
 {
 	return mPropertyName;
+}
+
+//==================================================================================================
+
+DrawingHideableCheckBox* DrawingPropertiesWidget::addWidget(int row, const QString& text, QWidget* widget)
+{
+	DrawingHideableCheckBox* newCheck = nullptr;
+
+	if (widget)
+	{
+		newCheck = new DrawingHideableCheckBox(text);
+
+		mLayout->addWidget(newCheck, row, 0);
+		mLayout->addWidget(widget, row, 1);
+
+		connect(newCheck, SIGNAL(clicked(bool)), widget, SLOT(setEnabled(bool)));
+	}
+
+	return newCheck;
+}
+
+void DrawingPropertiesWidget::setLabelWidth(int width)
+{
+	mLayout->setColumnMinimumWidth(0, width);
 }
 
 //==================================================================================================
@@ -69,47 +98,31 @@ bool DrawingPropertiesWidget::checkForSender(QObject* sender, DrawingHideableChe
 DrawingRectPropertyWidget::DrawingRectPropertyWidget(const QString& propertyName,
 	const QString& text, bool useRectSize, QWidget* parent) : DrawingPropertiesWidget(propertyName, parent)
 {
-	mTopLeftCheck = new DrawingHideableCheckBox(QString("%1 Top Left:").arg(text).trimmed());
-	mBottomRightCheck = nullptr;
-	mSizeCheck = nullptr;
-
 	mTopLeftWidget = new DrawingPositionWidget();
-	mBottomRightWidget = nullptr;
-	mSizeWidget = nullptr;
+	mTopLeftCheck = addWidget(0, QString("%1 Top Left:").arg(text).trimmed(), mTopLeftWidget);
+	connect(mTopLeftCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
+	connect(mTopLeftWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleValueChange()));
 
-	if (useRectSize)
+	if (!useRectSize)
 	{
-		mSizeCheck = new DrawingHideableCheckBox(QString("%1 Size:").arg(text).trimmed());
-		mSizeWidget = new DrawingSizeWidget();
+		mBottomRightWidget = new DrawingPositionWidget();
+		mBottomRightCheck = addWidget(1, QString("%1 Bottom Right:").arg(text).trimmed(), mBottomRightWidget);
+		connect(mBottomRightCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
+		connect(mBottomRightWidget, SIGNAL(sizeChanged(const QSizeF&)), this, SLOT(handleValueChange()));
+
+		mSizeCheck = nullptr;
+		mSizeWidget = nullptr;
 	}
 	else
 	{
-		mBottomRightCheck = new DrawingHideableCheckBox(QString("%1 Bottom Right:").arg(text).trimmed());
-		mBottomRightWidget = new DrawingPositionWidget();
+		mBottomRightCheck = nullptr;
+		mBottomRightWidget = nullptr;
+
+		mSizeWidget = new DrawingSizeWidget();
+		mSizeCheck = addWidget(1, QString("%1 Size:").arg(text).trimmed(), mSizeWidget);
+		connect(mSizeCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
+		connect(mSizeWidget, SIGNAL(sizeChanged(const QSizeF&)), this, SLOT(handleValueChange()));
 	}
-
-	mLayout = new QGridLayout();
-	mLayout->addWidget(mTopLeftCheck, 0, 0);
-	mLayout->addWidget(mTopLeftWidget, 0, 1);
-	if (mBottomRightCheck) mLayout->addWidget(mBottomRightCheck, 1, 0);
-	if (mBottomRightWidget) mLayout->addWidget(mBottomRightWidget, 1, 1);
-	if (mSizeCheck) mLayout->addWidget(mSizeCheck, 1, 0);
-	if (mSizeWidget) mLayout->addWidget(mSizeWidget, 1, 1);
-	mLayout->setColumnStretch(1, 100);
-	mLayout->setContentsMargins(0, 0, 0, 0);
-	setLayout(mLayout);
-
-	connect(mTopLeftCheck, SIGNAL(clicked(bool)), mTopLeftWidget, SLOT(setEnabled(bool)));
-	if (mBottomRightCheck) connect(mBottomRightCheck, SIGNAL(clicked(bool)), mBottomRightCheck, SLOT(setEnabled(bool)));
-	if (mSizeCheck) connect(mSizeCheck, SIGNAL(clicked(bool)), mSizeWidget, SLOT(setEnabled(bool)));
-
-	connect(mTopLeftCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
-	if (mBottomRightCheck) connect(mBottomRightCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
-	if (mSizeCheck) connect(mSizeCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
-
-	connect(mTopLeftWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleValueChange()));
-	if (mBottomRightWidget) connect(mBottomRightWidget, SIGNAL(sizeChanged(const QSizeF&)), this, SLOT(handleValueChange()));
-	if (mSizeWidget) connect(mSizeWidget, SIGNAL(sizeChanged(const QSizeF&)), this, SLOT(handleValueChange()));
 }
 
 DrawingRectPropertyWidget::~DrawingRectPropertyWidget() { }
@@ -126,11 +139,6 @@ void DrawingRectPropertyWidget::setProperties(const QHash<QString,QVariant>& pro
 		if (mBottomRightWidget) mBottomRightWidget->setPosition(rect.bottomRight());
 		if (mSizeWidget) mSizeWidget->setSize(rect.size());
 	}
-}
-
-void DrawingRectPropertyWidget::setLabelWidth(int width)
-{
-	mLayout->setColumnMinimumWidth(0, width);
 }
 
 //==================================================================================================
@@ -164,17 +172,8 @@ void DrawingRectPropertyWidget::handleValueChange()
 DrawingBrushPropertyWidget::DrawingBrushPropertyWidget(const QString& propertyName,
 	const QString& text, QWidget* parent) : DrawingPropertiesWidget(propertyName, parent)
 {
-	mColorCheck = new DrawingHideableCheckBox(QString("%1 Color:").arg(text).trimmed());
 	mColorWidget = new DrawingColorWidget();
-
-	mLayout = new QGridLayout();
-	mLayout->addWidget(mColorCheck, 0, 0);
-	mLayout->addWidget(mColorWidget, 0, 1);
-	mLayout->setColumnStretch(1, 100);
-	mLayout->setContentsMargins(0, 0, 0, 0);
-	setLayout(mLayout);
-
-	connect(mColorCheck, SIGNAL(clicked(bool)), mColorWidget, SLOT(setEnabled(bool)));
+	mColorCheck = addWidget(0, QString("%1 Color:").arg(text).trimmed(), mColorWidget);
 	connect(mColorCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
 	connect(mColorWidget, SIGNAL(colorChanged(const QColor&)), this, SLOT(handleValueChange()));
 }
@@ -189,11 +188,6 @@ void DrawingBrushPropertyWidget::setProperties(const QHash<QString,QVariant>& pr
 
 	if (containsPropertyAndCanConvert<QBrush>(properties, propertyName(), brush))
 		mColorWidget->setColor(brush.color());
-}
-
-void DrawingBrushPropertyWidget::setLabelWidth(int width)
-{
-	mLayout->setColumnMinimumWidth(0, width);
 }
 
 //==================================================================================================
@@ -215,56 +209,35 @@ void DrawingBrushPropertyWidget::handleValueChange()
 
 DrawingGridPropertiesWidget::DrawingGridPropertiesWidget(QWidget* parent) : DrawingPropertiesWidget("", parent)
 {
-	mGridCheck = new DrawingHideableCheckBox("Grid:");
-	mGridStyleCheck = new DrawingHideableCheckBox("Grid Style:");
-	mGridColorCheck = new DrawingHideableCheckBox("Grid Color:");
-	mGridSpacingMajorCheck = new DrawingHideableCheckBox("Major Spacing:");
-	mGridSpacingMinorCheck = new DrawingHideableCheckBox("Minor Spacing:");
-
 	mGridEdit = new DrawingSizeEdit();
-	mGridStyleCombo = new QComboBox();
-	mGridColorWidget = new DrawingColorWidget();
-	mGridSpacingMajorEdit = new QLineEdit();
-	mGridSpacingMinorEdit = new QLineEdit();
+	mGridCheck = addWidget(0, "Grid:", mGridEdit);
+	connect(mGridCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
+	connect(mGridEdit, SIGNAL(sizeChanged(qreal)), this, SLOT(handleValueChange()));
 
+	mGridStyleCombo = new QComboBox();
 	mGridStyleCombo->addItem("None");
 	mGridStyleCombo->addItem("Dotted");
 	mGridStyleCombo->addItem("Lined");
 	mGridStyleCombo->addItem("Graph Paper");
-	mGridSpacingMajorEdit->setValidator(new QIntValidator(1, 1E6));
-	mGridSpacingMinorEdit->setValidator(new QIntValidator(1, 1E6));
-
-	mLayout = new QGridLayout();
-	mLayout->addWidget(mGridCheck, 0, 0);
-	mLayout->addWidget(mGridEdit, 0, 1);
-	mLayout->addWidget(mGridStyleCheck, 1, 0);
-	mLayout->addWidget(mGridStyleCombo, 1, 1);
-	mLayout->addWidget(mGridColorCheck, 2, 0);
-	mLayout->addWidget(mGridColorWidget, 2, 1);
-	mLayout->addWidget(mGridSpacingMajorCheck, 3, 0);
-	mLayout->addWidget(mGridSpacingMajorEdit, 3, 1);
-	mLayout->addWidget(mGridSpacingMinorCheck, 4, 0);
-	mLayout->addWidget(mGridSpacingMinorEdit, 4, 1);
-	mLayout->setColumnStretch(1, 100);
-	mLayout->setContentsMargins(0, 0, 0, 0);
-	setLayout(mLayout);
-
-	connect(mGridCheck, SIGNAL(clicked(bool)), mGridEdit, SLOT(setEnabled(bool)));
-	connect(mGridStyleCheck, SIGNAL(clicked(bool)), mGridStyleCombo, SLOT(setEnabled(bool)));
-	connect(mGridColorCheck, SIGNAL(clicked(bool)), mGridColorWidget, SLOT(setEnabled(bool)));
-	connect(mGridSpacingMajorCheck, SIGNAL(clicked(bool)), mGridSpacingMajorEdit, SLOT(setEnabled(bool)));
-	connect(mGridSpacingMinorCheck, SIGNAL(clicked(bool)), mGridSpacingMinorEdit, SLOT(setEnabled(bool)));
-
-	connect(mGridCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
+	mGridStyleCheck = addWidget(1, "Grid Style:", mGridStyleCombo);
 	connect(mGridStyleCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
-	connect(mGridColorCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
-	connect(mGridSpacingMajorCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
-	connect(mGridSpacingMinorCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
-
-	connect(mGridEdit, SIGNAL(sizeChanged(qreal)), this, SLOT(handleValueChange()));
 	connect(mGridStyleCombo, SIGNAL(activated(int)), this, SLOT(handleValueChange()));
+
+	mGridColorWidget = new DrawingColorWidget();
+	mGridColorCheck = addWidget(2, "Grid Color:", mGridColorWidget);
+	connect(mGridColorCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
 	connect(mGridColorWidget, SIGNAL(colorChanged(const QColor&)), this, SLOT(handleValueChange()));
+
+	mGridSpacingMajorEdit = new QLineEdit();
+	mGridSpacingMajorEdit->setValidator(new QIntValidator(1, 1E6));
+	mGridSpacingMajorCheck = addWidget(3, "Major Spacing:", mGridSpacingMajorEdit);
+	connect(mGridSpacingMajorCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
 	connect(mGridSpacingMajorEdit, SIGNAL(editingFinished()), this, SLOT(handleValueChange()));
+
+	mGridSpacingMinorEdit = new QLineEdit();
+	mGridSpacingMinorEdit->setValidator(new QIntValidator(1, 1E6));
+	mGridSpacingMinorCheck = addWidget(4, "Minor Spacing:", mGridSpacingMinorEdit);
+	connect(mGridSpacingMinorCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
 	connect(mGridSpacingMinorEdit, SIGNAL(editingFinished()), this, SLOT(handleValueChange()));
 }
 
@@ -289,11 +262,6 @@ void DrawingGridPropertiesWidget::setProperties(const QHash<QString,QVariant>& p
 		mGridSpacingMajorEdit->setText(QString::number(gridSpacingMajor));
 	if (containsPropertyAndCanConvert<int>(properties, "gridSpacingMinor", gridSpacingMinor))
 		mGridSpacingMinorEdit->setText(QString::number(gridSpacingMinor));
-}
-
-void DrawingGridPropertiesWidget::setLabelWidth(int width)
-{
-	mLayout->setColumnMinimumWidth(0, width);
 }
 
 //==================================================================================================

@@ -36,14 +36,17 @@ class DrawingPropertiesWidget : public QWidget
 
 private:
 	QString mPropertyName;
+	QGridLayout* mLayout;
 
 public:
 	DrawingPropertiesWidget(const QString& propertyName, QWidget* parent = nullptr);
 	virtual ~DrawingPropertiesWidget();
 
 	virtual void setProperties(const QHash<QString,QVariant>& properties) = 0;
-	virtual void setLabelWidth(int width) = 0;
 	QString propertyName() const;
+
+	DrawingHideableCheckBox* addWidget(int row, const QString& text, QWidget* widget);
+	void setLabelWidth(int width);
 
 	template <class T> bool containsPropertyAndCanConvert(
 		const QHash<QString,QVariant>& properties, const QString& propertyNamee, T& value) const;
@@ -60,8 +63,6 @@ class DrawingRectPropertyWidget : public DrawingPropertiesWidget
 	Q_OBJECT
 
 private:
-	QGridLayout* mLayout;
-
 	DrawingHideableCheckBox* mTopLeftCheck;
 	DrawingHideableCheckBox* mBottomRightCheck;
 	DrawingHideableCheckBox* mSizeCheck;
@@ -76,7 +77,6 @@ public:
 	~DrawingRectPropertyWidget();
 
 	void setProperties(const QHash<QString,QVariant>& properties) override;
-	void setLabelWidth(int width) override;
 
 private slots:
 	void handleValueChange();
@@ -89,10 +89,7 @@ class DrawingBrushPropertyWidget : public DrawingPropertiesWidget
 	Q_OBJECT
 
 private:
-	QGridLayout* mLayout;
-
 	DrawingHideableCheckBox* mColorCheck;
-
 	DrawingColorWidget* mColorWidget;
 
 public:
@@ -101,7 +98,6 @@ public:
 	~DrawingBrushPropertyWidget();
 
 	void setProperties(const QHash<QString,QVariant>& properties) override;
-	void setLabelWidth(int width) override;
 
 private slots:
 	void handleValueChange();
@@ -114,8 +110,6 @@ class DrawingGridPropertiesWidget : public DrawingPropertiesWidget
 	Q_OBJECT
 
 private:
-	QGridLayout* mLayout;
-
 	DrawingHideableCheckBox* mGridCheck;
 	DrawingHideableCheckBox* mGridStyleCheck;
 	DrawingHideableCheckBox* mGridColorCheck;
@@ -133,7 +127,6 @@ public:
 	~DrawingGridPropertiesWidget();
 
 	void setProperties(const QHash<QString,QVariant>& properties) override;
-	void setLabelWidth(int width) override;
 
 private slots:
 	void handleValueChange();
