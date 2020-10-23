@@ -90,6 +90,9 @@ void MainWindow::addActions()
 	drawingActionList[DrawingWidget::ZoomOutAction]->setIcon(QIcon(":/icons/oxygen/zoom-out.png"));
 	drawingActionList[DrawingWidget::ZoomFitAction]->setIcon(QIcon(":/icons/oxygen/zoom-fit-best.png"));
 
+	drawingActionList[DrawingWidget::UndoAction]->setIcon(QIcon(":/icons/oxygen/edit-undo.png"));
+	drawingActionList[DrawingWidget::RedoAction]->setIcon(QIcon(":/icons/oxygen/edit-redo.png"));
+
 	QList<QAction*> drawingModeActionList = drawing()->modeActions();
 	drawingModeActionList[DrawingWidget::DefaultModeAction]->setText("Select Mode");
 	drawingModeActionList[DrawingWidget::DefaultModeAction]->setIcon(QIcon(":/icons/oxygen/edit-select.png"));
@@ -103,6 +106,10 @@ void MainWindow::createMenus()
 	QList<QAction*> drawingActionList = drawing()->actions();
 	QList<QAction*> drawingModeActionList = drawing()->modeActions();
 	QMenu* menu;
+
+	menu = menuBar()->addMenu("Edit");
+	menu->addAction(drawingActionList[DrawingWidget::UndoAction]);
+	menu->addAction(drawingActionList[DrawingWidget::RedoAction]);
 
 	menu = menuBar()->addMenu("Place");
 	menu->addAction(drawingModeActionList[DrawingWidget::DefaultModeAction]);
@@ -137,6 +144,13 @@ void MainWindow::createToolBars()
 	QToolBar* toolBar;
 	int size = mZoomCombo->sizeHint().height();
 
+	toolBar = new QToolBar("Edit");
+	toolBar->setObjectName("EditToolBar");
+	toolBar->setIconSize(QSize(size, size));
+	toolBar->addAction(drawingActionList[DrawingWidget::UndoAction]);
+	toolBar->addAction(drawingActionList[DrawingWidget::RedoAction]);
+	addToolBar(toolBar);
+
 	toolBar = new QToolBar("View");
 	toolBar->setObjectName("ViewToolBar");
 	toolBar->setIconSize(QSize(size, size));
@@ -161,4 +175,3 @@ void MainWindow::createStatusBar()
 	statusBar()->addWidget(mModeLabel);
 	connect(drawing(), SIGNAL(modeChanged(Drawing::Mode)), this, SLOT(setModeText(Drawing::Mode)));
 }
-

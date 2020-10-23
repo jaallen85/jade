@@ -7,5 +7,7 @@
         <file>oxygen/edit-select.png</file>
         <file>oxygen/page-zoom.png</file>
         <file>oxygen/transform-move.png</file>
+        <file>oxygen/edit-redo.png</file>
+        <file>oxygen/edit-undo.png</file>
     </qresource>
 </RCC>

@@ -19,6 +19,7 @@
 
 #include <DrawingCanvas.h>
 #include <QHash>
+#include <QUndoStack>
 #include <QVariant>
 
 class QActionGroup;
@@ -27,22 +28,44 @@ class DrawingWidget : public DrawingCanvas
 {
 	Q_OBJECT
 
-private:
+public:
+	enum ActionIndex { UndoAction = NumberOfCanvasActions, RedoAction, NumberOfActions };
 
+private:
+	QUndoStack mUndoStack;
 
 public:
 	DrawingWidget(QWidget* parent = nullptr);
 	virtual ~DrawingWidget();
 
+	void setUndoLimit(int undoLimit);
+	void pushUndoCommand(QUndoCommand* command);
+	int undoLimit() const;
+	bool isClean() const;
+	bool canUndo() const;
+	bool canRedo() const;
+	QString undoText() const;
+	QString redoText() const;
+
 	void setProperties(const QHash<QString,QVariant>& properties);
 	QHash<QString,QVariant> properties() const;
 
 signals:
+	void cleanChanged(bool clean);
+	void canUndoChanged(bool canUndo);
+	void canRedoChanged(bool canRedo);
 	void propertiesTriggered();
 	void propertiesChanged(const QHash<QString,QVariant>& properties);
 
 public slots:
+	void undo();
+	void redo();
+	void setClean();
+
 	void updateProperties(const QHash<QString,QVariant>& properties);
+
+private:
+	void addActions();
 };
 
 #endif

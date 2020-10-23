@@ -15,10 +15,16 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "DrawingWidget.h"
+#include "DrawingUndo.h"
 
 DrawingWidget::DrawingWidget(QWidget* parent) : DrawingCanvas(parent)
 {
+	mUndoStack.setUndoLimit(64);
+	connect(&mUndoStack, SIGNAL(cleanChanged(bool)), this, SIGNAL(cleanChanged(bool)));
+	connect(&mUndoStack, SIGNAL(canRedoChanged(bool)), this, SIGNAL(canRedoChanged(bool)));
+	connect(&mUndoStack, SIGNAL(canUndoChanged(bool)), this, SIGNAL(canUndoChanged(bool)));
 
+	addActions();
 }
 
 DrawingWidget::~DrawingWidget()
@@ -28,12 +34,58 @@ DrawingWidget::~DrawingWidget()
 
 //==================================================================================================
 
+void DrawingWidget::setUndoLimit(int undoLimit)
+{
+	mUndoStack.setUndoLimit(undoLimit);
+}
+
+void DrawingWidget::pushUndoCommand(QUndoCommand* command)
+{
+	mUndoStack.push(command);
+}
+
+int DrawingWidget::undoLimit() const
+{
+	return mUndoStack.undoLimit();
+}
+
+bool DrawingWidget::isClean() const
+{
+	return mUndoStack.isClean();
+}
+
+bool DrawingWidget::canUndo() const
+{
+	return mUndoStack.canUndo();
+}
+
+bool DrawingWidget::canRedo() const
+{
+	return mUndoStack.canRedo();
+}
+
+QString DrawingWidget::undoText() const
+{
+	return mUndoStack.undoText();
+}
+
+QString DrawingWidget::redoText() const
+{
+	return mUndoStack.redoText();
+}
+
+//==================================================================================================
+
 void DrawingWidget::setProperties(const QHash<QString,QVariant>& properties)
 {
 	if (properties.contains("sceneRect"))
 	{
 		QVariant variant = properties.value("sceneRect");
-		if (variant.canConvert<QRectF>()) setSceneRect(variant.value<QRectF>());
+		if (variant.canConvert<QRectF>())
+		{
+			setSceneRect(variant.value<QRectF>());
+			zoomFit();
+		}
 	}
 
 	if (properties.contains("backgroundBrush"))
@@ -71,6 +123,8 @@ void DrawingWidget::setProperties(const QHash<QString,QVariant>& properties)
 		QVariant variant = properties.value("gridSpacingMinor");
 		if (variant.canConvert<int>()) setGridSpacing(gridSpacingMajor(), variant.value<int>());
 	}
+
+	if (!properties.isEmpty()) emit propertiesChanged(properties);
 }
 
 QHash<QString,QVariant> DrawingWidget::properties() const
@@ -91,9 +145,54 @@ QHash<QString,QVariant> DrawingWidget::properties() const
 
 //==================================================================================================
 
+void DrawingWidget::undo()
+{
+	if (mode() == Drawing::DefaultMode && mUndoStack.canUndo())
+	{
+		mUndoStack.undo();
+		viewport()->update();
+	}
+}
+
+void DrawingWidget::redo()
+{
+	if (mode() == Drawing::DefaultMode && mUndoStack.canRedo())
+	{
+		mUndoStack.redo();
+		viewport()->update();
+	}
+}
+
+void DrawingWidget::setClean()
+{
+	mUndoStack.setClean();
+	viewport()->update();
+}
+
+//==================================================================================================
+
 void DrawingWidget::updateProperties(const QHash<QString,QVariant>& properties)
 {
-	setProperties(properties);
-	if (properties.contains("sceneRect")) zoomFit();
-	else viewport()->update();
+	bool propertyChanged = false;
+
+	QHash<QString,QVariant> originalProperties = this->properties();
+	for(auto propIter = properties.begin(); !propertyChanged && propIter != properties.end(); propIter++)
+	{
+		if (originalProperties.contains(propIter.key()))
+			propertyChanged = (propIter.value() != originalProperties.value(propIter.key()));
+	}
+
+	if (propertyChanged)
+	{
+		pushUndoCommand(new DrawingSetPropertiesCommand(this, properties));
+		viewport()->update();
+	}
+}
+
+//==================================================================================================
+
+void DrawingWidget::addActions()
+{
+	addAction("Undo", this, SLOT(undo()), "", "Ctrl+Z");
+	addAction("Redo", this, SLOT(redo()), "", "Ctrl+Shift+Z");
 }

@@ -28,7 +28,7 @@ class DrawingCanvas : public QAbstractScrollArea
 	Q_OBJECT
 
 public:
-	enum ActionIndex { ZoomInAction, ZoomOutAction, ZoomFitAction, NumberOfActions };
+	enum ActionIndex { ZoomInAction, ZoomOutAction, ZoomFitAction, NumberOfCanvasActions };
 	enum ModeActionIndex { DefaultModeAction, ScrollModeAction, ZoomModeAction, NumberOfModeActions };
 
 private:

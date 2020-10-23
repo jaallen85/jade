@@ -19,6 +19,7 @@ SOURCES += \
 	source/drawing/DrawingPropertiesBrowser.cpp \
 	source/drawing/DrawingPropertiesWidget.cpp \
 	source/drawing/DrawingTypes.cpp \
+	source/drawing/DrawingUndo.cpp \
 	source/drawing/DrawingWidget.cpp \
 	source/drawing/DrawingWindow.cpp \
 	\
@@ -31,6 +32,7 @@ HEADERS += \
 	source/drawing/DrawingPropertiesBrowser.h \
 	source/drawing/DrawingPropertiesWidget.h \
 	source/drawing/DrawingTypes.h \
+	source/drawing/DrawingUndo.h \
 	source/drawing/DrawingWidget.h \
 	source/drawing/DrawingWindow.h \
 	\
