@@ -31,7 +31,7 @@ class DrawingWidget : public DrawingCanvas
 	Q_OBJECT
 
 public:
-	enum ActionIndex { UndoAction = NumberOfCanvasActions, RedoAction, NumberOfActions };
+	enum ActionIndex { UndoAction = NumberOfCanvasActions, RedoAction, PropertiesAction, NumberOfActions };
 
 private:
 	QUndoStack mUndoStack;

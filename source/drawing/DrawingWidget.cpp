@@ -335,4 +335,6 @@ void DrawingWidget::addActions()
 {
 	addAction("Undo", this, SLOT(undo()), "", "Ctrl+Z");
 	addAction("Redo", this, SLOT(redo()), "", "Ctrl+Shift+Z");
+
+	addAction("Properties...", this, SIGNAL(propertiesTriggered()));
 }

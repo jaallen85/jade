@@ -140,6 +140,8 @@ void MainWindow::addActions()
 	drawingActionList[DrawingWidget::UndoAction]->setIcon(QIcon(":/icons/oxygen/edit-undo.png"));
 	drawingActionList[DrawingWidget::RedoAction]->setIcon(QIcon(":/icons/oxygen/edit-redo.png"));
 
+	drawingActionList[DrawingWidget::PropertiesAction]->setIcon(QIcon(":/icons/oxygen/games-config-board.png"));
+
 	QList<QAction*> drawingModeActionList = drawing()->modeActions();
 	drawingModeActionList[DrawingWidget::DefaultModeAction]->setText("Select Mode");
 	drawingModeActionList[DrawingWidget::DefaultModeAction]->setIcon(QIcon(":/icons/oxygen/edit-select.png"));
@@ -175,6 +177,8 @@ void MainWindow::createMenus()
 	menu->addAction(drawingModeActionList[DrawingWidget::ZoomModeAction]);
 
 	menu = menuBar()->addMenu("View");
+	menu->addAction(drawingActionList[DrawingWidget::PropertiesAction]);
+	menu->addSeparator();
 	menu->addAction(drawingActionList[DrawingWidget::ZoomInAction]);
 	menu->addAction(drawingActionList[DrawingWidget::ZoomOutAction]);
 	menu->addAction(drawingActionList[DrawingWidget::ZoomFitAction]);

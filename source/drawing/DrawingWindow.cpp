@@ -36,6 +36,7 @@ DrawingWindow::DrawingWindow(QWidget* parent, Qt::WindowFlags f) : QMainWindow(p
 	mPromptCloseUnsaved = true;
 
 	mNewCount = 0;
+	mPropertiesDockVisibleOnClose = true;
 #ifndef WIN32
 	mWorkingDir = QDir::home();
 #endif
@@ -79,6 +80,7 @@ void DrawingWindow::setDrawing(DrawingWidget* drawing)
 		}
 
 		mDrawingWidget = drawing;
+		mDrawingDefaultProperties = mDrawingWidget->properties();
 		mStackedWidget->addWidget(mDrawingWidget);
 		mStackedWidget->setCurrentIndex(0);
 
@@ -121,6 +123,18 @@ DrawingPropertiesBrowser* DrawingWindow::propertiesBrowser() const
 bool DrawingWindow::isDrawingWidgetVisible() const
 {
 	return (mDrawingWidget && mStackedWidget->currentIndex() == 1);
+}
+
+//==================================================================================================
+
+void DrawingWindow::setDrawingDefaultProperties(const QHash<QString,QVariant>& properties)
+{
+	mDrawingDefaultProperties = properties;
+}
+
+QHash<QString,QVariant> DrawingWindow::drawingDefaultProperties() const
+{
+	return mDrawingDefaultProperties;
 }
 
 //==================================================================================================
@@ -207,6 +221,7 @@ void DrawingWindow::newDrawing()
 		mFilePath = "Untitled " + QString::number(mNewCount);
 		mDrawingWidget->zoomFit();
 		mStackedWidget->setCurrentIndex(1);
+		mPropertiesDock->setVisible(mPropertiesDockVisibleOnClose);
 
 		emit filePathChanged(mFilePath);
 		emit drawingVisibilityChanged(true);
@@ -238,6 +253,7 @@ void DrawingWindow::openDrawing(const QString& filePath)
 				mFilePath = drawingPath;
 				mDrawingWidget->zoomFit();
 				mStackedWidget->setCurrentIndex(1);
+				mPropertiesDock->setVisible(mPropertiesDockVisibleOnClose);
 
 				emit filePathChanged(mFilePath);
 				emit drawingVisibilityChanged(true);
@@ -320,7 +336,8 @@ void DrawingWindow::closeDrawing()
 				else saveDrawing();
 			}
 
-			proceedToClose = mDrawingWidget->isClean();
+			proceedToClose = ((button == QMessageBox::Yes && mDrawingWidget->isClean()) ||
+				button == QMessageBox::No);
 		}
 
 		if (proceedToClose)
@@ -328,6 +345,8 @@ void DrawingWindow::closeDrawing()
 			// Hide the drawing widget and clear it to its default state
 			mStackedWidget->setCurrentIndex(0);
 			mFilePath = "";
+			mPropertiesDockVisibleOnClose = mPropertiesDock->isVisible();
+			mPropertiesDock->setVisible(false);
 
 			clearDrawing();
 
@@ -409,9 +428,12 @@ bool DrawingWindow::loadDrawingFromFile(const QString& filePath)
 
 void DrawingWindow::clearDrawing()
 {
-	// clear items
-	// reset drawing properties to default values
-	// ensure properties widget gets updated
+	if (mDrawingWidget)
+	{
+		// todo: clear drawing items
+		mDrawingWidget->setProperties(mDrawingDefaultProperties);
+		mDrawingWidget->setClean();
+	}
 }
 
 //==================================================================================================

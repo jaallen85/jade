@@ -35,6 +35,7 @@ public:
 private:
 	QStackedWidget* mStackedWidget;
 	DrawingWidget* mDrawingWidget;
+	QHash<QString,QVariant> mDrawingDefaultProperties;
 
 	QDockWidget* mPropertiesDock;
 	DrawingPropertiesBrowser* mPropertiesBrowser;
@@ -49,6 +50,7 @@ private:
 	QDir mWorkingDir;
 	int mNewCount;
 	QByteArray mWindowState;
+	bool mPropertiesDockVisibleOnClose;
 
 public:
 	DrawingWindow(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
@@ -59,6 +61,9 @@ public:
 	DrawingWidget* drawing() const;
 	DrawingPropertiesBrowser* propertiesBrowser() const;
 	bool isDrawingWidgetVisible() const;
+
+	void setDrawingDefaultProperties(const QHash<QString,QVariant>& properties);
+	QHash<QString,QVariant> drawingDefaultProperties() const;
 
 	void setApplicationName(const QString& name);
 	void setFileDialogOptions(const QString& fileFilter, const QString& fileSuffix);
