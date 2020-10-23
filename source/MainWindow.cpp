@@ -16,6 +16,7 @@
 
 #include "MainWindow.h"
 #include <DrawingWidget.h>
+#include <QCloseEvent>
 #include <QComboBox>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -26,19 +27,52 @@
 
 MainWindow::MainWindow(const QString& filePath) : DrawingWindow()
 {
+	setApplicationName("Jade");
+	setFileDialogOptions("Jade Drawings (*.jdm);;All Files (*)", "jdm");
+
 	addActions();
 	createMenus();
 	createToolBars();
 	createStatusBar();
 
-	setWindowTitle("Jade");
 	setWindowIcon(QIcon(":/icons/jade/jade.png"));
 	resize(1334, 800);
+
+	loadSettings();
+
+	if (!filePath.isEmpty()) openDrawing(filePath);
+	else newDrawing();
 }
 
 MainWindow::~MainWindow()
 {
 
+}
+
+//==================================================================================================
+
+void MainWindow::saveSettings()
+{
+
+}
+
+void MainWindow::loadSettings()
+{
+
+}
+
+//==================================================================================================
+
+void MainWindow::closeEvent(QCloseEvent* event)
+{
+	closeDrawing();
+
+	if (!isDrawingWidgetVisible())
+	{
+		saveSettings();
+		event->accept();
+	}
+	else event->ignore();
 }
 
 //==================================================================================================
@@ -81,10 +115,23 @@ void MainWindow::setModeText(Drawing::Mode mode)
 	mModeLabel->setText(modeText);
 }
 
+void MainWindow::setModifiedText(bool clean)
+{
+	mModifiedLabel->setText((clean) ? "" : "Modified");
+}
+
 //==================================================================================================
 
 void MainWindow::addActions()
 {
+	QList<QAction*> actionList = actions();
+	actionList[NewAction]->setIcon(QIcon(":/icons/oxygen/document-new.png"));
+	actionList[OpenAction]->setIcon(QIcon(":/icons/oxygen/document-open.png"));
+	actionList[SaveAction]->setIcon(QIcon(":/icons/oxygen/document-save.png"));
+	actionList[SaveAsAction]->setIcon(QIcon(":/icons/oxygen/document-save-as.png"));
+	actionList[CloseAction]->setIcon(QIcon(":/icons/oxygen/document-close.png"));
+	actionList[ExitAction]->setIcon(QIcon(":/icons/oxygen/application-exit.png"));
+
 	QList<QAction*> drawingActionList = drawing()->actions();
 	drawingActionList[DrawingWidget::ZoomInAction]->setIcon(QIcon(":/icons/oxygen/zoom-in.png"));
 	drawingActionList[DrawingWidget::ZoomOutAction]->setIcon(QIcon(":/icons/oxygen/zoom-out.png"));
@@ -98,14 +145,25 @@ void MainWindow::addActions()
 	drawingModeActionList[DrawingWidget::DefaultModeAction]->setIcon(QIcon(":/icons/oxygen/edit-select.png"));
 	drawingModeActionList[DrawingWidget::ScrollModeAction]->setIcon(QIcon(":/icons/oxygen/transform-move.png"));
 	drawingModeActionList[DrawingWidget::ZoomModeAction]->setIcon(QIcon(":/icons/oxygen/page-zoom.png"));
-
 }
 
 void MainWindow::createMenus()
 {
+	QList<QAction*> actionList = actions();
 	QList<QAction*> drawingActionList = drawing()->actions();
 	QList<QAction*> drawingModeActionList = drawing()->modeActions();
 	QMenu* menu;
+
+	menu = menuBar()->addMenu("File");
+	menu->addAction(actionList[NewAction]);
+	menu->addAction(actionList[OpenAction]);
+	menu->addSeparator();
+	menu->addAction(actionList[SaveAction]);
+	menu->addAction(actionList[SaveAsAction]);
+	menu->addSeparator();
+	menu->addAction(actionList[CloseAction]);
+	menu->addSeparator();
+	menu->addAction(actionList[ExitAction]);
 
 	menu = menuBar()->addMenu("Edit");
 	menu->addAction(drawingActionList[DrawingWidget::UndoAction]);
@@ -139,10 +197,20 @@ void MainWindow::createToolBars()
 	zoomLayout->setContentsMargins(2, 0, 2, 0);
 	zoomWidget->setLayout(zoomLayout);
 
+	QList<QAction*> actionList = actions();
 	QList<QAction*> drawingActionList = drawing()->actions();
 	QList<QAction*> drawingModeActionList = drawing()->modeActions();
 	QToolBar* toolBar;
 	int size = mZoomCombo->sizeHint().height();
+
+	toolBar = new QToolBar("File");
+	toolBar->setObjectName("FileToolBar");
+	toolBar->setIconSize(QSize(size, size));
+	toolBar->addAction(actionList[NewAction]);
+	toolBar->addAction(actionList[OpenAction]);
+	toolBar->addAction(actionList[SaveAction]);
+	toolBar->addAction(actionList[CloseAction]);
+	addToolBar(toolBar);
 
 	toolBar = new QToolBar("Edit");
 	toolBar->setObjectName("EditToolBar");
@@ -174,4 +242,9 @@ void MainWindow::createStatusBar()
 	mModeLabel->setMinimumWidth(QFontMetrics(mModeLabel->font()).boundingRect("Select Mode").width() + 64);
 	statusBar()->addWidget(mModeLabel);
 	connect(drawing(), SIGNAL(modeChanged(Drawing::Mode)), this, SLOT(setModeText(Drawing::Mode)));
+
+	mModifiedLabel = new QLabel("");
+	mModifiedLabel->setMinimumWidth(QFontMetrics(mModifiedLabel->font()).boundingRect("Modified").width() + 64);
+	statusBar()->addWidget(mModifiedLabel);
+	connect(drawing(), SIGNAL(cleanChanged(bool)), this, SLOT(setModifiedText(bool)));
 }

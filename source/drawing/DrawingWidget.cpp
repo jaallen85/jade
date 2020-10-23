@@ -145,6 +145,88 @@ QHash<QString,QVariant> DrawingWidget::properties() const
 
 //==================================================================================================
 
+void DrawingWidget::writeToXml(QXmlStreamWriter* xml)
+{
+	if (xml)
+	{
+		QRectF sceneRect = this->sceneRect();
+		xml->writeAttribute("view-left", QString::number(sceneRect.left()));
+		xml->writeAttribute("view-top", QString::number(sceneRect.top()));
+		xml->writeAttribute("view-width", QString::number(sceneRect.width()));
+		xml->writeAttribute("view-height", QString::number(sceneRect.height()));
+
+		writeBrushToXml(xml, "background", backgroundBrush());
+
+		xml->writeAttribute("grid", QString::number(grid()));
+
+		writeBrushToXml(xml, "grid", gridBrush());
+
+		QString gridStyleStr;
+		switch (gridStyle())
+		{
+		case Drawing::GridDots: gridStyleStr = "dotted"; break;
+		case Drawing::GridLines: gridStyleStr = "lined"; break;
+		case Drawing::GridGraphPaper: gridStyleStr = "graph-paper"; break;
+		default: break;
+		}
+		xml->writeAttribute("grid-style", gridStyleStr);
+
+		xml->writeAttribute("grid-spacing-major", QString::number(gridSpacingMajor()));
+		xml->writeAttribute("grid-spacing-minor", QString::number(gridSpacingMinor()));
+	}
+}
+
+void DrawingWidget::readFromXml(QXmlStreamReader* xml)
+{
+	if (xml)
+	{
+		QXmlStreamAttributes attr = xml->attributes();
+
+		QRectF sceneRect;
+		if (attr.hasAttribute("view-left"))
+			sceneRect.setLeft(attr.value("view-left").toDouble());
+		if (attr.hasAttribute("view-top"))
+			sceneRect.setTop(attr.value("view-top").toDouble());
+		if (attr.hasAttribute("view-width"))
+			sceneRect.setWidth(attr.value("view-width").toDouble());
+		if (attr.hasAttribute("view-height"))
+			sceneRect.setHeight(attr.value("view-height").toDouble());
+		setSceneRect(sceneRect);
+
+		QBrush backgroundBrush = Qt::white;
+		readBrushFromXml(xml, "background", backgroundBrush);
+		setBackgroundBrush(backgroundBrush);
+
+		qreal grid = 0;
+		if (attr.hasAttribute("grid")) grid = attr.value("grid").toDouble();
+		setGrid(grid);
+
+		QBrush gridBrush = QColor(0, 128, 128);
+		readBrushFromXml(xml, "grid", gridBrush);
+		setGridBrush(gridBrush);
+
+		Drawing::GridStyle gridStyle = Drawing::GridNone;
+		if (attr.hasAttribute("grid-style"))
+		{
+			QString gridStyleStr = attr.value("grid-style").toString().toLower();
+
+			if (gridStyleStr == "dotted") gridStyle = Drawing::GridDots;
+			else if (gridStyleStr == "lined") gridStyle = Drawing::GridLines;
+			else if (gridStyleStr == "graph-paper") gridStyle = Drawing::GridGraphPaper;
+		}
+		setGridStyle(gridStyle);
+
+		int gridSpacingMajor = 0, gridSpacingMinor = 0;
+		if (attr.hasAttribute("grid-spacing-major"))
+			gridSpacingMajor = attr.value("grid-spacing-major").toInt();
+		if (attr.hasAttribute("grid-spacing-minor"))
+			gridSpacingMinor = attr.value("grid-spacing-minor").toInt();
+		setGridSpacing(gridSpacingMajor, gridSpacingMinor);
+	}
+}
+
+//==================================================================================================
+
 void DrawingWidget::undo()
 {
 	if (mode() == Drawing::DefaultMode && mUndoStack.canUndo())
@@ -187,6 +269,64 @@ void DrawingWidget::updateProperties(const QHash<QString,QVariant>& properties)
 		pushUndoCommand(new DrawingSetPropertiesCommand(this, properties));
 		viewport()->update();
 	}
+}
+
+//==================================================================================================
+
+void DrawingWidget::writeBrushToXml(QXmlStreamWriter* xml, const QString& name, const QBrush& brush)
+{
+	if (xml) xml->writeAttribute(name + "-color", colorToString(brush.color()));
+}
+
+QString DrawingWidget::colorToString(const QColor& color) const
+{
+	QString colorStr;
+
+	if (color.alpha() == 255)
+	{
+		colorStr = QString("#%1%2%3").arg(color.red(), 2, 16, QChar('0')).arg(
+			color.green(), 2, 16, QChar('0')).arg(color.blue(), 2, 16, QChar('0')).toLower();
+	}
+	else
+	{
+		colorStr = QString("#%1%2%3%4").arg(color.alpha(), 2, 16, QChar('0')).arg(
+		color.red(), 2, 16, QChar('0')).arg(color.green(), 2, 16, QChar('0')).arg(
+		color.blue(), 2, 16, QChar('0')).toLower();
+	}
+
+	return colorStr;
+}
+
+void DrawingWidget::readBrushFromXml(QXmlStreamReader* xml, const QString& name, QBrush& brush)
+{
+	if (xml)
+	{
+		QXmlStreamAttributes attr = xml->attributes();
+
+		if (attr.hasAttribute(name + "-color"))
+			brush = colorFromString(attr.value(name + "-color").toString());
+	}
+}
+
+QColor DrawingWidget::colorFromString(const QString& str) const
+{
+	QColor color;
+
+	if (str.length() >= 9)
+	{
+		color.setAlpha(str.mid(1,2).toUInt(nullptr, 16));
+		color.setRed(str.mid(3,2).toUInt(nullptr, 16));
+		color.setGreen(str.mid(5,2).toUInt(nullptr, 16));
+		color.setBlue(str.mid(7,2).toUInt(nullptr, 16));
+	}
+	else if (str.length() >= 7)
+	{
+		color.setRed(str.mid(1,2).toUInt(nullptr, 16));
+		color.setGreen(str.mid(3,2).toUInt(nullptr, 16));
+		color.setBlue(str.mid(5,2).toUInt(nullptr, 16));
+	}
+
+	return color;
 }
 
 //==================================================================================================

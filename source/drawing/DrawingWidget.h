@@ -21,6 +21,8 @@
 #include <QHash>
 #include <QUndoStack>
 #include <QVariant>
+#include <QXmlStreamReader>
+#include <QXmlStreamWriter>
 
 class QActionGroup;
 
@@ -47,8 +49,11 @@ public:
 	QString undoText() const;
 	QString redoText() const;
 
-	void setProperties(const QHash<QString,QVariant>& properties);
-	QHash<QString,QVariant> properties() const;
+	virtual void setProperties(const QHash<QString,QVariant>& properties);
+	virtual QHash<QString,QVariant> properties() const;
+
+	virtual void writeToXml(QXmlStreamWriter* xml);
+	virtual void readFromXml(QXmlStreamReader* xml);
 
 signals:
 	void cleanChanged(bool clean);
@@ -65,6 +70,11 @@ public slots:
 	void updateProperties(const QHash<QString,QVariant>& properties);
 
 private:
+	void writeBrushToXml(QXmlStreamWriter* xml, const QString& name, const QBrush& brush);
+	QString colorToString(const QColor& color) const;
+	void readBrushFromXml(QXmlStreamReader* xml, const QString& name, QBrush& brush);
+	QColor colorFromString(const QString& str) const;
+
 	void addActions();
 };
 

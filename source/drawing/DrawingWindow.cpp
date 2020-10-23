@@ -17,7 +17,10 @@
 #include "DrawingWindow.h"
 #include "DrawingPropertiesBrowser.h"
 #include "DrawingWidget.h"
+#include <QAction>
 #include <QDockWidget>
+#include <QFileDialog>
+#include <QMessageBox>
 #include <QShowEvent>
 #include <QStackedWidget>
 
@@ -26,7 +29,17 @@ DrawingWindow::DrawingWindow(QWidget* parent, Qt::WindowFlags f) : QMainWindow(p
 	mDrawingWidget = nullptr;
 	mPropertiesBrowser = nullptr;
 
-	mPropertiesBrowser = nullptr;
+	mApplicationName = "libdrawing";
+	mFileFilter = "XML Files (*.xml);;All Files (*)";
+	mFileSuffix = "xml";
+	mPromptOverwrite = true;
+	mPromptCloseUnsaved = true;
+
+	mNewCount = 0;
+#ifndef WIN32
+	mWorkingDir = QDir::home();
+#endif
+
 	mPropertiesDock = new QDockWidget("Properties");
 	mPropertiesDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
 	mPropertiesDock->setFeatures(QDockWidget::AllDockWidgetFeatures);
@@ -40,7 +53,11 @@ DrawingWindow::DrawingWindow(QWidget* parent, Qt::WindowFlags f) : QMainWindow(p
 	setCentralWidget(mStackedWidget);
 	setDrawing(new DrawingWidget());
 
-	mStackedWidget->setCurrentIndex(1);
+	addActions();
+	updateWindowTitle(mFilePath);
+
+	connect(this, SIGNAL(drawingVisibilityChanged(bool)), this, SLOT(updateWindow(bool)));
+	connect(this, SIGNAL(filePathChanged(const QString&)), this, SLOT(updateWindowTitle(const QString&)));
 }
 
 DrawingWindow::~DrawingWindow()
@@ -101,12 +118,362 @@ DrawingPropertiesBrowser* DrawingWindow::propertiesBrowser() const
 	return mPropertiesBrowser;
 }
 
+bool DrawingWindow::isDrawingWidgetVisible() const
+{
+	return (mDrawingWidget && mStackedWidget->currentIndex() == 1);
+}
+
+//==================================================================================================
+
+void DrawingWindow::setApplicationName(const QString& name)
+{
+	mApplicationName = name;
+	setWindowTitle(mFilePath);
+}
+
+void DrawingWindow::setFileDialogOptions(const QString& fileFilter, const QString& fileSuffix)
+{
+	mFileFilter = fileFilter;
+	mFileSuffix = fileSuffix;
+}
+
+void DrawingWindow::setPromptOnOverwrite(bool prompt)
+{
+	mPromptOverwrite = prompt;
+}
+
+void DrawingWindow::setPromptOnClosingUnsaved(bool prompt)
+{
+	mPromptCloseUnsaved = prompt;
+}
+
+QString DrawingWindow::applicationName() const
+{
+	return mApplicationName;
+}
+
+QString DrawingWindow::fileFilter() const
+{
+	return mFileFilter;
+}
+
+QString DrawingWindow::fileSuffix() const
+{
+	return mFileSuffix;
+}
+
+bool DrawingWindow::shouldPromptOnOverwrite() const
+{
+	return mPromptOverwrite;
+}
+
+bool DrawingWindow::shouldPromptOnClosingUnsaved() const
+{
+	return mPromptCloseUnsaved;
+}
+
+QString DrawingWindow::filePath() const
+{
+	return mFilePath;
+}
+
+//==================================================================================================
+
+QAction* DrawingWindow::addAction(const QString& text, QObject* slotObj, const char* slotFunction,
+	const QString& iconPath, const QString& shortcut)
+{
+	QAction* action = new QAction(text, this);
+	connect(action, SIGNAL(triggered()), slotObj, slotFunction);
+
+	if (!iconPath.isEmpty()) action->setIcon(QIcon(iconPath));
+	if (!shortcut.isEmpty()) action->setShortcut(QKeySequence(shortcut));
+
+	QMainWindow::addAction(action);
+
+	return action;
+}
+
+//==================================================================================================
+
+void DrawingWindow::newDrawing()
+{
+	// Close any open drawing first
+	closeDrawing();
+
+	// Create a new drawing only if there is no open drawing (i.e. close was successful or unneeded)
+	if (mDrawingWidget && !isDrawingWidgetVisible())
+	{
+		mNewCount++;
+		mFilePath = "Untitled " + QString::number(mNewCount);
+		mDrawingWidget->zoomFit();
+		mStackedWidget->setCurrentIndex(1);
+
+		emit filePathChanged(mFilePath);
+		emit drawingVisibilityChanged(true);
+	}
+}
+
+void DrawingWindow::openDrawing(const QString& filePath)
+{
+	QString drawingPath = filePath;
+
+	if (drawingPath.isEmpty())
+	{
+		// Prompt the user for the new file path to open
+		QFileDialog::Options options = (mPromptOverwrite) ? QFileDialog::Options() : QFileDialog::DontConfirmOverwrite;
+		drawingPath = mWorkingDir.path();
+		drawingPath = QFileDialog::getOpenFileName(this, "Open File", drawingPath, mFileFilter, nullptr, options);
+	}
+
+	if (!drawingPath.isEmpty())
+	{
+		// Close any open drawing before proceeding
+		closeDrawing();
+
+		// Open an existing drawing only if there is no open drawing (i.e. close was successful or unneeded)
+		if (mDrawingWidget && !isDrawingWidgetVisible())
+		{
+			if (loadDrawingFromFile(drawingPath))
+			{
+				mFilePath = drawingPath;
+				mDrawingWidget->zoomFit();
+				mStackedWidget->setCurrentIndex(1);
+
+				emit filePathChanged(mFilePath);
+				emit drawingVisibilityChanged(true);
+			}
+		}
+	}
+}
+
+void DrawingWindow::saveDrawing(const QString& filePath)
+{
+	//emit filePathChanged(mFilePath);
+
+	if (isDrawingWidgetVisible())
+	{
+		if (filePath.isEmpty() && mFilePath.startsWith("Untitled"))
+		{
+			// If no filePath is provided and mFilePath is invalid, then do a "save-as" instead
+			saveDrawingAs();
+		}
+		else
+		{
+			// Use either the provided filePath or the cached mFilePath to save the drawing to file
+			QString drawingPath = (!filePath.isEmpty()) ? filePath : mFilePath;
+
+			if (saveDrawingToFile(drawingPath))
+			{
+				mFilePath = drawingPath;
+				emit filePathChanged(mFilePath);
+			}
+		}
+	}
+}
+
+void DrawingWindow::saveDrawingAs()
+{
+	if (isDrawingWidgetVisible())
+	{
+		QFileDialog::Options options = (mPromptOverwrite) ? QFileDialog::Options() : QFileDialog::DontConfirmOverwrite;
+		QString filePath = (mFilePath.startsWith("Untitled")) ? mWorkingDir.path() : mFilePath;
+
+		filePath = QFileDialog::getSaveFileName(this, "Save File", filePath, mFileFilter, nullptr, options);
+		if (!filePath.isEmpty())
+		{
+			// Ensure that the selected filePath ends with the proper file suffix
+			if (!filePath.endsWith("." + mFileSuffix, Qt::CaseInsensitive))
+				filePath += "." + mFileSuffix;
+
+			// Use the selected filePath to save the drawing to file
+			if (saveDrawingToFile(filePath))
+			{
+				mFilePath = filePath;
+				emit filePathChanged(mFilePath);
+			}
+
+			// Update the cached working directory
+			QFileInfo fileInfo(filePath);
+			mWorkingDir = fileInfo.dir();
+		}
+	}
+}
+
+void DrawingWindow::closeDrawing()
+{
+	if (isDrawingWidgetVisible())
+	{
+		bool proceedToClose = true;
+
+		// If drawing has unsaved changes, prompt the user whether to save before closing
+		if (mPromptCloseUnsaved && !mDrawingWidget->isClean())
+		{
+			QFileInfo fileInfo(mFilePath);
+
+			QMessageBox::StandardButton  button = QMessageBox::question(this, "Save Changes",
+				"Save changes to " + fileInfo.fileName() + " before closing?",
+				QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel, QMessageBox::Yes);
+
+			if (button == QMessageBox::Yes)
+			{
+				if (mFilePath.startsWith("Untitled")) saveDrawingAs();
+				else saveDrawing();
+			}
+
+			proceedToClose = mDrawingWidget->isClean();
+		}
+
+		if (proceedToClose)
+		{
+			// Hide the drawing widget and clear it to its default state
+			mStackedWidget->setCurrentIndex(0);
+			mFilePath = "";
+
+			clearDrawing();
+
+			emit filePathChanged(mFilePath);
+			emit drawingVisibilityChanged(false);
+		}
+	}
+}
+
+//==================================================================================================
+
+bool DrawingWindow::saveDrawingToFile(const QString& filePath)
+{
+	QFile dataFile(filePath);
+
+	bool fileError = !dataFile.open(QIODevice::WriteOnly);
+	if (!fileError)
+	{
+		QXmlStreamWriter xml(&dataFile);
+		xml.setAutoFormatting(true);
+		xml.setAutoFormattingIndent(2);
+
+		xml.writeStartDocument();
+		xml.writeStartElement(mApplicationName.toLower() + "-drawing");
+		mDrawingWidget->writeToXml(&xml);
+		xml.writeEndElement();
+		xml.writeEndDocument();
+
+		dataFile.close();
+
+		mDrawingWidget->setClean();
+		mDrawingWidget->viewport()->update();
+	}
+
+	if (fileError)
+	{
+		QMessageBox::critical(this, "Error Saving File",
+			"Unable to open file for saving.  File not saved: " + filePath);
+	}
+
+	return (!fileError);
+}
+
+bool DrawingWindow::loadDrawingFromFile(const QString& filePath)
+{
+	QFile dataFile(filePath);
+
+	bool fileError = !dataFile.open(QIODevice::ReadOnly);
+	if (!fileError)
+	{
+		clearDrawing();
+
+		QXmlStreamReader xml(&dataFile);
+
+		while (xml.readNextStartElement())
+		{
+			if (xml.name() == mApplicationName.toLower() + "-drawing")
+				mDrawingWidget->readFromXml(&xml);
+			else
+				xml.skipCurrentElement();
+		}
+
+		dataFile.close();
+
+		mDrawingWidget->setClean();
+		mDrawingWidget->viewport()->update();
+
+		mFilePath = filePath;
+	}
+
+	if (fileError)
+	{
+		QMessageBox::critical(this, "Error Reading File",
+			"File could not be read. Please ensure that this file is valid: " + filePath);
+	}
+
+	return (!fileError);
+}
+
+void DrawingWindow::clearDrawing()
+{
+	// clear items
+	// reset drawing properties to default values
+	// ensure properties widget gets updated
+}
+
 //==================================================================================================
 
 void DrawingWindow::showEvent(QShowEvent* event)
 {
 	QMainWindow::showEvent(event);
-	if (!event->spontaneous() && mDrawingWidget) mDrawingWidget->zoomFit();
+
+	if (!event->spontaneous())
+	{
+		if (mDrawingWidget) mDrawingWidget->zoomFit();
+	}
+	else if (!mWindowState.isEmpty()) restoreState(mWindowState);
+}
+
+void DrawingWindow::hideEvent(QHideEvent* event)
+{
+	QMainWindow::hideEvent(event);
+
+	if (event->spontaneous()) mWindowState = saveState();
+}
+
+void DrawingWindow::closeEvent(QCloseEvent* event)
+{
+	closeDrawing();
+	if (!isDrawingWidgetVisible()) event->accept();
+	else event->ignore();
+}
+
+//==================================================================================================
+
+void DrawingWindow::updateWindow(bool drawingVisible)
+{
+	if (mDrawingWidget)
+	{
+		QList<QAction*> actionList = actions();
+		if (actionList.size() >= NumberOfActions)
+		{
+			actionList[SaveAction]->setEnabled(drawingVisible);
+			actionList[SaveAsAction]->setEnabled(drawingVisible);
+			actionList[CloseAction]->setEnabled(drawingVisible);
+		}
+
+		QList<QAction*> drawingActionList = mDrawingWidget->actions();
+		for(auto actionIter = drawingActionList.begin(); actionIter != drawingActionList.end(); actionIter++)
+			(*actionIter)->setEnabled(drawingVisible);
+
+		QList<QAction*> modeActionList = mDrawingWidget->modeActions();
+		for(auto actionIter = modeActionList.begin(); actionIter != modeActionList.end(); actionIter++)
+			(*actionIter)->setEnabled(drawingVisible);
+
+		if (mPropertiesBrowser)
+			mPropertiesBrowser->setDrawingProperties(mDrawingWidget->properties());
+	}
+}
+
+void DrawingWindow::updateWindowTitle(const QString& filePath)
+{
+	QFileInfo fileInfo(filePath);
+	QString fileName = fileInfo.fileName();
+
+	QMainWindow::setWindowTitle(fileName.isEmpty() ? mApplicationName : fileName + " - " + mApplicationName);
 }
 
 //==================================================================================================
@@ -121,4 +488,16 @@ void DrawingWindow::connectDrawingAndPropertiesBrowser()
 		connect(mPropertiesBrowser, SIGNAL(drawingPropertiesChanged(const QHash<QString,QVariant>&)),
 			mDrawingWidget, SLOT(updateProperties(const QHash<QString,QVariant>&)));
 	}
+}
+
+//==================================================================================================
+
+void DrawingWindow::addActions()
+{
+	addAction("New...", this, SLOT(newDrawing()), "", "Ctrl+N");
+	addAction("Open...", this, SLOT(openDrawing()), "", "Ctrl+O");
+	addAction("Save", this, SLOT(saveDrawing()), "", "Ctrl+S");
+	addAction("Save As...", this, SLOT(saveDrawingAs()), "", "Ctrl+Shift+S");
+	addAction("Close", this, SLOT(closeDrawing()), "", "Ctrl+W");
+	addAction("Exit", this, SLOT(close()));
 }

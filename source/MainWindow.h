@@ -31,16 +31,24 @@ private:
 	QComboBox* mZoomCombo;
 
 	QLabel* mModeLabel;
+	QLabel* mModifiedLabel;
 
 public:
 	MainWindow(const QString& filePath = QString());
 	~MainWindow();
+
+	void saveSettings();
+	void loadSettings();
+
+protected:
+	virtual void closeEvent(QCloseEvent* event) override;
 
 private slots:
 	void setZoomComboText(qreal scale);
 	void setZoomLevel(const QString& text);
 
 	void setModeText(Drawing::Mode mode);
+	void setModifiedText(bool clean);
 
 private:
 	void addActions();

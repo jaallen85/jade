@@ -9,5 +9,11 @@
         <file>oxygen/transform-move.png</file>
         <file>oxygen/edit-redo.png</file>
         <file>oxygen/edit-undo.png</file>
+        <file>oxygen/application-exit.png</file>
+        <file>oxygen/document-close.png</file>
+        <file>oxygen/document-new.png</file>
+        <file>oxygen/document-open.png</file>
+        <file>oxygen/document-save.png</file>
+        <file>oxygen/document-save-as.png</file>
     </qresource>
 </RCC>
