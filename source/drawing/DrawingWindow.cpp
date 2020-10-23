@@ -65,6 +65,8 @@ void DrawingWindow::setDrawing(DrawingWidget* drawing)
 		mStackedWidget->addWidget(mDrawingWidget);
 		mStackedWidget->setCurrentIndex(0);
 
+		if (mPropertiesBrowser) mPropertiesBrowser->setDrawingProperties(mDrawingWidget->properties());
+
 		connect(mDrawingWidget, SIGNAL(propertiesTriggered()), mPropertiesDock, SLOT(show()));
 		connectDrawingAndPropertiesBrowser();
 	}

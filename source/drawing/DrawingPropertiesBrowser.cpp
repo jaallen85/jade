@@ -15,10 +15,30 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "DrawingPropertiesBrowser.h"
+#include "DrawingPropertiesWidget.h"
+#include <QGroupBox>
+#include <QVBoxLayout>
 
 DrawingPropertiesBrowser::DrawingPropertiesBrowser(QWidget* parent, Qt::WindowFlags f) : QWidget(parent, f)
 {
+	setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
+	mDrawingPropertiesWidget = new QWidget();
+	mDrawingPropertiesLayout = new QVBoxLayout();
+	mDrawingPropertiesLayout->setContentsMargins(0, 0, 0, 0);
+	mDrawingPropertiesLayout->addWidget(new QWidget(), 100);
+	mDrawingPropertiesWidget->setLayout(mDrawingPropertiesLayout);
+
+	QVBoxLayout* layout = new QVBoxLayout();
+	layout->addWidget(mDrawingPropertiesWidget);
+	setLayout(layout);
+
+	registerDrawingWidget("Drawing", new DrawingRectPropertyWidget("sceneRect", "", true));
+	registerDrawingWidget("Drawing", new DrawingBrushPropertyWidget("backgroundBrush", "Background"));
+	registerDrawingWidget("Grid", new DrawingGridPropertiesWidget());
+
+	setPreferredWidth(340);
+	setLabelWidth(QFontMetrics(font()).boundingRect("Background Color:").width() + 24);
 }
 
 DrawingPropertiesBrowser::~DrawingPropertiesBrowser()
@@ -28,7 +48,64 @@ DrawingPropertiesBrowser::~DrawingPropertiesBrowser()
 
 //==================================================================================================
 
+void DrawingPropertiesBrowser::registerDrawingWidget(const QString& groupTitle, DrawingPropertiesWidget* widget)
+{
+	if (widget)
+	{
+		QGroupBox* group = nullptr;
+
+		for(auto groupIter = mDrawingPropertiesGroups.begin();
+			group == nullptr && groupIter != mDrawingPropertiesGroups.end(); groupIter++)
+		{
+			if ((*groupIter)->title() == groupTitle) group = (*groupIter);
+		}
+
+		if (group == nullptr)
+		{
+			QVBoxLayout* groupLayout = new QVBoxLayout();
+
+			group = new QGroupBox(groupTitle);
+			group->setLayout(groupLayout);
+			mDrawingPropertiesLayout->insertWidget(mDrawingPropertiesLayout->count() - 1, group);
+			mDrawingPropertiesGroups.append(group);
+		}
+
+		group->layout()->addWidget(widget);
+		mDrawingPropertiesSubWidgets.append(widget);
+
+		connect(widget, SIGNAL(propertiesChanged(const QHash<QString,QVariant>&)),
+			this, SIGNAL(drawingPropertiesChanged(const QHash<QString,QVariant>&)));
+	}
+}
+
+//==================================================================================================
+
+void DrawingPropertiesBrowser::setPreferredWidth(int width)
+{
+	mPreferredWidth = width;
+}
+
+void DrawingPropertiesBrowser::setLabelWidth(int width)
+{
+	for(auto subWidgetIter = mDrawingPropertiesSubWidgets.begin();
+		subWidgetIter != mDrawingPropertiesSubWidgets.end(); subWidgetIter++)
+	{
+		(*subWidgetIter)->setLabelWidth(width);
+	}
+}
+
+QSize DrawingPropertiesBrowser::sizeHint() const
+{
+	return QSize(mPreferredWidth, -1);
+}
+
+//==================================================================================================
+
 void DrawingPropertiesBrowser::setDrawingProperties(const QHash<QString,QVariant>& properties)
 {
-
+	for(auto subWidgetIter = mDrawingPropertiesSubWidgets.begin();
+		subWidgetIter != mDrawingPropertiesSubWidgets.end(); subWidgetIter++)
+	{
+		(*subWidgetIter)->setProperties(properties);
+	}
 }

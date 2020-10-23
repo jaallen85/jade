@@ -33,7 +33,7 @@ MainWindow::MainWindow(const QString& filePath) : DrawingWindow()
 
 	setWindowTitle("Jade");
 	setWindowIcon(QIcon(":/icons/jade/jade.png"));
-	resize(990, 800);
+	resize(1334, 800);
 }
 
 MainWindow::~MainWindow()

@@ -21,16 +21,31 @@
 #include <QVariant>
 #include <QWidget>
 
+class DrawingPropertiesWidget;
+class QGroupBox;
+class QVBoxLayout;
+
 class DrawingPropertiesBrowser : public QWidget
 {
 	Q_OBJECT
 
 private:
+	QWidget* mDrawingPropertiesWidget;
+	QVBoxLayout* mDrawingPropertiesLayout;
+	QList<QGroupBox*> mDrawingPropertiesGroups;
+	QList<DrawingPropertiesWidget*> mDrawingPropertiesSubWidgets;
 
+	int mPreferredWidth;
 
 public:
 	DrawingPropertiesBrowser(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
 	virtual ~DrawingPropertiesBrowser();
+
+	void registerDrawingWidget(const QString& groupTitle, DrawingPropertiesWidget* widget);
+
+	void setPreferredWidth(int width);
+	void setLabelWidth(int width);
+	QSize sizeHint() const;
 
 public slots:
 	void setDrawingProperties(const QHash<QString,QVariant>& properties);
