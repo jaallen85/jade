@@ -1,4 +1,4 @@
-// DrawingWidget.cpp
+// DrawingPropertiesBrowser.h
 // Copyright (C) 2020  Jason Allen
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,33 +14,29 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "DrawingWidget.h"
+#ifndef DRAWINGPROPERTIESBROWSER_H
+#define DRAWINGPROPERTIESBROWSER_H
 
-DrawingWidget::DrawingWidget(QWidget* parent) : DrawingCanvas(parent)
+#include <QHash>
+#include <QVariant>
+#include <QWidget>
+
+class DrawingPropertiesBrowser : public QWidget
 {
+	Q_OBJECT
 
-}
+private:
 
-DrawingWidget::~DrawingWidget()
-{
 
-}
+public:
+	DrawingPropertiesBrowser(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
+	virtual ~DrawingPropertiesBrowser();
 
-//==================================================================================================
+public slots:
+	void setDrawingProperties(const QHash<QString,QVariant>& properties);
 
-void DrawingWidget::setProperties(const QHash<QString,QVariant>& properties)
-{
+signals:
+	void drawingPropertiesChanged(const QHash<QString,QVariant>& properties);
+};
 
-}
-
-QHash<QString,QVariant> DrawingWidget::properties() const
-{
-	return QHash<QString,QVariant>();
-}
-
-//==================================================================================================
-
-void DrawingWidget::updateProperties(const QHash<QString,QVariant>& properties)
-{
-
-}
+#endif

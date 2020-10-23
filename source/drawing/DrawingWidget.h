@@ -18,6 +18,8 @@
 #define DRAWINGWIDGET_H
 
 #include <DrawingCanvas.h>
+#include <QHash>
+#include <QVariant>
 
 class QActionGroup;
 
@@ -31,6 +33,16 @@ private:
 public:
 	DrawingWidget(QWidget* parent = nullptr);
 	virtual ~DrawingWidget();
+
+	void setProperties(const QHash<QString,QVariant>& properties);
+	QHash<QString,QVariant> properties() const;
+
+signals:
+	void propertiesTriggered();
+	void propertiesChanged(const QHash<QString,QVariant>& properties);
+
+public slots:
+	void updateProperties(const QHash<QString,QVariant>& properties);
 };
 
 #endif

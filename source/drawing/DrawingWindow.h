@@ -19,23 +19,35 @@
 
 #include <QMainWindow>
 
+class DrawingPropertiesBrowser;
 class DrawingWidget;
+class QStackedWidget;
 
 class DrawingWindow : public QMainWindow
 {
 	Q_OBJECT
 
 private:
+	QStackedWidget* mStackedWidget;
 	DrawingWidget* mDrawingWidget;
+
+	QDockWidget* mPropertiesDock;
+	DrawingPropertiesBrowser* mPropertiesBrowser;
 
 public:
 	DrawingWindow(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
 	virtual ~DrawingWindow();
 
+	void setDrawing(DrawingWidget* drawing);
+	void setPropertiesBrowser(DrawingPropertiesBrowser* propertiesBrowser);
 	DrawingWidget* drawing() const;
+	DrawingPropertiesBrowser* propertiesBrowser() const;
 
 protected:
 	virtual void showEvent(QShowEvent* event) override;
+
+private:
+	void connectDrawingAndPropertiesBrowser();
 };
 
 #endif

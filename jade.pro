@@ -15,6 +15,7 @@ INCLUDEPATH += source source/drawing
 
 SOURCES += \
 	source/drawing/DrawingCanvas.cpp \
+	source/drawing/DrawingPropertiesBrowser.cpp \
 	source/drawing/DrawingTypes.cpp \
 	source/drawing/DrawingWidget.cpp \
 	source/drawing/DrawingWindow.cpp \
@@ -24,6 +25,7 @@ SOURCES += \
 
 HEADERS += \
 	source/drawing/DrawingCanvas.h \
+	source/drawing/DrawingPropertiesBrowser.h \
 	source/drawing/DrawingTypes.h \
 	source/drawing/DrawingWidget.h \
 	source/drawing/DrawingWindow.h \
