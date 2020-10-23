@@ -166,8 +166,16 @@ void DrawingCanvas::scaleBy(qreal scale)
 {
 	if (scale > 0)
 	{
+		QRectF scrollBarRect = mSceneRect;
+
+		QPoint mousePos = mapFromGlobal(QCursor::pos());
+		QPointF mouseScenePos = mapToScene(mousePos);
+		if (viewport()->rect().contains(mousePos) && !mSceneRect.contains(mouseScenePos))
+			scrollBarRect = scrollBarDefinedRect();
+
 		mScale *= scale;
-		recalculateContentSize();
+
+		recalculateContentSize(scrollBarRect);
 	}
 }
 
@@ -572,6 +580,13 @@ void DrawingCanvas::drawBackground(QPainter* painter)
 		}
 	}
 
+	// Draw origin
+	qreal radius = mapToScene(QPoint(3, 3)).x() - mapToScene(QPoint(0, 0)).x();
+	painter->drawLine(QPointF(-radius, -radius), QPointF(-radius, radius));
+	painter->drawLine(QPointF(-radius, radius), QPointF(radius, radius));
+	painter->drawLine(QPointF(radius, radius), QPointF(radius, -radius));
+	painter->drawLine(QPointF(radius, -radius), QPointF(-radius, -radius));
+
 	// Draw border
 	QPen borderPen(QColor(128, 128, 128), devicePixelRatio());
 	borderPen.setCosmetic(true);
@@ -624,72 +639,66 @@ void DrawingCanvas::mousePanEvent()
 {
 	QRectF visibleRect = DrawingCanvas::visibleRect();
 
-	if (horizontalScrollBar()->maximum() - horizontalScrollBar()->minimum() > 0)
+	if (mPanCurrentPos.x() - mPanStartPos.x() < 0)
 	{
-		if (mPanCurrentPos.x() - mPanStartPos.x() < 0)
+		int delta = (mPanCurrentPos.x() - mPanStartPos.x()) / 16;
+
+		if (horizontalScrollBar()->value() + delta < horizontalScrollBar()->minimum())
 		{
-			int delta = (mPanCurrentPos.x() - mPanStartPos.x()) / 16;
+			if (horizontalScrollBar()->minimum() >= horizontalScrollBar()->maximum())
+				horizontalScrollBar()->setMinimum(qFloor((visibleRect.left() - mSceneRect.left()) * mScale) + delta);
+			else
+				horizontalScrollBar()->setMinimum(horizontalScrollBar()->value() + delta);
 
-			if (horizontalScrollBar()->value() + delta < horizontalScrollBar()->minimum())
-			{
-				if (horizontalScrollBar()->minimum() >= horizontalScrollBar()->maximum())
-					horizontalScrollBar()->setMinimum(qFloor((visibleRect.left() - mSceneRect.left()) * mScale) + delta);
-				else
-					horizontalScrollBar()->setMinimum(horizontalScrollBar()->value() + delta);
-
-				horizontalScrollBar()->setValue(horizontalScrollBar()->minimum());
-			}
-			else horizontalScrollBar()->setValue(horizontalScrollBar()->value() + delta);
+			horizontalScrollBar()->setValue(horizontalScrollBar()->minimum());
 		}
-		else if (mPanCurrentPos.x() - mPanStartPos.x() > 0)
+		else horizontalScrollBar()->setValue(horizontalScrollBar()->value() + delta);
+	}
+	else if (mPanCurrentPos.x() - mPanStartPos.x() > 0)
+	{
+		int delta = (mPanCurrentPos.x() - mPanStartPos.x()) / 16;
+
+		if (horizontalScrollBar()->value() + delta > horizontalScrollBar()->maximum())
 		{
-			int delta = (mPanCurrentPos.x() - mPanStartPos.x()) / 16;
+			if (horizontalScrollBar()->minimum() > horizontalScrollBar()->maximum())
+				horizontalScrollBar()->setMaximum(qFloor((mSceneRect.right() - visibleRect.right()) * mScale) + delta);
+			else
+				horizontalScrollBar()->setMaximum(horizontalScrollBar()->value() + delta);
 
-			if (horizontalScrollBar()->value() + delta > horizontalScrollBar()->maximum())
-			{
-				if (horizontalScrollBar()->minimum() > horizontalScrollBar()->maximum())
-					horizontalScrollBar()->setMaximum(qFloor((mSceneRect.right() - visibleRect.right()) * mScale) + delta);
-				else
-					horizontalScrollBar()->setMaximum(horizontalScrollBar()->value() + delta);
-
-				horizontalScrollBar()->setValue(horizontalScrollBar()->maximum());
-			}
-			else horizontalScrollBar()->setValue(horizontalScrollBar()->value() + delta);
+			horizontalScrollBar()->setValue(horizontalScrollBar()->maximum());
 		}
+		else horizontalScrollBar()->setValue(horizontalScrollBar()->value() + delta);
 	}
 
-	if (verticalScrollBar()->maximum() - verticalScrollBar()->minimum() > 0)
+	if (mPanCurrentPos.y() - mPanStartPos.y() < 0)
 	{
-		if (mPanCurrentPos.y() - mPanStartPos.y() < 0)
+		int delta = (mPanCurrentPos.y() - mPanStartPos.y()) / 16;
+
+		if (verticalScrollBar()->value() + delta < verticalScrollBar()->minimum())
 		{
-			int delta = (mPanCurrentPos.y() - mPanStartPos.y()) / 16;
+			if (verticalScrollBar()->minimum() >= verticalScrollBar()->maximum())
+				verticalScrollBar()->setMinimum(qFloor((visibleRect.top() - mSceneRect.top()) * mScale) + delta);
+			else
+				verticalScrollBar()->setMinimum(verticalScrollBar()->value() + delta);
 
-			if (verticalScrollBar()->value() + delta < verticalScrollBar()->minimum())
-			{
-				if (verticalScrollBar()->minimum() >= verticalScrollBar()->maximum())
-					verticalScrollBar()->setMinimum(qFloor((visibleRect.top() - mSceneRect.top()) * mScale) + delta);
-				else
-					verticalScrollBar()->setMinimum(verticalScrollBar()->value() + delta);
-
-				verticalScrollBar()->setValue(verticalScrollBar()->minimum());
-			}
-			else verticalScrollBar()->setValue(verticalScrollBar()->value() + delta);
+			verticalScrollBar()->setValue(verticalScrollBar()->minimum());
 		}
-		else if (mPanCurrentPos.y() - mPanStartPos.y() > 0)
+		else verticalScrollBar()->setValue(verticalScrollBar()->value() + delta);
+	}
+	else if (mPanCurrentPos.y() - mPanStartPos.y() > 0)
+	{
+		int delta = (mPanCurrentPos.y() - mPanStartPos.y()) / 16;
+
+		if (verticalScrollBar()->value() + delta > verticalScrollBar()->maximum())
 		{
-			int delta = (mPanCurrentPos.y() - mPanStartPos.y()) / 16;
+			if (verticalScrollBar()->minimum() >= verticalScrollBar()->maximum())
+				verticalScrollBar()->setMaximum(qFloor((mSceneRect.bottom() - visibleRect.bottom()) * mScale) + delta);
+			else
+				verticalScrollBar()->setMaximum(verticalScrollBar()->value() + delta);
 
-			if (verticalScrollBar()->value() + delta > verticalScrollBar()->maximum())
-			{
-				if (verticalScrollBar()->minimum() >= verticalScrollBar()->maximum())
-					verticalScrollBar()->setMaximum(qFloor((mSceneRect.bottom() - visibleRect.bottom()) * mScale) + delta);
-				else
-					verticalScrollBar()->setMaximum(verticalScrollBar()->value() + delta);
-
-				verticalScrollBar()->setValue(verticalScrollBar()->maximum());
-			}
-			else verticalScrollBar()->setValue(verticalScrollBar()->value() + delta);
+			verticalScrollBar()->setValue(verticalScrollBar()->maximum());
 		}
+		else verticalScrollBar()->setValue(verticalScrollBar()->value() + delta);
 	}
 }
 
