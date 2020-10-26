@@ -25,6 +25,7 @@
 #include <QLabel>
 #include <QMenu>
 #include <QMenuBar>
+#include <QSettings>
 #include <QStatusBar>
 #include <QToolBar>
 
@@ -48,21 +49,80 @@ MainWindow::MainWindow(const QString& filePath) : DrawingWindow()
 	else newDrawing();
 }
 
-MainWindow::~MainWindow()
-{
-
-}
+MainWindow::~MainWindow() { }
 
 //==================================================================================================
 
 void MainWindow::saveSettings()
 {
+#ifdef RELEASE_BUILD
+#ifdef WIN32
+	QString configPath("config.ini");
+#else
+	QString configPath(QDir::home().absoluteFilePath(".jade/config.ini"));
+#endif
+#else
+	QString configPath("config.ini");
+#endif
 
+	QSettings settings(configPath, QSettings::IniFormat);
+
+	settings.beginGroup("Window");
+	settings.setValue("geometry", saveGeometry());
+	settings.setValue("state", saveState());
+	settings.endGroup();
+
+	settings.beginGroup("Prompts");
+	settings.setValue("promptOnClosingUnsaved", shouldPromptOnClosingUnsaved());
+	settings.setValue("promptOnOverwrite", shouldPromptOnOverwrite());
+	settings.endGroup();
+
+	QHash<QString,QVariant> properties = defaultDrawingProperties();
+	settings.beginGroup("DrawingDefaults");
+	settings.setValue("sceneRect", properties.value("sceneRect").value<QRectF>());
+	settings.setValue("backgroundBrush", properties.value("backgroundBrush").value<QBrush>());
+	settings.setValue("grid", properties.value("grid").value<qreal>());
+	settings.setValue("gridStyle", properties.value("gridStyle").value<uint>());
+	settings.setValue("gridBrush", properties.value("gridBrush").value<QBrush>());
+	settings.setValue("gridSpacingMajor", properties.value("gridSpacingMajor").value<int>());
+	settings.setValue("gridSpacingMinor", properties.value("gridSpacingMinor").value<int>());
 }
 
 void MainWindow::loadSettings()
 {
+#ifdef RELEASE_BUILD
+#ifdef WIN32
+	QString configPath("config.ini");
+#else
+	QString configPath(QDir::home().absoluteFilePath(".jade/config.ini"));
+#endif
+#else
+	QString configPath("config.ini");
+#endif
 
+	QSettings settings(configPath, QSettings::IniFormat);
+
+	settings.beginGroup("Window");
+	restoreGeometry(settings.value("geometry", QVariant()).toByteArray());
+	restoreState(settings.value("state", QVariant()).toByteArray());
+	settings.endGroup();
+
+	settings.beginGroup("Prompts");
+	setPromptOnClosingUnsaved(settings.value("promptOnClosingUnsaved", QVariant(true)).toBool());
+	setPromptOnOverwrite(settings.value("promptOnOverwrite", QVariant(true)).toBool());
+	settings.endGroup();
+
+	QHash<QString,QVariant> properties = defaultDrawingProperties();
+	settings.beginGroup("DrawingDefaults");
+	properties.insert("sceneRect", settings.value("sceneRect", QVariant(QRectF(-100, -100, 8200, 6200))).toRectF());
+	properties.insert("backgroundBrush", QBrush(settings.value("backgroundBrush", QVariant(QBrush(QColor(255, 255, 255)))).value<QBrush>()));
+	properties.insert("grid", settings.value("grid", QVariant(50.0)).toDouble());
+	properties.insert("gridStyle", settings.value("gridStyle", QVariant((uint)Drawing::GridGraphPaper)).toUInt());
+	properties.insert("gridBrush", QBrush(settings.value("gridBrush", QVariant(QBrush(QColor(0, 128, 128)))).value<QBrush>()));
+	properties.insert("gridSpacingMajor", settings.value("gridSpacingMajor", QVariant(8)).toInt());
+	properties.insert("gridSpacingMinor", settings.value("gridSpacingMinor", QVariant(2)).toInt());
+	settings.endGroup();
+	setDefaultDrawingProperties(properties);
 }
 
 //==================================================================================================
