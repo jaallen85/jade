@@ -245,6 +245,20 @@ DrawingGridPropertiesWidget::DrawingGridPropertiesWidget(QWidget* parent) : Draw
 	mGridSpacingMinorCheck = addWidget(4, "Minor Spacing:", mGridSpacingMinorEdit);
 	connect(mGridSpacingMinorCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
 	connect(mGridSpacingMinorEdit, SIGNAL(editingFinished()), this, SLOT(handleValueChange()));
+
+	mDynamicGridEnableCombo = new QComboBox();
+	mDynamicGridEnableCombo->addItem("Disabled");
+	mDynamicGridEnableCombo->addItem("Enabled");
+	mDynamicGridEnableCheck = addWidget(5, "Dynamic Grid:", mDynamicGridEnableCombo);
+	connect(mDynamicGridEnableCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
+	connect(mDynamicGridEnableCombo, SIGNAL(activated(int)), this, SLOT(handleValueChange()));
+
+	mDynamicGridEdit = new DrawingSizeEdit();
+	mDynamicGridCheck = addWidget(6, "Dynamic Grid Value:", mDynamicGridEdit);
+	connect(mDynamicGridCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
+	connect(mDynamicGridEdit, SIGNAL(sizeChanged(qreal)), this, SLOT(handleValueChange()));
+
+	mDynamicGridEdit->setEnabled(false);
 }
 
 DrawingGridPropertiesWidget::~DrawingGridPropertiesWidget() { }
@@ -257,6 +271,8 @@ void DrawingGridPropertiesWidget::setProperties(const QHash<QString,QVariant>& p
 	uint gridStyle = Drawing::GridNone;
 	QBrush gridBrush = QColor(128, 128, 128);
 	int gridSpacingMajor = 0, gridSpacingMinor = 0;
+	qreal dynamicGrid = 1;
+	bool dynamicGridEnabled = false;
 
 	if (containsPropertyAndCanConvert<qreal>(properties, "grid", grid))
 		mGridEdit->setSize(grid);
@@ -268,6 +284,14 @@ void DrawingGridPropertiesWidget::setProperties(const QHash<QString,QVariant>& p
 		mGridSpacingMajorEdit->setText(QString::number(gridSpacingMajor));
 	if (containsPropertyAndCanConvert<int>(properties, "gridSpacingMinor", gridSpacingMinor))
 		mGridSpacingMinorEdit->setText(QString::number(gridSpacingMinor));
+
+	if (containsPropertyAndCanConvert<qreal>(properties, "dynamicGrid", dynamicGrid))
+		mDynamicGridEdit->setSize(dynamicGrid);
+	if (containsPropertyAndCanConvert<bool>(properties, "dynamicGridEnabled", dynamicGridEnabled))
+		mDynamicGridEnableCombo->setCurrentIndex(dynamicGridEnabled ? 1 : 0);
+
+	mGridEdit->setEnabled(mDynamicGridEnableCombo->currentIndex() == 0);
+	mDynamicGridEdit->setEnabled(mDynamicGridEnableCombo->currentIndex() == 1);
 }
 
 QHash<QString,QVariant> DrawingGridPropertiesWidget::properties() const
@@ -279,6 +303,8 @@ QHash<QString,QVariant> DrawingGridPropertiesWidget::properties() const
 	properties.insert("gridBrush", QBrush(mGridColorWidget->color()));
 	properties.insert("gridSpacingMajor", mGridSpacingMajorEdit->text().toInt());
 	properties.insert("gridSpacingMinor", mGridSpacingMinorEdit->text().toInt());
+	properties.insert("dynamicGrid", mDynamicGridEdit->size());
+	properties.insert("dynamicGridEnabled", mDynamicGridEnableCombo->currentIndex() == 1);
 
 	return properties;
 }
@@ -300,6 +326,13 @@ void DrawingGridPropertiesWidget::handleValueChange()
 		properties.insert("gridSpacingMajor", mGridSpacingMajorEdit->text().toInt());
 	else if (checkForSender(sender, mGridSpacingMinorCheck, mGridSpacingMinorEdit))
 		properties.insert("gridSpacingMinor", mGridSpacingMinorEdit->text().toInt());
+	else if (checkForSender(sender, mDynamicGridCheck, mDynamicGridEdit))
+		properties.insert("dynamicGrid", mDynamicGridEdit->size());
+	else if (checkForSender(sender, mDynamicGridEnableCheck, mDynamicGridEnableCombo))
+		properties.insert("dynamicGridEnabled", mDynamicGridEnableCombo->currentIndex() == 1);
+
+	mGridEdit->setEnabled(mDynamicGridEnableCombo->currentIndex() == 0);
+	mDynamicGridEdit->setEnabled(mDynamicGridEnableCombo->currentIndex() == 1);
 
 	if (!properties.isEmpty()) emit propertiesChanged(properties);
 }

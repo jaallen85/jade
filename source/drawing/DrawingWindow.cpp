@@ -61,10 +61,7 @@ DrawingWindow::DrawingWindow(QWidget* parent, Qt::WindowFlags f) : QMainWindow(p
 	connect(this, SIGNAL(filePathChanged(const QString&)), this, SLOT(updateWindowTitle(const QString&)));
 }
 
-DrawingWindow::~DrawingWindow()
-{
-
-}
+DrawingWindow::~DrawingWindow() { }
 
 //==================================================================================================
 

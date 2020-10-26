@@ -40,6 +40,9 @@ private:
 	QBrush mGridBrush;
 	int mGridSpacingMajor, mGridSpacingMinor;
 
+	qreal mDynamicGridBaseValue;
+	bool mDynamicGridEnabled;
+
 	qreal mScale;
 	QTransform mViewportTransform;
 	QTransform mSceneTransform;
@@ -77,6 +80,11 @@ public:
 	int gridSpacingMajor() const;
 	int gridSpacingMinor() const;
 
+	void setDynamicGrid(qreal baseValue);
+	void setDynamicGridEnabled(bool enable);
+	qreal dynamicGrid() const;
+	bool isDynamicGridEnabled() const;
+
 	void centerOn(const QPointF& position);
 	void centerOnCursor(const QPointF& position);
 	void fitToView(const QRectF& rect);
@@ -96,6 +104,7 @@ public:
 	QList<QAction*> modeActions() const;
 
 signals:
+	void gridChanged(qreal grid);
 	void scaleChanged(qreal scale);
 	void modeChanged(Drawing::Mode mode);
 
@@ -129,6 +138,7 @@ private slots:
 
 private:
 	void recalculateContentSize(const QRectF& rect = QRectF());
+	void updateDynamicGrid();
 	QRectF scrollBarDefinedRect() const;
 	QRectF visibleRect() const;
 

@@ -25,6 +25,8 @@ DrawingWidget::DrawingWidget(QWidget* parent) : DrawingCanvas(parent)
 	connect(&mUndoStack, SIGNAL(canUndoChanged(bool)), this, SIGNAL(canUndoChanged(bool)));
 
 	addActions();
+
+	connect(this, SIGNAL(gridChanged(qreal)), this, SLOT(updateGridProperty(qreal)));
 }
 
 DrawingWidget::~DrawingWidget()
@@ -124,6 +126,18 @@ void DrawingWidget::setProperties(const QHash<QString,QVariant>& properties)
 		if (variant.canConvert<int>()) setGridSpacing(gridSpacingMajor(), variant.value<int>());
 	}
 
+	if (properties.contains("dynamicGrid"))
+	{
+		QVariant variant = properties.value("dynamicGrid");
+		if (variant.canConvert<qreal>()) setDynamicGrid(variant.value<qreal>());
+	}
+
+	if (properties.contains("dynamicGridEnabled"))
+	{
+		QVariant variant = properties.value("dynamicGridEnabled");
+		if (variant.canConvert<bool>()) setDynamicGridEnabled(variant.value<bool>());
+	}
+
 	if (!properties.isEmpty()) emit propertiesChanged(properties);
 }
 
@@ -139,6 +153,8 @@ QHash<QString,QVariant> DrawingWidget::properties() const
 	properties.insert("gridBrush", gridBrush());
 	properties.insert("gridSpacingMajor", gridSpacingMajor());
 	properties.insert("gridSpacingMinor", gridSpacingMinor());
+	properties.insert("dynamicGrid", dynamicGrid());
+	properties.insert("dynamicGridEnabled", isDynamicGridEnabled());
 
 	return properties;
 }
@@ -173,6 +189,9 @@ void DrawingWidget::writeToXml(QXmlStreamWriter* xml)
 
 		xml->writeAttribute("grid-spacing-major", QString::number(gridSpacingMajor()));
 		xml->writeAttribute("grid-spacing-minor", QString::number(gridSpacingMinor()));
+
+		xml->writeAttribute("dynamic-grid", QString::number(dynamicGrid()));
+		xml->writeAttribute("dynamic-grid-enabled", isDynamicGridEnabled() ? "true" : "false");
 	}
 }
 
@@ -222,6 +241,16 @@ void DrawingWidget::readFromXml(QXmlStreamReader* xml)
 		if (attr.hasAttribute("grid-spacing-minor"))
 			gridSpacingMinor = attr.value("grid-spacing-minor").toInt();
 		setGridSpacing(gridSpacingMajor, gridSpacingMinor);
+
+		if (attr.hasAttribute("dynamic-grid"))
+			setDynamicGrid(attr.value("dynamic-grid").toDouble());
+		else
+			setDynamicGrid(1000);
+
+		if (attr.hasAttribute("dynamic-grid-enabled"))
+			setDynamicGridEnabled(attr.value("dynamic-grid-enabled").toString().toLower() == "true");
+		else
+			setDynamicGridEnabled(false);
 	}
 }
 
@@ -371,6 +400,15 @@ void DrawingWidget::updateProperties(const QHash<QString,QVariant>& properties)
 		pushUndoCommand(new DrawingSetPropertiesCommand(this, properties));
 		viewport()->update();
 	}
+}
+
+//==================================================================================================
+
+void DrawingWidget::updateGridProperty(qreal grid)
+{
+	QHash<QString,QVariant> properties;
+	properties.insert("grid", grid);
+	emit propertiesChanged(properties);
 }
 
 //==================================================================================================

@@ -86,6 +86,8 @@ void MainWindow::saveSettings()
 	settings.setValue("gridBrush", properties.value("gridBrush").value<QBrush>());
 	settings.setValue("gridSpacingMajor", properties.value("gridSpacingMajor").value<int>());
 	settings.setValue("gridSpacingMinor", properties.value("gridSpacingMinor").value<int>());
+	settings.setValue("dynamicGrid", properties.value("dynamicGrid").value<qreal>());
+	settings.setValue("dynamicGridEnabled", properties.value("dynamicGridEnabled").value<bool>());
 }
 
 void MainWindow::loadSettings()
@@ -121,6 +123,8 @@ void MainWindow::loadSettings()
 	properties.insert("gridBrush", QBrush(settings.value("gridBrush", QVariant(QBrush(QColor(0, 128, 128)))).value<QBrush>()));
 	properties.insert("gridSpacingMajor", settings.value("gridSpacingMajor", QVariant(8)).toInt());
 	properties.insert("gridSpacingMinor", settings.value("gridSpacingMinor", QVariant(2)).toInt());
+	properties.insert("dynamicGrid", settings.value("dynamicGrid", QVariant(1000.0)).toDouble());
+	properties.insert("dynamicGridEnabled", settings.value("dynamicGrid", QVariant(false)).toBool());
 	settings.endGroup();
 	setDefaultDrawingProperties(properties);
 }

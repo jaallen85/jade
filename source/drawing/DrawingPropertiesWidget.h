@@ -119,11 +119,17 @@ private:
 	DrawingHideableCheckBox* mGridSpacingMajorCheck;
 	DrawingHideableCheckBox* mGridSpacingMinorCheck;
 
+	DrawingHideableCheckBox* mDynamicGridEnableCheck;
+	DrawingHideableCheckBox* mDynamicGridCheck;
+
 	DrawingSizeEdit* mGridEdit;
 	QComboBox* mGridStyleCombo;
 	DrawingColorWidget* mGridColorWidget;
 	QLineEdit* mGridSpacingMajorEdit;
 	QLineEdit* mGridSpacingMinorEdit;
+
+	QComboBox* mDynamicGridEnableCombo;
+	DrawingSizeEdit* mDynamicGridEdit;
 
 public:
 	DrawingGridPropertiesWidget(QWidget* parent = nullptr);

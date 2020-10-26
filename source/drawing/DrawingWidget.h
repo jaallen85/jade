@@ -101,6 +101,9 @@ public slots:
 
 	void updateProperties(const QHash<QString,QVariant>& properties);
 
+private slots:
+	void updateGridProperty(qreal grid);
+
 private:
 	void writeBrushToXml(QXmlStreamWriter* xml, const QString& name, const QBrush& brush);
 	QString colorToString(const QColor& color) const;

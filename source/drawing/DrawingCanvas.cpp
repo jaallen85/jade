@@ -39,6 +39,8 @@ DrawingCanvas::DrawingCanvas(QWidget* parent) : QAbstractScrollArea(parent)
 	mGridBrush = QColor(0, 128, 128);
 	mGridSpacingMajor = 8;
 	mGridSpacingMinor = 2;
+	mDynamicGridBaseValue = 1000;
+	mDynamicGridEnabled = false;
 
 	mScale = 1.0;
 	mMode = Drawing::DefaultMode;
@@ -125,6 +127,30 @@ int DrawingCanvas::gridSpacingMajor() const
 int DrawingCanvas::gridSpacingMinor() const
 {
 	return mGridSpacingMinor;
+}
+
+//==================================================================================================
+
+void DrawingCanvas::setDynamicGrid(qreal baseValue)
+{
+	mDynamicGridBaseValue = baseValue;
+	updateDynamicGrid();
+}
+
+void DrawingCanvas::setDynamicGridEnabled(bool enable)
+{
+	mDynamicGridEnabled = enable;
+	updateDynamicGrid();
+}
+
+qreal DrawingCanvas::dynamicGrid() const
+{
+	return mDynamicGridBaseValue;
+}
+
+bool DrawingCanvas::isDynamicGridEnabled() const
+{
+	return mDynamicGridEnabled;
 }
 
 //==================================================================================================
@@ -761,6 +787,28 @@ void DrawingCanvas::recalculateContentSize(const QRectF& rect)
 	mViewportTransform.scale(mScale, mScale);
 
 	mSceneTransform = mViewportTransform.inverted();
+
+	// Update dynamic grid, if enabled
+	updateDynamicGrid();
+}
+
+void DrawingCanvas::updateDynamicGrid()
+{
+	if (mDynamicGridEnabled && mDynamicGridBaseValue > 0)
+	{
+		const int minimumScreenGridValue = devicePixelRatio() * 4;		// pixels
+
+		QPointF gridPoint = mapToScene(QPoint(minimumScreenGridValue, minimumScreenGridValue)) -
+			mapToScene(QPoint(0, 0));
+		qreal gridValue = qMax(gridPoint.x(), gridPoint.y());
+
+		qreal baseOffset = qLn(mDynamicGridBaseValue) / qLn(2);
+		baseOffset = baseOffset - qFloor(baseOffset);
+
+		mGrid = qPow(2, qCeil(qLn(gridValue) / qLn(2) - baseOffset) + baseOffset);
+
+		emit gridChanged(mGrid);
+	}
 }
 
 QRectF DrawingCanvas::scrollBarDefinedRect() const
