@@ -43,6 +43,7 @@ public:
 	virtual ~DrawingPropertiesWidget();
 
 	virtual void setProperties(const QHash<QString,QVariant>& properties) = 0;
+	virtual QHash<QString,QVariant> properties() const = 0;
 	QString propertyName() const;
 
 	DrawingHideableCheckBox* addWidget(int row, const QString& text, QWidget* widget);
@@ -77,6 +78,7 @@ public:
 	~DrawingRectPropertyWidget();
 
 	void setProperties(const QHash<QString,QVariant>& properties) override;
+	QHash<QString,QVariant> properties() const override;
 
 private slots:
 	void handleValueChange();
@@ -98,6 +100,7 @@ public:
 	~DrawingBrushPropertyWidget();
 
 	void setProperties(const QHash<QString,QVariant>& properties) override;
+	QHash<QString,QVariant> properties() const override;
 
 private slots:
 	void handleValueChange();
@@ -127,6 +130,7 @@ public:
 	~DrawingGridPropertiesWidget();
 
 	void setProperties(const QHash<QString,QVariant>& properties) override;
+	QHash<QString,QVariant> properties() const override;
 
 private slots:
 	void handleValueChange();

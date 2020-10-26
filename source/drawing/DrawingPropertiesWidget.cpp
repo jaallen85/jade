@@ -141,28 +141,32 @@ void DrawingRectPropertyWidget::setProperties(const QHash<QString,QVariant>& pro
 	}
 }
 
+QHash<QString,QVariant> DrawingRectPropertyWidget::properties() const
+{
+	QHash<QString,QVariant> properties;
+	QRectF rect;
+
+	if (mBottomRightWidget)
+		rect = QRectF(mTopLeftWidget->position(), mBottomRightWidget->position());
+	else if (mSizeWidget)
+		rect = QRectF(mTopLeftWidget->position(), mSizeWidget->size());
+
+	properties.insert(propertyName(), rect);
+	return properties;
+}
+
 //==================================================================================================
 
 void DrawingRectPropertyWidget::handleValueChange()
 {
-	QHash<QString,QVariant> properties;
 	QObject* sender = this->sender();
 
 	if (checkForSender(sender, mTopLeftCheck, mTopLeftWidget) ||
 		checkForSender(sender, mBottomRightCheck, mBottomRightWidget) ||
 		checkForSender(sender, mSizeCheck, mSizeWidget))
 	{
-		QRectF rect;
-
-		if (mBottomRightWidget)
-			rect = QRectF(mTopLeftWidget->position(), mBottomRightWidget->position());
-		else if (mSizeWidget)
-			rect = QRectF(mTopLeftWidget->position(), mSizeWidget->size());
-
-		properties.insert(propertyName(), rect);
+		emit propertiesChanged(properties());
 	}
-
-	if (!properties.isEmpty()) emit propertiesChanged(properties);
 }
 
 //==================================================================================================
@@ -190,17 +194,19 @@ void DrawingBrushPropertyWidget::setProperties(const QHash<QString,QVariant>& pr
 		mColorWidget->setColor(brush.color());
 }
 
+QHash<QString,QVariant> DrawingBrushPropertyWidget::properties() const
+{
+	QHash<QString,QVariant> properties;
+	properties.insert(propertyName(), QBrush(mColorWidget->color()));
+	return properties;
+}
+
 //==================================================================================================
 
 void DrawingBrushPropertyWidget::handleValueChange()
 {
-	QHash<QString,QVariant> properties;
-	QObject* sender = this->sender();
-
-	if (checkForSender(sender, mColorCheck, mColorWidget))
-		properties.insert(propertyName(), QBrush(mColorWidget->color()));
-
-	if (!properties.isEmpty()) emit propertiesChanged(properties);
+	if (checkForSender(sender(), mColorCheck, mColorWidget))
+		emit propertiesChanged(properties());
 }
 
 //==================================================================================================
@@ -262,6 +268,19 @@ void DrawingGridPropertiesWidget::setProperties(const QHash<QString,QVariant>& p
 		mGridSpacingMajorEdit->setText(QString::number(gridSpacingMajor));
 	if (containsPropertyAndCanConvert<int>(properties, "gridSpacingMinor", gridSpacingMinor))
 		mGridSpacingMinorEdit->setText(QString::number(gridSpacingMinor));
+}
+
+QHash<QString,QVariant> DrawingGridPropertiesWidget::properties() const
+{
+	QHash<QString,QVariant> properties;
+
+	properties.insert("grid", mGridEdit->size());
+	properties.insert("gridStyle", (uint)mGridStyleCombo->currentIndex());
+	properties.insert("gridBrush", QBrush(mGridColorWidget->color()));
+	properties.insert("gridSpacingMajor", mGridSpacingMajorEdit->text().toInt());
+	properties.insert("gridSpacingMinor", mGridSpacingMinorEdit->text().toInt());
+
+	return properties;
 }
 
 //==================================================================================================

@@ -15,7 +15,10 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "MainWindow.h"
+#include "PreferencesDialog.h"
+#include "AboutDialog.h"
 #include <DrawingWidget.h>
+#include <QApplication>
 #include <QCloseEvent>
 #include <QComboBox>
 #include <QHBoxLayout>
@@ -39,6 +42,7 @@ MainWindow::MainWindow(const QString& filePath) : DrawingWindow()
 	resize(1334, 800);
 
 	loadSettings();
+	connect(this, SIGNAL(drawingVisibilityChanged(bool)), this, SLOT(updateWindow(bool)));
 
 	if (!filePath.isEmpty()) openDrawing(filePath);
 	else newDrawing();
@@ -59,6 +63,50 @@ void MainWindow::saveSettings()
 void MainWindow::loadSettings()
 {
 
+}
+
+//==================================================================================================
+
+void MainWindow::exportPng()
+{
+
+}
+
+void MainWindow::exportSvg()
+{
+
+}
+
+void MainWindow::exportVsdx()
+{
+
+}
+
+void MainWindow::exportOdg()
+{
+
+}
+
+//==================================================================================================
+
+void MainWindow::preferences()
+{
+	PreferencesDialog dialog(this);
+	dialog.setPrompts(shouldPromptOnClosingUnsaved(), shouldPromptOnOverwrite());
+	dialog.setDefaultDrawingProperties(defaultDrawingProperties());
+
+	if (dialog.exec() == QDialog::Accepted)
+	{
+		setPromptOnClosingUnsaved(dialog.shouldPromptOnClosingUnsaved());
+		setPromptOnOverwrite(dialog.shouldPromptOnOverwrite());
+		setDefaultDrawingProperties(dialog.defaultDrawingProperties());
+	}
+}
+
+void MainWindow::about()
+{
+	AboutDialog dialog(this);
+	dialog.exec();
 }
 
 //==================================================================================================
@@ -122,8 +170,28 @@ void MainWindow::setModifiedText(bool clean)
 
 //==================================================================================================
 
+void MainWindow::updateWindow(bool drawingVisible)
+{
+	QList<QAction*> actionList = actions();
+	actionList[ExportPngAction]->setEnabled(drawingVisible);
+	actionList[ExportSvgAction]->setEnabled(drawingVisible);
+	actionList[ExportOdgAction]->setEnabled(drawingVisible);
+	actionList[ExportVsdxAction]->setEnabled(drawingVisible);
+}
+
+//==================================================================================================
+
 void MainWindow::addActions()
 {
+	addAction("Export PNG...", this, SLOT(exportPng()), ":/icons/oxygen/image-x-generic.png");
+	addAction("Export SVG...", this, SLOT(exportSvg()), ":/icons/oxygen/image-svg+xml.png");
+	addAction("Export ODG...", this, SLOT(exportOdg()), ":/icons/oxygen/application-vnd.oasis.opendocument.graphics.png");
+	addAction("Export VSDX...", this, SLOT(exportVsdx()), ":/icons/oxygen/application-msword.png");
+	addAction("Preferences...", this, SLOT(preferences()), ":/icons/oxygen/configure.png");
+
+	addAction("About...", this, SLOT(about()), ":/icons/oxygen/help-about.png");
+	addAction("About Qt...", qApp, SLOT(aboutQt()));
+
 	QList<QAction*> actionList = actions();
 	actionList[NewAction]->setIcon(QIcon(":/icons/oxygen/document-new.png"));
 	actionList[OpenAction]->setIcon(QIcon(":/icons/oxygen/document-open.png"));
@@ -136,10 +204,23 @@ void MainWindow::addActions()
 	drawingActionList[DrawingWidget::ZoomInAction]->setIcon(QIcon(":/icons/oxygen/zoom-in.png"));
 	drawingActionList[DrawingWidget::ZoomOutAction]->setIcon(QIcon(":/icons/oxygen/zoom-out.png"));
 	drawingActionList[DrawingWidget::ZoomFitAction]->setIcon(QIcon(":/icons/oxygen/zoom-fit-best.png"));
-
 	drawingActionList[DrawingWidget::UndoAction]->setIcon(QIcon(":/icons/oxygen/edit-undo.png"));
 	drawingActionList[DrawingWidget::RedoAction]->setIcon(QIcon(":/icons/oxygen/edit-redo.png"));
-
+	drawingActionList[DrawingWidget::CutAction]->setIcon(QIcon(":/icons/oxygen/edit-cut.png"));
+	drawingActionList[DrawingWidget::CopyAction]->setIcon(QIcon(":/icons/oxygen/edit-copy.png"));
+	drawingActionList[DrawingWidget::PasteAction]->setIcon(QIcon(":/icons/oxygen/edit-paste.png"));
+	drawingActionList[DrawingWidget::DeleteAction]->setIcon(QIcon(":/icons/oxygen/edit-delete.png"));
+	drawingActionList[DrawingWidget::SelectAllAction]->setIcon(QIcon(":/icons/oxygen/edit-select-all.png"));
+	drawingActionList[DrawingWidget::RotateAction]->setIcon(QIcon(":/icons/oxygen/object-rotate-right.png"));
+	drawingActionList[DrawingWidget::RotateBackAction]->setIcon(QIcon(":/icons/oxygen/object-rotate-left.png"));
+	drawingActionList[DrawingWidget::FlipHorizontalAction]->setIcon(QIcon(":/icons/oxygen/object-flip-horizontal.png"));
+	drawingActionList[DrawingWidget::FlipVerticalAction]->setIcon(QIcon(":/icons/oxygen/object-flip-vertical.png"));
+	drawingActionList[DrawingWidget::BringForwardAction]->setIcon(QIcon(":/icons/oxygen/object-bring-forward.png"));
+	drawingActionList[DrawingWidget::SendBackwardAction]->setIcon(QIcon(":/icons/oxygen/object-send-backward.png"));
+	drawingActionList[DrawingWidget::BringToFrontAction]->setIcon(QIcon(":/icons/oxygen/object-bring-to-front.png"));
+	drawingActionList[DrawingWidget::SendToBackAction]->setIcon(QIcon(":/icons/oxygen/object-send-to-back.png"));
+	drawingActionList[DrawingWidget::GroupAction]->setIcon(QIcon(":/icons/oxygen/merge.png"));
+	drawingActionList[DrawingWidget::UngroupAction]->setIcon(QIcon(":/icons/oxygen/split.png"));
 	drawingActionList[DrawingWidget::PropertiesAction]->setIcon(QIcon(":/icons/oxygen/games-config-board.png"));
 
 	QList<QAction*> drawingModeActionList = drawing()->modeActions();
@@ -147,6 +228,15 @@ void MainWindow::addActions()
 	drawingModeActionList[DrawingWidget::DefaultModeAction]->setIcon(QIcon(":/icons/oxygen/edit-select.png"));
 	drawingModeActionList[DrawingWidget::ScrollModeAction]->setIcon(QIcon(":/icons/oxygen/transform-move.png"));
 	drawingModeActionList[DrawingWidget::ZoomModeAction]->setIcon(QIcon(":/icons/oxygen/page-zoom.png"));
+	drawingModeActionList[DrawingWidget::PlaceCurveAction]->setIcon(QIcon(":/icons/oxygen/draw-curve.png"));
+	drawingModeActionList[DrawingWidget::PlaceEllipseAction]->setIcon(QIcon(":/icons/oxygen/draw-ellipse.png"));
+	drawingModeActionList[DrawingWidget::PlaceLineAction]->setIcon(QIcon(":/icons/oxygen/draw-line.png"));
+	drawingModeActionList[DrawingWidget::PlacePolygonAction]->setIcon(QIcon(":/icons/oxygen/draw-polygon.png"));
+	drawingModeActionList[DrawingWidget::PlacePolylineAction]->setIcon(QIcon(":/icons/oxygen/draw-polyline.png"));
+	drawingModeActionList[DrawingWidget::PlaceRectAction]->setIcon(QIcon(":/icons/oxygen/draw-rectangle.png"));
+	drawingModeActionList[DrawingWidget::PlaceTextAction]->setIcon(QIcon(":/icons/oxygen/draw-text.png"));
+	drawingModeActionList[DrawingWidget::PlaceTextEllipseAction]->setIcon(QIcon(":/icons/items/textellipse.png"));
+	drawingModeActionList[DrawingWidget::PlaceTextRectAction]->setIcon(QIcon(":/icons/items/textrect.png"));
 }
 
 void MainWindow::createMenus()
@@ -165,16 +255,58 @@ void MainWindow::createMenus()
 	menu->addSeparator();
 	menu->addAction(actionList[CloseAction]);
 	menu->addSeparator();
+	menu->addAction(actionList[ExportPngAction]);
+	menu->addAction(actionList[ExportSvgAction]);
+	menu->addAction(actionList[ExportVsdxAction]);
+	menu->addAction(actionList[ExportOdgAction]);
+	menu->addSeparator();
+	menu->addAction(actionList[PreferencesAction]);
+	menu->addSeparator();
 	menu->addAction(actionList[ExitAction]);
 
 	menu = menuBar()->addMenu("Edit");
 	menu->addAction(drawingActionList[DrawingWidget::UndoAction]);
 	menu->addAction(drawingActionList[DrawingWidget::RedoAction]);
+	menu->addSeparator();
+	menu->addAction(drawingActionList[DrawingWidget::CutAction]);
+	menu->addAction(drawingActionList[DrawingWidget::CopyAction]);
+	menu->addAction(drawingActionList[DrawingWidget::PasteAction]);
+	menu->addAction(drawingActionList[DrawingWidget::DeleteAction]);
+	menu->addSeparator();
+	menu->addAction(drawingActionList[DrawingWidget::SelectAllAction]);
+	menu->addAction(drawingActionList[DrawingWidget::SelectNoneAction]);
 
 	menu = menuBar()->addMenu("Place");
 	menu->addAction(drawingModeActionList[DrawingWidget::DefaultModeAction]);
 	menu->addAction(drawingModeActionList[DrawingWidget::ScrollModeAction]);
 	menu->addAction(drawingModeActionList[DrawingWidget::ZoomModeAction]);
+	menu->addSeparator();
+	menu->addAction(drawingModeActionList[DrawingWidget::PlaceLineAction]);
+	menu->addAction(drawingModeActionList[DrawingWidget::PlaceCurveAction]);
+	menu->addAction(drawingModeActionList[DrawingWidget::PlacePolylineAction]);
+	menu->addAction(drawingModeActionList[DrawingWidget::PlaceRectAction]);
+	menu->addAction(drawingModeActionList[DrawingWidget::PlaceEllipseAction]);
+	menu->addAction(drawingModeActionList[DrawingWidget::PlacePolygonAction]);
+	menu->addAction(drawingModeActionList[DrawingWidget::PlaceTextAction]);
+	menu->addAction(drawingModeActionList[DrawingWidget::PlaceTextRectAction]);
+	menu->addAction(drawingModeActionList[DrawingWidget::PlaceTextEllipseAction]);
+
+	menu = menuBar()->addMenu("Object");
+	menu->addAction(drawingActionList[DrawingWidget::RotateAction]);
+	menu->addAction(drawingActionList[DrawingWidget::RotateBackAction]);
+	menu->addAction(drawingActionList[DrawingWidget::FlipHorizontalAction]);
+	menu->addAction(drawingActionList[DrawingWidget::FlipVerticalAction]);
+	menu->addSeparator();
+	menu->addAction(drawingActionList[DrawingWidget::InsertPointAction]);
+	menu->addAction(drawingActionList[DrawingWidget::RemovePointAction]);
+	menu->addSeparator();
+	menu->addAction(drawingActionList[DrawingWidget::GroupAction]);
+	menu->addAction(drawingActionList[DrawingWidget::UngroupAction]);
+	menu->addSeparator();
+	menu->addAction(drawingActionList[DrawingWidget::BringForwardAction]);
+	menu->addAction(drawingActionList[DrawingWidget::SendBackwardAction]);
+	menu->addAction(drawingActionList[DrawingWidget::BringToFrontAction]);
+	menu->addAction(drawingActionList[DrawingWidget::SendToBackAction]);
 
 	menu = menuBar()->addMenu("View");
 	menu->addAction(drawingActionList[DrawingWidget::PropertiesAction]);
@@ -182,6 +314,10 @@ void MainWindow::createMenus()
 	menu->addAction(drawingActionList[DrawingWidget::ZoomInAction]);
 	menu->addAction(drawingActionList[DrawingWidget::ZoomOutAction]);
 	menu->addAction(drawingActionList[DrawingWidget::ZoomFitAction]);
+
+	menu = menuBar()->addMenu("About");
+	menu->addAction(actionList[AboutAction]);
+	menu->addAction(actionList[AboutQtAction]);
 }
 
 void MainWindow::createToolBars()
@@ -221,6 +357,24 @@ void MainWindow::createToolBars()
 	toolBar->setIconSize(QSize(size, size));
 	toolBar->addAction(drawingActionList[DrawingWidget::UndoAction]);
 	toolBar->addAction(drawingActionList[DrawingWidget::RedoAction]);
+	toolBar->addSeparator();
+	toolBar->addAction(drawingActionList[DrawingWidget::CutAction]);
+	toolBar->addAction(drawingActionList[DrawingWidget::CopyAction]);
+	toolBar->addAction(drawingActionList[DrawingWidget::PasteAction]);
+	addToolBar(toolBar);
+
+	toolBar = new QToolBar("Object");
+	toolBar->setObjectName("ObjectToolBar");
+	toolBar->setIconSize(QSize(size, size));
+	toolBar->addAction(drawingActionList[DrawingWidget::RotateAction]);
+	toolBar->addAction(drawingActionList[DrawingWidget::RotateBackAction]);
+	toolBar->addAction(drawingActionList[DrawingWidget::FlipHorizontalAction]);
+	toolBar->addAction(drawingActionList[DrawingWidget::FlipVerticalAction]);
+	toolBar->addSeparator();
+	toolBar->addAction(drawingActionList[DrawingWidget::BringForwardAction]);
+	toolBar->addAction(drawingActionList[DrawingWidget::SendBackwardAction]);
+	toolBar->addAction(drawingActionList[DrawingWidget::BringToFrontAction]);
+	toolBar->addAction(drawingActionList[DrawingWidget::SendToBackAction]);
 	addToolBar(toolBar);
 
 	toolBar = new QToolBar("View");
@@ -237,6 +391,16 @@ void MainWindow::createToolBars()
 	toolBar->addAction(drawingModeActionList[DrawingWidget::DefaultModeAction]);
 	toolBar->addAction(drawingModeActionList[DrawingWidget::ScrollModeAction]);
 	toolBar->addAction(drawingModeActionList[DrawingWidget::ZoomModeAction]);
+	toolBar->addSeparator();
+	toolBar->addAction(drawingModeActionList[DrawingWidget::PlaceLineAction]);
+	toolBar->addAction(drawingModeActionList[DrawingWidget::PlaceCurveAction]);
+	toolBar->addAction(drawingModeActionList[DrawingWidget::PlacePolylineAction]);
+	toolBar->addAction(drawingModeActionList[DrawingWidget::PlaceRectAction]);
+	toolBar->addAction(drawingModeActionList[DrawingWidget::PlaceEllipseAction]);
+	toolBar->addAction(drawingModeActionList[DrawingWidget::PlacePolygonAction]);
+	toolBar->addAction(drawingModeActionList[DrawingWidget::PlaceTextAction]);
+	toolBar->addAction(drawingModeActionList[DrawingWidget::PlaceTextRectAction]);
+	toolBar->addAction(drawingModeActionList[DrawingWidget::PlaceTextEllipseAction]);
 	addToolBar(Qt::LeftToolBarArea, toolBar);
 }
 

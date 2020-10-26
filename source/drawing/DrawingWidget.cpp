@@ -253,6 +253,108 @@ void DrawingWidget::setClean()
 
 //==================================================================================================
 
+void DrawingWidget::cut()
+{
+
+}
+
+void DrawingWidget::copy()
+{
+
+}
+
+void DrawingWidget::paste()
+{
+
+}
+
+void DrawingWidget::deleteSelection()
+{
+
+}
+
+//==================================================================================================
+
+void DrawingWidget::selectAll()
+{
+
+}
+
+void DrawingWidget::selectNone()
+{
+
+}
+
+//==================================================================================================
+
+void DrawingWidget::rotateSelection()
+{
+
+}
+
+void DrawingWidget::rotateBackSelection()
+{
+
+}
+
+void DrawingWidget::flipSelectionHorizontal()
+{
+
+}
+
+void DrawingWidget::flipSelectionVertical()
+{
+
+}
+
+//==================================================================================================
+
+void DrawingWidget::bringSelectionForward()
+{
+
+}
+
+void DrawingWidget::sendSelectionBackward()
+{
+
+}
+
+void DrawingWidget::bringSelectionToFront()
+{
+
+}
+
+void DrawingWidget::sendSelectionToBack()
+{
+
+}
+
+//==================================================================================================
+
+void DrawingWidget::groupSelection()
+{
+
+}
+
+void DrawingWidget::ungroupSelection()
+{
+
+}
+
+//==================================================================================================
+
+void DrawingWidget::insertItemPointInSelection()
+{
+
+}
+
+void DrawingWidget::removeItemPointFromSelection()
+{
+
+}
+
+//==================================================================================================
+
 void DrawingWidget::updateProperties(const QHash<QString,QVariant>& properties)
 {
 	bool propertyChanged = false;
@@ -336,5 +438,39 @@ void DrawingWidget::addActions()
 	addAction("Undo", this, SLOT(undo()), "", "Ctrl+Z");
 	addAction("Redo", this, SLOT(redo()), "", "Ctrl+Shift+Z");
 
+	addAction("Cut", this, SLOT(cut()), "", "Ctrl+X");
+	addAction("Copy", this, SLOT(copy()), "", "Ctrl+C");
+	addAction("Paste", this, SLOT(paste()), "", "Ctrl+V");
+	addAction("Delete", this, SLOT(deleteSelection()), "", "Delete");
+
+	addAction("Select All", this, SLOT(selectAll()), "", "Ctrl+A");
+	addAction("Select None", this, SLOT(selectNone()), "", "Ctrl+Shift+A");
+
+	addAction("Rotate", this, SLOT(rotateSelection()), "", "R");
+	addAction("Rotate Back", this, SLOT(rotateBackSelection()), "", "Shift+R");
+	addAction("Flip Horizontal", this, SLOT(flipSelectionHorizontal()), "", "F");
+	addAction("Flip Vertical", this, SLOT(flipSelectionVertical()), "", "F");
+
+	addAction("Bring Forward", this, SLOT(bringSelectionForward()));
+	addAction("Send Backward", this, SLOT(sendSelectionBackward()));
+	addAction("Bring to Front", this, SLOT(bringSelectionToFront()));
+	addAction("Send to Back", this, SLOT(sendSelectionToBack()));
+
+	addAction("Group", this, SLOT(groupSelection()), "", "Ctrl+G");
+	addAction("Ungroup", this, SLOT(ungroupSelection()), "", "Ctrl+Shift+G");
+
+	addAction("Insert Point", this, SLOT(insertItemPointInSelection()), "");
+	addAction("Remove Point", this, SLOT(removeItemPointFromSelection()), "");
+
 	addAction("Properties...", this, SIGNAL(propertiesTriggered()));
+
+	addModeAction("Place Line", ":/icons/oxygen/draw-line.png");
+	addModeAction("Place Curve", ":/icons/oxygen/draw-curve.png");
+	addModeAction("Place Polyline", ":/icons/oxygen/draw-polyline.png");
+	addModeAction("Place Rect", ":/icons/oxygen/draw-rectangle.png");
+	addModeAction("Place Ellipse", ":/icons/oxygen/draw-ellipse.png");
+	addModeAction("Place Polygon", ":/icons/oxygen/draw-polygon.png");
+	addModeAction("Place Text", ":/icons/oxygen/draw-text.png");
+	addModeAction("Place Text Rect", ":/icons/oxygen/draw-textrect.png");
+	addModeAction("Place Text Ellipse", ":/icons/oxygen/draw-textellipse.png");
 }

@@ -27,6 +27,10 @@ class MainWindow : public DrawingWindow
 {
 	Q_OBJECT
 
+public:
+	enum ActionIndex { ExportPngAction = NumberOfActions, ExportSvgAction, ExportVsdxAction, ExportOdgAction,
+		PreferencesAction, AboutAction, AboutQtAction  };
+
 private:
 	QComboBox* mZoomCombo;
 
@@ -40,6 +44,15 @@ public:
 	void saveSettings();
 	void loadSettings();
 
+public slots:
+	void exportPng();
+	void exportSvg();
+	void exportVsdx();
+	void exportOdg();
+
+	void preferences();
+	void about();
+
 protected:
 	virtual void closeEvent(QCloseEvent* event) override;
 
@@ -49,6 +62,8 @@ private slots:
 
 	void setModeText(Drawing::Mode mode);
 	void setModifiedText(bool clean);
+
+	void updateWindow(bool drawingVisible);
 
 private:
 	void addActions();

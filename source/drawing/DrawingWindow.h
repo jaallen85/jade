@@ -29,7 +29,7 @@ class DrawingWindow : public QMainWindow
 	Q_OBJECT
 
 public:
-	enum Action { NewAction, OpenAction, SaveAction, SaveAsAction, CloseAction,
+	enum ActionIndex { NewAction, OpenAction, SaveAction, SaveAsAction, CloseAction,
 		ExitAction, NumberOfActions  };
 
 private:
@@ -62,8 +62,8 @@ public:
 	DrawingPropertiesBrowser* propertiesBrowser() const;
 	bool isDrawingWidgetVisible() const;
 
-	void setDrawingDefaultProperties(const QHash<QString,QVariant>& properties);
-	QHash<QString,QVariant> drawingDefaultProperties() const;
+	void setDefaultDrawingProperties(const QHash<QString,QVariant>& properties);
+	QHash<QString,QVariant> defaultDrawingProperties() const;
 
 	void setApplicationName(const QString& name);
 	void setFileDialogOptions(const QString& fileFilter, const QString& fileSuffix);

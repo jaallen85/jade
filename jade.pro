@@ -23,7 +23,9 @@ SOURCES += \
 	source/drawing/DrawingWidget.cpp \
 	source/drawing/DrawingWindow.cpp \
 	\
+	source/AboutDialog.cpp \
 	source/MainWindow.cpp \
+	source/PreferencesDialog.cpp \
 	source/main.cpp
 
 HEADERS += \
@@ -36,7 +38,9 @@ HEADERS += \
 	source/drawing/DrawingWidget.h \
 	source/drawing/DrawingWindow.h \
 	\
-	source/MainWindow.h
+	source/AboutDialog.h \
+	source/MainWindow.h \
+	source/PreferencesDialog.h
 
 RESOURCES += icons/icons.qrc
 

@@ -31,7 +31,15 @@ class DrawingWidget : public DrawingCanvas
 	Q_OBJECT
 
 public:
-	enum ActionIndex { UndoAction = NumberOfCanvasActions, RedoAction, PropertiesAction, NumberOfActions };
+	enum ActionIndex { UndoAction = NumberOfCanvasActions, RedoAction,
+		CutAction, CopyAction, PasteAction, DeleteAction, SelectAllAction, SelectNoneAction,
+		RotateAction, RotateBackAction, FlipHorizontalAction, FlipVerticalAction,
+		BringForwardAction, SendBackwardAction, BringToFrontAction, SendToBackAction,
+		GroupAction, UngroupAction, InsertPointAction, RemovePointAction,
+		PropertiesAction, NumberOfActions };
+	enum ModeActionIndex { PlaceLineAction = NumberOfCanvasModeActions, PlaceCurveAction, PlacePolylineAction,
+		PlaceRectAction, PlaceEllipseAction, PlacePolygonAction,
+		PlaceTextAction, PlaceTextRectAction, PlaceTextEllipseAction, NumberOfModeActions };
 
 private:
 	QUndoStack mUndoStack;
@@ -66,6 +74,30 @@ public slots:
 	void undo();
 	void redo();
 	void setClean();
+
+	void cut();
+	void copy();
+	void paste();
+	void deleteSelection();
+
+	void selectAll();
+	void selectNone();
+
+	void rotateSelection();
+	void rotateBackSelection();
+	void flipSelectionHorizontal();
+	void flipSelectionVertical();
+
+	void bringSelectionForward();
+	void sendSelectionBackward();
+	void bringSelectionToFront();
+	void sendSelectionToBack();
+
+	void groupSelection();
+	void ungroupSelection();
+
+	void insertItemPointInSelection();
+	void removeItemPointFromSelection();
 
 	void updateProperties(const QHash<QString,QVariant>& properties);
 

@@ -29,7 +29,7 @@ class DrawingCanvas : public QAbstractScrollArea
 
 public:
 	enum ActionIndex { ZoomInAction, ZoomOutAction, ZoomFitAction, NumberOfCanvasActions };
-	enum ModeActionIndex { DefaultModeAction, ScrollModeAction, ZoomModeAction, NumberOfModeActions };
+	enum ModeActionIndex { DefaultModeAction, ScrollModeAction, ZoomModeAction, NumberOfCanvasModeActions };
 
 private:
 	QRectF mSceneRect;

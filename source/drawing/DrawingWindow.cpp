@@ -127,12 +127,12 @@ bool DrawingWindow::isDrawingWidgetVisible() const
 
 //==================================================================================================
 
-void DrawingWindow::setDrawingDefaultProperties(const QHash<QString,QVariant>& properties)
+void DrawingWindow::setDefaultDrawingProperties(const QHash<QString,QVariant>& properties)
 {
 	mDrawingDefaultProperties = properties;
 }
 
-QHash<QString,QVariant> DrawingWindow::drawingDefaultProperties() const
+QHash<QString,QVariant> DrawingWindow::defaultDrawingProperties() const
 {
 	return mDrawingDefaultProperties;
 }
@@ -217,6 +217,8 @@ void DrawingWindow::newDrawing()
 	// Create a new drawing only if there is no open drawing (i.e. close was successful or unneeded)
 	if (mDrawingWidget && !isDrawingWidgetVisible())
 	{
+		clearDrawing();
+
 		mNewCount++;
 		mFilePath = "Untitled " + QString::number(mNewCount);
 		mDrawingWidget->zoomFit();
@@ -248,6 +250,8 @@ void DrawingWindow::openDrawing(const QString& filePath)
 		// Open an existing drawing only if there is no open drawing (i.e. close was successful or unneeded)
 		if (mDrawingWidget && !isDrawingWidgetVisible())
 		{
+			clearDrawing();
+
 			if (loadDrawingFromFile(drawingPath))
 			{
 				mFilePath = drawingPath;
@@ -431,6 +435,7 @@ void DrawingWindow::clearDrawing()
 	if (mDrawingWidget)
 	{
 		// todo: clear drawing items
+		mDrawingWidget->setDefaultMode();
 		mDrawingWidget->setProperties(mDrawingDefaultProperties);
 		mDrawingWidget->setClean();
 	}
