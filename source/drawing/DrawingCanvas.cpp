@@ -28,6 +28,7 @@
 
 DrawingCanvas::DrawingCanvas(QWidget* parent) : QAbstractScrollArea(parent)
 {
+	setMouseTracking(true);
 	setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
 	setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
 
@@ -127,6 +128,26 @@ int DrawingCanvas::gridSpacingMajor() const
 int DrawingCanvas::gridSpacingMinor() const
 {
 	return mGridSpacingMinor;
+}
+
+qreal DrawingCanvas::roundToGrid(qreal value) const
+{
+	qreal result = value;
+
+	if (mGrid > 0)
+	{
+		qreal mod = fmod(value, mGrid);
+		result = value - mod;
+		if (mod >= mGrid/2) result += mGrid;
+		else if (mod <= -mGrid/2) result -= mGrid;
+	}
+
+	return result;
+}
+
+QPointF DrawingCanvas::roundToGrid(const QPointF& position) const
+{
+	return QPointF(roundToGrid(position.x()), roundToGrid(position.y()));
 }
 
 //==================================================================================================
@@ -237,6 +258,11 @@ QRect DrawingCanvas::mapFromScene(const QRectF& rect) const
 }
 
 //==================================================================================================
+
+void DrawingCanvas::setMode(Drawing::Mode mode)
+{
+	mMode = mode;
+}
 
 Drawing::Mode DrawingCanvas::mode() const
 {
@@ -379,6 +405,18 @@ void DrawingCanvas::setZoomMode()
 
 //==================================================================================================
 
+void DrawingCanvas::setModeFromAction(QAction* action)
+{
+	QList<QAction*> modeActionList = modeActions();
+
+	if (action == modeActionList[DefaultModeAction]) setDefaultMode();
+	else if (action == modeActionList[ScrollModeAction]) setScrollMode();
+	else if (action == modeActionList[ZoomModeAction]) setZoomMode();
+	else setDefaultMode();
+}
+
+//==================================================================================================
+
 void DrawingCanvas::paintEvent(QPaintEvent* event)
 {
 	QImage image(viewport()->width(), viewport()->height(), QImage::Format_RGB32);
@@ -392,7 +430,8 @@ void DrawingCanvas::paintEvent(QPaintEvent* event)
 	painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
 
 	drawBackground(&painter);
-	drawRubberBand(&painter, mRubberBandZoomRect);
+	drawMain(&painter);
+	drawForeground(&painter);
 
 	painter.end();
 
@@ -431,6 +470,9 @@ void DrawingCanvas::mousePressEvent(QMouseEvent* event)
 			mMouseButtonDownVerticalScrollValue = verticalScrollBar()->value();
 			break;
 		case Drawing::ZoomMode:
+			// Nothing to do here.
+			break;
+		case Drawing::PlaceMode:
 			// Nothing to do here.
 			break;
 		default:
@@ -477,6 +519,9 @@ void DrawingCanvas::mouseMoveEvent(QMouseEvent* event)
 			mRubberBandZoomRect = QRect(event->pos(), mMouseLeftButtonDownPos).normalized();
 		}
 		break;
+	case Drawing::PlaceMode:
+		// Nothing to do here.
+		break;
 	default:
 		// Nothing to do here.
 		break;
@@ -506,6 +551,9 @@ void DrawingCanvas::mouseReleaseEvent(QMouseEvent* event)
 				emit scaleChanged(mScale);
 				setDefaultMode();
 			}
+			break;
+		case Drawing::PlaceMode:
+			// Nothing to do here.
 			break;
 		default:
 			// Nothing to do here.
@@ -625,6 +673,16 @@ void DrawingCanvas::drawBackground(QPainter* painter)
 	painter->setBrush(mBackgroundBrush);
 }
 
+void DrawingCanvas::drawMain(QPainter* painter)
+{
+	drawRubberBand(painter, mRubberBandZoomRect);
+}
+
+void DrawingCanvas::drawForeground(QPainter* painter)
+{
+	Q_UNUSED(painter);
+}
+
 void DrawingCanvas::drawRubberBand(QPainter* painter, const QRect& rect)
 {
 	if (rect.isValid())
@@ -645,18 +703,6 @@ void DrawingCanvas::drawRubberBand(QPainter* painter, const QRect& rect)
 
 		painter->restore();
 	}
-}
-
-//==================================================================================================
-
-void DrawingCanvas::setModeFromAction(QAction* action)
-{
-	QList<QAction*> modeActionList = modeActions();
-
-	if (action == modeActionList[DefaultModeAction]) setDefaultMode();
-	else if (action == modeActionList[ScrollModeAction]) setScrollMode();
-	else if (action == modeActionList[ZoomModeAction]) setZoomMode();
-	else setDefaultMode();
 }
 
 //==================================================================================================

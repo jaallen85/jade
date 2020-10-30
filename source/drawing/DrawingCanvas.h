@@ -79,6 +79,8 @@ public:
 	QBrush gridBrush() const;
 	int gridSpacingMajor() const;
 	int gridSpacingMinor() const;
+	qreal roundToGrid(qreal value) const;
+	QPointF roundToGrid(const QPointF& position) const;
 
 	void setDynamicGrid(qreal baseValue);
 	void setDynamicGridEnabled(bool enable);
@@ -95,6 +97,7 @@ public:
 	QPointF mapToScene(const QPoint& point) const;
 	QRectF mapToScene(const QRect& rect) const;
 
+	void setMode(Drawing::Mode mode);
 	Drawing::Mode mode() const;
 
 	QAction* addAction(const QString& text, QObject* slotObj, const char* slotFunction,
@@ -118,6 +121,9 @@ public slots:
 	void setScrollMode();
 	void setZoomMode();
 
+protected slots:
+	virtual void setModeFromAction(QAction* action);
+
 protected:
 	virtual void paintEvent(QPaintEvent* event) override;
 	virtual void resizeEvent(QResizeEvent* event) override;
@@ -129,11 +135,11 @@ protected:
 	virtual void wheelEvent(QWheelEvent* event) override;
 
 	virtual void drawBackground(QPainter* painter);
+	virtual void drawMain(QPainter* painter);
+	virtual void drawForeground(QPainter* painter);
 	virtual void drawRubberBand(QPainter* painter, const QRect& rect);
 
-private slots:
-	void setModeFromAction(QAction* action);
-
+protected slots:
 	void mousePanEvent();
 
 private:

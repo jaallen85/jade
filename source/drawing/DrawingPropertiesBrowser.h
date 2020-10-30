@@ -18,14 +18,18 @@
 #define DRAWINGPROPERTIESBROWSER_H
 
 #include <QHash>
+#include <QList>
+#include <QScrollArea>
 #include <QVariant>
-#include <QWidget>
 
+class DrawingItem;
 class DrawingPropertiesWidget;
 class QGroupBox;
+class QStackedWidget;
+class QTabWidget;
 class QVBoxLayout;
 
-class DrawingPropertiesBrowser : public QWidget
+class DrawingPropertiesBrowser : public QScrollArea
 {
 	Q_OBJECT
 
@@ -35,23 +39,48 @@ private:
 	QList<QGroupBox*> mDrawingPropertiesGroups;
 	QList<DrawingPropertiesWidget*> mDrawingPropertiesSubWidgets;
 
+	QWidget* mDefaultItemPropertiesWidget;
+	QVBoxLayout* mDefaultItemPropertiesLayout;
+	QList<QGroupBox*> mDefaultItemPropertiesGroups;
+	QList<DrawingPropertiesWidget*> mDefaultItemPropertiesSubWidgets;
+
+	QWidget* mItemsPropertiesWidget;
+	QVBoxLayout* mItemsPropertiesLayout;
+	QList<QGroupBox*> mItemsPropertiesGroups;
+	QList<DrawingPropertiesWidget*> mItemsPropertiesSubWidgets;
+
+	QTabWidget* mTabWidget;
+	QStackedWidget* mStackedWidget;
+
 	int mPreferredWidth;
 
 public:
-	DrawingPropertiesBrowser(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
+	DrawingPropertiesBrowser(QWidget* parent = nullptr);
 	virtual ~DrawingPropertiesBrowser();
 
 	void registerDrawingWidget(const QString& groupTitle, DrawingPropertiesWidget* widget);
+	void registerDefaultItemWidget(const QString& groupTitle, DrawingPropertiesWidget* widget);
+	void registerItemsWidget(const QString& groupTitle, DrawingPropertiesWidget* widget);
 
 	void setPreferredWidth(int width);
 	void setLabelWidth(int width);
 	QSize sizeHint() const;
 
 public slots:
+	void setItems(const QList<DrawingItem*>& items);
+
 	void setDrawingProperties(const QHash<QString,QVariant>& properties);
+	void setDefaultItemProperties(const QHash<QString,QVariant>& properties);
+	void setItemsProperties(const QList<DrawingItem*>& items);
 
 signals:
 	void drawingPropertiesChanged(const QHash<QString,QVariant>& properties);
+	void defaultItemPropertiesChanged(const QHash<QString,QVariant>& properties);
+	void itemsPropertiesChanged(const QHash< DrawingItem*, QHash<QString,QVariant> >& properties);
+
+private:
+	void createPropertiesWidget(QWidget*& widget, QVBoxLayout*& layout);
+	QGroupBox* findOrCreateGroup(const QString& groupTitle, QVBoxLayout* layout, QList<QGroupBox*>& groups);
 };
 
 #endif

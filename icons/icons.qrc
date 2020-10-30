@@ -61,5 +61,13 @@
         <file>oxygen/object-flip-vertical.png</file>
         <file>items/textellipse.png</file>
         <file>items/textrect.png</file>
+        <file>arrow/arrow_circle.png</file>
+        <file>arrow/arrow_circle_filled.png</file>
+        <file>arrow/arrow_concave.png</file>
+        <file>arrow/arrow_concave_filled.png</file>
+        <file>arrow/arrow_none.png</file>
+        <file>arrow/arrow_normal.png</file>
+        <file>arrow/arrow_triangle.png</file>
+        <file>arrow/arrow_triangle_filled.png</file>
     </qresource>
 </RCC>

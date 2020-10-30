@@ -17,6 +17,8 @@
 #include "MainWindow.h"
 #include "PreferencesDialog.h"
 #include "AboutDialog.h"
+#include <DrawingItem.h>
+#include <DrawingPropertiesBrowser.h>
 #include <DrawingWidget.h>
 #include <QApplication>
 #include <QCloseEvent>
@@ -40,7 +42,7 @@ MainWindow::MainWindow(const QString& filePath) : DrawingWindow()
 	createStatusBar();
 
 	setWindowIcon(QIcon(":/icons/jade/jade.png"));
-	resize(1334, 800);
+	resize(1354, 800);
 
 	loadSettings();
 	connect(this, SIGNAL(drawingVisibilityChanged(bool)), this, SLOT(updateWindow(bool)));
@@ -79,15 +81,27 @@ void MainWindow::saveSettings()
 
 	QHash<QString,QVariant> properties = defaultDrawingProperties();
 	settings.beginGroup("DrawingDefaults");
-	settings.setValue("sceneRect", properties.value("sceneRect").value<QRectF>());
-	settings.setValue("backgroundBrush", properties.value("backgroundBrush").value<QBrush>());
-	settings.setValue("grid", properties.value("grid").value<qreal>());
-	settings.setValue("gridStyle", properties.value("gridStyle").value<uint>());
-	settings.setValue("gridBrush", properties.value("gridBrush").value<QBrush>());
-	settings.setValue("gridSpacingMajor", properties.value("gridSpacingMajor").value<int>());
-	settings.setValue("gridSpacingMinor", properties.value("gridSpacingMinor").value<int>());
-	settings.setValue("dynamicGrid", properties.value("dynamicGrid").value<qreal>());
-	settings.setValue("dynamicGridEnabled", properties.value("dynamicGridEnabled").value<bool>());
+	settings.setValue("sceneRect", properties.value("sceneRect"));
+	settings.setValue("backgroundBrush", properties.value("backgroundBrush"));
+	settings.setValue("grid", properties.value("grid"));
+	settings.setValue("gridStyle", properties.value("gridStyle"));
+	settings.setValue("gridBrush", properties.value("gridBrush"));
+	settings.setValue("gridSpacingMajor", properties.value("gridSpacingMajor"));
+	settings.setValue("gridSpacingMinor", properties.value("gridSpacingMinor"));
+	settings.setValue("dynamicGrid", properties.value("dynamicGrid"));
+	settings.setValue("dynamicGridEnabled", properties.value("dynamicGridEnabled"));
+	settings.endGroup();
+
+	properties = DrawingItem::factory.defaultItemProperties();
+	settings.beginGroup("ItemDefaults");
+	settings.setValue("pen", properties.value("pen"));
+	settings.setValue("brush", properties.value("brush"));
+	settings.setValue("startArrow", properties.value("startArrow"));
+	settings.setValue("endArrow", properties.value("endArrow"));
+	settings.setValue("textBrush", properties.value("textBrush"));
+	settings.setValue("font", properties.value("font"));
+	settings.setValue("alignment", properties.value("alignment"));
+	settings.endGroup();
 }
 
 void MainWindow::loadSettings()
@@ -105,8 +119,8 @@ void MainWindow::loadSettings()
 	QSettings settings(configPath, QSettings::IniFormat);
 
 	settings.beginGroup("Window");
-	restoreGeometry(settings.value("geometry", QVariant()).toByteArray());
-	restoreState(settings.value("state", QVariant()).toByteArray());
+	restoreGeometry(settings.value("geometry", QVariant(QByteArray())).toByteArray());
+	restoreState(settings.value("state", QVariant(QByteArray())).toByteArray());
 	settings.endGroup();
 
 	settings.beginGroup("Prompts");
@@ -116,17 +130,35 @@ void MainWindow::loadSettings()
 
 	QHash<QString,QVariant> properties = defaultDrawingProperties();
 	settings.beginGroup("DrawingDefaults");
-	properties.insert("sceneRect", settings.value("sceneRect", QVariant(QRectF(-100, -100, 8200, 6200))).toRectF());
-	properties.insert("backgroundBrush", QBrush(settings.value("backgroundBrush", QVariant(QBrush(QColor(255, 255, 255)))).value<QBrush>()));
-	properties.insert("grid", settings.value("grid", QVariant(50.0)).toDouble());
-	properties.insert("gridStyle", settings.value("gridStyle", QVariant((uint)Drawing::GridGraphPaper)).toUInt());
-	properties.insert("gridBrush", QBrush(settings.value("gridBrush", QVariant(QBrush(QColor(0, 128, 128)))).value<QBrush>()));
-	properties.insert("gridSpacingMajor", settings.value("gridSpacingMajor", QVariant(8)).toInt());
-	properties.insert("gridSpacingMinor", settings.value("gridSpacingMinor", QVariant(2)).toInt());
-	properties.insert("dynamicGrid", settings.value("dynamicGrid", QVariant(1000.0)).toDouble());
-	properties.insert("dynamicGridEnabled", settings.value("dynamicGrid", QVariant(false)).toBool());
+	properties.insert("sceneRect", settings.value("sceneRect", QVariant(QRectF(-100, -100, 8200, 6200))));
+	properties.insert("backgroundBrush", settings.value("backgroundBrush", QVariant(QBrush(QColor(255, 255, 255)))));
+	properties.insert("grid", settings.value("grid", QVariant(50.0)));
+	properties.insert("gridStyle", settings.value("gridStyle", QVariant((uint)Drawing::GridGraphPaper)));
+	properties.insert("gridBrush", settings.value("gridBrush", QVariant(QBrush(QColor(0, 128, 128)))));
+	properties.insert("gridSpacingMajor", settings.value("gridSpacingMajor", QVariant(8)));
+	properties.insert("gridSpacingMinor", settings.value("gridSpacingMinor", QVariant(2)));
+	properties.insert("dynamicGrid", settings.value("dynamicGrid", QVariant(1000.0)));
+	properties.insert("dynamicGridEnabled", settings.value("dynamicGridEnabled", QVariant(false)));
 	settings.endGroup();
 	setDefaultDrawingProperties(properties);
+	propertiesBrowser()->setDrawingProperties(properties);
+
+	QVariant startArrowVariant, endArrowVariant;
+	startArrowVariant.setValue(DrawingArrow(Drawing::ArrowNone, 100.0));
+	endArrowVariant.setValue(DrawingArrow(Drawing::ArrowNone, 100.0));
+
+	properties = DrawingItem::factory.defaultItemProperties();
+	settings.beginGroup("ItemDefaults");
+	properties.insert("pen", settings.value("pen", QVariant(QPen(Qt::black, 12.0, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin))));
+	properties.insert("brush", settings.value("brush", QVariant(QBrush(Qt::white))));
+	properties.insert("startArrow", settings.value("startArrow", startArrowVariant));
+	properties.insert("endArrow", settings.value("endArrow", endArrowVariant));
+	properties.insert("textBrush", settings.value("textBrush", QVariant(QBrush(Qt::black))));
+	properties.insert("font", settings.value("font", QVariant(QFont("Arial", 100))));
+	properties.insert("alignment", settings.value("alignment", QVariant((uint)(Qt::AlignCenter))));
+	settings.endGroup();
+	DrawingItem::factory.setDefaultItemProperties(properties);
+	propertiesBrowser()->setDefaultItemProperties(properties);
 }
 
 //==================================================================================================

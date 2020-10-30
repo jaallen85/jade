@@ -21,7 +21,9 @@ namespace Drawing
 {
 
 enum GridStyle { GridNone, GridDots, GridLines, GridGraphPaper };
-enum Mode { DefaultMode, ScrollMode, ZoomMode, UserMode = 100 };
+enum Mode { DefaultMode, ScrollMode, ZoomMode, PlaceMode, UserMode = 100 };
+enum ArrowStyle { ArrowNone, ArrowNormal, ArrowTriangle, ArrowTriangleFilled,
+	ArrowConcave, ArrowConcaveFilled, ArrowCircle, ArrowCircleFilled };
 
 }
 

@@ -1,0 +1,74 @@
+// DrawingRectItem.h
+// Copyright (C) 2020  Jason Allen
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+#ifndef DRAWINGRECTITEM_H
+#define DRAWINGRECTITEM_H
+
+#include <DrawingItem.h>
+
+class DrawingRectItem : public DrawingItem
+{
+private:
+	enum PointIndex { TopLeft, BottomRight, TopRight, BottomLeft, TopMiddle, MiddleRight, BottomMiddle, MiddleLeft };
+
+private:
+	QRectF mRect;
+	qreal mCornerRadius;
+	QPen mPen;
+	QBrush mBrush;
+
+	QRectF mBoundingRect;
+	QPainterPath mShape;
+
+public:
+	DrawingRectItem();
+	DrawingRectItem(const DrawingRectItem& item);
+	virtual ~DrawingRectItem();
+
+	virtual QString name() const;
+	virtual DrawingItem* copy() const;
+
+	void setRect(const QRectF& rect);
+	QRectF rect() const;
+
+	void setCornerRadius(qreal radius);
+	qreal cornerRadius() const;
+
+	void setPen(const QPen& pen);
+	QPen pen() const;
+
+	void setBrush(const QBrush& brush);
+	QBrush brush() const;
+
+	virtual void setProperties(const QHash<QString,QVariant>& properties);
+	virtual QHash<QString,QVariant> properties() const;
+
+	virtual QRectF boundingRect() const;
+	virtual QPainterPath shape() const;
+	virtual bool isValid() const;
+
+	virtual void render(QPainter* painter);
+
+	virtual void resize(DrawingItemPoint* point, const QPointF& position);
+
+	virtual void writeToXml(QXmlStreamWriter* xml);
+	virtual void readFromXml(QXmlStreamReader* xml);
+
+protected:
+	virtual void updateItemGeometry();
+};
+
+#endif

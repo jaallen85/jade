@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "DrawingWindow.h"
+#include "DrawingItem.h"
 #include "DrawingPropertiesBrowser.h"
 #include "DrawingWidget.h"
 #include <QAction>
@@ -102,7 +103,11 @@ void DrawingWindow::setPropertiesBrowser(DrawingPropertiesBrowser* propertiesBro
 
 		mPropertiesBrowser = propertiesBrowser;
 		if (mDrawingWidget) mPropertiesBrowser->setDrawingProperties(mDrawingWidget->properties());
+		mPropertiesBrowser->setDefaultItemProperties(DrawingItem::factory.defaultItemProperties());
+		mPropertiesBrowser->setItems(QList<DrawingItem*>());
 
+		connect(mPropertiesBrowser, SIGNAL(defaultItemPropertiesChanged(const QHash<QString,QVariant>&)),
+			&DrawingItem::factory, SLOT(setDefaultItemProperties(const QHash<QString,QVariant>&)));
 		connectDrawingAndPropertiesBrowser();
 	}
 }
@@ -431,8 +436,7 @@ void DrawingWindow::clearDrawing()
 {
 	if (mDrawingWidget)
 	{
-		// todo: clear drawing items
-		mDrawingWidget->setDefaultMode();
+		mDrawingWidget->clearItems();
 		mDrawingWidget->setProperties(mDrawingDefaultProperties);
 		mDrawingWidget->setClean();
 	}
@@ -508,9 +512,15 @@ void DrawingWindow::connectDrawingAndPropertiesBrowser()
 	{
 		connect(mDrawingWidget, SIGNAL(propertiesChanged(const QHash<QString,QVariant>&)),
 			mPropertiesBrowser, SLOT(setDrawingProperties(const QHash<QString,QVariant>&)));
+		connect(mDrawingWidget, SIGNAL(itemsPropertiesChanged(const QList<DrawingItem*>&)),
+			mPropertiesBrowser, SLOT(setItemsProperties(const QList<DrawingItem*>&)));
+		connect(mDrawingWidget, SIGNAL(currentItemsChanged(const QList<DrawingItem*>&)),
+			mPropertiesBrowser, SLOT(setItems(const QList<DrawingItem*>&)));
 
 		connect(mPropertiesBrowser, SIGNAL(drawingPropertiesChanged(const QHash<QString,QVariant>&)),
 			mDrawingWidget, SLOT(updateProperties(const QHash<QString,QVariant>&)));
+		connect(mPropertiesBrowser, SIGNAL(itemsPropertiesChanged(const QHash< DrawingItem*, QHash<QString,QVariant> >&)),
+			mDrawingWidget, SLOT(updateItemsProperties(const QHash< DrawingItem*, QHash<QString,QVariant> >&)));
 	}
 }
 
