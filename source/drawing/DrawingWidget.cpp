@@ -499,6 +499,15 @@ void DrawingWidget::render(QPainter* painter)
 	drawItems(painter, mItems);
 }
 
+void DrawingWidget::renderExport(QPainter* painter)
+{
+	painter->setBrush(backgroundBrush());
+	painter->setPen(Qt::NoPen);
+	painter->drawRect(sceneRect());
+
+	drawItems(painter, mItems);
+}
+
 //==================================================================================================
 
 void DrawingWidget::writeToXml(QXmlStreamWriter* xml)
@@ -1850,11 +1859,11 @@ void DrawingWidget::drawItems(QPainter* painter, const QList<DrawingItem*>& item
 
 		(*itemIter)->render(painter);
 
-		painter->save();
-		painter->setBrush(QColor(255, 0, 255, 128));
-		painter->setPen(QPen(QColor(255, 0, 255, 128), 1));
-		painter->drawPath(itemAdjustedShape(*itemIter));
-		painter->restore();
+//		painter->save();
+//		painter->setBrush(QColor(255, 0, 255, 128));
+//		painter->setPen(QPen(QColor(255, 0, 255, 128), 1));
+//		painter->drawPath(itemAdjustedShape(*itemIter));
+//		painter->restore();
 
 		painter->setTransform((*itemIter)->transform(), true);
 		painter->translate(-(*itemIter)->position());

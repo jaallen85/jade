@@ -23,6 +23,7 @@
 #include <QApplication>
 #include <QCloseEvent>
 #include <QComboBox>
+#include <QFileDialog>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QMenu>
@@ -165,7 +166,39 @@ void MainWindow::loadSettings()
 
 void MainWindow::exportPng()
 {
+	if (isDrawingWidgetVisible())
+	{
+		QString filePath = MainWindow::filePath();
+		QFileDialog::Options options =
+			(shouldPromptOnOverwrite()) ? QFileDialog::Options() : QFileDialog::DontConfirmOverwrite;
 
+		if (filePath.startsWith("Untitled")) filePath = workingDir().path();
+		else filePath = filePath.left(filePath.length() - fileSuffix().length() - 1) + ".png";
+
+		filePath = QFileDialog::getSaveFileName(this, "Export PNG", filePath,
+			"Portable Network Graphics (*.png);;All Files (*)", nullptr, options);
+		if (!filePath.isEmpty())
+		{
+			if (!filePath.endsWith(".png", Qt::CaseInsensitive)) filePath += ".png";
+
+			DrawingWidget* drawing = MainWindow::drawing();
+			QRectF sceneRect = drawing->sceneRect();
+			QSize exportSize = (sceneRect.size() / 4).toSize();
+			QImage pngImage(exportSize, QImage::Format_ARGB32);
+			QPainter painter;
+
+			drawing->clearSelection();
+
+			painter.begin(&pngImage);
+			painter.scale(pngImage.width() / sceneRect.width(), pngImage.height() / sceneRect.height());
+			painter.translate(-sceneRect.left(), -sceneRect.top());
+			painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing, true);
+			drawing->renderExport(&painter);
+			painter.end();
+
+			pngImage.save(filePath, "PNG");
+		}
+	}
 }
 
 void MainWindow::exportSvg()

@@ -75,6 +75,7 @@ public:
 	bool shouldPromptOnOverwrite() const;
 	bool shouldPromptOnClosingUnsaved() const;
 	QString filePath() const;
+	QDir workingDir() const;
 
 	QAction* addAction(const QString& text, QObject* slotObj, const char* slotFunction,
 		const QString& iconPath = QString(), const QString& shortcut = QString());

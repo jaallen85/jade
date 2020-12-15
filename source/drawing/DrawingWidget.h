@@ -124,6 +124,7 @@ public:
 	virtual QHash<QString,QVariant> properties() const;
 
 	virtual void render(QPainter* painter);
+	virtual void renderExport(QPainter* painter);
 
 	virtual void writeToXml(QXmlStreamWriter* xml);
 	virtual void readFromXml(QXmlStreamReader* xml);

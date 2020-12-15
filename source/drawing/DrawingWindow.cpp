@@ -193,6 +193,11 @@ QString DrawingWindow::filePath() const
 	return mFilePath;
 }
 
+QDir DrawingWindow::workingDir() const
+{
+	return mWorkingDir;
+}
+
 //==================================================================================================
 
 QAction* DrawingWindow::addAction(const QString& text, QObject* slotObj, const char* slotFunction,

@@ -655,11 +655,14 @@ void DrawingCanvas::drawBackground(QPainter* painter)
 	}
 
 	// Draw origin
-	qreal radius = mapToScene(QPoint(3, 3)).x() - mapToScene(QPoint(0, 0)).x();
-	painter->drawLine(QPointF(-radius, -radius), QPointF(-radius, radius));
-	painter->drawLine(QPointF(-radius, radius), QPointF(radius, radius));
-	painter->drawLine(QPointF(radius, radius), QPointF(radius, -radius));
-	painter->drawLine(QPointF(radius, -radius), QPointF(-radius, -radius));
+	if (mGridStyle != Drawing::GridNone && mGrid >= 0)
+	{
+		qreal radius = mapToScene(QPoint(3, 3)).x() - mapToScene(QPoint(0, 0)).x();
+		painter->drawLine(QPointF(-radius, -radius), QPointF(-radius, radius));
+		painter->drawLine(QPointF(-radius, radius), QPointF(radius, radius));
+		painter->drawLine(QPointF(radius, radius), QPointF(radius, -radius));
+		painter->drawLine(QPointF(radius, -radius), QPointF(-radius, -radius));
+	}
 
 	// Draw border
 	QPen borderPen(QColor(128, 128, 128), devicePixelRatio());
