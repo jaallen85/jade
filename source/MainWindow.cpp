@@ -264,6 +264,17 @@ void MainWindow::setModifiedText(bool clean)
 	mModifiedLabel->setText((clean) ? "" : "Modified");
 }
 
+void MainWindow::setMouseInfoText(const QPointF& position)
+{
+	mMouseInfoLabel->setText(positionToString(position));
+}
+
+void MainWindow::setMouseInfoText(const QPointF& position1, const QPointF& position2)
+{
+	mMouseInfoLabel->setText(positionToString(position1) + " - " + positionToString(position2) + "  " +
+		QString(QChar(0x394)) + " = " + positionToString(position2 - position1));
+}
+
 //==================================================================================================
 
 void MainWindow::updateWindow(bool drawingVisible)
@@ -273,6 +284,13 @@ void MainWindow::updateWindow(bool drawingVisible)
 	actionList[ExportSvgAction]->setEnabled(drawingVisible);
 	actionList[ExportOdgAction]->setEnabled(drawingVisible);
 	actionList[ExportVsdxAction]->setEnabled(drawingVisible);
+}
+
+//==================================================================================================
+
+QString MainWindow::positionToString(const QPointF& position) const
+{
+	return QString("(%1,%2)").arg(position.x(), 0, 'g', 5, QChar()).arg(position.y(), 0, 'g', 5, QChar());
 }
 
 //==================================================================================================
@@ -511,4 +529,11 @@ void MainWindow::createStatusBar()
 	mModifiedLabel->setMinimumWidth(QFontMetrics(mModifiedLabel->font()).boundingRect("Modified").width() + 64);
 	statusBar()->addWidget(mModifiedLabel);
 	connect(drawing(), SIGNAL(cleanChanged(bool)), this, SLOT(setModifiedText(bool)));
+
+	mMouseInfoLabel = new QLabel("");
+	mMouseInfoLabel->setMinimumWidth(QFontMetrics(mMouseInfoLabel->font()).boundingRect("(XXXX.XX,XXXX.XX)").width() + 64);
+	statusBar()->addWidget(mMouseInfoLabel);
+	connect(drawing(), SIGNAL(mouseInfoChanged(const QString&)), mMouseInfoLabel, SLOT(setText(const QString&)));
+	connect(drawing(), SIGNAL(mouseInfoChanged(const QPointF&)), this, SLOT(setMouseInfoText(const QPointF&)));
+	connect(drawing(), SIGNAL(mouseInfoChanged(const QPointF&, const QPointF&)), this, SLOT(setMouseInfoText(const QPointF&, const QPointF&)));
 }

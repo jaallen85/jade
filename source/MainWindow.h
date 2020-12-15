@@ -36,6 +36,7 @@ private:
 
 	QLabel* mModeLabel;
 	QLabel* mModifiedLabel;
+	QLabel* mMouseInfoLabel;
 
 public:
 	MainWindow(const QString& filePath = QString());
@@ -62,10 +63,14 @@ private slots:
 
 	void setModeText(Drawing::Mode mode);
 	void setModifiedText(bool clean);
+	void setMouseInfoText(const QPointF& position);
+	void setMouseInfoText(const QPointF& position1, const QPointF& position2);
 
 	void updateWindow(bool drawingVisible);
 
 private:
+	QString positionToString(const QPointF& position) const;
+
 	void addActions();
 	void createMenus();
 	void createToolBars();

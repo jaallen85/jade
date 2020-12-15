@@ -25,6 +25,5 @@ Notable changes vs libjade-master and jade-master:
 
 Todo:
 - A lot of testing!!!  Pretty much every line of code still needs to be tested.
-- MainWindow: add status bar label to capture DrawingWidget::mouseInfoChanged events
 - MainWindow: exportPng(), exportSvg(), exportVsdx(), exportOdg()
 - MainWindow: add path items for electric circuit elements and logic gates
