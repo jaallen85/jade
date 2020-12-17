@@ -826,7 +826,7 @@ void DrawingWidget::moveSelection(const QPointF& delta)
 		for(auto itemIter = mSelectedItems.begin(); itemIter != mSelectedItems.end(); itemIter++)
 			newPositions[*itemIter] = (*itemIter)->position() + delta;
 
-		moveItemsCommand(mSelectedItems, newPositions, true);
+		moveItemsCommand(mSelectedItems, newPositions, mSelectedItems.size() == 1);
 		viewport()->update();
 	}
 }
@@ -1145,7 +1145,7 @@ void DrawingWidget::updateItemsProperties(const QHash< DrawingItem*, QHash<QStri
 							for(auto itemIter = mSelectedItems.begin(); itemIter != mSelectedItems.end(); itemIter++)
 								newPositions[*itemIter] = (*itemIter)->position() + delta;
 
-							moveItemsCommand(mSelectedItems, newPositions, true, propertiesCommand);
+							moveItemsCommand(mSelectedItems, newPositions, mSelectedItems.size() == 1, propertiesCommand);
 						}
 
 						remainingItemPropertiesToUpdate.remove("position");
@@ -1568,7 +1568,7 @@ void DrawingWidget::mousePressEvent(QMouseEvent* event)
 
 void DrawingWidget::mouseMoveEvent(QMouseEvent* event)
 {
-	DrawingCanvas::mouseReleaseEvent(event);
+	DrawingCanvas::mouseMoveEvent(event);
 
 	QPoint eventPos = event->pos();
 	QPointF eventScenePos = mapToScene(eventPos);
@@ -1739,7 +1739,7 @@ void DrawingWidget::mouseReleaseEvent(QMouseEvent* event)
 					for(auto itemIter = mSelectedItems.begin(); itemIter != mSelectedItems.end(); itemIter++)
 						newPositions[*itemIter] = mDefaultInitialPositions[*itemIter] + deltaPos;
 
-					moveItemsCommand(mSelectedItems, newPositions, true);
+					moveItemsCommand(mSelectedItems, newPositions, mSelectedItems.size() == 1);
 				}
 				break;
 			case MouseResizeItem:
@@ -1751,7 +1751,8 @@ void DrawingWidget::mouseReleaseEvent(QMouseEvent* event)
 				if (mDefaultRubberBandRect.isValid())
 				{
 					QList<DrawingItem*> newSelection = items(mapToScene(mDefaultRubberBandRect));
-					if (newSelection != mSelectedItems) selectItemsCommand(newSelection, true);
+					//if (newSelection != mSelectedItems) selectItemsCommand(newSelection, true);
+					selectItems(newSelection);
 				}
 				break;
 			default:
@@ -1763,7 +1764,7 @@ void DrawingWidget::mouseReleaseEvent(QMouseEvent* event)
 			if (mPlaceItems.size() > 1 ||
 				(mPlaceItems.size() == 1 && mPlaceItems.first()->isValid()))
 			{
-				addItemsCommand(mPlaceItems, true);
+				addItemsCommand(mPlaceItems, mPlaceItems.size() == 1);
 
 				QList<DrawingItem*> newItems = DrawingItem::copyItems(mPlaceItems);
 				mPlaceItems.clear();
@@ -1919,15 +1920,16 @@ void DrawingWidget::drawHotpoints(QPainter* painter, const QList<DrawingItem*>& 
 	painter->setBrush(QColor(255, 128, 0, 128));
 	painter->setPen(QPen(painter->brush(), 1));
 
-	for(auto itemIter = items.begin(), itemEnd = items.end(); itemIter != itemEnd; itemIter++)
+	if (items.size() == 1)
 	{
-		QList<DrawingItemPoint*> itemPoints = (*itemIter)->points();
+		DrawingItem* item = items.first();
+		QList<DrawingItemPoint*> itemPoints = item->points();
 
 		for(auto pointIter = itemPoints.begin(); pointIter != itemPoints.end(); pointIter++)
 		{
 			for(auto otherItemIter = mItems.begin(); otherItemIter != mItems.end(); otherItemIter++)
 			{
-				if ((*itemIter) != (*otherItemIter))
+				if (item != (*otherItemIter))
 				{
 					QList<DrawingItemPoint*> otherItemPoints = (*otherItemIter)->points();
 

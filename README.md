@@ -27,3 +27,4 @@ Todo:
 - A lot of testing!!!  Pretty much every line of code still needs to be tested.
 - MainWindow: exportPng(), exportSvg(), exportVsdx(), exportOdg()
 - MainWindow: add path items for electric circuit elements and logic gates
+- Ability to place ellipses using center point and radii?
