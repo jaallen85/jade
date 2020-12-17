@@ -229,6 +229,8 @@ void DrawingTextItem::readFromXml(QXmlStreamReader* xml)
 
 		if (xml->readNext() == QXmlStreamReader::Characters)
 			mCaption = xml->text().toString();
+
+		xml->skipCurrentElement();
 	}
 }
 

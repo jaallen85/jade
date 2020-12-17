@@ -270,8 +270,11 @@ void DrawingPolygonItem::readFromXml(QXmlStreamReader* xml)
 		// Do this last so that we ensure a call to updateItemGeometry before exiting this function
 		if (attr.hasAttribute("points"))
 			setPolygon(pointsFromString(attr.value("points").toString()));
+
+		xml->skipCurrentElement();
 	}
 }
+
 //==================================================================================================
 
 void DrawingPolygonItem::updateItemGeometry()

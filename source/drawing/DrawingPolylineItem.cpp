@@ -341,6 +341,8 @@ void DrawingPolylineItem::readFromXml(QXmlStreamReader* xml)
 		// Do this last so that we ensure a call to updateItemGeometry before exiting this function
 		if (attr.hasAttribute("points"))
 			setPolyline(pointsFromString(attr.value("points").toString()));
+
+		xml->skipCurrentElement();
 	}
 }
 

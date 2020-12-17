@@ -193,20 +193,35 @@ void DrawingTextEllipseItem::readFromXml(QXmlStreamReader* xml)
 {
 	if (xml)
 	{
-		DrawingEllipseItem::readFromXml(xml);
-
 		QXmlStreamAttributes attr = xml->attributes();
+		QRectF rect;
 
+		readTransformFromXml(xml, "transform");
+
+		QPen pen(Qt::black, 1);
+		QBrush brush = Qt::white;
+		readPenFromXml(xml, "pen", pen);
+		readBrushFromXml(xml, "brush", brush);
 		readFontFromXml(xml, "font", mFont);
+		setPen(pen);
+		setBrush(brush);
 
-		QBrush brush = Qt::black;
+		brush = Qt::black;
 		readBrushFromXml(xml, "text", brush);
 		mTextPen.setBrush(brush);
+
+		if (attr.hasAttribute("left")) rect.setLeft(attr.value("left").toDouble());
+		if (attr.hasAttribute("top")) rect.setTop(attr.value("top").toDouble());
+		if (attr.hasAttribute("width")) rect.setWidth(attr.value("width").toDouble());
+		if (attr.hasAttribute("height")) rect.setHeight(attr.value("height").toDouble());
 
 		if (xml->readNext() == QXmlStreamReader::Characters)
 			mCaption = xml->text().toString();
 
-		updateItemGeometry();
+		// Do this last so that we ensure a call to updateItemGeometry before exiting this function
+		setEllipse(rect);
+
+		xml->skipCurrentElement();
 	}
 }
 

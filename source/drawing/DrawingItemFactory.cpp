@@ -160,8 +160,6 @@ QList<DrawingItem*> DrawingItemFactory::readItemsFromXml(QXmlStreamReader* xml) 
 				item->readFromXml(xml);
 				items.append(item);
 			}
-
-			xml->skipCurrentElement();
 		}
 	}
 

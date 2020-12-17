@@ -347,8 +347,11 @@ void DrawingCurveItem::readFromXml(QXmlStreamReader* xml)
 		if (attr.hasAttribute("x2")) p2.setX(attr.value("x2").toDouble());
 		if (attr.hasAttribute("y2")) p2.setY(attr.value("y2").toDouble());
 		setCurve(p1, cp1, cp2, p2);
+
+		xml->skipCurrentElement();
 	}
 }
+
 //==================================================================================================
 
 void DrawingCurveItem::updateItemGeometry()

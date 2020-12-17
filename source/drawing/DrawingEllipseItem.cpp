@@ -262,6 +262,8 @@ void DrawingEllipseItem::readFromXml(QXmlStreamReader* xml)
 		if (attr.hasAttribute("width")) rect.setWidth(attr.value("width").toDouble());
 		if (attr.hasAttribute("height")) rect.setHeight(attr.value("height").toDouble());
 		setEllipse(rect);
+
+		xml->skipCurrentElement();
 	}
 }
 
