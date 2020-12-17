@@ -137,7 +137,11 @@ void DrawingLineItem::setProperties(const QHash<QString,QVariant>& properties)
 	if (properties.contains("pen"))
 	{
 		QVariant variant = properties.value("pen");
-		if (variant.canConvert<QPen>()) mPen = variant.value<QPen>();
+		{
+			mPen = variant.value<QPen>();
+			mStartArrow.setPen(mPen);
+			mEndArrow.setPen(mPen);
+		}
 	}
 
 	if (properties.contains("startArrow"))

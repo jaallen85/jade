@@ -151,7 +151,11 @@ void DrawingPolylineItem::setProperties(const QHash<QString,QVariant>& propertie
 	if (properties.contains("pen"))
 	{
 		QVariant variant = properties.value("pen");
-		if (variant.canConvert<QPen>()) mPen = variant.value<QPen>();
+		{
+			mPen = variant.value<QPen>();
+			mStartArrow.setPen(mPen);
+			mEndArrow.setPen(mPen);
+		}
 	}
 
 	if (properties.contains("startArrow"))

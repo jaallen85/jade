@@ -2441,7 +2441,7 @@ void DrawingWidget::addActions()
 	addAction("Rotate", this, SLOT(rotateSelection()), "", "R");
 	addAction("Rotate Back", this, SLOT(rotateBackSelection()), "", "Shift+R");
 	addAction("Flip Horizontal", this, SLOT(flipSelectionHorizontal()), "", "F");
-	addAction("Flip Vertical", this, SLOT(flipSelectionVertical()), "", "F");
+	addAction("Flip Vertical", this, SLOT(flipSelectionVertical()), "", "Shift+F");
 
 	addAction("Bring Forward", this, SLOT(bringSelectionForward()));
 	addAction("Send Backward", this, SLOT(sendSelectionBackward()));

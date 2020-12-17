@@ -183,7 +183,8 @@ void MainWindow::exportPng()
 
 			DrawingWidget* drawing = MainWindow::drawing();
 			QRectF sceneRect = drawing->sceneRect();
-			QSize exportSize = (sceneRect.size() / 4).toSize();
+			//QSize exportSize = (sceneRect.size() / 4).toSize();
+			QSize exportSize = sceneRect.size().toSize();
 			QImage pngImage(exportSize, QImage::Format_ARGB32);
 			QPainter painter;
 

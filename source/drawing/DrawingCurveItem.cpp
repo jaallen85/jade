@@ -86,7 +86,7 @@ void DrawingCurveItem::setCurve(const QPointF& p1, const QPointF& controlP1,
 		(p2.y() - p1.y()) * (p2.y() - p1.y()));
 
 	mStartArrow.setVector(p1, length, startArrowAngle());
-	mEndArrow.setVector(p2, length, 180 + endArrowAngle());
+	mEndArrow.setVector(p2, length, endArrowAngle());
 
 	updateItemGeometry();
 }
@@ -160,7 +160,12 @@ void DrawingCurveItem::setProperties(const QHash<QString,QVariant>& properties)
 	if (properties.contains("pen"))
 	{
 		QVariant variant = properties.value("pen");
-		if (variant.canConvert<QPen>()) mPen = variant.value<QPen>();
+		if (variant.canConvert<QPen>())
+		{
+			mPen = variant.value<QPen>();
+			mStartArrow.setPen(mPen);
+			mEndArrow.setPen(mPen);
+		}
 	}
 
 	if (properties.contains("startArrow"))
