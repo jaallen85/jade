@@ -40,7 +40,7 @@ DrawingPropertiesBrowser::DrawingPropertiesBrowser(QWidget* parent) : QScrollAre
 	setWidget(mStackedWidget);
 	setWidgetResizable(true);
 
-	registerDrawingWidget("Drawing", new DrawingRectPropertyWidget("sceneRect", "", true));
+	registerDrawingWidget("Drawing", new DrawingRectPropertyWidget("sceneRect", "", true, false));
 	registerDrawingWidget("Drawing", new DrawingBrushPropertyWidget("backgroundBrush", "Background"));
 	registerDrawingWidget("Grid", new DrawingGridPropertiesWidget());
 
@@ -55,9 +55,9 @@ DrawingPropertiesBrowser::DrawingPropertiesBrowser(QWidget* parent) : QScrollAre
 	registerItemsWidget("Position", new DrawingPositionPropertyWidget("position", "Position"));
 	registerItemsWidget("Line", new DrawingLinePropertyWidget("line", ""));
 	registerItemsWidget("Curve", new DrawingCurvePropertyWidget("curve", ""));
-	registerItemsWidget("Rect", new DrawingRectPropertyWidget("rect", "", false));
+	registerItemsWidget("Rect", new DrawingRectPropertyWidget("rect", "", false, false));
 	registerItemsWidget("Rect", new DrawingSizePropertyWidget("cornerRadius", "Corner Radius"));
-	registerItemsWidget("Ellipse", new DrawingRectPropertyWidget("ellipse", "", false));
+	registerItemsWidget("Ellipse", new DrawingRectPropertyWidget("ellipse", "", false, true));
 	registerItemsWidget("Pen / Brush", new DrawingPenPropertyWidget("pen", "Pen"));
 	registerItemsWidget("Pen / Brush", new DrawingBrushPropertyWidget("brush", "Brush"));
 	registerItemsWidget("Text", new DrawingFontPropertyWidget("font", "Font"));

@@ -204,17 +204,21 @@ private:
 	DrawingHideableCheckBox* mTopLeftCheck;
 	DrawingHideableCheckBox* mBottomRightCheck;
 	DrawingHideableCheckBox* mSizeCheck;
+	DrawingHideableCheckBox* mCenterCheck;
+	DrawingHideableCheckBox* mRadiusCheck;
 
 	DrawingPositionWidget* mTopLeftWidget;
 	DrawingPositionWidget* mBottomRightWidget;
 	DrawingSizeWidget* mSizeWidget;
+	DrawingPositionWidget* mCenterWidget;
+	DrawingSizeWidget* mRadiusWidget;
 
 	DrawingItem* mItem;
 	bool mItemContainsRect;
 
 public:
 	DrawingRectPropertyWidget(const QString& propertyName, const QString& text, bool useRectSize,
-		QWidget* parent = nullptr);
+		bool useRectCenterAndRadius, QWidget* parent = nullptr);
 	~DrawingRectPropertyWidget();
 
 	void setProperties(const QHash<QString,QVariant>& properties) override;

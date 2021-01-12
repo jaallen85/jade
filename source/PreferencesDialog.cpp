@@ -132,7 +132,7 @@ void PreferencesDialog::setupGeneralFrame()
 
 void PreferencesDialog::setupDrawingDefaultsWidget()
 {
-	mDefaultDrawingSceneRectWidget = new DrawingRectPropertyWidget("sceneRect", "", true);
+	mDefaultDrawingSceneRectWidget = new DrawingRectPropertyWidget("sceneRect", "", true, false);
 	mDefaultDrawingBackgroundBrushWidget = new DrawingBrushPropertyWidget("backgroundBrush", "Background");
 	mDefaultDrawingGridWidget = new DrawingGridPropertiesWidget();
 

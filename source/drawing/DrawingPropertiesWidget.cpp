@@ -491,10 +491,12 @@ void DrawingCurvePropertyWidget::handleValueChange()
 //==================================================================================================
 
 DrawingRectPropertyWidget::DrawingRectPropertyWidget(const QString& propertyName,
-	const QString& text, bool useRectSize, QWidget* parent) : DrawingPropertiesWidget(propertyName, parent)
+	const QString& text, bool useRectSize, bool useRectCenterAndRadius, QWidget* parent) :
+	DrawingPropertiesWidget(propertyName, parent)
 {
 	mTopLeftWidget = new DrawingPositionWidget();
 	mTopLeftCheck = addWidget(0, QString("%1 Top Left:").arg(text).trimmed(), mTopLeftWidget);
+	connect(mTopLeftCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
 	connect(mTopLeftWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleValueChange()));
 
 	if (!useRectSize)
@@ -518,6 +520,26 @@ DrawingRectPropertyWidget::DrawingRectPropertyWidget(const QString& propertyName
 		connect(mSizeWidget, SIGNAL(sizeChanged(const QSizeF&)), this, SLOT(handleValueChange()));
 	}
 
+	if (useRectCenterAndRadius)
+	{
+		mCenterWidget = new DrawingPositionWidget();
+		mCenterCheck = addWidget(2, QString("%1 Center:").arg(text).trimmed(), mCenterWidget);
+		connect(mCenterCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
+		connect(mCenterWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleValueChange()));
+
+		mRadiusWidget = new DrawingSizeWidget();
+		mRadiusCheck = addWidget(3, QString("%1 Radius:").arg(text).trimmed(), mRadiusWidget);
+		connect(mRadiusCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
+		connect(mRadiusWidget, SIGNAL(sizeChanged(const QSizeF&)), this, SLOT(handleValueChange()));
+	}
+	else
+	{
+		mCenterCheck = nullptr;
+		mRadiusCheck = nullptr;
+		mCenterWidget = nullptr;
+		mRadiusWidget = nullptr;
+	}
+
 	mItem = nullptr;
 	mItemContainsRect = false;
 }
@@ -535,6 +557,8 @@ void DrawingRectPropertyWidget::setProperties(const QHash<QString,QVariant>& pro
 		mTopLeftWidget->setPosition(rect.topLeft());
 		if (mBottomRightWidget) mBottomRightWidget->setPosition(rect.bottomRight());
 		if (mSizeWidget) mSizeWidget->setSize(rect.size());
+		if (mCenterWidget) mCenterWidget->setPosition(rect.center());
+		if (mRadiusWidget) mRadiusWidget->setSize(QSizeF(rect.width() / 2, rect.height() / 2));
 	}
 
 	mItem = nullptr;
@@ -576,6 +600,8 @@ void DrawingRectPropertyWidget::setItems(const QList<DrawingItem*>& items)
 				mTopLeftWidget->setPosition(rect.topLeft());
 				if (mBottomRightWidget) mBottomRightWidget->setPosition(rect.bottomRight());
 				if (mSizeWidget) mSizeWidget->setSize(rect.size());
+				if (mCenterWidget) mCenterWidget->setPosition(rect.center());
+				if (mRadiusWidget) mRadiusWidget->setSize(QSizeF(rect.width() / 2, rect.height() / 2));
 			}
 		}
 	}
@@ -592,6 +618,16 @@ void DrawingRectPropertyWidget::handleValueChange()
 {
 	if (mItem)
 	{
+		if (checkForSender(sender(), mCenterCheck, mCenterWidget) || checkForSender(sender(), mRadiusCheck, mRadiusWidget))
+		{
+			QRectF rect(QPointF(0, 0), 2 * mRadiusWidget->size());
+			rect.moveCenter(mCenterWidget->position());
+
+			mTopLeftWidget->setPosition(rect.topLeft());
+			if (mBottomRightWidget) mBottomRightWidget->setPosition(rect.bottomRight());
+			if (mSizeWidget) mSizeWidget->setSize(rect.size());
+		}
+
 		QHash< DrawingItem*, QHash<QString,QVariant> > itemProperties;
 		itemProperties.insert(mItem, properties());
 		emit propertiesChanged(itemProperties);
@@ -711,9 +747,9 @@ void DrawingPolygonPropertyWidget::setPolygon(const QPolygonF& polygon)
 					layout->addWidget(mWidgets[i], i, 1);
 
 					if (i == 0)
-						layout->addWidget(new QLabel("Start Point:"), i, 0);
+						layout->addWidget(new QLabel(propertyName() == "polyline" ? "Start Point:" : "First Point:"), i, 0);
 					else if (i == mWidgets.size() - 1)
-						layout->addWidget(new QLabel("End Point:"), i, 0);
+						layout->addWidget(new QLabel(propertyName() == "polyline" ? "End Point:" : "Last Point:"), i, 0);
 				}
 			}
 		}
