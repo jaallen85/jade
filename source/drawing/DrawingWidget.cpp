@@ -1018,8 +1018,14 @@ void DrawingWidget::groupSelection()
 	{
 		QUndoCommand* command = new QUndoCommand("Group Items");
 
-		QList<DrawingItem*> itemsToGroup = mSelectedItems;
-		QList<DrawingItem*> items = DrawingItem::copyItems(mSelectedItems);
+		QList<DrawingItem*> itemsToGroup;
+
+		for(auto itemIter = mItems.begin(); itemIter != mItems.end(); itemIter++)
+		{
+			if ((*itemIter)->isSelected()) itemsToGroup.append(*itemIter);
+		}
+
+		QList<DrawingItem*> items = DrawingItem::copyItems(itemsToGroup);
 		DrawingItemGroup* itemGroup = new DrawingItemGroup();
 		QList<DrawingItem*> itemsToAdd;
 
@@ -1584,7 +1590,7 @@ void DrawingWidget::mouseMoveEvent(QMouseEvent* event)
 	// the user is clicking and dragging.  Otherwise, the mouse info text should show a single
 	// point (the event scene pos).  This may be overridden below to show more info about the
 	// current operation.
-	QPointF mouseInfoPos1 = ((event->buttons() & Qt::LeftButton) && mMouseLeftDragged) ? mMouseDownPosition : eventScenePos;
+	QPointF mouseInfoPos1 = ((event->buttons() & Qt::LeftButton) && mMouseLeftDragged) ? mMouseDownScenePosition : eventScenePos;
 	QPointF mouseInfoPos2 = eventScenePos;
 
 	switch (mode())
