@@ -243,20 +243,24 @@ void DrawingTextRectItem::updateItemGeometry()
 	{
 		qreal halfPenWidth = pen().widthF() / 2;
 		QRectF normalizedRect = rect().normalized();
-		QPainterPath drawPath;
 
 		// Bounding rect
 		mRectBoundingRect = normalizedRect;
-		mRectBoundingRect.adjust(-halfPenWidth, -halfPenWidth, halfPenWidth, halfPenWidth);
+		if (pen().style() != Qt::NoPen) mRectBoundingRect.adjust(-halfPenWidth, -halfPenWidth, halfPenWidth, halfPenWidth);
 
 		mBoundingRect = mRectBoundingRect;
 		mBoundingRect = mBoundingRect.united(mTextBoundingRect);
 
 		// Shape
-		drawPath.addRoundedRect(normalizedRect, cornerRadius(), cornerRadius());
+		if (pen().style() != Qt::NoPen)
+		{
+			QPainterPath drawPath;
+			drawPath.addRoundedRect(normalizedRect, cornerRadius(), cornerRadius());
 
-		mRectShape = strokePath(drawPath, pen());
-		if (brush().color().alpha() > 0) mRectShape.addPath(drawPath);
+			mRectShape = strokePath(drawPath, pen());
+			if (brush().color().alpha() > 0) mRectShape.addPath(drawPath);
+		}
+		else mRectShape.addRoundedRect(normalizedRect, cornerRadius(), cornerRadius());
 
 		mShape = mRectShape;
 		mShape.addRect(mTextBoundingRect);

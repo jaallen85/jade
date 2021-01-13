@@ -244,16 +244,21 @@ void DrawingTextEllipseItem::updateItemGeometry()
 
 		// Bounding rect
 		mRectBoundingRect = normalizedRect;
-		mRectBoundingRect.adjust(-halfPenWidth, -halfPenWidth, halfPenWidth, halfPenWidth);
+		if (pen().style() != Qt::NoPen) mRectBoundingRect.adjust(-halfPenWidth, -halfPenWidth, halfPenWidth, halfPenWidth);
 
 		mBoundingRect = mRectBoundingRect;
 		mBoundingRect = mBoundingRect.united(mTextBoundingRect);
 
 		// Shape
-		drawPath.addEllipse(normalizedRect);
+		if (pen().style() != Qt::NoPen)
+		{
+			QPainterPath drawPath;
+			drawPath.addEllipse(normalizedRect);
 
-		mRectShape = strokePath(drawPath, pen());
-		if (brush().color().alpha() > 0) mRectShape.addPath(drawPath);
+			mRectShape = strokePath(drawPath, pen());
+			if (brush().color().alpha() > 0) mRectShape.addPath(drawPath);
+		}
+		else mRectShape.addEllipse(normalizedRect);
 
 		mShape = mRectShape;
 		mShape.addRect(mTextBoundingRect);

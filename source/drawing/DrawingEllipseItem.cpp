@@ -278,16 +278,20 @@ void DrawingEllipseItem::updateItemGeometry()
 	{
 		qreal halfPenWidth = mPen.widthF() / 2;
 		QRectF normalizedRect = mEllipse.normalized();
-		QPainterPath drawPath;
 
 		// Bounding rect
 		mBoundingRect = normalizedRect;
-		mBoundingRect.adjust(-halfPenWidth, -halfPenWidth, halfPenWidth, halfPenWidth);
+		if (mPen.style() != Qt::NoPen) mBoundingRect.adjust(-halfPenWidth, -halfPenWidth, halfPenWidth, halfPenWidth);
 
 		// Shape
-		drawPath.addEllipse(normalizedRect);
+		if (mPen.style() != Qt::NoPen)
+		{
+			QPainterPath drawPath;
+			drawPath.addEllipse(normalizedRect);
 
-		mShape = strokePath(drawPath, mPen);
-		if (mBrush.color().alpha() > 0) mShape.addPath(drawPath);
+			mShape = strokePath(drawPath, mPen);
+			if (mBrush.color().alpha() > 0) mShape.addPath(drawPath);
+		}
+		else mShape.addEllipse(normalizedRect);
 	}
 }

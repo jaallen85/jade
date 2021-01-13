@@ -289,14 +289,23 @@ void DrawingPolygonItem::updateItemGeometry()
 
 		// Bounding rect
 		mBoundingRect = mPolygon.boundingRect().normalized();
-		mBoundingRect.adjust(-halfPenWidth, -halfPenWidth, halfPenWidth, halfPenWidth);
+		if (mPen.style() != Qt::NoPen) mBoundingRect.adjust(-halfPenWidth, -halfPenWidth, halfPenWidth, halfPenWidth);
 
 		// Shape
-		drawPath.addPolygon(polygon());
-		drawPath.closeSubpath();
+		if (mPen.style() != Qt::NoPen)
+		{
+			QPainterPath drawPath;
+			drawPath.addPolygon(polygon());
+			drawPath.closeSubpath();
 
-		mShape = strokePath(drawPath, mPen);
-		if (mBrush.color().alpha() > 0) mShape = mShape.united(drawPath);
+			mShape = strokePath(drawPath, mPen);
+			if (mBrush.color().alpha() > 0) mShape = mShape.united(drawPath);
+		}
+		else
+		{
+			mShape.addPolygon(polygon());
+			mShape.closeSubpath();
+		}
 	}
 }
 

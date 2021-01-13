@@ -306,12 +306,17 @@ void DrawingRectItem::updateItemGeometry()
 
 		// Bounding rect
 		mBoundingRect = normalizedRect;
-		mBoundingRect.adjust(-halfPenWidth, -halfPenWidth, halfPenWidth, halfPenWidth);
+		if (mPen.style() != Qt::NoPen) mBoundingRect.adjust(-halfPenWidth, -halfPenWidth, halfPenWidth, halfPenWidth);
 
 		// Shape
-		drawPath.addRoundedRect(normalizedRect, mCornerRadius, mCornerRadius);
+		if (mPen.style() != Qt::NoPen)
+		{
+			QPainterPath drawPath;
+			drawPath.addRoundedRect(normalizedRect, mCornerRadius, mCornerRadius);
 
-		mShape = strokePath(drawPath, mPen);
-		if (mBrush.color().alpha() > 0) mShape.addPath(drawPath);
+			mShape = strokePath(drawPath, mPen);
+			if (mBrush.color().alpha() > 0) mShape.addPath(drawPath);
+		}
+		else mShape.addRoundedRect(normalizedRect, mCornerRadius, mCornerRadius);
 	}
 }
