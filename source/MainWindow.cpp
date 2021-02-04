@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "MainWindow.h"
+#include "ExportOptionsDialog.h"
 #include "PreferencesDialog.h"
 #include "AboutDialog.h"
 #include <DrawingItem.h>
@@ -34,6 +35,9 @@
 
 MainWindow::MainWindow(const QString& filePath) : DrawingWindow()
 {
+	mExportSize = QSize();
+	mExportMaintainAspectRatio = true;
+
 	setApplicationName("Jade");
 	setFileDialogOptions("Jade Drawings (*.jdm);;All Files (*)", "jdm");
 
@@ -47,6 +51,9 @@ MainWindow::MainWindow(const QString& filePath) : DrawingWindow()
 
 	loadSettings();
 	connect(this, SIGNAL(drawingVisibilityChanged(bool)), this, SLOT(updateWindow(bool)));
+
+	connect(this, SIGNAL(drawingVisibilityChanged(bool)), this, SLOT(resetExportSize(bool)));
+	connect(drawing(), SIGNAL(propertiesChanged(const QHash<QString,QVariant>&)), this, SLOT(resetExportSize(const QHash<QString,QVariant>&)));
 
 	if (!filePath.isEmpty()) openDrawing(filePath);
 	else newDrawing();
@@ -183,21 +190,29 @@ void MainWindow::exportPng()
 
 			DrawingWidget* drawing = MainWindow::drawing();
 			QRectF sceneRect = drawing->sceneRect();
-			//QSize exportSize = (sceneRect.size() / 4).toSize();
-			QSize exportSize = sceneRect.size().toSize();
-			QImage pngImage(exportSize, QImage::Format_ARGB32);
-			QPainter painter;
+			QSize exportSize = mExportSize;
+			if (!exportSize.isValid()) exportSize = (sceneRect.size() / 4).toSize();
 
-			drawing->clearSelection();
+			ExportOptionsDialog exportDialog(drawing->sceneRect(), exportSize, mExportMaintainAspectRatio, this);
+			if (exportDialog.exec() == ExportOptionsDialog::Accepted)
+			{
+				mExportSize = exportDialog.exportSize();
+				mExportMaintainAspectRatio = exportDialog.maintainAspectRatio();
 
-			painter.begin(&pngImage);
-			painter.scale(pngImage.width() / sceneRect.width(), pngImage.height() / sceneRect.height());
-			painter.translate(-sceneRect.left(), -sceneRect.top());
-			painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing, true);
-			drawing->renderExport(&painter);
-			painter.end();
+				QImage pngImage(mExportSize, QImage::Format_ARGB32);
+				QPainter painter;
 
-			pngImage.save(filePath, "PNG");
+				drawing->clearSelection();
+
+				painter.begin(&pngImage);
+				painter.scale(pngImage.width() / sceneRect.width(), pngImage.height() / sceneRect.height());
+				painter.translate(-sceneRect.left(), -sceneRect.top());
+				painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing, true);
+				drawing->renderExport(&painter);
+				painter.end();
+
+				pngImage.save(filePath, "PNG");
+			}
 		}
 	}
 }
@@ -318,6 +333,19 @@ void MainWindow::updateWindow(bool drawingVisible)
 	actionList[ExportSvgAction]->setEnabled(drawingVisible);
 	actionList[ExportOdgAction]->setEnabled(drawingVisible);
 	actionList[ExportVsdxAction]->setEnabled(drawingVisible);
+}
+
+//==================================================================================================
+
+void MainWindow::resetExportSize(bool drawingVisible)
+{
+	mExportSize = QSize();
+	Q_UNUSED(drawingVisible);
+}
+
+void MainWindow::resetExportSize(const QHash<QString,QVariant>& properties)
+{
+	if (properties.contains("sceneRect")) mExportSize = QSize();
 }
 
 //==================================================================================================

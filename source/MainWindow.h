@@ -38,6 +38,9 @@ private:
 	QLabel* mModifiedLabel;
 	QLabel* mMouseInfoLabel;
 
+	QSize mExportSize;
+	bool mExportMaintainAspectRatio;
+
 public:
 	MainWindow(const QString& filePath = QString());
 	~MainWindow();
@@ -67,6 +70,9 @@ private slots:
 	void setMouseInfoText(const QPointF& position1, const QPointF& position2);
 
 	void updateWindow(bool drawingVisible);
+
+	void resetExportSize(bool drawingVisible);
+	void resetExportSize(const QHash<QString,QVariant>& properties);
 
 private:
 	QString positionToString(const QPointF& position) const;

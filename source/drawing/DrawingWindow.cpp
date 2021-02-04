@@ -98,7 +98,7 @@ void DrawingWindow::setPropertiesBrowser(DrawingPropertiesBrowser* propertiesBro
 		if (mPropertiesBrowser)
 		{
 			mPropertiesBrowser->disconnect();
-			delete mDrawingWidget;
+			delete mPropertiesBrowser;
 		}
 
 		mPropertiesBrowser = propertiesBrowser;

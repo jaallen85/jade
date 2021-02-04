@@ -39,6 +39,7 @@ SOURCES += \
 	source/drawing/DrawingWindow.cpp \
 	\
 	source/AboutDialog.cpp \
+	source/ExportOptionsDialog.cpp \
 	source/MainWindow.cpp \
 	source/PreferencesDialog.cpp \
 	source/main.cpp
@@ -69,6 +70,7 @@ HEADERS += \
 	source/drawing/DrawingWindow.h \
 	\
 	source/AboutDialog.h \
+	source/ExportOptionsDialog.h \
 	source/MainWindow.h \
 	source/PreferencesDialog.h
 
