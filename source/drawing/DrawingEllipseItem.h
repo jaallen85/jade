@@ -37,7 +37,7 @@ public:
 	DrawingEllipseItem(const DrawingEllipseItem& item);
 	virtual ~DrawingEllipseItem();
 
-	virtual QString name() const override;
+	virtual QString uniqueKey() const override;
 	virtual DrawingItem* copy() const override;
 
 	void setEllipse(const QRectF& rect);

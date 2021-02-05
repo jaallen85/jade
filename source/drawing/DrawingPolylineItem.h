@@ -36,7 +36,7 @@ public:
 	DrawingPolylineItem(const DrawingPolylineItem& item);
 	virtual ~DrawingPolylineItem();
 
-	virtual QString name() const override;
+	virtual QString uniqueKey() const override;
 	virtual DrawingItem* copy() const override;
 
 	void setPolyline(const QPolygonF& polyline);

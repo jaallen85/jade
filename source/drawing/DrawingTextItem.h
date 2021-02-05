@@ -35,7 +35,7 @@ public:
 	DrawingTextItem(const DrawingTextItem& item);
 	virtual ~DrawingTextItem();
 
-	virtual QString name() const override;
+	virtual QString uniqueKey() const override;
 	virtual DrawingItem* copy() const override;
 
 	void setCaption(const QString& caption);

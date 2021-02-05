@@ -37,7 +37,7 @@ public:
 	DrawingTextEllipseItem(const DrawingTextEllipseItem& item);
 	virtual ~DrawingTextEllipseItem();
 
-	virtual QString name() const override;
+	virtual QString uniqueKey() const override;
 	virtual DrawingItem* copy() const override;
 
 	void setCaption(const QString& caption);

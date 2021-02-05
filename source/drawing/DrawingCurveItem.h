@@ -42,7 +42,7 @@ public:
 	DrawingCurveItem(const DrawingCurveItem& item);
 	virtual ~DrawingCurveItem();
 
-	virtual QString name() const override;
+	virtual QString uniqueKey() const override;
 	virtual DrawingItem* copy() const override;
 
 	void setCurve(const QPointF& p1, const QPointF& controlP1, const QPointF& controlP2, const QPointF& p2);

@@ -42,7 +42,7 @@ DrawingTextItem::~DrawingTextItem() { }
 
 //==================================================================================================
 
-QString DrawingTextItem::name() const
+QString DrawingTextItem::uniqueKey() const
 {
 	return "text";
 }

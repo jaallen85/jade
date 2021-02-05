@@ -31,7 +31,7 @@ public:
 	DrawingItemGroup(const DrawingItemGroup& item);
 	virtual ~DrawingItemGroup();
 
-	virtual QString name() const;
+	virtual QString uniqueKey() const;
 	virtual DrawingItem* copy() const;
 
 	void setItems(const QList<DrawingItem*>& items);

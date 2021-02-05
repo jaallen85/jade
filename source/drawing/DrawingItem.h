@@ -62,7 +62,7 @@ public:
 	DrawingItem(const DrawingItem& item);
 	virtual ~DrawingItem();
 
-	virtual QString name() const = 0;
+	virtual QString uniqueKey() const = 0;
 	virtual DrawingItem* copy() const = 0;
 
 	DrawingWidget* widget() const;

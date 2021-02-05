@@ -47,7 +47,7 @@ DrawingLineItem::~DrawingLineItem() { }
 
 //==================================================================================================
 
-QString DrawingLineItem::name() const
+QString DrawingLineItem::uniqueKey() const
 {
 	return "line";
 }

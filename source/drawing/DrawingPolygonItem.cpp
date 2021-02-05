@@ -42,7 +42,7 @@ DrawingPolygonItem::~DrawingPolygonItem() { }
 
 //==================================================================================================
 
-QString DrawingPolygonItem::name() const
+QString DrawingPolygonItem::uniqueKey() const
 {
 	return "polygon";
 }

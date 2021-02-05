@@ -28,7 +28,7 @@ private:
 	QRectF mRect;
 	QPen mPen;
 
-	QString mName;
+	QString mPathName;
 	QPainterPath mPath;
 	QRectF mPathRect;
 	QHash<DrawingItemPoint*,QPointF> mPathConnectionPoints;
@@ -42,7 +42,7 @@ public:
 	DrawingPathItem(const DrawingPathItem& item);
 	virtual ~DrawingPathItem();
 
-	virtual QString name() const override;
+	virtual QString uniqueKey() const override;
 	virtual DrawingItem* copy() const override;
 
 	void setRect(const QRectF& rect);

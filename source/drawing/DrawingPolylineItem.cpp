@@ -48,7 +48,7 @@ DrawingPolylineItem::~DrawingPolylineItem() { }
 
 //==================================================================================================
 
-QString DrawingPolylineItem::name() const
+QString DrawingPolylineItem::uniqueKey() const
 {
 	return "polyline";
 }

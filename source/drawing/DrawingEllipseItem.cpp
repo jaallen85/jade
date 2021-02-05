@@ -46,7 +46,7 @@ DrawingEllipseItem::~DrawingEllipseItem() { }
 
 //==================================================================================================
 
-QString DrawingEllipseItem::name() const
+QString DrawingEllipseItem::uniqueKey() const
 {
 	return "ellipse";
 }

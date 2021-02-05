@@ -52,7 +52,7 @@ bool DrawingItemFactory::registerItem(DrawingItem* item)
 {
 	bool itemRegistered = false;
 
-	itemRegistered = (item && !containsItem(item->name()));
+	itemRegistered = (item && !containsItem(item->uniqueKey()));
 	if (itemRegistered) mItems.append(item);
 
 	return itemRegistered;
@@ -63,23 +63,23 @@ void DrawingItemFactory::clearItems()
 	while (!mItems.isEmpty()) delete mItems.takeFirst();
 }
 
-bool DrawingItemFactory::containsItem(const QString& name) const
+bool DrawingItemFactory::containsItem(const QString& uniqueKey) const
 {
 	bool containsItem = false;
 
 	for(auto itemIter = mItems.begin(); !containsItem && itemIter != mItems.end(); itemIter++)
-		containsItem = ((*itemIter)->name() == name);
+		containsItem = ((*itemIter)->uniqueKey() == uniqueKey);
 
 	return containsItem;
 }
 
-DrawingItem* DrawingItemFactory::createItem(const QString& name) const
+DrawingItem* DrawingItemFactory::createItem(const QString& uniqueKey) const
 {
 	DrawingItem* item = nullptr;
 
 	for(auto itemIter = mItems.begin(); item == nullptr && itemIter != mItems.end(); itemIter++)
 	{
-		if ((*itemIter)->name() == name) item = (*itemIter)->copy();
+		if ((*itemIter)->uniqueKey() == uniqueKey) item = (*itemIter)->copy();
 	}
 
 	if (item) item->setProperties(mDefaultItemProperties);
@@ -133,7 +133,7 @@ void DrawingItemFactory::writeItemsToXml(QXmlStreamWriter* xml, const QList<Draw
 	{
 		for(auto itemIter = items.begin(); itemIter != items.end(); itemIter++)
 		{
-			xml->writeStartElement((*itemIter)->name());
+			xml->writeStartElement((*itemIter)->uniqueKey());
 			(*itemIter)->writeToXml(xml);
 			xml->writeEndElement();
 		}

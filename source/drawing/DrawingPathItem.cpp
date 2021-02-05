@@ -24,7 +24,7 @@ DrawingPathItem::DrawingPathItem() : DrawingItem()
 	mRect = QRectF(0, 0, 0, 0);
 	mPen = QPen(Qt::black, 16, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
 
-	mName = "Path";
+	mPathName = "Path";
 
 	updateItemGeometry();
 }
@@ -34,7 +34,7 @@ DrawingPathItem::DrawingPathItem(const DrawingPathItem& item) : DrawingItem(item
 	mRect = item.mRect;
 	mPen = item.mPen;
 
-	mName = item.mName;
+	mPathName = item.mPathName;
 	mPath = item.mPath;
 	mPathRect = item.mPathRect;
 
@@ -52,7 +52,7 @@ DrawingPathItem::~DrawingPathItem() { }
 
 //==================================================================================================
 
-QString DrawingPathItem::name() const
+QString DrawingPathItem::uniqueKey() const
 {
 	return "path";
 }
@@ -107,12 +107,12 @@ QPen DrawingPathItem::pen() const
 
 void DrawingPathItem::setPathName(const QString& name)
 {
-	mName = name;
+	mPathName = name;
 }
 
 QString DrawingPathItem::pathName() const
 {
-	return mName;
+	return mPathName;
 }
 
 //==================================================================================================
@@ -326,7 +326,7 @@ void DrawingPathItem::writeToXml(QXmlStreamWriter* xml)
 {
 	if (xml)
 	{
-		xml->writeAttribute("name", mName);
+		xml->writeAttribute("path-name", mPathName);
 
 		writeTransformToXml(xml, "transform");
 
@@ -356,7 +356,7 @@ void DrawingPathItem::readFromXml(QXmlStreamReader* xml)
 		QXmlStreamAttributes attr = xml->attributes();
 		QRectF rect;
 
-		if (attr.hasAttribute("name")) mName = attr.value("name").toString();
+		if (attr.hasAttribute("path-name")) mPathName = attr.value("path-name").toString();
 
 		readTransformFromXml(xml, "transform");
 

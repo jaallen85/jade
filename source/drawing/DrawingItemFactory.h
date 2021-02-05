@@ -40,8 +40,8 @@ public:
 
 	bool registerItem(DrawingItem* item);
 	void clearItems();
-	bool containsItem(const QString& name) const;
-	DrawingItem* createItem(const QString& name) const;
+	bool containsItem(const QString& uniqueKey) const;
+	DrawingItem* createItem(const QString& uniqueKey) const;
 
 	QString writeItemsToString(const QList<DrawingItem*>& items) const;
 	QList<DrawingItem*> readItemsFromString(const QString xmlString) const;

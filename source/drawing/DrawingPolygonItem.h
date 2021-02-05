@@ -34,7 +34,7 @@ public:
 	DrawingPolygonItem(const DrawingPolygonItem& item);
 	virtual ~DrawingPolygonItem();
 
-	virtual QString name() const override;
+	virtual QString uniqueKey() const override;
 	virtual DrawingItem* copy() const override;
 
 	void setPolygon(const QPolygonF& polygon);

@@ -46,7 +46,7 @@ DrawingRectItem::~DrawingRectItem() { }
 
 //==================================================================================================
 
-QString DrawingRectItem::name() const
+QString DrawingRectItem::uniqueKey() const
 {
 	return "rect";
 }

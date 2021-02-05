@@ -38,7 +38,7 @@ public:
 	DrawingLineItem(const DrawingLineItem& item);
 	virtual ~DrawingLineItem();
 
-	virtual QString name() const override;
+	virtual QString uniqueKey() const override;
 	virtual DrawingItem* copy() const override;
 
 	void setLine(const QLineF& line);

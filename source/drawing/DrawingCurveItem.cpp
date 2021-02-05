@@ -51,7 +51,7 @@ DrawingCurveItem::~DrawingCurveItem() { }
 
 //==================================================================================================
 
-QString DrawingCurveItem::name() const
+QString DrawingCurveItem::uniqueKey() const
 {
 	return "curve";
 }

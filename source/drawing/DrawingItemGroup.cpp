@@ -37,7 +37,7 @@ DrawingItemGroup::~DrawingItemGroup()
 
 //==================================================================================================
 
-QString DrawingItemGroup::name() const
+QString DrawingItemGroup::uniqueKey() const
 {
 	return "group";
 }

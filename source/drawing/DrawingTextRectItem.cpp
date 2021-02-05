@@ -45,7 +45,7 @@ DrawingTextRectItem::~DrawingTextRectItem() { }
 
 //==================================================================================================
 
-QString DrawingTextRectItem::name() const
+QString DrawingTextRectItem::uniqueKey() const
 {
 	return "textRect";
 }

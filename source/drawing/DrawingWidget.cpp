@@ -1905,8 +1905,8 @@ void DrawingWidget::updateActionsFromSelection()
 	if (mSelectedItems.size() == 1)
 	{
 		DrawingItem* item = mSelectedItems.first();
-		canUngroup = (item->name() == "group");
-		canInsertRemovePoints = (item->name() == "polygon" || item->name() == "polyline");
+		canUngroup = (item->uniqueKey() == "group");
+		canInsertRemovePoints = (item->uniqueKey() == "polygon" || item->uniqueKey() == "polyline");
 	}
 
 	actionList[GroupAction]->setEnabled(canGroup);

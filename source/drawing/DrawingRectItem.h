@@ -38,7 +38,7 @@ public:
 	DrawingRectItem(const DrawingRectItem& item);
 	virtual ~DrawingRectItem();
 
-	virtual QString name() const;
+	virtual QString uniqueKey() const;
 	virtual DrawingItem* copy() const;
 
 	void setRect(const QRectF& rect);

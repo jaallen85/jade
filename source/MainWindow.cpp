@@ -693,7 +693,7 @@ void MainWindow::setModeFromPlaceAction(QAction* action)
 
 	if (action && mPlaceActions.contains(action))
 	{
-		DrawingItem* item = DrawingItem::factory.createItem(action->property("name").toString());
+		DrawingItem* item = DrawingItem::factory.createItem(action->property("uniqueKey").toString());
 
 		if (item == nullptr)
 		{
@@ -939,7 +939,7 @@ QAction* MainWindow::addPlaceAction(const QString& text, const QString& iconPath
 		else
 		{
 			DrawingItem::factory.registerItem(item);
-			action->setProperty("name", item->name());
+			action->setProperty("uniqueKey", item->uniqueKey());
 		}
 	}
 
