@@ -47,6 +47,8 @@ public:
 private:
 	DrawingWidget* mWidget;
 
+	QString mName;
+
 	QPointF mPosition;
 	QTransform mTransform;
 	QTransform mTransformInverse;
@@ -66,6 +68,9 @@ public:
 	virtual DrawingItem* copy() const = 0;
 
 	DrawingWidget* widget() const;
+
+	void setName(const QString& name);
+	QString name() const;
 
 	void setPosition(const QPointF& position);
 	void setPosition(qreal x, qreal y);

@@ -55,6 +55,18 @@ DrawingWidget* DrawingItem::widget() const
 
 //==================================================================================================
 
+void DrawingItem::setName(const QString& name)
+{
+	mName = name;
+}
+
+QString DrawingItem::name() const
+{
+	return mName;
+}
+
+//==================================================================================================
+
 void DrawingItem::setPosition(const QPointF& position)
 {
 	mPosition = position;
