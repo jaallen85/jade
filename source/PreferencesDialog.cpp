@@ -15,7 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "PreferencesDialog.h"
-#include <DrawingPropertiesWidget.h>
+#include <PropertiesWidgets.h>
 #include <QCheckBox>
 #include <QDialogButtonBox>
 #include <QGroupBox>
@@ -132,9 +132,9 @@ void PreferencesDialog::setupGeneralFrame()
 
 void PreferencesDialog::setupDrawingDefaultsWidget()
 {
-	mDefaultDrawingSceneRectWidget = new DrawingRectPropertyWidget("sceneRect", "", true, false);
-	mDefaultDrawingBackgroundBrushWidget = new DrawingBrushPropertyWidget("backgroundBrush", "Background");
-	mDefaultDrawingGridWidget = new DrawingGridPropertiesWidget();
+	mDefaultDrawingSceneRectWidget = new RectPropertyWidget("sceneRect", "", true, false);
+	mDefaultDrawingBackgroundBrushWidget = new BrushPropertyWidget("backgroundBrush", "Background");
+	mDefaultDrawingGridWidget = new GridPropertiesWidget();
 
 	int labelWidth = QFontMetrics(font()).boundingRect("Background Color:").width() + 24;
 	mDefaultDrawingSceneRectWidget->setLabelWidth(labelWidth);

@@ -1,4 +1,4 @@
-// DrawingPropertiesWidget.h
+// PropertiesWidgets.h
 // Copyright (C) 2020  Jason Allen
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,19 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef DRAWINGPROPERTIESWIDGET_H
-#define DRAWINGPROPERTIESWIDGET_H
+#ifndef PROPERTIESWIDGETS_H
+#define PROPERTIESWIDGETS_H
 
 #include <QHash>
 #include <QVariant>
 #include <QWidget>
 
-class DrawingColorWidget;
-class DrawingHideableCheckBox;
+class ColorWidget;
+class HideableCheckBox;
 class DrawingItem;
-class DrawingPositionWidget;
-class DrawingSizeEdit;
-class DrawingSizeWidget;
+class PositionWidget;
+class SizeEdit;
+class SizeWidget;
 class QComboBox;
 class QFontComboBox;
 class QGridLayout;
@@ -35,7 +35,7 @@ class QStackedWidget;
 class QTextEdit;
 class QToolButton;
 
-class DrawingPropertiesWidget : public QWidget
+class PropertiesWidget : public QWidget
 {
 	Q_OBJECT
 
@@ -44,8 +44,8 @@ private:
 	QGridLayout* mLayout;
 
 public:
-	DrawingPropertiesWidget(const QString& propertyName, QWidget* parent = nullptr);
-	virtual ~DrawingPropertiesWidget();
+	PropertiesWidget(const QString& propertyName, QWidget* parent = nullptr);
+	virtual ~PropertiesWidget();
 
 	QString propertyName() const;
 
@@ -55,7 +55,7 @@ public:
 	virtual void setItems(const QList<DrawingItem*>& items);
 	virtual bool isValidForItems() const;
 
-	DrawingHideableCheckBox* addWidget(int row, const QString& text, QWidget* widget,
+	HideableCheckBox* addWidget(int row, const QString& text, QWidget* widget,
 		Qt::Alignment checkAlignment = Qt::AlignLeft|Qt::AlignVCenter);
 	void setLabelWidth(int width);
 
@@ -63,7 +63,7 @@ public:
 		const QHash<QString,QVariant>& properties, const QString& propertyNamee, T& value) const;
 	template <class T> bool allItemsContainProperty(
 		const QList<DrawingItem*>& items, const QString& propertyName, QList<T>& values) const;
-	bool checkForSender(QObject* sender, DrawingHideableCheckBox* check, QWidget* widget) const;
+	bool checkForSender(QObject* sender, HideableCheckBox* check, QWidget* widget) const;
 
 signals:
 	void propertiesChanged(const QHash<QString,QVariant>& properties);
@@ -72,22 +72,22 @@ signals:
 
 //==================================================================================================
 
-class DrawingPositionPropertyWidget : public DrawingPropertiesWidget
+class PositionPropertyWidget : public PropertiesWidget
 {
 	Q_OBJECT
 
 private:
-	DrawingHideableCheckBox* mCheck;
+	HideableCheckBox* mCheck;
 
-	DrawingPositionWidget* mWidget;
+	PositionWidget* mWidget;
 
 	DrawingItem* mItem;
 	bool mItemContainsPoint;
 
 public:
-	DrawingPositionPropertyWidget(const QString& propertyName, const QString& text,
+	PositionPropertyWidget(const QString& propertyName, const QString& text,
 		QWidget* parent = nullptr);
-	~DrawingPositionPropertyWidget();
+	~PositionPropertyWidget();
 
 	void setProperties(const QHash<QString,QVariant>& properties) override;
 	QHash<QString,QVariant> properties() const override;
@@ -101,22 +101,22 @@ private slots:
 
 //==================================================================================================
 
-class DrawingSizePropertyWidget : public DrawingPropertiesWidget
+class SizePropertyWidget : public PropertiesWidget
 {
 	Q_OBJECT
 
 private:
-	DrawingHideableCheckBox* mCheck;
+	HideableCheckBox* mCheck;
 
-	DrawingSizeEdit* mEdit;
+	SizeEdit* mEdit;
 
 	DrawingItem* mItem;
 	bool mItemContainsSize;
 
 public:
-	DrawingSizePropertyWidget(const QString& propertyName, const QString& text,
+	SizePropertyWidget(const QString& propertyName, const QString& text,
 		QWidget* parent = nullptr);
-	~DrawingSizePropertyWidget();
+	~SizePropertyWidget();
 
 	void setProperties(const QHash<QString,QVariant>& properties) override;
 	QHash<QString,QVariant> properties() const override;
@@ -130,24 +130,24 @@ private slots:
 
 //==================================================================================================
 
-class DrawingLinePropertyWidget : public DrawingPropertiesWidget
+class LinePropertyWidget : public PropertiesWidget
 {
 	Q_OBJECT
 
 private:
-	DrawingHideableCheckBox* mP1Check;
-	DrawingHideableCheckBox* mP2Check;
+	HideableCheckBox* mP1Check;
+	HideableCheckBox* mP2Check;
 
-	DrawingPositionWidget* mP1Widget;
-	DrawingPositionWidget* mP2Widget;
+	PositionWidget* mP1Widget;
+	PositionWidget* mP2Widget;
 
 	DrawingItem* mItem;
 	bool mItemContainsLine;
 
 public:
-	DrawingLinePropertyWidget(const QString& propertyName, const QString& text,
+	LinePropertyWidget(const QString& propertyName, const QString& text,
 		QWidget* parent = nullptr);
-	~DrawingLinePropertyWidget();
+	~LinePropertyWidget();
 
 	void setProperties(const QHash<QString,QVariant>& properties) override;
 	QHash<QString,QVariant> properties() const override;
@@ -161,28 +161,28 @@ private slots:
 
 //==================================================================================================
 
-class DrawingCurvePropertyWidget : public DrawingPropertiesWidget
+class CurvePropertyWidget : public PropertiesWidget
 {
 	Q_OBJECT
 
 private:
-	DrawingHideableCheckBox* mP1Check;
-	DrawingHideableCheckBox* mControlP1Check;
-	DrawingHideableCheckBox* mControlP2Check;
-	DrawingHideableCheckBox* mP2Check;
+	HideableCheckBox* mP1Check;
+	HideableCheckBox* mControlP1Check;
+	HideableCheckBox* mControlP2Check;
+	HideableCheckBox* mP2Check;
 
-	DrawingPositionWidget* mP1Widget;
-	DrawingPositionWidget* mControlP1Widget;
-	DrawingPositionWidget* mControlP2Widget;
-	DrawingPositionWidget* mP2Widget;
+	PositionWidget* mP1Widget;
+	PositionWidget* mControlP1Widget;
+	PositionWidget* mControlP2Widget;
+	PositionWidget* mP2Widget;
 
 	DrawingItem* mItem;
 	bool mItemContainsCurve;
 
 public:
-	DrawingCurvePropertyWidget(const QString& propertyName, const QString& text,
+	CurvePropertyWidget(const QString& propertyName, const QString& text,
 		QWidget* parent = nullptr);
-	~DrawingCurvePropertyWidget();
+	~CurvePropertyWidget();
 
 	void setProperties(const QHash<QString,QVariant>& properties) override;
 	QHash<QString,QVariant> properties() const override;
@@ -196,30 +196,30 @@ private slots:
 
 //==================================================================================================
 
-class DrawingRectPropertyWidget : public DrawingPropertiesWidget
+class RectPropertyWidget : public PropertiesWidget
 {
 	Q_OBJECT
 
 private:
-	DrawingHideableCheckBox* mTopLeftCheck;
-	DrawingHideableCheckBox* mBottomRightCheck;
-	DrawingHideableCheckBox* mSizeCheck;
-	DrawingHideableCheckBox* mCenterCheck;
-	DrawingHideableCheckBox* mRadiusCheck;
+	HideableCheckBox* mTopLeftCheck;
+	HideableCheckBox* mBottomRightCheck;
+	HideableCheckBox* mSizeCheck;
+	HideableCheckBox* mCenterCheck;
+	HideableCheckBox* mRadiusCheck;
 
-	DrawingPositionWidget* mTopLeftWidget;
-	DrawingPositionWidget* mBottomRightWidget;
-	DrawingSizeWidget* mSizeWidget;
-	DrawingPositionWidget* mCenterWidget;
-	DrawingSizeWidget* mRadiusWidget;
+	PositionWidget* mTopLeftWidget;
+	PositionWidget* mBottomRightWidget;
+	SizeWidget* mSizeWidget;
+	PositionWidget* mCenterWidget;
+	SizeWidget* mRadiusWidget;
 
 	DrawingItem* mItem;
 	bool mItemContainsRect;
 
 public:
-	DrawingRectPropertyWidget(const QString& propertyName, const QString& text, bool useRectSize,
+	RectPropertyWidget(const QString& propertyName, const QString& text, bool useRectSize,
 		bool useRectCenterAndRadius, QWidget* parent = nullptr);
-	~DrawingRectPropertyWidget();
+	~RectPropertyWidget();
 
 	void setProperties(const QHash<QString,QVariant>& properties) override;
 	QHash<QString,QVariant> properties() const override;
@@ -233,19 +233,19 @@ private slots:
 
 //==================================================================================================
 
-class DrawingPolygonPropertyWidget : public DrawingPropertiesWidget
+class PolygonPropertyWidget : public PropertiesWidget
 {
 	Q_OBJECT
 
 private:
-	QList<DrawingPositionWidget*> mWidgets;
+	QList<PositionWidget*> mWidgets;
 
 	DrawingItem* mItem;
 	bool mItemContainsPolygon;
 
 public:
-	DrawingPolygonPropertyWidget(const QString& propertyName, QWidget* parent = nullptr);
-	~DrawingPolygonPropertyWidget();
+	PolygonPropertyWidget(const QString& propertyName, QWidget* parent = nullptr);
+	~PolygonPropertyWidget();
 
 	void setProperties(const QHash<QString,QVariant>& properties) override;
 	QHash<QString,QVariant> properties() const override;
@@ -263,12 +263,12 @@ private:
 
 //==================================================================================================
 
-class DrawingTextPropertyWidget : public DrawingPropertiesWidget
+class TextPropertyWidget : public PropertiesWidget
 {
 	Q_OBJECT
 
 private:
-	DrawingHideableCheckBox* mCheck;
+	HideableCheckBox* mCheck;
 
 	QTextEdit* mEdit;
 
@@ -276,9 +276,9 @@ private:
 	bool mItemContainsText;
 
 public:
-	DrawingTextPropertyWidget(const QString& propertyName, const QString& text,
+	TextPropertyWidget(const QString& propertyName, const QString& text,
 		QWidget* parent = nullptr);
-	~DrawingTextPropertyWidget();
+	~TextPropertyWidget();
 
 	void setProperties(const QHash<QString,QVariant>& properties) override;
 	QHash<QString,QVariant> properties() const override;
@@ -292,26 +292,26 @@ private slots:
 
 //==================================================================================================
 
-class DrawingPenPropertyWidget : public DrawingPropertiesWidget
+class PenPropertyWidget : public PropertiesWidget
 {
 	Q_OBJECT
 
 private:
-	DrawingHideableCheckBox* mStyleCheck;
-	DrawingHideableCheckBox* mWidthCheck;
-	DrawingHideableCheckBox* mColorCheck;
+	HideableCheckBox* mStyleCheck;
+	HideableCheckBox* mWidthCheck;
+	HideableCheckBox* mColorCheck;
 
 	QComboBox* mStyleCombo;
-	DrawingSizeEdit* mWidthEdit;
-	DrawingColorWidget* mColorWidget;
+	SizeEdit* mWidthEdit;
+	ColorWidget* mColorWidget;
 
 	QList<DrawingItem*> mItems;
 	bool mAllItemsContainPen;
 
 public:
-	DrawingPenPropertyWidget(const QString& propertyName, const QString& text,
+	PenPropertyWidget(const QString& propertyName, const QString& text,
 		QWidget* parent = nullptr);
-	~DrawingPenPropertyWidget();
+	~PenPropertyWidget();
 
 	void setProperties(const QHash<QString,QVariant>& properties) override;
 	QHash<QString,QVariant> properties() const override;
@@ -325,21 +325,21 @@ private slots:
 
 //==================================================================================================
 
-class DrawingBrushPropertyWidget : public DrawingPropertiesWidget
+class BrushPropertyWidget : public PropertiesWidget
 {
 	Q_OBJECT
 
 private:
-	DrawingHideableCheckBox* mColorCheck;
-	DrawingColorWidget* mColorWidget;
+	HideableCheckBox* mColorCheck;
+	ColorWidget* mColorWidget;
 
 	QList<DrawingItem*> mItems;
 	bool mAllItemsContainBrush;
 
 public:
-	DrawingBrushPropertyWidget(const QString& propertyName, const QString& text,
+	BrushPropertyWidget(const QString& propertyName, const QString& text,
 		QWidget* parent = nullptr);
-	~DrawingBrushPropertyWidget();
+	~BrushPropertyWidget();
 
 	void setProperties(const QHash<QString,QVariant>& properties) override;
 	QHash<QString,QVariant> properties() const override;
@@ -353,17 +353,17 @@ private slots:
 
 //==================================================================================================
 
-class DrawingFontPropertyWidget : public DrawingPropertiesWidget
+class FontPropertyWidget : public PropertiesWidget
 {
 	Q_OBJECT
 
 private:
-	DrawingHideableCheckBox* mFamilyCheck;
-	DrawingHideableCheckBox* mSizeCheck;
-	DrawingHideableCheckBox* mStyleCheck;
+	HideableCheckBox* mFamilyCheck;
+	HideableCheckBox* mSizeCheck;
+	HideableCheckBox* mStyleCheck;
 
 	QFontComboBox* mFamilyCombo;
-	DrawingSizeEdit* mSizeEdit;
+	SizeEdit* mSizeEdit;
 	QWidget* mStyleWidget;
 	QToolButton* mBoldButton;
 	QToolButton* mItalicButton;
@@ -374,9 +374,9 @@ private:
 	bool mAllItemsContainFont;
 
 public:
-	DrawingFontPropertyWidget(const QString& propertyName, const QString& text,
+	FontPropertyWidget(const QString& propertyName, const QString& text,
 		QWidget* parent = nullptr);
-	~DrawingFontPropertyWidget();
+	~FontPropertyWidget();
 
 	void setProperties(const QHash<QString,QVariant>& properties) override;
 	QHash<QString,QVariant> properties() const override;
@@ -390,12 +390,12 @@ private slots:
 
 //==================================================================================================
 
-class DrawingAlignmentPropertyWidget : public DrawingPropertiesWidget
+class AlignmentPropertyWidget : public PropertiesWidget
 {
 	Q_OBJECT
 
 private:
-	DrawingHideableCheckBox* mCheck;
+	HideableCheckBox* mCheck;
 
 	QWidget* mAlignWidget;
 	QToolButton* mLeftAlignButton;
@@ -409,9 +409,9 @@ private:
 	bool mAllItemsContainAlignment;
 
 public:
-	DrawingAlignmentPropertyWidget(const QString& propertyName, const QString& text,
+	AlignmentPropertyWidget(const QString& propertyName, const QString& text,
 		QWidget* parent = nullptr);
-	~DrawingAlignmentPropertyWidget();
+	~AlignmentPropertyWidget();
 
 	void setProperties(const QHash<QString,QVariant>& properties) override;
 	QHash<QString,QVariant> properties() const override;
@@ -425,24 +425,24 @@ private slots:
 
 //==================================================================================================
 
-class DrawingArrowPropertyWidget : public DrawingPropertiesWidget
+class ArrowPropertyWidget : public PropertiesWidget
 {
 	Q_OBJECT
 
 private:
-	DrawingHideableCheckBox* mStyleCheck;
-	DrawingHideableCheckBox* mSizeCheck;
+	HideableCheckBox* mStyleCheck;
+	HideableCheckBox* mSizeCheck;
 
 	QComboBox* mStyleCombo;
-	DrawingSizeEdit* mSizeEdit;
+	SizeEdit* mSizeEdit;
 
 	QList<DrawingItem*> mItems;
 	bool mAllItemsContainArrow;
 
 public:
-	DrawingArrowPropertyWidget(const QString& propertyName, const QString& text,
+	ArrowPropertyWidget(const QString& propertyName, const QString& text,
 		QWidget* parent = nullptr);
-	~DrawingArrowPropertyWidget();
+	~ArrowPropertyWidget();
 
 	void setProperties(const QHash<QString,QVariant>& properties) override;
 	QHash<QString,QVariant> properties() const override;
@@ -456,32 +456,32 @@ private slots:
 
 //==================================================================================================
 
-class DrawingGridPropertiesWidget : public DrawingPropertiesWidget
+class GridPropertiesWidget : public PropertiesWidget
 {
 	Q_OBJECT
 
 private:
-	DrawingHideableCheckBox* mGridCheck;
-	DrawingHideableCheckBox* mGridStyleCheck;
-	DrawingHideableCheckBox* mGridColorCheck;
-	DrawingHideableCheckBox* mGridSpacingMajorCheck;
-	DrawingHideableCheckBox* mGridSpacingMinorCheck;
+	HideableCheckBox* mGridCheck;
+	HideableCheckBox* mGridStyleCheck;
+	HideableCheckBox* mGridColorCheck;
+	HideableCheckBox* mGridSpacingMajorCheck;
+	HideableCheckBox* mGridSpacingMinorCheck;
 
-	DrawingHideableCheckBox* mDynamicGridEnableCheck;
-	DrawingHideableCheckBox* mDynamicGridCheck;
+	HideableCheckBox* mDynamicGridEnableCheck;
+	HideableCheckBox* mDynamicGridCheck;
 
-	DrawingSizeEdit* mGridEdit;
+	SizeEdit* mGridEdit;
 	QComboBox* mGridStyleCombo;
-	DrawingColorWidget* mGridColorWidget;
+	ColorWidget* mGridColorWidget;
 	QLineEdit* mGridSpacingMajorEdit;
 	QLineEdit* mGridSpacingMinorEdit;
 
 	QComboBox* mDynamicGridEnableCombo;
-	DrawingSizeEdit* mDynamicGridEdit;
+	SizeEdit* mDynamicGridEdit;
 
 public:
-	DrawingGridPropertiesWidget(QWidget* parent = nullptr);
-	~DrawingGridPropertiesWidget();
+	GridPropertiesWidget(QWidget* parent = nullptr);
+	~GridPropertiesWidget();
 
 	void setProperties(const QHash<QString,QVariant>& properties) override;
 	QHash<QString,QVariant> properties() const override;

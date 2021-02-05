@@ -1,4 +1,4 @@
-// DrawingPropertiesWidget.cpp
+// PropertiesWidgets.cpp
 // Copyright (C) 2020  Jason Allen
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "DrawingPropertiesWidget.h"
-#include "DrawingHelperWidgets.h"
+#include "PropertiesWidgets.h"
+#include "HelperWidgets.h"
 #include "DrawingItem.h"
 #include "DrawingTypes.h"
 #include <QComboBox>
@@ -28,7 +28,7 @@
 #include <QTextEdit>
 #include <QToolButton>
 
-DrawingPropertiesWidget::DrawingPropertiesWidget(const QString& propertyName, QWidget* parent) : QWidget(parent)
+PropertiesWidget::PropertiesWidget(const QString& propertyName, QWidget* parent) : QWidget(parent)
 {
 	mPropertyName = propertyName;
 
@@ -38,37 +38,37 @@ DrawingPropertiesWidget::DrawingPropertiesWidget(const QString& propertyName, QW
 	setLayout(mLayout);
 }
 
-DrawingPropertiesWidget::~DrawingPropertiesWidget() { }
+PropertiesWidget::~PropertiesWidget() { }
 
 //==================================================================================================
 
-QString DrawingPropertiesWidget::propertyName() const
+QString PropertiesWidget::propertyName() const
 {
 	return mPropertyName;
 }
 
 //==================================================================================================
 
-void DrawingPropertiesWidget::setItems(const QList<DrawingItem*>& items)
+void PropertiesWidget::setItems(const QList<DrawingItem*>& items)
 {
 	Q_UNUSED(items);
 }
 
-bool DrawingPropertiesWidget::isValidForItems() const
+bool PropertiesWidget::isValidForItems() const
 {
 	return true;
 }
 
 //==================================================================================================
 
-DrawingHideableCheckBox* DrawingPropertiesWidget::addWidget(int row, const QString& text,
+HideableCheckBox* PropertiesWidget::addWidget(int row, const QString& text,
 	QWidget* widget, Qt::Alignment checkAlignment)
 {
-	DrawingHideableCheckBox* newCheck = nullptr;
+	HideableCheckBox* newCheck = nullptr;
 
 	if (widget)
 	{
-		newCheck = new DrawingHideableCheckBox(text);
+		newCheck = new HideableCheckBox(text);
 
 		mLayout->addWidget(newCheck, row, 0, checkAlignment);
 		mLayout->addWidget(widget, row, 1);
@@ -79,14 +79,14 @@ DrawingHideableCheckBox* DrawingPropertiesWidget::addWidget(int row, const QStri
 	return newCheck;
 }
 
-void DrawingPropertiesWidget::setLabelWidth(int width)
+void PropertiesWidget::setLabelWidth(int width)
 {
 	mLayout->setColumnMinimumWidth(0, width);
 }
 
 //==================================================================================================
 
-template <class T> bool DrawingPropertiesWidget::containsPropertyAndCanConvert(
+template <class T> bool PropertiesWidget::containsPropertyAndCanConvert(
 	const QHash<QString,QVariant>& properties, const QString& propertyName, T& value) const
 {
 	bool success = false;
@@ -104,7 +104,7 @@ template <class T> bool DrawingPropertiesWidget::containsPropertyAndCanConvert(
 	return success;
 }
 
-template <class T> bool DrawingPropertiesWidget::allItemsContainProperty(
+template <class T> bool PropertiesWidget::allItemsContainProperty(
 	const QList<DrawingItem*>& items, const QString& propertyName, QList<T>& values) const
 {
 	bool allItemsContainProperty = false;
@@ -128,7 +128,7 @@ template <class T> bool DrawingPropertiesWidget::allItemsContainProperty(
 	return allItemsContainProperty;
 }
 
-bool DrawingPropertiesWidget::checkForSender(QObject* sender, DrawingHideableCheckBox* check,
+bool PropertiesWidget::checkForSender(QObject* sender, HideableCheckBox* check,
 	QWidget* widget) const
 {
 	return (sender && check && widget && (sender == widget ||
@@ -139,10 +139,10 @@ bool DrawingPropertiesWidget::checkForSender(QObject* sender, DrawingHideableChe
 //==================================================================================================
 //==================================================================================================
 
-DrawingPositionPropertyWidget::DrawingPositionPropertyWidget(const QString& propertyName,
-	const QString& text, QWidget* parent) : DrawingPropertiesWidget(propertyName, parent)
+PositionPropertyWidget::PositionPropertyWidget(const QString& propertyName,
+	const QString& text, QWidget* parent) : PropertiesWidget(propertyName, parent)
 {
-	mWidget = new DrawingPositionWidget();
+	mWidget = new PositionWidget();
 	mCheck = addWidget(0, QString("%1:").arg(text).trimmed(), mWidget);
 	connect(mWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleValueChange()));
 
@@ -150,11 +150,11 @@ DrawingPositionPropertyWidget::DrawingPositionPropertyWidget(const QString& prop
 	mItemContainsPoint = false;
 }
 
-DrawingPositionPropertyWidget::~DrawingPositionPropertyWidget() { }
+PositionPropertyWidget::~PositionPropertyWidget() { }
 
 //==================================================================================================
 
-void DrawingPositionPropertyWidget::setProperties(const QHash<QString,QVariant>& properties)
+void PositionPropertyWidget::setProperties(const QHash<QString,QVariant>& properties)
 {
 	QPointF point;
 
@@ -164,7 +164,7 @@ void DrawingPositionPropertyWidget::setProperties(const QHash<QString,QVariant>&
 	mItem = nullptr;
 }
 
-QHash<QString,QVariant> DrawingPositionPropertyWidget::properties() const
+QHash<QString,QVariant> PositionPropertyWidget::properties() const
 {
 	QHash<QString,QVariant> properties;
 	properties.insert(propertyName(), mWidget->position());
@@ -173,7 +173,7 @@ QHash<QString,QVariant> DrawingPositionPropertyWidget::properties() const
 
 //==================================================================================================
 
-void DrawingPositionPropertyWidget::setItems(const QList<DrawingItem*>& items)
+void PositionPropertyWidget::setItems(const QList<DrawingItem*>& items)
 {
 	mItem = nullptr;
 	mItemContainsPoint = false;
@@ -196,14 +196,14 @@ void DrawingPositionPropertyWidget::setItems(const QList<DrawingItem*>& items)
 	}
 }
 
-bool DrawingPositionPropertyWidget::isValidForItems() const
+bool PositionPropertyWidget::isValidForItems() const
 {
 	return mItemContainsPoint;
 }
 
 //==================================================================================================
 
-void DrawingPositionPropertyWidget::handleValueChange()
+void PositionPropertyWidget::handleValueChange()
 {
 	if (mItem)
 	{
@@ -218,10 +218,10 @@ void DrawingPositionPropertyWidget::handleValueChange()
 //==================================================================================================
 //==================================================================================================
 
-DrawingSizePropertyWidget::DrawingSizePropertyWidget(const QString& propertyName,
-	const QString& text, QWidget* parent) : DrawingPropertiesWidget(propertyName, parent)
+SizePropertyWidget::SizePropertyWidget(const QString& propertyName,
+	const QString& text, QWidget* parent) : PropertiesWidget(propertyName, parent)
 {
-	mEdit = new DrawingSizeEdit();
+	mEdit = new SizeEdit();
 	mCheck = addWidget(0, QString("%1:").arg(text).trimmed(), mEdit);
 	connect(mEdit, SIGNAL(sizeChanged(qreal)), this, SLOT(handleValueChange()));
 
@@ -229,11 +229,11 @@ DrawingSizePropertyWidget::DrawingSizePropertyWidget(const QString& propertyName
 	mItemContainsSize = false;
 }
 
-DrawingSizePropertyWidget::~DrawingSizePropertyWidget() { }
+SizePropertyWidget::~SizePropertyWidget() { }
 
 //==================================================================================================
 
-void DrawingSizePropertyWidget::setProperties(const QHash<QString,QVariant>& properties)
+void SizePropertyWidget::setProperties(const QHash<QString,QVariant>& properties)
 {
 	qreal size = 0;
 
@@ -243,7 +243,7 @@ void DrawingSizePropertyWidget::setProperties(const QHash<QString,QVariant>& pro
 	mItem = nullptr;
 }
 
-QHash<QString,QVariant> DrawingSizePropertyWidget::properties() const
+QHash<QString,QVariant> SizePropertyWidget::properties() const
 {
 	QHash<QString,QVariant> properties;
 	properties.insert(propertyName(), mEdit->size());
@@ -252,7 +252,7 @@ QHash<QString,QVariant> DrawingSizePropertyWidget::properties() const
 
 //==================================================================================================
 
-void DrawingSizePropertyWidget::setItems(const QList<DrawingItem*>& items)
+void SizePropertyWidget::setItems(const QList<DrawingItem*>& items)
 {
 	mItem = nullptr;
 	mItemContainsSize = false;
@@ -275,14 +275,14 @@ void DrawingSizePropertyWidget::setItems(const QList<DrawingItem*>& items)
 	}
 }
 
-bool DrawingSizePropertyWidget::isValidForItems() const
+bool SizePropertyWidget::isValidForItems() const
 {
 	return mItemContainsSize;
 }
 
 //==================================================================================================
 
-void DrawingSizePropertyWidget::handleValueChange()
+void SizePropertyWidget::handleValueChange()
 {
 	if (mItem)
 	{
@@ -297,14 +297,14 @@ void DrawingSizePropertyWidget::handleValueChange()
 //==================================================================================================
 //==================================================================================================
 
-DrawingLinePropertyWidget::DrawingLinePropertyWidget(const QString& propertyName,
-	const QString& text, QWidget* parent) : DrawingPropertiesWidget(propertyName, parent)
+LinePropertyWidget::LinePropertyWidget(const QString& propertyName,
+	const QString& text, QWidget* parent) : PropertiesWidget(propertyName, parent)
 {
-	mP1Widget = new DrawingPositionWidget();
+	mP1Widget = new PositionWidget();
 	mP1Check = addWidget(0, QString("%1 Start Point:").arg(text).trimmed(), mP1Widget);
 	connect(mP1Widget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleValueChange()));
 
-	mP2Widget = new DrawingPositionWidget();
+	mP2Widget = new PositionWidget();
 	mP2Check = addWidget(1, QString("%1 End Point:").arg(text).trimmed(), mP2Widget);
 	connect(mP2Widget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleValueChange()));
 
@@ -312,11 +312,11 @@ DrawingLinePropertyWidget::DrawingLinePropertyWidget(const QString& propertyName
 	mItemContainsLine = false;
 }
 
-DrawingLinePropertyWidget::~DrawingLinePropertyWidget() { }
+LinePropertyWidget::~LinePropertyWidget() { }
 
 //==================================================================================================
 
-void DrawingLinePropertyWidget::setProperties(const QHash<QString,QVariant>& properties)
+void LinePropertyWidget::setProperties(const QHash<QString,QVariant>& properties)
 {
 	QLineF line;
 
@@ -329,7 +329,7 @@ void DrawingLinePropertyWidget::setProperties(const QHash<QString,QVariant>& pro
 	mItem = nullptr;
 }
 
-QHash<QString,QVariant> DrawingLinePropertyWidget::properties() const
+QHash<QString,QVariant> LinePropertyWidget::properties() const
 {
 	QHash<QString,QVariant> properties;
 	properties.insert(propertyName(), QLineF(mP1Widget->position(), mP2Widget->position()));
@@ -338,7 +338,7 @@ QHash<QString,QVariant> DrawingLinePropertyWidget::properties() const
 
 //==================================================================================================
 
-void DrawingLinePropertyWidget::setItems(const QList<DrawingItem*>& items)
+void LinePropertyWidget::setItems(const QList<DrawingItem*>& items)
 {
 	mItem = nullptr;
 	mItemContainsLine = false;
@@ -362,14 +362,14 @@ void DrawingLinePropertyWidget::setItems(const QList<DrawingItem*>& items)
 	}
 }
 
-bool DrawingLinePropertyWidget::isValidForItems() const
+bool LinePropertyWidget::isValidForItems() const
 {
 	return mItemContainsLine;
 }
 
 //==================================================================================================
 
-void DrawingLinePropertyWidget::handleValueChange()
+void LinePropertyWidget::handleValueChange()
 {
 	if (mItem)
 	{
@@ -384,22 +384,22 @@ void DrawingLinePropertyWidget::handleValueChange()
 //==================================================================================================
 //==================================================================================================
 
-DrawingCurvePropertyWidget::DrawingCurvePropertyWidget(const QString& propertyName,
-	const QString& text, QWidget* parent) : DrawingPropertiesWidget(propertyName, parent)
+CurvePropertyWidget::CurvePropertyWidget(const QString& propertyName,
+	const QString& text, QWidget* parent) : PropertiesWidget(propertyName, parent)
 {
-	mP1Widget = new DrawingPositionWidget();
+	mP1Widget = new PositionWidget();
 	mP1Check = addWidget(0, QString("%1 Start Point:").arg(text).trimmed(), mP1Widget);
 	connect(mP1Widget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleValueChange()));
 
-	mControlP1Widget = new DrawingPositionWidget();
+	mControlP1Widget = new PositionWidget();
 	mControlP1Check = addWidget(1, QString("%1 Start Control Point:").arg(text).trimmed(), mControlP1Widget);
 	connect(mControlP1Widget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleValueChange()));
 
-	mControlP2Widget = new DrawingPositionWidget();
+	mControlP2Widget = new PositionWidget();
 	mControlP2Check = addWidget(2, QString("%1 End Control Point:").arg(text).trimmed(), mControlP2Widget);
 	connect(mControlP2Widget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleValueChange()));
 
-	mP2Widget = new DrawingPositionWidget();
+	mP2Widget = new PositionWidget();
 	mP2Check = addWidget(3, QString("%1 End Point:").arg(text).trimmed(), mP2Widget);
 	connect(mP2Widget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleValueChange()));
 
@@ -407,11 +407,11 @@ DrawingCurvePropertyWidget::DrawingCurvePropertyWidget(const QString& propertyNa
 	mItemContainsCurve = false;
 }
 
-DrawingCurvePropertyWidget::~DrawingCurvePropertyWidget() { }
+CurvePropertyWidget::~CurvePropertyWidget() { }
 
 //==================================================================================================
 
-void DrawingCurvePropertyWidget::setProperties(const QHash<QString,QVariant>& properties)
+void CurvePropertyWidget::setProperties(const QHash<QString,QVariant>& properties)
 {
 	QPolygonF curve;
 
@@ -426,7 +426,7 @@ void DrawingCurvePropertyWidget::setProperties(const QHash<QString,QVariant>& pr
 	mItem = nullptr;
 }
 
-QHash<QString,QVariant> DrawingCurvePropertyWidget::properties() const
+QHash<QString,QVariant> CurvePropertyWidget::properties() const
 {
 	QPolygonF curve;
 	curve << mP1Widget->position() << mControlP1Widget->position() <<
@@ -439,7 +439,7 @@ QHash<QString,QVariant> DrawingCurvePropertyWidget::properties() const
 
 //==================================================================================================
 
-void DrawingCurvePropertyWidget::setItems(const QList<DrawingItem*>& items)
+void CurvePropertyWidget::setItems(const QList<DrawingItem*>& items)
 {
 	mItem = nullptr;
 	mItemContainsCurve = false;
@@ -468,14 +468,14 @@ void DrawingCurvePropertyWidget::setItems(const QList<DrawingItem*>& items)
 	}
 }
 
-bool DrawingCurvePropertyWidget::isValidForItems() const
+bool CurvePropertyWidget::isValidForItems() const
 {
 	return mItemContainsCurve;
 }
 
 //==================================================================================================
 
-void DrawingCurvePropertyWidget::handleValueChange()
+void CurvePropertyWidget::handleValueChange()
 {
 	if (mItem)
 	{
@@ -490,18 +490,18 @@ void DrawingCurvePropertyWidget::handleValueChange()
 //==================================================================================================
 //==================================================================================================
 
-DrawingRectPropertyWidget::DrawingRectPropertyWidget(const QString& propertyName,
+RectPropertyWidget::RectPropertyWidget(const QString& propertyName,
 	const QString& text, bool useRectSize, bool useRectCenterAndRadius, QWidget* parent) :
-	DrawingPropertiesWidget(propertyName, parent)
+	PropertiesWidget(propertyName, parent)
 {
-	mTopLeftWidget = new DrawingPositionWidget();
+	mTopLeftWidget = new PositionWidget();
 	mTopLeftCheck = addWidget(0, QString("%1 Top Left:").arg(text).trimmed(), mTopLeftWidget);
 	connect(mTopLeftCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
 	connect(mTopLeftWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleValueChange()));
 
 	if (!useRectSize)
 	{
-		mBottomRightWidget = new DrawingPositionWidget();
+		mBottomRightWidget = new PositionWidget();
 		mBottomRightCheck = addWidget(1, QString("%1 Bottom Right:").arg(text).trimmed(), mBottomRightWidget);
 		connect(mBottomRightCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
 		connect(mBottomRightWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleValueChange()));
@@ -514,7 +514,7 @@ DrawingRectPropertyWidget::DrawingRectPropertyWidget(const QString& propertyName
 		mBottomRightCheck = nullptr;
 		mBottomRightWidget = nullptr;
 
-		mSizeWidget = new DrawingSizeWidget();
+		mSizeWidget = new SizeWidget();
 		mSizeCheck = addWidget(1, QString("%1 Size:").arg(text).trimmed(), mSizeWidget);
 		connect(mSizeCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
 		connect(mSizeWidget, SIGNAL(sizeChanged(const QSizeF&)), this, SLOT(handleValueChange()));
@@ -522,12 +522,12 @@ DrawingRectPropertyWidget::DrawingRectPropertyWidget(const QString& propertyName
 
 	if (useRectCenterAndRadius)
 	{
-		mCenterWidget = new DrawingPositionWidget();
+		mCenterWidget = new PositionWidget();
 		mCenterCheck = addWidget(2, QString("%1 Center:").arg(text).trimmed(), mCenterWidget);
 		connect(mCenterCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
 		connect(mCenterWidget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleValueChange()));
 
-		mRadiusWidget = new DrawingSizeWidget();
+		mRadiusWidget = new SizeWidget();
 		mRadiusCheck = addWidget(3, QString("%1 Radius:").arg(text).trimmed(), mRadiusWidget);
 		connect(mRadiusCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
 		connect(mRadiusWidget, SIGNAL(sizeChanged(const QSizeF&)), this, SLOT(handleValueChange()));
@@ -544,11 +544,11 @@ DrawingRectPropertyWidget::DrawingRectPropertyWidget(const QString& propertyName
 	mItemContainsRect = false;
 }
 
-DrawingRectPropertyWidget::~DrawingRectPropertyWidget() { }
+RectPropertyWidget::~RectPropertyWidget() { }
 
 //==================================================================================================
 
-void DrawingRectPropertyWidget::setProperties(const QHash<QString,QVariant>& properties)
+void RectPropertyWidget::setProperties(const QHash<QString,QVariant>& properties)
 {
 	QRectF rect(0, 0, 8000, 6000);
 
@@ -564,7 +564,7 @@ void DrawingRectPropertyWidget::setProperties(const QHash<QString,QVariant>& pro
 	mItem = nullptr;
 }
 
-QHash<QString,QVariant> DrawingRectPropertyWidget::properties() const
+QHash<QString,QVariant> RectPropertyWidget::properties() const
 {
 	QHash<QString,QVariant> properties;
 	QRectF rect;
@@ -580,7 +580,7 @@ QHash<QString,QVariant> DrawingRectPropertyWidget::properties() const
 
 //==================================================================================================
 
-void DrawingRectPropertyWidget::setItems(const QList<DrawingItem*>& items)
+void RectPropertyWidget::setItems(const QList<DrawingItem*>& items)
 {
 	mItem = nullptr;
 	mItemContainsRect = false;
@@ -607,14 +607,14 @@ void DrawingRectPropertyWidget::setItems(const QList<DrawingItem*>& items)
 	}
 }
 
-bool DrawingRectPropertyWidget::isValidForItems() const
+bool RectPropertyWidget::isValidForItems() const
 {
 	return mItemContainsRect;
 }
 
 //==================================================================================================
 
-void DrawingRectPropertyWidget::handleValueChange()
+void RectPropertyWidget::handleValueChange()
 {
 	if (mItem)
 	{
@@ -639,18 +639,18 @@ void DrawingRectPropertyWidget::handleValueChange()
 //==================================================================================================
 //==================================================================================================
 
-DrawingPolygonPropertyWidget::DrawingPolygonPropertyWidget(const QString& propertyName,
-	QWidget* parent) : DrawingPropertiesWidget(propertyName, parent)
+PolygonPropertyWidget::PolygonPropertyWidget(const QString& propertyName,
+	QWidget* parent) : PropertiesWidget(propertyName, parent)
 {
 	mItem = nullptr;
 	mItemContainsPolygon = false;
 }
 
-DrawingPolygonPropertyWidget::~DrawingPolygonPropertyWidget() { }
+PolygonPropertyWidget::~PolygonPropertyWidget() { }
 
 //==================================================================================================
 
-void DrawingPolygonPropertyWidget::setProperties(const QHash<QString,QVariant>& properties)
+void PolygonPropertyWidget::setProperties(const QHash<QString,QVariant>& properties)
 {
 	QPolygonF polygon;
 
@@ -660,7 +660,7 @@ void DrawingPolygonPropertyWidget::setProperties(const QHash<QString,QVariant>& 
 	mItem = nullptr;
 }
 
-QHash<QString,QVariant> DrawingPolygonPropertyWidget::properties() const
+QHash<QString,QVariant> PolygonPropertyWidget::properties() const
 {
 	QHash<QString,QVariant> properties;
 	properties.insert(propertyName(), polygon());
@@ -669,7 +669,7 @@ QHash<QString,QVariant> DrawingPolygonPropertyWidget::properties() const
 
 //==================================================================================================
 
-void DrawingPolygonPropertyWidget::setItems(const QList<DrawingItem*>& items)
+void PolygonPropertyWidget::setItems(const QList<DrawingItem*>& items)
 {
 	mItem = nullptr;
 	mItemContainsPolygon = false;
@@ -692,14 +692,14 @@ void DrawingPolygonPropertyWidget::setItems(const QList<DrawingItem*>& items)
 	}
 }
 
-bool DrawingPolygonPropertyWidget::isValidForItems() const
+bool PolygonPropertyWidget::isValidForItems() const
 {
 	return mItemContainsPolygon;
 }
 
 //==================================================================================================
 
-void DrawingPolygonPropertyWidget::handleValueChange()
+void PolygonPropertyWidget::handleValueChange()
 {
 	if (mItem)
 	{
@@ -712,7 +712,7 @@ void DrawingPolygonPropertyWidget::handleValueChange()
 
 //==================================================================================================
 
-void DrawingPolygonPropertyWidget::setPolygon(const QPolygonF& polygon)
+void PolygonPropertyWidget::setPolygon(const QPolygonF& polygon)
 {
 	if (polygon.size() != mWidgets.size())
 	{
@@ -734,7 +734,7 @@ void DrawingPolygonPropertyWidget::setPolygon(const QPolygonF& polygon)
 			// Create new position widgets
 			for(auto pointIter = polygon.begin(); pointIter != polygon.end(); pointIter++)
 			{
-				DrawingPositionWidget* widget = new DrawingPositionWidget(*pointIter);
+				PositionWidget* widget = new PositionWidget(*pointIter);
 				connect(widget, SIGNAL(positionChanged(const QPointF&)), this, SLOT(handleValueChange()));
 				mWidgets.append(widget);
 			}
@@ -761,7 +761,7 @@ void DrawingPolygonPropertyWidget::setPolygon(const QPolygonF& polygon)
 		(*widgetIter)->setPosition(*pointIter);
 }
 
-QPolygonF DrawingPolygonPropertyWidget::polygon() const
+QPolygonF PolygonPropertyWidget::polygon() const
 {
 	QPolygonF polygon;
 
@@ -775,8 +775,8 @@ QPolygonF DrawingPolygonPropertyWidget::polygon() const
 //==================================================================================================
 //==================================================================================================
 
-DrawingTextPropertyWidget::DrawingTextPropertyWidget(const QString& propertyName,
-	const QString& text, QWidget* parent) : DrawingPropertiesWidget(propertyName, parent)
+TextPropertyWidget::TextPropertyWidget(const QString& propertyName,
+	const QString& text, QWidget* parent) : PropertiesWidget(propertyName, parent)
 {
 	mEdit = new QTextEdit();
 	mEdit->setMaximumHeight(QFontMetrics(mEdit->font()).height() * 6 + 8);
@@ -788,11 +788,11 @@ DrawingTextPropertyWidget::DrawingTextPropertyWidget(const QString& propertyName
 	mItemContainsText = false;
 }
 
-DrawingTextPropertyWidget::~DrawingTextPropertyWidget() { }
+TextPropertyWidget::~TextPropertyWidget() { }
 
 //==================================================================================================
 
-void DrawingTextPropertyWidget::setProperties(const QHash<QString,QVariant>& properties)
+void TextPropertyWidget::setProperties(const QHash<QString,QVariant>& properties)
 {
 	QString text;
 
@@ -809,7 +809,7 @@ void DrawingTextPropertyWidget::setProperties(const QHash<QString,QVariant>& pro
 	mItem = nullptr;
 }
 
-QHash<QString,QVariant> DrawingTextPropertyWidget::properties() const
+QHash<QString,QVariant> TextPropertyWidget::properties() const
 {
 	QHash<QString,QVariant> properties;
 	properties.insert(propertyName(), mEdit->toPlainText());
@@ -818,7 +818,7 @@ QHash<QString,QVariant> DrawingTextPropertyWidget::properties() const
 
 //==================================================================================================
 
-void DrawingTextPropertyWidget::setItems(const QList<DrawingItem*>& items)
+void TextPropertyWidget::setItems(const QList<DrawingItem*>& items)
 {
 	mItem = nullptr;
 	mItemContainsText = false;
@@ -846,14 +846,14 @@ void DrawingTextPropertyWidget::setItems(const QList<DrawingItem*>& items)
 	}
 }
 
-bool DrawingTextPropertyWidget::isValidForItems() const
+bool TextPropertyWidget::isValidForItems() const
 {
 	return mItemContainsText;
 }
 
 //==================================================================================================
 
-void DrawingTextPropertyWidget::handleValueChange()
+void TextPropertyWidget::handleValueChange()
 {
 	if (mItem)
 	{
@@ -868,8 +868,8 @@ void DrawingTextPropertyWidget::handleValueChange()
 //==================================================================================================
 //==================================================================================================
 
-DrawingPenPropertyWidget::DrawingPenPropertyWidget(const QString& propertyName, const QString& text,
-	QWidget* parent) : DrawingPropertiesWidget(propertyName, parent)
+PenPropertyWidget::PenPropertyWidget(const QString& propertyName, const QString& text,
+	QWidget* parent) : PropertiesWidget(propertyName, parent)
 {
 	mStyleCombo = new QComboBox();
 	mStyleCombo->addItem("No Pen");
@@ -882,12 +882,12 @@ DrawingPenPropertyWidget::DrawingPenPropertyWidget(const QString& propertyName, 
 	connect(mStyleCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
 	connect(mStyleCombo, SIGNAL(activated(int)), this, SLOT(handleValueChange()));
 
-	mWidthEdit = new DrawingSizeEdit();
+	mWidthEdit = new SizeEdit();
 	mWidthCheck = addWidget(1, QString("%1 Width:").arg(text).trimmed(), mWidthEdit);
 	connect(mWidthCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
 	connect(mWidthEdit, SIGNAL(sizeChanged(qreal)), this, SLOT(handleValueChange()));
 
-	mColorWidget = new DrawingColorWidget();
+	mColorWidget = new ColorWidget();
 	mColorCheck = addWidget(2, QString("%1 Color:").arg(text).trimmed(), mColorWidget);
 	connect(mColorCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
 	connect(mColorWidget, SIGNAL(colorChanged(const QColor&)), this, SLOT(handleValueChange()));
@@ -895,11 +895,11 @@ DrawingPenPropertyWidget::DrawingPenPropertyWidget(const QString& propertyName, 
 	mAllItemsContainPen = false;
 }
 
-DrawingPenPropertyWidget::~DrawingPenPropertyWidget() { }
+PenPropertyWidget::~PenPropertyWidget() { }
 
 //==================================================================================================
 
-void DrawingPenPropertyWidget::setProperties(const QHash<QString,QVariant>& properties)
+void PenPropertyWidget::setProperties(const QHash<QString,QVariant>& properties)
 {
 	QPen pen(Qt::black, 12.0, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
 
@@ -913,7 +913,7 @@ void DrawingPenPropertyWidget::setProperties(const QHash<QString,QVariant>& prop
 	mItems.clear();
 }
 
-QHash<QString,QVariant> DrawingPenPropertyWidget::properties() const
+QHash<QString,QVariant> PenPropertyWidget::properties() const
 {
 	QHash<QString,QVariant> properties;
 	QPen pen(Qt::black, 12.0, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
@@ -928,7 +928,7 @@ QHash<QString,QVariant> DrawingPenPropertyWidget::properties() const
 
 //==================================================================================================
 
-void DrawingPenPropertyWidget::setItems(const QList<DrawingItem*>& items)
+void PenPropertyWidget::setItems(const QList<DrawingItem*>& items)
 {
 	QList<QPen> itemPens;
 
@@ -967,14 +967,14 @@ void DrawingPenPropertyWidget::setItems(const QList<DrawingItem*>& items)
 	}
 }
 
-bool DrawingPenPropertyWidget::isValidForItems() const
+bool PenPropertyWidget::isValidForItems() const
 {
 	return mAllItemsContainPen;
 }
 
 //==================================================================================================
 
-void DrawingPenPropertyWidget::handleValueChange()
+void PenPropertyWidget::handleValueChange()
 {
 	if (!mItems.isEmpty())
 	{
@@ -1017,10 +1017,10 @@ void DrawingPenPropertyWidget::handleValueChange()
 //==================================================================================================
 //==================================================================================================
 
-DrawingBrushPropertyWidget::DrawingBrushPropertyWidget(const QString& propertyName,
-	const QString& text, QWidget* parent) : DrawingPropertiesWidget(propertyName, parent)
+BrushPropertyWidget::BrushPropertyWidget(const QString& propertyName,
+	const QString& text, QWidget* parent) : PropertiesWidget(propertyName, parent)
 {
-	mColorWidget = new DrawingColorWidget();
+	mColorWidget = new ColorWidget();
 	mColorCheck = addWidget(0, QString("%1 Color:").arg(text).trimmed(), mColorWidget);
 	connect(mColorCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
 	connect(mColorWidget, SIGNAL(colorChanged(const QColor&)), this, SLOT(handleValueChange()));
@@ -1028,11 +1028,11 @@ DrawingBrushPropertyWidget::DrawingBrushPropertyWidget(const QString& propertyNa
 	mAllItemsContainBrush = false;
 }
 
-DrawingBrushPropertyWidget::~DrawingBrushPropertyWidget() { }
+BrushPropertyWidget::~BrushPropertyWidget() { }
 
 //==================================================================================================
 
-void DrawingBrushPropertyWidget::setProperties(const QHash<QString,QVariant>& properties)
+void BrushPropertyWidget::setProperties(const QHash<QString,QVariant>& properties)
 {
 	QBrush brush = Qt::white;
 
@@ -1042,7 +1042,7 @@ void DrawingBrushPropertyWidget::setProperties(const QHash<QString,QVariant>& pr
 	mItems.clear();
 }
 
-QHash<QString,QVariant> DrawingBrushPropertyWidget::properties() const
+QHash<QString,QVariant> BrushPropertyWidget::properties() const
 {
 	QHash<QString,QVariant> properties;
 	properties.insert(propertyName(), QBrush(mColorWidget->color()));
@@ -1051,7 +1051,7 @@ QHash<QString,QVariant> DrawingBrushPropertyWidget::properties() const
 
 //==================================================================================================
 
-void DrawingBrushPropertyWidget::setItems(const QList<DrawingItem*>& items)
+void BrushPropertyWidget::setItems(const QList<DrawingItem*>& items)
 {
 	QList<QBrush> itemBrushes;
 
@@ -1073,14 +1073,14 @@ void DrawingBrushPropertyWidget::setItems(const QList<DrawingItem*>& items)
 	}
 }
 
-bool DrawingBrushPropertyWidget::isValidForItems() const
+bool BrushPropertyWidget::isValidForItems() const
 {
 	return mAllItemsContainBrush;
 }
 
 //==================================================================================================
 
-void DrawingBrushPropertyWidget::handleValueChange()
+void BrushPropertyWidget::handleValueChange()
 {
 	if (!mItems.isEmpty())
 	{
@@ -1117,15 +1117,15 @@ void DrawingBrushPropertyWidget::handleValueChange()
 //==================================================================================================
 //==================================================================================================
 
-DrawingFontPropertyWidget::DrawingFontPropertyWidget(const QString& propertyName,
-	const QString& text, QWidget* parent) : DrawingPropertiesWidget(propertyName, parent)
+FontPropertyWidget::FontPropertyWidget(const QString& propertyName,
+	const QString& text, QWidget* parent) : PropertiesWidget(propertyName, parent)
 {
 	mFamilyCombo = new QFontComboBox();
 	mFamilyCheck = addWidget(0, QString("%1 Family:").arg(text).trimmed(), mFamilyCombo);
 	connect(mFamilyCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
 	connect(mFamilyCombo, SIGNAL(activated(int)), this, SLOT(handleValueChange()));
 
-	mSizeEdit = new DrawingSizeEdit();
+	mSizeEdit = new SizeEdit();
 	mSizeCheck = addWidget(1, QString("%1 Size:").arg(text).trimmed(), mSizeEdit);
 	connect(mSizeCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
 	connect(mSizeEdit, SIGNAL(sizeChanged(qreal)), this, SLOT(handleValueChange()));
@@ -1171,11 +1171,11 @@ DrawingFontPropertyWidget::DrawingFontPropertyWidget(const QString& propertyName
 	mAllItemsContainFont = false;
 }
 
-DrawingFontPropertyWidget::~DrawingFontPropertyWidget() { }
+FontPropertyWidget::~FontPropertyWidget() { }
 
 //==================================================================================================
 
-void DrawingFontPropertyWidget::setProperties(const QHash<QString,QVariant>& properties)
+void FontPropertyWidget::setProperties(const QHash<QString,QVariant>& properties)
 {
 	QFont font("Arial");
 	font.setPointSizeF(100.0);
@@ -1193,7 +1193,7 @@ void DrawingFontPropertyWidget::setProperties(const QHash<QString,QVariant>& pro
 	mItems.clear();
 }
 
-QHash<QString,QVariant> DrawingFontPropertyWidget::properties() const
+QHash<QString,QVariant> FontPropertyWidget::properties() const
 {
 	QHash<QString,QVariant> properties;
 	QFont font;
@@ -1211,7 +1211,7 @@ QHash<QString,QVariant> DrawingFontPropertyWidget::properties() const
 
 //==================================================================================================
 
-void DrawingFontPropertyWidget::setItems(const QList<DrawingItem*>& items)
+void FontPropertyWidget::setItems(const QList<DrawingItem*>& items)
 {
 	QList<QFont> itemFonts;
 
@@ -1255,14 +1255,14 @@ void DrawingFontPropertyWidget::setItems(const QList<DrawingItem*>& items)
 	}
 }
 
-bool DrawingFontPropertyWidget::isValidForItems() const
+bool FontPropertyWidget::isValidForItems() const
 {
 	return mAllItemsContainFont;
 }
 
 //==================================================================================================
 
-void DrawingFontPropertyWidget::handleValueChange()
+void FontPropertyWidget::handleValueChange()
 {
 	if (!mItems.isEmpty())
 	{
@@ -1312,8 +1312,8 @@ void DrawingFontPropertyWidget::handleValueChange()
 //==================================================================================================
 //==================================================================================================
 
-DrawingAlignmentPropertyWidget::DrawingAlignmentPropertyWidget(const QString& propertyName,
-	const QString& text, QWidget* parent) : DrawingPropertiesWidget(propertyName, parent)
+AlignmentPropertyWidget::AlignmentPropertyWidget(const QString& propertyName,
+	const QString& text, QWidget* parent) : PropertiesWidget(propertyName, parent)
 {
 	mLeftAlignButton = new QToolButton();
 	mLeftAlignButton->setIcon(QIcon(":/icons/oxygen/align-horizontal-left.png"));
@@ -1395,11 +1395,11 @@ DrawingAlignmentPropertyWidget::DrawingAlignmentPropertyWidget(const QString& pr
 	mAllItemsContainAlignment = false;
 }
 
-DrawingAlignmentPropertyWidget::~DrawingAlignmentPropertyWidget() { }
+AlignmentPropertyWidget::~AlignmentPropertyWidget() { }
 
 //==================================================================================================
 
-void DrawingAlignmentPropertyWidget::setProperties(const QHash<QString,QVariant>& properties)
+void AlignmentPropertyWidget::setProperties(const QHash<QString,QVariant>& properties)
 {
 	uint alignment = (uint)(Qt::AlignCenter);
 
@@ -1420,7 +1420,7 @@ void DrawingAlignmentPropertyWidget::setProperties(const QHash<QString,QVariant>
 	mItems.clear();
 }
 
-QHash<QString,QVariant> DrawingAlignmentPropertyWidget::properties() const
+QHash<QString,QVariant> AlignmentPropertyWidget::properties() const
 {
 	QHash<QString,QVariant> properties;
 	Qt::Alignment horizontal = Qt::AlignHCenter;
@@ -1438,7 +1438,7 @@ QHash<QString,QVariant> DrawingAlignmentPropertyWidget::properties() const
 
 //==================================================================================================
 
-void DrawingAlignmentPropertyWidget::setItems(const QList<DrawingItem*>& items)
+void AlignmentPropertyWidget::setItems(const QList<DrawingItem*>& items)
 {
 	QList<uint> itemAlignments;
 
@@ -1472,14 +1472,14 @@ void DrawingAlignmentPropertyWidget::setItems(const QList<DrawingItem*>& items)
 	}
 }
 
-bool DrawingAlignmentPropertyWidget::isValidForItems() const
+bool AlignmentPropertyWidget::isValidForItems() const
 {
 	return mAllItemsContainAlignment;
 }
 
 //==================================================================================================
 
-void DrawingAlignmentPropertyWidget::handleValueChange()
+void AlignmentPropertyWidget::handleValueChange()
 {
 	if (!mItems.isEmpty())
 	{
@@ -1524,8 +1524,8 @@ void DrawingAlignmentPropertyWidget::handleValueChange()
 //==================================================================================================
 //==================================================================================================
 
-DrawingArrowPropertyWidget::DrawingArrowPropertyWidget(const QString& propertyName, const QString& text,
-	QWidget* parent) : DrawingPropertiesWidget(propertyName, parent)
+ArrowPropertyWidget::ArrowPropertyWidget(const QString& propertyName, const QString& text,
+	QWidget* parent) : PropertiesWidget(propertyName, parent)
 {
 	mStyleCombo = new QComboBox();
 	mStyleCombo->addItem(QIcon(":/icons/arrow/arrow_none.png"), "None");
@@ -1540,7 +1540,7 @@ DrawingArrowPropertyWidget::DrawingArrowPropertyWidget(const QString& propertyNa
 	connect(mStyleCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
 	connect(mStyleCombo, SIGNAL(activated(int)), this, SLOT(handleValueChange()));
 
-	mSizeEdit = new DrawingSizeEdit();
+	mSizeEdit = new SizeEdit();
 	mSizeCheck = addWidget(1, QString("%1 Size:").arg(text).trimmed(), mSizeEdit);
 	connect(mSizeCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
 	connect(mSizeEdit, SIGNAL(sizeChanged(qreal)), this, SLOT(handleValueChange()));
@@ -1548,11 +1548,11 @@ DrawingArrowPropertyWidget::DrawingArrowPropertyWidget(const QString& propertyNa
 	mAllItemsContainArrow = false;
 }
 
-DrawingArrowPropertyWidget::~DrawingArrowPropertyWidget() { }
+ArrowPropertyWidget::~ArrowPropertyWidget() { }
 
 //==================================================================================================
 
-void DrawingArrowPropertyWidget::setProperties(const QHash<QString,QVariant>& properties)
+void ArrowPropertyWidget::setProperties(const QHash<QString,QVariant>& properties)
 {
 	DrawingArrow arrow;
 
@@ -1565,7 +1565,7 @@ void DrawingArrowPropertyWidget::setProperties(const QHash<QString,QVariant>& pr
 	mItems.clear();
 }
 
-QHash<QString,QVariant> DrawingArrowPropertyWidget::properties() const
+QHash<QString,QVariant> ArrowPropertyWidget::properties() const
 {
 	QHash<QString,QVariant> properties;
 	DrawingArrow arrow;
@@ -1581,7 +1581,7 @@ QHash<QString,QVariant> DrawingArrowPropertyWidget::properties() const
 
 //==================================================================================================
 
-void DrawingArrowPropertyWidget::setItems(const QList<DrawingItem*>& items)
+void ArrowPropertyWidget::setItems(const QList<DrawingItem*>& items)
 {
 	QList<DrawingArrow> itemArrows;
 
@@ -1614,14 +1614,14 @@ void DrawingArrowPropertyWidget::setItems(const QList<DrawingItem*>& items)
 	}
 }
 
-bool DrawingArrowPropertyWidget::isValidForItems() const
+bool ArrowPropertyWidget::isValidForItems() const
 {
 	return mAllItemsContainArrow;
 }
 
 //==================================================================================================
 
-void DrawingArrowPropertyWidget::handleValueChange()
+void ArrowPropertyWidget::handleValueChange()
 {
 	if (!mItems.isEmpty())
 	{
@@ -1664,9 +1664,9 @@ void DrawingArrowPropertyWidget::handleValueChange()
 //==================================================================================================
 //==================================================================================================
 
-DrawingGridPropertiesWidget::DrawingGridPropertiesWidget(QWidget* parent) : DrawingPropertiesWidget("", parent)
+GridPropertiesWidget::GridPropertiesWidget(QWidget* parent) : PropertiesWidget("", parent)
 {
-	mGridEdit = new DrawingSizeEdit();
+	mGridEdit = new SizeEdit();
 	mGridCheck = addWidget(0, "Grid:", mGridEdit);
 	connect(mGridCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
 	connect(mGridEdit, SIGNAL(sizeChanged(qreal)), this, SLOT(handleValueChange()));
@@ -1680,7 +1680,7 @@ DrawingGridPropertiesWidget::DrawingGridPropertiesWidget(QWidget* parent) : Draw
 	connect(mGridStyleCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
 	connect(mGridStyleCombo, SIGNAL(activated(int)), this, SLOT(handleValueChange()));
 
-	mGridColorWidget = new DrawingColorWidget();
+	mGridColorWidget = new ColorWidget();
 	mGridColorCheck = addWidget(2, "Grid Color:", mGridColorWidget);
 	connect(mGridColorCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
 	connect(mGridColorWidget, SIGNAL(colorChanged(const QColor&)), this, SLOT(handleValueChange()));
@@ -1704,7 +1704,7 @@ DrawingGridPropertiesWidget::DrawingGridPropertiesWidget(QWidget* parent) : Draw
 	connect(mDynamicGridEnableCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
 	connect(mDynamicGridEnableCombo, SIGNAL(activated(int)), this, SLOT(handleValueChange()));
 
-	mDynamicGridEdit = new DrawingSizeEdit();
+	mDynamicGridEdit = new SizeEdit();
 	mDynamicGridCheck = addWidget(6, "Dynamic Grid Value:", mDynamicGridEdit);
 	connect(mDynamicGridCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
 	connect(mDynamicGridEdit, SIGNAL(sizeChanged(qreal)), this, SLOT(handleValueChange()));
@@ -1712,11 +1712,11 @@ DrawingGridPropertiesWidget::DrawingGridPropertiesWidget(QWidget* parent) : Draw
 	mDynamicGridEdit->setEnabled(false);
 }
 
-DrawingGridPropertiesWidget::~DrawingGridPropertiesWidget() { }
+GridPropertiesWidget::~GridPropertiesWidget() { }
 
 //==================================================================================================
 
-void DrawingGridPropertiesWidget::setProperties(const QHash<QString,QVariant>& properties)
+void GridPropertiesWidget::setProperties(const QHash<QString,QVariant>& properties)
 {
 	qreal grid = 1;
 	uint gridStyle = Drawing::GridNone;
@@ -1745,7 +1745,7 @@ void DrawingGridPropertiesWidget::setProperties(const QHash<QString,QVariant>& p
 	mDynamicGridEdit->setEnabled(mDynamicGridEnableCombo->currentIndex() == 1);
 }
 
-QHash<QString,QVariant> DrawingGridPropertiesWidget::properties() const
+QHash<QString,QVariant> GridPropertiesWidget::properties() const
 {
 	QHash<QString,QVariant> properties;
 
@@ -1762,7 +1762,7 @@ QHash<QString,QVariant> DrawingGridPropertiesWidget::properties() const
 
 //==================================================================================================
 
-void DrawingGridPropertiesWidget::handleValueChange()
+void GridPropertiesWidget::handleValueChange()
 {
 	QHash<QString,QVariant> properties;
 	QObject* sender = this->sender();

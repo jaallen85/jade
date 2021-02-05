@@ -1,4 +1,4 @@
-// DrawingPropertiesBrowser.h
+// PropertiesBrowser.h
 // Copyright (C) 2020  Jason Allen
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef DRAWINGPROPERTIESBROWSER_H
-#define DRAWINGPROPERTIESBROWSER_H
+#ifndef PROPERTIESBROWSER_H
+#define PROPERTIESBROWSER_H
 
 #include <QHash>
 #include <QList>
@@ -23,13 +23,13 @@
 #include <QVariant>
 
 class DrawingItem;
-class DrawingPropertiesWidget;
+class PropertiesWidget;
 class QGroupBox;
 class QStackedWidget;
 class QTabWidget;
 class QVBoxLayout;
 
-class DrawingPropertiesBrowser : public QScrollArea
+class PropertiesBrowser : public QScrollArea
 {
 	Q_OBJECT
 
@@ -37,17 +37,17 @@ private:
 	QWidget* mDrawingPropertiesWidget;
 	QVBoxLayout* mDrawingPropertiesLayout;
 	QList<QGroupBox*> mDrawingPropertiesGroups;
-	QList<DrawingPropertiesWidget*> mDrawingPropertiesSubWidgets;
+	QList<PropertiesWidget*> mDrawingPropertiesSubWidgets;
 
 	QWidget* mDefaultItemPropertiesWidget;
 	QVBoxLayout* mDefaultItemPropertiesLayout;
 	QList<QGroupBox*> mDefaultItemPropertiesGroups;
-	QList<DrawingPropertiesWidget*> mDefaultItemPropertiesSubWidgets;
+	QList<PropertiesWidget*> mDefaultItemPropertiesSubWidgets;
 
 	QWidget* mItemsPropertiesWidget;
 	QVBoxLayout* mItemsPropertiesLayout;
 	QList<QGroupBox*> mItemsPropertiesGroups;
-	QList<DrawingPropertiesWidget*> mItemsPropertiesSubWidgets;
+	QList<PropertiesWidget*> mItemsPropertiesSubWidgets;
 
 	QTabWidget* mTabWidget;
 	QStackedWidget* mStackedWidget;
@@ -55,12 +55,12 @@ private:
 	int mPreferredWidth;
 
 public:
-	DrawingPropertiesBrowser(QWidget* parent = nullptr);
-	virtual ~DrawingPropertiesBrowser();
+	PropertiesBrowser(QWidget* parent = nullptr);
+	virtual ~PropertiesBrowser();
 
-	void registerDrawingWidget(const QString& groupTitle, DrawingPropertiesWidget* widget);
-	void registerDefaultItemWidget(const QString& groupTitle, DrawingPropertiesWidget* widget);
-	void registerItemsWidget(const QString& groupTitle, DrawingPropertiesWidget* widget);
+	void registerDrawingWidget(const QString& groupTitle, PropertiesWidget* widget);
+	void registerDefaultItemWidget(const QString& groupTitle, PropertiesWidget* widget);
+	void registerItemsWidget(const QString& groupTitle, PropertiesWidget* widget);
 
 	void setPreferredWidth(int width);
 	void setLabelWidth(int width);

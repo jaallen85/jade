@@ -21,9 +21,9 @@
 #include <QHash>
 #include <QVariant>
 
-class DrawingRectPropertyWidget;
-class DrawingBrushPropertyWidget;
-class DrawingGridPropertiesWidget;
+class RectPropertyWidget;
+class BrushPropertyWidget;
+class GridPropertiesWidget;
 class QCheckBox;
 class QDialogButtonBox;
 class QListWidget;
@@ -40,9 +40,9 @@ private:
 	QCheckBox* mPromptOverwriteCheck;
 	QCheckBox* mPromptCloseUnsavedCheck;
 
-	DrawingRectPropertyWidget* mDefaultDrawingSceneRectWidget;
-	DrawingBrushPropertyWidget* mDefaultDrawingBackgroundBrushWidget;
-	DrawingGridPropertiesWidget* mDefaultDrawingGridWidget;
+	RectPropertyWidget* mDefaultDrawingSceneRectWidget;
+	BrushPropertyWidget* mDefaultDrawingBackgroundBrushWidget;
+	GridPropertiesWidget* mDefaultDrawingGridWidget;
 
 public:
 	PreferencesDialog(QWidget* parent = nullptr);

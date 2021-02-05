@@ -11,14 +11,13 @@ CONFIG -= debug
 
 DEFINES += QT_DEPRECATED_WARNINGS
 
-INCLUDEPATH += source source/drawing
+INCLUDEPATH += source source/drawing source/properties
 
 SOURCES += \
 	source/drawing/DrawingArrow.cpp \
 	source/drawing/DrawingCanvas.cpp \
 	source/drawing/DrawingCurveItem.cpp \
 	source/drawing/DrawingEllipseItem.cpp \
-	source/drawing/DrawingHelperWidgets.cpp \
 	source/drawing/DrawingItem.cpp \
 	source/drawing/DrawingItemFactory.cpp \
 	source/drawing/DrawingItemGroup.cpp \
@@ -27,8 +26,6 @@ SOURCES += \
 	source/drawing/DrawingPathItem.cpp \
 	source/drawing/DrawingPolygonItem.cpp \
 	source/drawing/DrawingPolylineItem.cpp \
-	source/drawing/DrawingPropertiesBrowser.cpp \
-	source/drawing/DrawingPropertiesWidget.cpp \
 	source/drawing/DrawingRectItem.cpp \
 	source/drawing/DrawingTextEllipseItem.cpp \
 	source/drawing/DrawingTextItem.cpp \
@@ -36,7 +33,10 @@ SOURCES += \
 	source/drawing/DrawingTypes.cpp \
 	source/drawing/DrawingUndo.cpp \
 	source/drawing/DrawingWidget.cpp \
-	source/drawing/DrawingWindow.cpp \
+	\
+	source/properties/HelperWidgets.cpp \
+	source/properties/PropertiesBrowser.cpp \
+	source/properties/PropertiesWidgets.cpp \
 	\
 	source/AboutDialog.cpp \
 	source/ExportOptionsDialog.cpp \
@@ -49,7 +49,6 @@ HEADERS += \
 	source/drawing/DrawingCanvas.h \
 	source/drawing/DrawingCurveItem.h \
 	source/drawing/DrawingEllipseItem.h \
-	source/drawing/DrawingHelperWidgets.h \
 	source/drawing/DrawingItem.h \
 	source/drawing/DrawingItemFactory.h \
 	source/drawing/DrawingItemGroup.h \
@@ -58,8 +57,6 @@ HEADERS += \
 	source/drawing/DrawingPathItem.h \
 	source/drawing/DrawingPolygonItem.h \
 	source/drawing/DrawingPolylineItem.h \
-	source/drawing/DrawingPropertiesBrowser.h \
-	source/drawing/DrawingPropertiesWidget.h \
 	source/drawing/DrawingRectItem.h \
 	source/drawing/DrawingTextEllipseItem.h \
 	source/drawing/DrawingTextItem.h \
@@ -67,7 +64,10 @@ HEADERS += \
 	source/drawing/DrawingTypes.h \
 	source/drawing/DrawingUndo.h \
 	source/drawing/DrawingWidget.h \
-	source/drawing/DrawingWindow.h \
+	\
+	source/properties/HelperWidgets.h \
+	source/properties/PropertiesBrowser.h \
+	source/properties/PropertiesWidgets.h \
 	\
 	source/AboutDialog.h \
 	source/ExportOptionsDialog.h \

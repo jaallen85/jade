@@ -1,4 +1,4 @@
-// DrawingHelperWidgets.cpp
+// HelperWidgets.cpp
 // Copyright (C) 2020  Jason Allen
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "DrawingHelperWidgets.h"
+#include "HelperWidgets.h"
 #include <QColorDialog>
 #include <QHBoxLayout>
 #include <QMenu>
@@ -25,40 +25,40 @@
 #include <QToolButton>
 #include <QWidgetAction>
 
-DrawingHideableCheckBox::DrawingHideableCheckBox(bool checkHidden, const QString& text,
+HideableCheckBox::HideableCheckBox(bool checkHidden, const QString& text,
 	QWidget* parent) : QCheckBox(text, parent)
 {
 	mHideCheck = checkHidden;
 }
 
-DrawingHideableCheckBox::DrawingHideableCheckBox(const QString& text, QWidget* parent) :
+HideableCheckBox::HideableCheckBox(const QString& text, QWidget* parent) :
 	QCheckBox(text, parent)
 {
 	mHideCheck = true;
 }
 
-DrawingHideableCheckBox::DrawingHideableCheckBox(QWidget* parent) : QCheckBox(parent)
+HideableCheckBox::HideableCheckBox(QWidget* parent) : QCheckBox(parent)
 {
 	mHideCheck = true;
 }
 
-DrawingHideableCheckBox::~DrawingHideableCheckBox() { }
+HideableCheckBox::~HideableCheckBox() { }
 
 //==================================================================================================
 
-void DrawingHideableCheckBox::setCheckHidden(bool hidden)
+void HideableCheckBox::setCheckHidden(bool hidden)
 {
 	mHideCheck = hidden;
 }
 
-bool DrawingHideableCheckBox::isCheckHidden() const
+bool HideableCheckBox::isCheckHidden() const
 {
 	return mHideCheck;
 }
 
 //==================================================================================================
 
-void DrawingHideableCheckBox::paintEvent(QPaintEvent* event)
+void HideableCheckBox::paintEvent(QPaintEvent* event)
 {
 	QStyle *style = QWidget::style();
 
@@ -101,17 +101,17 @@ void DrawingHideableCheckBox::paintEvent(QPaintEvent* event)
 
 //==================================================================================================
 
-void DrawingHideableCheckBox::mousePressEvent(QMouseEvent* event)
+void HideableCheckBox::mousePressEvent(QMouseEvent* event)
 {
 	if (!mHideCheck) QCheckBox::mousePressEvent(event);
 }
 
-void DrawingHideableCheckBox::mouseMoveEvent(QMouseEvent* event)
+void HideableCheckBox::mouseMoveEvent(QMouseEvent* event)
 {
 	if (!mHideCheck) QCheckBox::mouseMoveEvent(event);
 }
 
-void DrawingHideableCheckBox::mouseReleaseEvent(QMouseEvent* event)
+void HideableCheckBox::mouseReleaseEvent(QMouseEvent* event)
 {
 	if (!mHideCheck) QCheckBox::mouseReleaseEvent(event);
 }
@@ -120,10 +120,10 @@ void DrawingHideableCheckBox::mouseReleaseEvent(QMouseEvent* event)
 //==================================================================================================
 //==================================================================================================
 
-DrawingPositionWidget::DrawingPositionWidget(const QPointF& position) : QWidget()
+PositionWidget::PositionWidget(const QPointF& position) : QWidget()
 {
-	mXEdit = new DrawingPositionEdit(position.x());
-	mYEdit = new DrawingPositionEdit(position.y());
+	mXEdit = new PositionEdit(position.x());
+	mYEdit = new PositionEdit(position.y());
 
 	QHBoxLayout* layout = new QHBoxLayout();
 	layout->addWidget(mXEdit);
@@ -136,24 +136,24 @@ DrawingPositionWidget::DrawingPositionWidget(const QPointF& position) : QWidget(
 	connect(mYEdit, SIGNAL(positionChanged(qreal)), this, SLOT(sendPositionChanged()));
 }
 
-DrawingPositionWidget::~DrawingPositionWidget() { }
+PositionWidget::~PositionWidget() { }
 
 //==================================================================================================
 
-void DrawingPositionWidget::setPosition(const QPointF& position)
+void PositionWidget::setPosition(const QPointF& position)
 {
 	mXEdit->setPosition(position.x());
 	mYEdit->setPosition(position.y());
 }
 
-QPointF DrawingPositionWidget::position() const
+QPointF PositionWidget::position() const
 {
 	return QPointF(mXEdit->position(), mYEdit->position());
 }
 
 //==================================================================================================
 
-void DrawingPositionWidget::sendPositionChanged()
+void PositionWidget::sendPositionChanged()
 {
 	emit positionChanged(position());
 }
@@ -162,7 +162,7 @@ void DrawingPositionWidget::sendPositionChanged()
 //==================================================================================================
 //==================================================================================================
 
-DrawingPositionEdit::DrawingPositionEdit(qreal position) : QLineEdit()
+PositionEdit::PositionEdit(qreal position) : QLineEdit()
 {
 	setValidator(new QDoubleValidator(-std::numeric_limits<qreal>::max(), std::numeric_limits<qreal>::max(), 8));
 	setPosition(position);
@@ -171,11 +171,11 @@ DrawingPositionEdit::DrawingPositionEdit(qreal position) : QLineEdit()
 	connect(this, SIGNAL(editingFinished()), this, SLOT(sendPositionChanged()));
 }
 
-DrawingPositionEdit::~DrawingPositionEdit() { }
+PositionEdit::~PositionEdit() { }
 
 //==================================================================================================
 
-QSize DrawingPositionEdit::sizeHint() const
+QSize PositionEdit::sizeHint() const
 {
 	QFontMetrics fontMetrics(font());
 	return fontMetrics.boundingRect("8888.8888").size() + QSize(16, 2);
@@ -183,13 +183,13 @@ QSize DrawingPositionEdit::sizeHint() const
 
 //==================================================================================================
 
-void DrawingPositionEdit::setPosition(qreal position)
+void PositionEdit::setPosition(qreal position)
 {
 	setText(QString::number(position, 'g', 8));
 	mPositionCached = position;
 }
 
-qreal DrawingPositionEdit::position() const
+qreal PositionEdit::position() const
 {
 	bool ok = false;
 	qreal value = text().toDouble(&ok);
@@ -198,9 +198,9 @@ qreal DrawingPositionEdit::position() const
 
 //==================================================================================================
 
-void DrawingPositionEdit::sendPositionChanged()
+void PositionEdit::sendPositionChanged()
 {
-	qreal position = DrawingPositionEdit::position();
+	qreal position = PositionEdit::position();
 	if (mPositionCached != position)
 	{
 		mPositionCached = position;
@@ -212,10 +212,10 @@ void DrawingPositionEdit::sendPositionChanged()
 //==================================================================================================
 //==================================================================================================
 
-DrawingSizeWidget::DrawingSizeWidget(const QSizeF& size) : QWidget()
+SizeWidget::SizeWidget(const QSizeF& size) : QWidget()
 {
-	mXEdit = new DrawingSizeEdit(size.width());
-	mYEdit = new DrawingSizeEdit(size.height());
+	mXEdit = new SizeEdit(size.width());
+	mYEdit = new SizeEdit(size.height());
 
 	QHBoxLayout* layout = new QHBoxLayout();
 	layout->addWidget(mXEdit);
@@ -228,24 +228,24 @@ DrawingSizeWidget::DrawingSizeWidget(const QSizeF& size) : QWidget()
 	connect(mYEdit, SIGNAL(sizeChanged(qreal)), this, SLOT(sendSizeChanged()));
 }
 
-DrawingSizeWidget::~DrawingSizeWidget() { }
+SizeWidget::~SizeWidget() { }
 
 //==================================================================================================
 
-void DrawingSizeWidget::setSize(const QSizeF& size)
+void SizeWidget::setSize(const QSizeF& size)
 {
 	mXEdit->setSize(size.width());
 	mYEdit->setSize(size.height());
 }
 
-QSizeF DrawingSizeWidget::size() const
+QSizeF SizeWidget::size() const
 {
 	return QSizeF(mXEdit->size(), mYEdit->size());
 }
 
 //==================================================================================================
 
-void DrawingSizeWidget::sendSizeChanged()
+void SizeWidget::sendSizeChanged()
 {
 	emit sizeChanged(size());
 }
@@ -254,7 +254,7 @@ void DrawingSizeWidget::sendSizeChanged()
 //==================================================================================================
 //==================================================================================================
 
-DrawingSizeEdit::DrawingSizeEdit(qreal size) : QLineEdit()
+SizeEdit::SizeEdit(qreal size) : QLineEdit()
 {
 	setValidator(new QDoubleValidator(0, std::numeric_limits<qreal>::max(), 8));
 	setSize(size);
@@ -263,11 +263,11 @@ DrawingSizeEdit::DrawingSizeEdit(qreal size) : QLineEdit()
 	connect(this, SIGNAL(editingFinished()), this, SLOT(sendSizeChanged()));
 }
 
-DrawingSizeEdit::~DrawingSizeEdit() { }
+SizeEdit::~SizeEdit() { }
 
 //==================================================================================================
 
-QSize DrawingSizeEdit::sizeHint() const
+QSize SizeEdit::sizeHint() const
 {
 	QFontMetrics fontMetrics(font());
 	return fontMetrics.boundingRect("8888.8888").size() + QSize(16, 2);
@@ -275,13 +275,13 @@ QSize DrawingSizeEdit::sizeHint() const
 
 //==================================================================================================
 
-void DrawingSizeEdit::setSize(qreal size)
+void SizeEdit::setSize(qreal size)
 {
 	setText(QString::number(size, 'g', 8));
 	mSizeCached = size;
 }
 
-qreal DrawingSizeEdit::size() const
+qreal SizeEdit::size() const
 {
 	bool ok = false;
 	qreal value = text().toDouble(&ok);
@@ -290,9 +290,9 @@ qreal DrawingSizeEdit::size() const
 
 //==================================================================================================
 
-void DrawingSizeEdit::sendSizeChanged()
+void SizeEdit::sendSizeChanged()
 {
-	qreal size = DrawingSizeEdit::size();
+	qreal size = SizeEdit::size();
 	if (mSizeCached != size)
 	{
 		mSizeCached = size;
@@ -304,11 +304,11 @@ void DrawingSizeEdit::sendSizeChanged()
 //==================================================================================================
 //==================================================================================================
 
-DrawingColorWidget::DrawingColorWidget(const QColor& color) : QPushButton()
+ColorWidget::ColorWidget(const QColor& color) : QPushButton()
 {
 	setColor(color);
 
-	DrawingColorSelectWidget* selectWidget = new DrawingColorSelectWidget();
+	ColorSelectWidget* selectWidget = new ColorSelectWidget();
 	QWidgetAction* selectWidgetAction = new QWidgetAction(this);
 	selectWidgetAction->setDefaultWidget(selectWidget);
 
@@ -328,11 +328,11 @@ DrawingColorWidget::DrawingColorWidget(const QColor& color) : QPushButton()
 	connect(moreColorsButton, SIGNAL(clicked(bool)), this, SLOT(runColorDialog()));
 }
 
-DrawingColorWidget::~DrawingColorWidget() { }
+ColorWidget::~ColorWidget() { }
 
 //==================================================================================================
 
-void DrawingColorWidget::setColor(const QColor& color)
+void ColorWidget::setColor(const QColor& color)
 {
 	mColor = color;
 
@@ -340,22 +340,22 @@ void DrawingColorWidget::setColor(const QColor& color)
 	setIcon(iconFromColor(color));
 }
 
-QColor DrawingColorWidget::color() const
+QColor ColorWidget::color() const
 {
 	return mColor;
 }
 
 //==================================================================================================
 
-void DrawingColorWidget::runColorDialog()
+void ColorWidget::runColorDialog()
 {
 	QColorDialog colorDialog(this);
 	colorDialog.setOptions(QColorDialog::ShowAlphaChannel | QColorDialog::DontUseNativeDialog);
 
-	for(int i = 0; i < DrawingColorSelectWidget::standardColors.size(); i++)
-		QColorDialog::setStandardColor(i, DrawingColorSelectWidget::standardColors[i]);
-	for(int i = 0; i < DrawingColorSelectWidget::customColors.size(); i++)
-		QColorDialog::setCustomColor(i, DrawingColorSelectWidget::customColors[i]);
+	for(int i = 0; i < ColorSelectWidget::standardColors.size(); i++)
+		QColorDialog::setStandardColor(i, ColorSelectWidget::standardColors[i]);
+	for(int i = 0; i < ColorSelectWidget::customColors.size(); i++)
+		QColorDialog::setCustomColor(i, ColorSelectWidget::customColors[i]);
 	colorDialog.setCurrentColor(mColor);
 
 	if (colorDialog.exec() == QDialog::Accepted)
@@ -364,27 +364,27 @@ void DrawingColorWidget::runColorDialog()
 		QColor color;
 		bool standardColor = false, customColor = false;
 
-		for(int i = 0; i < DrawingColorSelectWidget::customColors.size(); i++)
-			DrawingColorSelectWidget::customColors[i] = QColorDialog::customColor(i);
+		for(int i = 0; i < ColorSelectWidget::customColors.size(); i++)
+			ColorSelectWidget::customColors[i] = QColorDialog::customColor(i);
 
-		for(int i = 0; i < DrawingColorSelectWidget::standardColors.size(); i++)
+		for(int i = 0; i < ColorSelectWidget::standardColors.size(); i++)
 		{
-			color = DrawingColorSelectWidget::standardColors[i];
+			color = ColorSelectWidget::standardColors[i];
 			standardColor = (standardColor || (selectedColor.red() == color.red() &&
 				selectedColor.green() == color.green() && selectedColor.blue() == color.blue()));
 		}
-		for(int i = 0; i < DrawingColorSelectWidget::customColors.size(); i++)
+		for(int i = 0; i < ColorSelectWidget::customColors.size(); i++)
 		{
-			color = DrawingColorSelectWidget::customColors[i];
+			color = ColorSelectWidget::customColors[i];
 			customColor = (customColor || (selectedColor.red() == color.red() &&
 				selectedColor.green() == color.green() && selectedColor.blue() == color.blue()));
 		}
 
 		if (!standardColor && !customColor)
 		{
-			for(int i = DrawingColorSelectWidget::customColors.size() - 1; i > 0; i--)
-				DrawingColorSelectWidget::customColors[i] = DrawingColorSelectWidget::customColors[i-1];
-			DrawingColorSelectWidget::customColors[0] = colorDialog.currentColor();
+			for(int i = ColorSelectWidget::customColors.size() - 1; i > 0; i--)
+				ColorSelectWidget::customColors[i] = ColorSelectWidget::customColors[i-1];
+			ColorSelectWidget::customColors[0] = colorDialog.currentColor();
 		}
 
 		setColor(selectedColor);
@@ -394,7 +394,7 @@ void DrawingColorWidget::runColorDialog()
 
 //==================================================================================================
 
-QString DrawingColorWidget::textFromColor(const QColor& color) const
+QString ColorWidget::textFromColor(const QColor& color) const
 {
 	QString text = "#";
 
@@ -413,12 +413,12 @@ QString DrawingColorWidget::textFromColor(const QColor& color) const
 	return text;
 }
 
-QIcon DrawingColorWidget::iconFromColor(const QColor& color) const
+QIcon ColorWidget::iconFromColor(const QColor& color) const
 {
 	QPixmap pixmap(16, 16);
 
 	if (color.alpha() == 0)
-		pixmap = DrawingColorSelectWidget::createTransparentPixmap(16, 16);
+		pixmap = ColorSelectWidget::createTransparentPixmap(16, 16);
 	else
 		pixmap.fill(QColor(color.red(), color.green(), color.blue()));
 
@@ -435,7 +435,7 @@ QIcon DrawingColorWidget::iconFromColor(const QColor& color) const
 //==================================================================================================
 //==================================================================================================
 
-QList<QColor> DrawingColorSelectWidget::standardColors = (QList<QColor>() <<
+QList<QColor> ColorSelectWidget::standardColors = (QList<QColor>() <<
 	QColor(255, 128, 128) << QColor(255, 0, 0) << QColor(128, 64, 64) << QColor(128, 0, 0) << QColor(64, 0, 0) << QColor(0, 0, 0) <<
 	QColor(255, 255, 128) << QColor(255, 255, 0) << QColor(255, 128, 64) << QColor(255, 128, 0) << QColor(128, 64, 0) << QColor(64, 64, 64) <<
 	QColor(128, 255, 128) << QColor(128, 255, 0) << QColor(0, 255, 0) << QColor(0, 128, 0) << QColor(0, 64, 0) << QColor(128, 128, 128) <<
@@ -445,7 +445,7 @@ QList<QColor> DrawingColorSelectWidget::standardColors = (QList<QColor>() <<
 	QColor(255, 128, 192) << QColor(128, 128, 192) << QColor(128, 0, 64) << QColor(128, 0, 128) << QColor(64, 0, 64) << QColor(255, 255, 255) <<
 	QColor(255, 128, 255) << QColor(255, 0, 255) << QColor(255, 0, 128) << QColor(128, 0, 255) << QColor(64, 0, 128) << QColor(255, 255, 255, 0));
 
-QList<QColor> DrawingColorSelectWidget::customColors = (QList<QColor>() <<
+QList<QColor> ColorSelectWidget::customColors = (QList<QColor>() <<
 	QColor(255, 255, 255) << QColor(255, 255, 255) << QColor(255, 255, 255) << QColor(255, 255, 255) <<
 	QColor(255, 255, 255) << QColor(255, 255, 255) << QColor(255, 255, 255) << QColor(255, 255, 255) <<
 	QColor(255, 255, 255) << QColor(255, 255, 255) << QColor(255, 255, 255) << QColor(255, 255, 255) <<
@@ -453,7 +453,7 @@ QList<QColor> DrawingColorSelectWidget::customColors = (QList<QColor>() <<
 
 //==================================================================================================
 
-DrawingColorSelectWidget::DrawingColorSelectWidget() : QWidget()
+ColorSelectWidget::ColorSelectWidget() : QWidget()
 {
 	mHoverColor = QColor(0, 0, 0);
 	mHoverRect = QRect();
@@ -462,14 +462,14 @@ DrawingColorSelectWidget::DrawingColorSelectWidget() : QWidget()
 	setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 }
 
-DrawingColorSelectWidget::~DrawingColorSelectWidget() { }
+ColorSelectWidget::~ColorSelectWidget() { }
 
 //==================================================================================================
 
-QSize DrawingColorSelectWidget::sizeHint() const
+QSize ColorSelectWidget::sizeHint() const
 {
-	int rectSize = DrawingColorSelectWidget::rectSize();
-	int margin = DrawingColorSelectWidget::margin();
+	int rectSize = ColorSelectWidget::rectSize();
+	int margin = ColorSelectWidget::margin();
 	int fontHeight = QFontMetrics(font()).height();
 
 	return QSize(8 * rectSize + 9 * margin, 8 * rectSize + 2 * fontHeight + 12 * margin);
@@ -477,10 +477,10 @@ QSize DrawingColorSelectWidget::sizeHint() const
 
 //==================================================================================================
 
-void DrawingColorSelectWidget::paintEvent(QPaintEvent* event)
+void ColorSelectWidget::paintEvent(QPaintEvent* event)
 {
-	int rectSize = DrawingColorSelectWidget::rectSize();
-	int margin = DrawingColorSelectWidget::margin();
+	int rectSize = ColorSelectWidget::rectSize();
+	int margin = ColorSelectWidget::margin();
 	int fontHeight = QFontMetrics(font()).height();
 
 	QPainter painter(this);
@@ -492,7 +492,7 @@ void DrawingColorSelectWidget::paintEvent(QPaintEvent* event)
 	pen.setCosmetic(true);
 	painter.setPen(pen);
 
-	QFont font(DrawingColorSelectWidget::font());
+	QFont font(ColorSelectWidget::font());
 	font.setUnderline(true);
 	painter.setFont(font);
 
@@ -551,13 +551,13 @@ void DrawingColorSelectWidget::paintEvent(QPaintEvent* event)
 
 //==================================================================================================
 
-void DrawingColorSelectWidget::mouseMoveEvent(QMouseEvent* event)
+void ColorSelectWidget::mouseMoveEvent(QMouseEvent* event)
 {
 	mHoverColor = colorAt(event->pos(), mHoverRect);
 	update();
 }
 
-void DrawingColorSelectWidget::mouseReleaseEvent(QMouseEvent* event)
+void ColorSelectWidget::mouseReleaseEvent(QMouseEvent* event)
 {
 	mHoverColor = colorAt(event->pos(), mHoverRect);
 
@@ -570,12 +570,12 @@ void DrawingColorSelectWidget::mouseReleaseEvent(QMouseEvent* event)
 
 //==================================================================================================
 
-QColor DrawingColorSelectWidget::colorAt(const QPoint& position, QRect& rect) const
+QColor ColorSelectWidget::colorAt(const QPoint& position, QRect& rect) const
 {
 	QColor foundColor;
 
-	int rectSize = DrawingColorSelectWidget::rectSize();
-	int margin = DrawingColorSelectWidget::margin();
+	int rectSize = ColorSelectWidget::rectSize();
+	int margin = ColorSelectWidget::margin();
 	int fontHeight = QFontMetrics(font()).height();
 	QRect testRect;
 
@@ -607,19 +607,19 @@ QColor DrawingColorSelectWidget::colorAt(const QPoint& position, QRect& rect) co
 	return foundColor;
 }
 
-int DrawingColorSelectWidget::rectSize() const
+int ColorSelectWidget::rectSize() const
 {
 	return QFontMetrics(font()).height();
 }
 
-int DrawingColorSelectWidget::margin() const
+int ColorSelectWidget::margin() const
 {
 	return rectSize() / 3;
 }
 
 //==================================================================================================
 
-QPixmap DrawingColorSelectWidget::createTransparentPixmap(int width, int height)
+QPixmap ColorSelectWidget::createTransparentPixmap(int width, int height)
 {
 	const int subRectSize = 2;
 

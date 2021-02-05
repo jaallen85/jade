@@ -17,68 +17,18 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <DrawingWindow.h>
-#include <DrawingTypes.h>
+#include <QMainWindow>
 
-class QComboBox;
-class QLabel;
-
-class MainWindow : public DrawingWindow
+class MainWindow : public QMainWindow
 {
 	Q_OBJECT
 
-public:
-	enum ActionIndex { ExportPngAction = NumberOfActions, ExportSvgAction,
-		PreferencesAction, AboutAction, AboutQtAction  };
-
 private:
-	QComboBox* mZoomCombo;
 
-	QLabel* mModeLabel;
-	QLabel* mModifiedLabel;
-	QLabel* mMouseInfoLabel;
-
-	QSize mExportSize;
-	bool mExportMaintainAspectRatio;
 
 public:
 	MainWindow(const QString& filePath = QString());
 	~MainWindow();
-
-	void saveSettings();
-	void loadSettings();
-
-public slots:
-	void exportPng();
-	void exportSvg();
-
-	void preferences();
-	void about();
-
-protected:
-	virtual void closeEvent(QCloseEvent* event) override;
-
-private slots:
-	void setZoomComboText(qreal scale);
-	void setZoomLevel(const QString& text);
-
-	void setModeText(Drawing::Mode mode);
-	void setModifiedText(bool clean);
-	void setMouseInfoText(const QPointF& position);
-	void setMouseInfoText(const QPointF& position1, const QPointF& position2);
-
-	void updateWindow(bool drawingVisible);
-
-	void resetExportSize(bool drawingVisible);
-	void resetExportSize(const QHash<QString,QVariant>& properties);
-
-private:
-	QString positionToString(const QPointF& position) const;
-
-	void addActions();
-	void createMenus();
-	void createToolBars();
-	void createStatusBar();
 };
 
 #endif

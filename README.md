@@ -20,11 +20,11 @@ Notable changes vs libjade-master and jade-master:
 - Deleted DrawingArcItem, as it is a subset of the behavior of DrawingCurveItem
 - Deleted DrawingTextPolygonItem, as it had some bugs calculating its shape() in certain conditions
 - Remaining DrawingItem subclasses are optimized for fast operation using cached boundingRect and shape calculations
-- Added DrawingPropertiesBrowser, a widget to manage properties of DrawingItem and DrawingWidget objects
-- Added DrawingWindow class, which manages a SDI interface for a DrawingWidget and connects it to a DrawingPropertiesBrowser
+- Added PropertiesBrowser, a widget to manage properties of DrawingItem and DrawingWidget objects
+- Added DrawingWindow class, which manages a SDI interface for a DrawingWidget and connects it to a PropertiesBrowser
 
 Todo:
 - A lot of testing!!!  Pretty much every line of code still needs to be tested.
-- MainWindow: exportPng(), exportSvg(), exportVsdx(), exportOdg()
-- MainWindow: add path items for electric circuit elements and logic gates
-- Ability to place ellipses using center point and radii?
+- Add support for defs, just like SVG
+- Add custom SVG exporter
+- Add path items for electric circuit elements and logic gates

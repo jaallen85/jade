@@ -1,4 +1,4 @@
-// DrawingPropertiesBrowser.cpp
+// PropertiesBrowser.cpp
 // Copyright (C) 2020  Jason Allen
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "DrawingPropertiesBrowser.h"
-#include "DrawingPropertiesWidget.h"
+#include "PropertiesBrowser.h"
+#include "PropertiesWidgets.h"
 #include <QGroupBox>
 #include <QStackedWidget>
 #include <QTabWidget>
 #include <QVBoxLayout>
 
-DrawingPropertiesBrowser::DrawingPropertiesBrowser(QWidget* parent) : QScrollArea(parent)
+PropertiesBrowser::PropertiesBrowser(QWidget* parent) : QScrollArea(parent)
 {
 	setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
@@ -40,44 +40,44 @@ DrawingPropertiesBrowser::DrawingPropertiesBrowser(QWidget* parent) : QScrollAre
 	setWidget(mStackedWidget);
 	setWidgetResizable(true);
 
-	registerDrawingWidget("Drawing", new DrawingRectPropertyWidget("sceneRect", "", true, false));
-	registerDrawingWidget("Drawing", new DrawingBrushPropertyWidget("backgroundBrush", "Background"));
-	registerDrawingWidget("Grid", new DrawingGridPropertiesWidget());
+	registerDrawingWidget("Drawing", new RectPropertyWidget("sceneRect", "", true, false));
+	registerDrawingWidget("Drawing", new BrushPropertyWidget("backgroundBrush", "Background"));
+	registerDrawingWidget("Grid", new GridPropertiesWidget());
 
-	registerDefaultItemWidget("Pen / Brush", new DrawingPenPropertyWidget("pen", "Pen"));
-	registerDefaultItemWidget("Pen / Brush", new DrawingBrushPropertyWidget("brush", "Brush"));
-	registerDefaultItemWidget("Text", new DrawingFontPropertyWidget("font", "Font"));
-	registerDefaultItemWidget("Text", new DrawingAlignmentPropertyWidget("alignment", "Alignment"));
-	registerDefaultItemWidget("Text", new DrawingBrushPropertyWidget("textBrush", "Text"));
-	registerDefaultItemWidget("Arrow", new DrawingArrowPropertyWidget("startArrow", "Start Arrow"));
-	registerDefaultItemWidget("Arrow", new DrawingArrowPropertyWidget("endArrow", "End Arrow"));
+	registerDefaultItemWidget("Pen / Brush", new PenPropertyWidget("pen", "Pen"));
+	registerDefaultItemWidget("Pen / Brush", new BrushPropertyWidget("brush", "Brush"));
+	registerDefaultItemWidget("Text", new FontPropertyWidget("font", "Font"));
+	registerDefaultItemWidget("Text", new AlignmentPropertyWidget("alignment", "Alignment"));
+	registerDefaultItemWidget("Text", new BrushPropertyWidget("textBrush", "Text"));
+	registerDefaultItemWidget("Arrow", new ArrowPropertyWidget("startArrow", "Start Arrow"));
+	registerDefaultItemWidget("Arrow", new ArrowPropertyWidget("endArrow", "End Arrow"));
 
-	registerItemsWidget("Position", new DrawingPositionPropertyWidget("position", "Position"));
-	registerItemsWidget("Line", new DrawingLinePropertyWidget("line", ""));
-	registerItemsWidget("Curve", new DrawingCurvePropertyWidget("curve", ""));
-	registerItemsWidget("Rect", new DrawingRectPropertyWidget("rect", "", false, false));
-	registerItemsWidget("Rect", new DrawingSizePropertyWidget("cornerRadius", "Corner Radius"));
-	registerItemsWidget("Ellipse", new DrawingRectPropertyWidget("ellipse", "", false, true));
-	registerItemsWidget("Pen / Brush", new DrawingPenPropertyWidget("pen", "Pen"));
-	registerItemsWidget("Pen / Brush", new DrawingBrushPropertyWidget("brush", "Brush"));
-	registerItemsWidget("Text", new DrawingFontPropertyWidget("font", "Font"));
-	registerItemsWidget("Text", new DrawingAlignmentPropertyWidget("alignment", "Alignment"));
-	registerItemsWidget("Text", new DrawingBrushPropertyWidget("textBrush", "Text"));
-	registerItemsWidget("Text", new DrawingTextPropertyWidget("caption", "Caption"));
-	registerItemsWidget("Arrow", new DrawingArrowPropertyWidget("startArrow", "Start Arrow"));
-	registerItemsWidget("Arrow", new DrawingArrowPropertyWidget("endArrow", "End Arrow"));
-	registerItemsWidget("Polyline", new DrawingPolygonPropertyWidget("polyline"));
-	registerItemsWidget("Polygon", new DrawingPolygonPropertyWidget("polygon"));
+	registerItemsWidget("Position", new PositionPropertyWidget("position", "Position"));
+	registerItemsWidget("Line", new LinePropertyWidget("line", ""));
+	registerItemsWidget("Curve", new CurvePropertyWidget("curve", ""));
+	registerItemsWidget("Rect", new RectPropertyWidget("rect", "", false, false));
+	registerItemsWidget("Rect", new SizePropertyWidget("cornerRadius", "Corner Radius"));
+	registerItemsWidget("Ellipse", new RectPropertyWidget("ellipse", "", false, true));
+	registerItemsWidget("Pen / Brush", new PenPropertyWidget("pen", "Pen"));
+	registerItemsWidget("Pen / Brush", new BrushPropertyWidget("brush", "Brush"));
+	registerItemsWidget("Text", new FontPropertyWidget("font", "Font"));
+	registerItemsWidget("Text", new AlignmentPropertyWidget("alignment", "Alignment"));
+	registerItemsWidget("Text", new BrushPropertyWidget("textBrush", "Text"));
+	registerItemsWidget("Text", new TextPropertyWidget("caption", "Caption"));
+	registerItemsWidget("Arrow", new ArrowPropertyWidget("startArrow", "Start Arrow"));
+	registerItemsWidget("Arrow", new ArrowPropertyWidget("endArrow", "End Arrow"));
+	registerItemsWidget("Polyline", new PolygonPropertyWidget("polyline"));
+	registerItemsWidget("Polygon", new PolygonPropertyWidget("polygon"));
 
 	setPreferredWidth(360);
 	setLabelWidth(QFontMetrics(font()).boundingRect("Background Color:").width() + 24);
 }
 
-DrawingPropertiesBrowser::~DrawingPropertiesBrowser() { }
+PropertiesBrowser::~PropertiesBrowser() { }
 
 //==================================================================================================
 
-void DrawingPropertiesBrowser::registerDrawingWidget(const QString& groupTitle, DrawingPropertiesWidget* widget)
+void PropertiesBrowser::registerDrawingWidget(const QString& groupTitle, PropertiesWidget* widget)
 {
 	if (widget)
 	{
@@ -90,7 +90,7 @@ void DrawingPropertiesBrowser::registerDrawingWidget(const QString& groupTitle, 
 	}
 }
 
-void DrawingPropertiesBrowser::registerDefaultItemWidget(const QString& groupTitle, DrawingPropertiesWidget* widget)
+void PropertiesBrowser::registerDefaultItemWidget(const QString& groupTitle, PropertiesWidget* widget)
 {
 	if (widget)
 	{
@@ -103,7 +103,7 @@ void DrawingPropertiesBrowser::registerDefaultItemWidget(const QString& groupTit
 	}
 }
 
-void DrawingPropertiesBrowser::registerItemsWidget(const QString& groupTitle, DrawingPropertiesWidget* widget)
+void PropertiesBrowser::registerItemsWidget(const QString& groupTitle, PropertiesWidget* widget)
 {
 	if (widget)
 	{
@@ -118,12 +118,12 @@ void DrawingPropertiesBrowser::registerItemsWidget(const QString& groupTitle, Dr
 
 //==================================================================================================
 
-void DrawingPropertiesBrowser::setPreferredWidth(int width)
+void PropertiesBrowser::setPreferredWidth(int width)
 {
 	mPreferredWidth = width;
 }
 
-void DrawingPropertiesBrowser::setLabelWidth(int width)
+void PropertiesBrowser::setLabelWidth(int width)
 {
 	for(auto subWidgetIter = mDrawingPropertiesSubWidgets.begin();
 		subWidgetIter != mDrawingPropertiesSubWidgets.end(); subWidgetIter++)
@@ -144,14 +144,14 @@ void DrawingPropertiesBrowser::setLabelWidth(int width)
 	}
 }
 
-QSize DrawingPropertiesBrowser::sizeHint() const
+QSize PropertiesBrowser::sizeHint() const
 {
 	return QSize(mPreferredWidth, -1);
 }
 
 //==================================================================================================
 
-void DrawingPropertiesBrowser::setItems(const QList<DrawingItem*>& items)
+void PropertiesBrowser::setItems(const QList<DrawingItem*>& items)
 {
 	for(auto subWidgetIter = mItemsPropertiesSubWidgets.begin();
 		subWidgetIter != mItemsPropertiesSubWidgets.end(); subWidgetIter++)
@@ -164,13 +164,13 @@ void DrawingPropertiesBrowser::setItems(const QList<DrawingItem*>& items)
 	{
 		QLayout* groupLayout = (*groupIter)->layout();
 		bool allChildrenHidden = true;
-		DrawingPropertiesWidget* widget;
+		PropertiesWidget* widget;
 
 		if (groupLayout)
 		{
 			for(int i = 0; allChildrenHidden && i < groupLayout->count(); i++)
 			{
-				widget = qobject_cast<DrawingPropertiesWidget*>(groupLayout->itemAt(i)->widget());
+				widget = qobject_cast<PropertiesWidget*>(groupLayout->itemAt(i)->widget());
 				if (widget) allChildrenHidden = !widget->isValidForItems();
 			}
 		}
@@ -183,7 +183,7 @@ void DrawingPropertiesBrowser::setItems(const QList<DrawingItem*>& items)
 
 //==================================================================================================
 
-void DrawingPropertiesBrowser::setDrawingProperties(const QHash<QString,QVariant>& properties)
+void PropertiesBrowser::setDrawingProperties(const QHash<QString,QVariant>& properties)
 {
 	for(auto subWidgetIter = mDrawingPropertiesSubWidgets.begin();
 		subWidgetIter != mDrawingPropertiesSubWidgets.end(); subWidgetIter++)
@@ -192,7 +192,7 @@ void DrawingPropertiesBrowser::setDrawingProperties(const QHash<QString,QVariant
 	}
 }
 
-void DrawingPropertiesBrowser::setDefaultItemProperties(const QHash<QString,QVariant>& properties)
+void PropertiesBrowser::setDefaultItemProperties(const QHash<QString,QVariant>& properties)
 {
 	for(auto subWidgetIter = mDefaultItemPropertiesSubWidgets.begin();
 		subWidgetIter != mDefaultItemPropertiesSubWidgets.end(); subWidgetIter++)
@@ -201,7 +201,7 @@ void DrawingPropertiesBrowser::setDefaultItemProperties(const QHash<QString,QVar
 	}
 }
 
-void DrawingPropertiesBrowser::setItemsProperties(const QList<DrawingItem*>& items)
+void PropertiesBrowser::setItemsProperties(const QList<DrawingItem*>& items)
 {
 	for(auto subWidgetIter = mItemsPropertiesSubWidgets.begin();
 		subWidgetIter != mItemsPropertiesSubWidgets.end(); subWidgetIter++)
@@ -212,7 +212,7 @@ void DrawingPropertiesBrowser::setItemsProperties(const QList<DrawingItem*>& ite
 
 //==================================================================================================
 
-void DrawingPropertiesBrowser::createPropertiesWidget(QWidget*& widget, QVBoxLayout*& layout)
+void PropertiesBrowser::createPropertiesWidget(QWidget*& widget, QVBoxLayout*& layout)
 {
 	widget = new QWidget();
 	layout = new QVBoxLayout();
@@ -220,7 +220,7 @@ void DrawingPropertiesBrowser::createPropertiesWidget(QWidget*& widget, QVBoxLay
 	widget->setLayout(layout);
 }
 
-QGroupBox* DrawingPropertiesBrowser::findOrCreateGroup(const QString& groupTitle,
+QGroupBox* PropertiesBrowser::findOrCreateGroup(const QString& groupTitle,
 	QVBoxLayout* layout, QList<QGroupBox*>& groups)
 {
 	QGroupBox* group = nullptr;
