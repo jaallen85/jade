@@ -84,6 +84,7 @@ private:
 	QList<DrawingPathItem*> mPathItems;
 	QAction* mElectricItemsAction;
 	QAction* mLogicItemsAction;
+	QAction* mOtherItemsAction;
 
 public:
 	MainWindow(const QString& filePath = QString());

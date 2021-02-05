@@ -118,9 +118,9 @@ public slots:
 	void zoomOut();
 	void zoomFit();
 
-	void setDefaultMode();
-	void setScrollMode();
-	void setZoomMode();
+	virtual void setDefaultMode();
+	virtual void setScrollMode();
+	virtual void setZoomMode();
 
 protected slots:
 	virtual void setModeFromAction(QAction* action);

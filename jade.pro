@@ -36,6 +36,7 @@ SOURCES += \
 	\
 	source/items/ElectricItems.cpp \
 	source/items/LogicItems.cpp \
+	source/items/OtherItems.cpp \
 	\
 	source/properties/HelperWidgets.cpp \
 	source/properties/PropertiesBrowser.cpp \
@@ -71,6 +72,7 @@ HEADERS += \
 	\
 	source/items/ElectricItems.h \
 	source/items/LogicItems.h \
+	source/items/OtherItems.h \
 	\
 	source/properties/HelperWidgets.h \
 	source/properties/PropertiesBrowser.h \

@@ -20,6 +20,7 @@
 #include "ElectricItems.h"
 #include "ExportOptionsDialog.h"
 #include "LogicItems.h"
+#include "OtherItems.h"
 #include "PreferencesDialog.h"
 #include "PropertiesBrowser.h"
 #include <DrawingCurveItem.h>
@@ -907,6 +908,13 @@ void MainWindow::addActions()
 	DrawingItem::factory.registerItem(new DrawingPathItem());
 	mElectricItemsAction = addPathItems("Electric Items", ElectricItems::items(), ElectricItems::icons());
 	mLogicItemsAction = addPathItems("Logic Items", LogicItems::items(), LogicItems::icons());
+
+	QList<DrawingItem*> otherItems = createOtherItems();
+	QMenu* otherItemsMenu = new QMenu("Other Items");
+	for(int i = 0; i < otherItems.size(); i++)
+		otherItemsMenu->addAction(addPlaceAction("Place " + otherItems[i]->uniqueKey(), "", otherItems[i]));
+	mOtherItemsAction = new QAction("Other Items", this);
+	mOtherItemsAction->setMenu(otherItemsMenu);
 }
 
 QAction* MainWindow::addAction(const QString& text, QObject* slotObj, const char* slotFunction,
@@ -1012,6 +1020,7 @@ void MainWindow::createMenus()
 	menu->addSeparator();
 	menu->addAction(mElectricItemsAction);
 	menu->addAction(mLogicItemsAction);
+	menu->addAction(mOtherItemsAction);
 
 	menu = menuBar()->addMenu("Object");
 	menu->addAction(drawingActionList[DrawingWidget::RotateAction]);

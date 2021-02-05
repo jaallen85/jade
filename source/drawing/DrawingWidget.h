@@ -135,9 +135,9 @@ signals:
 	void mouseInfoChanged(const QString& text);
 
 public slots:
-	void setDefaultMode();
-	void setScrollMode();
-	void setZoomMode();
+	virtual void setDefaultMode() override;
+	virtual void setScrollMode() override;
+	virtual void setZoomMode() override;
 	void setPlaceMode(const QList<DrawingItem*>& items);
 private:
 	void clearMode();
