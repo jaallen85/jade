@@ -28,7 +28,7 @@ class MainWindow : public DrawingWindow
 	Q_OBJECT
 
 public:
-	enum ActionIndex { ExportPngAction = NumberOfActions, ExportSvgAction, ExportVsdxAction, ExportOdgAction,
+	enum ActionIndex { ExportPngAction = NumberOfActions, ExportSvgAction,
 		PreferencesAction, AboutAction, AboutQtAction  };
 
 private:
@@ -51,8 +51,6 @@ public:
 public slots:
 	void exportPng();
 	void exportSvg();
-	void exportVsdx();
-	void exportOdg();
 
 	void preferences();
 	void about();

@@ -15,6 +15,14 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "ExportOptionsDialog.h"
+#include <QCheckBox>
+#include <QDialogButtonBox>
+#include <QFormLayout>
+#include <QGroupBox>
+#include <QIntValidator>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QVBoxLayout>
 
 ExportOptionsDialog::ExportOptionsDialog(const QRectF& sceneRect, const QSize& exportSize,
 	bool maintainAspectRatio, QWidget* parent) : QDialog(parent)

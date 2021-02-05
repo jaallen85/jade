@@ -17,7 +17,14 @@
 #ifndef EXPORTOPTIONSDIALOG_H
 #define EXPORTOPTIONSDIALOG_H
 
-#include <QtWidgets>
+#include <QDialog>
+#include <QRectF>
+#include <QSize>
+
+class QCheckBox;
+class QDialogButtonBox;
+class QGroupBox;
+class QLineEdit;
 
 class ExportOptionsDialog : public QDialog
 {

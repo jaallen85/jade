@@ -29,8 +29,10 @@
 #include <QLabel>
 #include <QMenu>
 #include <QMenuBar>
+#include <QMessageBox>
 #include <QSettings>
 #include <QStatusBar>
+#include <QSvgGenerator>
 #include <QToolBar>
 
 MainWindow::MainWindow(const QString& filePath) : DrawingWindow()
@@ -219,17 +221,50 @@ void MainWindow::exportPng()
 
 void MainWindow::exportSvg()
 {
+	if (isDrawingWidgetVisible())
+	{
+		QString filePath = MainWindow::filePath();
+		QFileDialog::Options options =
+			(shouldPromptOnOverwrite()) ? QFileDialog::Options() : QFileDialog::DontConfirmOverwrite;
 
-}
+		if (filePath.startsWith("Untitled")) filePath = workingDir().path();
+		else filePath = filePath.left(filePath.length() - fileSuffix().length() - 1) + ".svg";
 
-void MainWindow::exportVsdx()
-{
+		filePath = QFileDialog::getSaveFileName(this, "Export SVG", filePath,
+			"Scalable Vector Graphics (*.svg);;All Files (*)", nullptr, options);
+		if (!filePath.isEmpty())
+		{
+			if (!filePath.endsWith(".svg", Qt::CaseInsensitive)) filePath += ".svg";
 
-}
+			DrawingWidget* drawing = MainWindow::drawing();
+			QRectF sceneRect = drawing->sceneRect();
+			QSize exportSize = mExportSize;
+			if (!exportSize.isValid()) exportSize = (sceneRect.size() / 4).toSize();
 
-void MainWindow::exportOdg()
-{
+			ExportOptionsDialog exportDialog(drawing->sceneRect(), exportSize, mExportMaintainAspectRatio, this);
+			if (exportDialog.exec() == ExportOptionsDialog::Accepted)
+			{
+				mExportSize = exportDialog.exportSize();
+				mExportMaintainAspectRatio = exportDialog.maintainAspectRatio();
 
+				QSvgGenerator svgImage;
+				QPainter painter;
+
+				drawing->clearSelection();
+
+				svgImage.setFileName(filePath);
+				svgImage.setSize(mExportSize);
+				svgImage.setViewBox(QRect(QPoint(0, 0), mExportSize));
+
+				painter.begin(&svgImage);
+				painter.scale(svgImage.size().width() / sceneRect.width(), svgImage.size().height() / sceneRect.height());
+				painter.translate(-sceneRect.left(), -sceneRect.top());
+				painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing, true);
+				drawing->renderExport(&painter);
+				painter.end();
+			}
+		}
+	}
 }
 
 //==================================================================================================
@@ -331,8 +366,6 @@ void MainWindow::updateWindow(bool drawingVisible)
 	QList<QAction*> actionList = actions();
 	actionList[ExportPngAction]->setEnabled(drawingVisible);
 	actionList[ExportSvgAction]->setEnabled(drawingVisible);
-	actionList[ExportOdgAction]->setEnabled(drawingVisible);
-	actionList[ExportVsdxAction]->setEnabled(drawingVisible);
 }
 
 //==================================================================================================
@@ -361,8 +394,6 @@ void MainWindow::addActions()
 {
 	addAction("Export PNG...", this, SLOT(exportPng()), ":/icons/oxygen/image-x-generic.png");
 	addAction("Export SVG...", this, SLOT(exportSvg()), ":/icons/oxygen/image-svg+xml.png");
-	addAction("Export ODG...", this, SLOT(exportOdg()), ":/icons/oxygen/application-vnd.oasis.opendocument.graphics.png");
-	addAction("Export VSDX...", this, SLOT(exportVsdx()), ":/icons/oxygen/application-msword.png");
 	addAction("Preferences...", this, SLOT(preferences()), ":/icons/oxygen/configure.png");
 
 	addAction("About...", this, SLOT(about()), ":/icons/oxygen/help-about.png");
@@ -433,8 +464,6 @@ void MainWindow::createMenus()
 	menu->addSeparator();
 	menu->addAction(actionList[ExportPngAction]);
 	menu->addAction(actionList[ExportSvgAction]);
-	menu->addAction(actionList[ExportVsdxAction]);
-	menu->addAction(actionList[ExportOdgAction]);
 	menu->addSeparator();
 	menu->addAction(actionList[PreferencesAction]);
 	menu->addSeparator();
