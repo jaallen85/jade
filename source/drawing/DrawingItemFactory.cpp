@@ -18,7 +18,6 @@
 #include "DrawingArrow.h"
 #include "DrawingItemPoint.h"
 #include "DrawingItemGroup.h"
-#include "DrawingPathItem.h"
 #include <QtMath>
 
 DrawingItemFactory::DrawingItemFactory() : QObject()
@@ -27,7 +26,6 @@ DrawingItemFactory::DrawingItemFactory() : QObject()
 	qRegisterMetaTypeStreamOperators<DrawingArrow>("DrawingArrow");
 
 	mItems.append(new DrawingItemGroup());
-	mItems.append(new DrawingPathItem());
 
 	// initialize default properties
 	QVariant startArrowVariant, endArrowVariant;

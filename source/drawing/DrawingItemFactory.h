@@ -23,7 +23,6 @@
 #include <QVariant>
 
 class DrawingItem;
-class DrawingPathItem;
 class QXmlStreamReader;
 class QXmlStreamWriter;
 

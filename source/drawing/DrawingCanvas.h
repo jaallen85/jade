@@ -110,6 +110,7 @@ signals:
 	void gridChanged(qreal grid);
 	void scaleChanged(qreal scale);
 	void modeChanged(Drawing::Mode mode);
+	void modeActionChanged(QAction* action);
 
 public slots:
 	void setScale(qreal scale);

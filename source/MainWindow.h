@@ -17,18 +17,71 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <QHash>
+#include <QList>
 #include <QMainWindow>
+#include <QString>
+#include <QVariant>
+
+class DrawingBrowser;
+class DrawingItem;
+class DrawingPathItem;
+class DrawingWidget;
+class PropertiesBrowser;
+class QComboBox;
+class QLabel;
+class QStackedWidget;
 
 class MainWindow : public QMainWindow
 {
 	Q_OBJECT
 
 private:
+	enum ActionIndex { NewAction, OpenAction, SaveAction, SaveAsAction, CloseAction,
+		ExportPngAction, ExportSvgAction, PreferencesAction, ExitAction,
+		AboutAction, AboutQtAction,	NumberOfActions };
+	enum PlaceActionIndex { PlaceLineAction, PlaceCurveAction, PlacePolylineAction,
+		PlaceRectAction, PlaceEllipseAction, PlacePolygonAction,
+		PlaceTextAction, PlaceTextRectAction, PlaceTextEllipseAction };
 
+private:
+	DrawingWidget* mDrawingWidget;
+	QStackedWidget* mStackedWidget;
+
+	DrawingBrowser* mDrawingBrowser;
+	QDockWidget* mDrawingDock;
+
+	PropertiesBrowser* mPropertiesBrowser;
+	QDockWidget* mPropertiesDock;
+
+	QComboBox* mZoomCombo;
+
+	QLabel* mModeLabel;
+	QLabel* mModifiedLabel;
+	QLabel* mMouseInfoLabel;
+
+	QHash<QString,QVariant> mDrawingDefaultProperties;
+
+	QList<QAction*> mPlaceActions;
+	QList<DrawingPathItem*> mPathItems;
 
 public:
 	MainWindow(const QString& filePath = QString());
 	~MainWindow();
+
+private slots:
+	void setModeFromPlaceAction(QAction* action);
+
+private:
+	void addActions();
+	QAction* addAction(const QString& text, QObject* slotObj, const char* slotFunction,
+		const QString& iconPath = QString(), const QString& shortcut = QString());
+	QAction* addPlaceAction(const QString& text, const QString& iconPath = QString(),
+		DrawingItem* item = nullptr);
+
+	void createMenus();
+	void createToolBars();
+	void createStatusBar();
 };
 
 #endif

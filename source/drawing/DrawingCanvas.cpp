@@ -412,7 +412,8 @@ void DrawingCanvas::setModeFromAction(QAction* action)
 	if (action == modeActionList[DefaultModeAction]) setDefaultMode();
 	else if (action == modeActionList[ScrollModeAction]) setScrollMode();
 	else if (action == modeActionList[ZoomModeAction]) setZoomMode();
-	else setDefaultMode();
+
+	emit modeActionChanged(action);
 }
 
 //==================================================================================================

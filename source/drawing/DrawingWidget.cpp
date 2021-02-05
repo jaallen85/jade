@@ -15,17 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "DrawingWidget.h"
-#include "DrawingCurveItem.h"
-#include "DrawingEllipseItem.h"
 #include "DrawingItemGroup.h"
-#include "DrawingLineItem.h"
-#include "DrawingPathItem.h"
-#include "DrawingPolygonItem.h"
-#include "DrawingPolylineItem.h"
-#include "DrawingRectItem.h"
-#include "DrawingTextEllipseItem.h"
-#include "DrawingTextItem.h"
-#include "DrawingTextRectItem.h"
 #include "DrawingUndo.h"
 #include <QApplication>
 #include <QClipboard>
@@ -59,7 +49,6 @@ DrawingWidget::DrawingWidget(QWidget* parent) : DrawingCanvas(parent)
 DrawingWidget::~DrawingWidget()
 {
 	clearItems();
-	while (!mPathItems.isEmpty()) delete mPathItems.takeFirst();
 }
 
 //==================================================================================================
@@ -617,33 +606,6 @@ void DrawingWidget::readFromXml(QXmlStreamReader* xml)
 			else xml->skipCurrentElement();
 		}
 	}
-}
-
-//==================================================================================================
-
-QAction* DrawingWidget::addPlaceAction(DrawingItem* item, const QString& text,
-	const QString& iconPath, const QString& shortcut)
-{
-	QAction* action = nullptr;
-
-	if (item)
-	{
-		action = addModeAction(text, iconPath, shortcut);
-
-		DrawingPathItem* pathItem = dynamic_cast<DrawingPathItem*>(item);
-		if (pathItem)
-		{
-			mPathItems.append(pathItem);
-			action->setProperty("pathName", pathItem->pathName());
-		}
-		else
-		{
-			DrawingItem::factory.registerItem(item);
-			action->setProperty("name", item->name());
-		}
-	}
-
-	return action;
 }
 
 //==================================================================================================
@@ -1462,41 +1424,6 @@ void DrawingWidget::setItemsProperties(const QHash< DrawingItem*, QHash<QString,
 
 //==================================================================================================
 
-void DrawingWidget::setModeFromAction(QAction* action)
-{
-	QList<QAction*> modeActionList = modeActions();
-
-	if (action)
-	{
-		if (action == modeActionList[DefaultModeAction]) setDefaultMode();
-		else if (action == modeActionList[ScrollModeAction]) setScrollMode();
-		else if (action == modeActionList[ZoomModeAction]) setZoomMode();
-		else
-		{
-			DrawingItem* item = DrawingItem::factory.createItem(action->property("name").toString());
-
-			if (item == nullptr)
-			{
-				QString pathName = action->property("pathName").toString();
-				for(auto itemIter = mPathItems.begin(); item == nullptr && itemIter != mPathItems.end(); itemIter++)
-				{
-					if ((*itemIter)->pathName() == pathName) item = (*itemIter)->copy();
-				}
-			}
-
-			if (item)
-			{
-				QList<DrawingItem*> items;
-				items.append(item);
-				setPlaceMode(items);
-			}
-			else setDefaultMode();
-		}
-	}
-}
-
-//==================================================================================================
-
 void DrawingWidget::mousePressEvent(QMouseEvent* event)
 {
 	DrawingCanvas::mousePressEvent(event);
@@ -1978,8 +1905,8 @@ void DrawingWidget::updateActionsFromSelection()
 	if (mSelectedItems.size() == 1)
 	{
 		DrawingItem* item = mSelectedItems.first();
-		canUngroup = (dynamic_cast<DrawingItemGroup*>(item));
-		canInsertRemovePoints = (dynamic_cast<DrawingPolygonItem*>(item) || dynamic_cast<DrawingPolylineItem*>(item));
+		canUngroup = (item->name() == "group");
+		canInsertRemovePoints = (item->name() == "polygon" || item->name() == "polyline");
 	}
 
 	actionList[GroupAction]->setEnabled(canGroup);
@@ -2461,16 +2388,6 @@ void DrawingWidget::addActions()
 	addAction("Remove Point", this, SLOT(removeItemPointFromSelection()), "");
 
 	addAction("Properties...", this, SIGNAL(propertiesTriggered()));
-
-	addPlaceAction(new DrawingLineItem(), "Place Line", ":/icons/oxygen/draw-line.png");
-	addPlaceAction(new DrawingCurveItem(), "Place Curve", ":/icons/oxygen/draw-curve.png");
-	addPlaceAction(new DrawingPolylineItem(), "Place Polyline", ":/icons/oxygen/draw-polyline.png");
-	addPlaceAction(new DrawingRectItem(), "Place Rect", ":/icons/oxygen/draw-rectangle.png");
-	addPlaceAction(new DrawingEllipseItem(), "Place Ellipse", ":/icons/oxygen/draw-ellipse.png");
-	addPlaceAction(new DrawingPolygonItem(), "Place Polygon", ":/icons/oxygen/draw-polygon.png");
-	addPlaceAction(new DrawingTextItem(), "Place Text", ":/icons/oxygen/draw-text.png");
-	addPlaceAction(new DrawingTextRectItem(), "Place Text Rect", ":/icons/oxygen/draw-textrect.png");
-	addPlaceAction(new DrawingTextEllipseItem(), "Place Text Ellipse", ":/icons/oxygen/draw-textellipse.png");
 }
 
 void DrawingWidget::createContextMenus()

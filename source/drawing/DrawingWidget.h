@@ -29,8 +29,6 @@
 
 class DrawingItem;
 class DrawingItemPoint;
-class DrawingPathItem;
-class QActionGroup;
 
 class DrawingWidget : public DrawingCanvas
 {
@@ -45,9 +43,6 @@ public:
 		BringForwardAction, SendBackwardAction, BringToFrontAction, SendToBackAction,
 		GroupAction, UngroupAction, InsertPointAction, RemovePointAction,
 		PropertiesAction, NumberOfActions };
-	enum ModeActionIndex { PlaceLineAction = NumberOfCanvasModeActions, PlaceCurveAction, PlacePolylineAction,
-		PlaceRectAction, PlaceEllipseAction, PlacePolygonAction,
-		PlaceTextAction, PlaceTextRectAction, PlaceTextEllipseAction, NumberOfModeActions };
 
 private:
 	enum MouseState { MouseReady, MouseSelect, MouseMoveItems, MouseResizeItem, MouseRubberBand };
@@ -79,8 +74,6 @@ private:
 	QMenu mSinglePolyItemContextMenu;
 	QMenu mMultipleItemContextMenu;
 	QMenu mDrawingContextMenu;
-
-	QList<DrawingPathItem*> mPathItems;
 
 public:
 	DrawingWidget(QWidget* parent = nullptr);
@@ -128,9 +121,6 @@ public:
 
 	virtual void writeToXml(QXmlStreamWriter* xml);
 	virtual void readFromXml(QXmlStreamReader* xml);
-
-	QAction* addPlaceAction(DrawingItem* item, const QString& text,
-		const QString& iconPath = QString(), const QString& shortcut = QString());
 
 signals:
 	void cleanChanged(bool clean);
@@ -205,9 +195,6 @@ public:
 	void connectPoints(DrawingItemPoint* point1, DrawingItemPoint* point2);
 	void disconnectPoints(DrawingItemPoint* point1, DrawingItemPoint* point2);
 	void setItemsProperties(const QHash< DrawingItem*, QHash<QString,QVariant> >& properties);
-
-protected slots:
-	virtual void setModeFromAction(QAction* action) override;
 
 protected:
 	virtual void mousePressEvent(QMouseEvent* event) override;

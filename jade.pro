@@ -39,6 +39,7 @@ SOURCES += \
 	source/properties/PropertiesWidgets.cpp \
 	\
 	source/AboutDialog.cpp \
+	source/DrawingBrowser.cpp \
 	source/ExportOptionsDialog.cpp \
 	source/MainWindow.cpp \
 	source/PreferencesDialog.cpp \
@@ -70,6 +71,7 @@ HEADERS += \
 	source/properties/PropertiesWidgets.h \
 	\
 	source/AboutDialog.h \
+	source/DrawingBrowser.h \
 	source/ExportOptionsDialog.h \
 	source/MainWindow.h \
 	source/PreferencesDialog.h
