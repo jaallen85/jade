@@ -15,7 +15,10 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "MainWindow.h"
+#include "AboutDialog.h"
 #include "DrawingBrowser.h"
+#include "ExportOptionsDialog.h"
+#include "PreferencesDialog.h"
 #include "PropertiesBrowser.h"
 #include <DrawingCurveItem.h>
 #include <DrawingEllipseItem.h>
@@ -29,20 +32,42 @@
 #include <DrawingTextRectItem.h>
 #include <DrawingWidget.h>
 #include <QApplication>
-#include <QDockWidget>
+#include <QCloseEvent>
 #include <QComboBox>
+#include <QDockWidget>
+#include <QFileDialog>
 #include <QHBoxLayout>
+#include <QHideEvent>
 #include <QLabel>
 #include <QMenuBar>
+#include <QMessageBox>
+#include <QSettings>
 #include <QStackedWidget>
 #include <QStatusBar>
+#include <QShowEvent>
 #include <QToolBar>
 
 MainWindow::MainWindow(const QString& filePath) : QMainWindow()
 {	
+	// Internal variables
+	mApplicationName = "Jade";
+	mFileFilter = "Jade Drawings (*.jdm);;All Files (*)";
+	mFileSuffix = "jdm";
+	mPromptOverwrite = true;
+	mPromptCloseUnsaved = true;
+
+	mNewCount = 0;
+	mPropertiesDockVisibleOnClose = true;
+#ifndef WIN32
+	mWorkingDir = QDir::home();
+#endif
+
+	mExportSize = QSize();
+	mExportMaintainAspectRatio = true;
+
 	// Main drawing widget
 	mDrawingWidget = new DrawingWidget();
-	mDrawingDefaultProperties = mDrawingWidget->properties();
+	mDefaultDrawingProperties = mDrawingWidget->properties();
 
 	mStackedWidget = new QStackedWidget();
 	mStackedWidget->addWidget(new QWidget());
@@ -59,6 +84,7 @@ MainWindow::MainWindow(const QString& filePath) : QMainWindow()
 	mDrawingDock->setFeatures(QDockWidget::AllDockWidgetFeatures);
 	mDrawingDock->setObjectName("PropertiesDock");
 	addDockWidget(Qt::LeftDockWidgetArea, mDrawingDock);
+	mDrawingDock->hide();
 
 	// Properties browser
 	mPropertiesBrowser = new PropertiesBrowser();
@@ -74,25 +100,587 @@ MainWindow::MainWindow(const QString& filePath) : QMainWindow()
 	addDockWidget(Qt::RightDockWidgetArea, mPropertiesDock);
 
 	// Connections
-	//connect(mDrawingWidget, SIGNAL(propertiesTriggered()), mPropertiesDock, SLOT(show()));
-	//connect(mPropertiesBrowser, SIGNAL(defaultItemPropertiesChanged(const QHash<QString,QVariant>&)),
-	//	&DrawingItem::factory, SLOT(setDefaultItemProperties(const QHash<QString,QVariant>&)));
-	//connectDrawingAndPropertiesBrowser();
+	connect(mDrawingWidget, SIGNAL(modeActionChanged(QAction*)), this, SLOT(setModeFromPlaceAction(QAction*)));
 
+	connect(mDrawingWidget, SIGNAL(propertiesTriggered()), mPropertiesDock, SLOT(show()));
+	connect(mDrawingWidget, SIGNAL(propertiesChanged(const QHash<QString,QVariant>&)),
+		mPropertiesBrowser, SLOT(setDrawingProperties(const QHash<QString,QVariant>&)));
+	connect(mDrawingWidget, SIGNAL(itemsPropertiesChanged(const QList<DrawingItem*>&)),
+		mPropertiesBrowser, SLOT(setItemsProperties(const QList<DrawingItem*>&)));
+	connect(mDrawingWidget, SIGNAL(currentItemsChanged(const QList<DrawingItem*>&)),
+		mPropertiesBrowser, SLOT(setItems(const QList<DrawingItem*>&)));
+
+	connect(mPropertiesBrowser, SIGNAL(drawingPropertiesChanged(const QHash<QString,QVariant>&)),
+		mDrawingWidget, SLOT(updateProperties(const QHash<QString,QVariant>&)));
+	connect(mPropertiesBrowser, SIGNAL(defaultItemPropertiesChanged(const QHash<QString,QVariant>&)),
+		&DrawingItem::factory, SLOT(setDefaultItemProperties(const QHash<QString,QVariant>&)));
+	connect(mPropertiesBrowser, SIGNAL(itemsPropertiesChanged(const QHash< DrawingItem*, QHash<QString,QVariant> >&)),
+		mDrawingWidget, SLOT(updateItemsProperties(const QHash< DrawingItem*, QHash<QString,QVariant> >&)));
+
+	// Window setup
 	addActions();
 	createMenus();
 	createToolBars();
 	createStatusBar();
 
 	setWindowIcon(QIcon(":/icons/jade/jade.png"));
-	resize(1354, 800);
+	resize(1318, 800);
 
+	loadSettings();
+	connect(this, SIGNAL(drawingVisibilityChanged(bool)), this, SLOT(updateWindow(bool)));
+	connect(this, SIGNAL(filePathChanged(const QString&)), this, SLOT(updateWindowTitle(const QString&)));
 
+	connect(this, SIGNAL(drawingVisibilityChanged(bool)), this, SLOT(resetExportSize(bool)));
+	connect(drawing(), SIGNAL(propertiesChanged(const QHash<QString,QVariant>&)), this, SLOT(resetExportSize(const QHash<QString,QVariant>&)));
+
+	if (!filePath.isEmpty()) openDrawing(filePath);
+	else newDrawing();
 }
 
 MainWindow::~MainWindow()
 {
 	while (!mPathItems.isEmpty()) delete mPathItems.takeFirst();
+}
+
+//==================================================================================================
+
+DrawingWidget* MainWindow::drawing() const
+{
+	return mDrawingWidget;
+}
+
+bool MainWindow::isDrawingVisible() const
+{
+	return (mDrawingWidget && mStackedWidget->currentIndex() == 1);
+}
+
+//==================================================================================================
+
+void MainWindow::setApplicationName(const QString& name)
+{
+	mApplicationName = name;
+	setWindowTitle(mFilePath);
+}
+
+void MainWindow::setFileDialogOptions(const QString& fileFilter, const QString& fileSuffix)
+{
+	mFileFilter = fileFilter;
+	mFileSuffix = fileSuffix;
+}
+
+void MainWindow::setPromptOnOverwrite(bool prompt)
+{
+	mPromptOverwrite = prompt;
+}
+
+void MainWindow::setPromptOnClosingUnsaved(bool prompt)
+{
+	mPromptCloseUnsaved = prompt;
+}
+
+QString MainWindow::applicationName() const
+{
+	return mApplicationName;
+}
+
+QString MainWindow::fileFilter() const
+{
+	return mFileFilter;
+}
+
+QString MainWindow::fileSuffix() const
+{
+	return mFileSuffix;
+}
+
+bool MainWindow::shouldPromptOnOverwrite() const
+{
+	return mPromptOverwrite;
+}
+
+bool MainWindow::shouldPromptOnClosingUnsaved() const
+{
+	return mPromptCloseUnsaved;
+}
+
+QString MainWindow::filePath() const
+{
+	return mFilePath;
+}
+
+QDir MainWindow::workingDir() const
+{
+	return mWorkingDir;
+}
+
+//==================================================================================================
+
+void MainWindow::setDefaultDrawingProperties(const QHash<QString,QVariant>& properties)
+{
+	mDefaultDrawingProperties = properties;
+}
+
+QHash<QString,QVariant> MainWindow::defaultDrawingProperties() const
+{
+	return mDefaultDrawingProperties;
+}
+
+//==================================================================================================
+
+void MainWindow::saveSettings()
+{
+#ifdef RELEASE_BUILD
+#ifdef WIN32
+	QString configPath("config.ini");
+#else
+	QString configPath(QDir::home().absoluteFilePath(".jade/config.ini"));
+#endif
+#else
+	QString configPath("config.ini");
+#endif
+
+	QSettings settings(configPath, QSettings::IniFormat);
+
+	settings.beginGroup("Window");
+	settings.setValue("geometry", saveGeometry());
+	settings.setValue("state", saveState());
+	settings.endGroup();
+
+	settings.beginGroup("Prompts");
+	settings.setValue("promptOnClosingUnsaved", shouldPromptOnClosingUnsaved());
+	settings.setValue("promptOnOverwrite", shouldPromptOnOverwrite());
+	settings.endGroup();
+
+	QHash<QString,QVariant> properties = defaultDrawingProperties();
+	settings.beginGroup("DrawingDefaults");
+	settings.setValue("sceneRect", properties.value("sceneRect"));
+	settings.setValue("backgroundBrush", properties.value("backgroundBrush"));
+	settings.setValue("grid", properties.value("grid"));
+	settings.setValue("gridStyle", properties.value("gridStyle"));
+	settings.setValue("gridBrush", properties.value("gridBrush"));
+	settings.setValue("gridSpacingMajor", properties.value("gridSpacingMajor"));
+	settings.setValue("gridSpacingMinor", properties.value("gridSpacingMinor"));
+	settings.setValue("dynamicGrid", properties.value("dynamicGrid"));
+	settings.setValue("dynamicGridEnabled", properties.value("dynamicGridEnabled"));
+	settings.endGroup();
+
+	properties = DrawingItem::factory.defaultItemProperties();
+	settings.beginGroup("ItemDefaults");
+	settings.setValue("pen", properties.value("pen"));
+	settings.setValue("brush", properties.value("brush"));
+	settings.setValue("startArrow", properties.value("startArrow"));
+	settings.setValue("endArrow", properties.value("endArrow"));
+	settings.setValue("textBrush", properties.value("textBrush"));
+	settings.setValue("font", properties.value("font"));
+	settings.setValue("alignment", properties.value("alignment"));
+	settings.endGroup();
+}
+
+void MainWindow::loadSettings()
+{
+#ifdef RELEASE_BUILD
+#ifdef WIN32
+	QString configPath("config.ini");
+#else
+	QString configPath(QDir::home().absoluteFilePath(".jade/config.ini"));
+#endif
+#else
+	QString configPath("config.ini");
+#endif
+
+	QSettings settings(configPath, QSettings::IniFormat);
+
+	settings.beginGroup("Window");
+	restoreGeometry(settings.value("geometry", QVariant(QByteArray())).toByteArray());
+	restoreState(settings.value("state", QVariant(QByteArray())).toByteArray());
+	settings.endGroup();
+
+	settings.beginGroup("Prompts");
+	setPromptOnClosingUnsaved(settings.value("promptOnClosingUnsaved", QVariant(true)).toBool());
+	setPromptOnOverwrite(settings.value("promptOnOverwrite", QVariant(true)).toBool());
+	settings.endGroup();
+
+	QHash<QString,QVariant> properties = defaultDrawingProperties();
+	settings.beginGroup("DrawingDefaults");
+	properties.insert("sceneRect", settings.value("sceneRect", QVariant(QRectF(-100, -100, 8200, 6200))));
+	properties.insert("backgroundBrush", settings.value("backgroundBrush", QVariant(QBrush(QColor(255, 255, 255)))));
+	properties.insert("grid", settings.value("grid", QVariant(50.0)));
+	properties.insert("gridStyle", settings.value("gridStyle", QVariant((uint)Drawing::GridGraphPaper)));
+	properties.insert("gridBrush", settings.value("gridBrush", QVariant(QBrush(QColor(0, 128, 128)))));
+	properties.insert("gridSpacingMajor", settings.value("gridSpacingMajor", QVariant(8)));
+	properties.insert("gridSpacingMinor", settings.value("gridSpacingMinor", QVariant(2)));
+	properties.insert("dynamicGrid", settings.value("dynamicGrid", QVariant(1000.0)));
+	properties.insert("dynamicGridEnabled", settings.value("dynamicGridEnabled", QVariant(false)));
+	settings.endGroup();
+	setDefaultDrawingProperties(properties);
+	mPropertiesBrowser->setDrawingProperties(properties);
+
+	QVariant startArrowVariant, endArrowVariant;
+	startArrowVariant.setValue(DrawingArrow(Drawing::ArrowNone, 100.0));
+	endArrowVariant.setValue(DrawingArrow(Drawing::ArrowNone, 100.0));
+
+	properties = DrawingItem::factory.defaultItemProperties();
+	settings.beginGroup("ItemDefaults");
+	properties.insert("pen", settings.value("pen", QVariant(QPen(Qt::black, 12.0, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin))));
+	properties.insert("brush", settings.value("brush", QVariant(QBrush(Qt::white))));
+	properties.insert("startArrow", settings.value("startArrow", startArrowVariant));
+	properties.insert("endArrow", settings.value("endArrow", endArrowVariant));
+	properties.insert("textBrush", settings.value("textBrush", QVariant(QBrush(Qt::black))));
+	properties.insert("font", settings.value("font", QVariant(QFont("Arial", 100))));
+	properties.insert("alignment", settings.value("alignment", QVariant((uint)(Qt::AlignCenter))));
+	settings.endGroup();
+	DrawingItem::factory.setDefaultItemProperties(properties);
+	mPropertiesBrowser->setDefaultItemProperties(properties);
+}
+
+//==================================================================================================
+
+void MainWindow::newDrawing()
+{
+	// Close any open drawing first
+	closeDrawing();
+
+	// Create a new drawing only if there is no open drawing (i.e. close was successful or unneeded)
+	if (mDrawingWidget && !isDrawingVisible())
+	{
+		clearDrawing();
+
+		mNewCount++;
+		mFilePath = "Untitled " + QString::number(mNewCount);
+		mDrawingWidget->zoomFit();
+		mStackedWidget->setCurrentIndex(1);
+		mPropertiesDock->setVisible(mPropertiesDockVisibleOnClose);
+
+		emit filePathChanged(mFilePath);
+		emit drawingVisibilityChanged(true);
+	}
+}
+
+void MainWindow::openDrawing(const QString& filePath)
+{
+	QString drawingPath = filePath;
+
+	if (drawingPath.isEmpty())
+	{
+		// Prompt the user for the new file path to open
+		QFileDialog::Options options = (mPromptOverwrite) ? QFileDialog::Options() : QFileDialog::DontConfirmOverwrite;
+		drawingPath = mWorkingDir.path();
+		drawingPath = QFileDialog::getOpenFileName(this, "Open File", drawingPath, mFileFilter, nullptr, options);
+	}
+
+	if (!drawingPath.isEmpty())
+	{
+		// Close any open drawing before proceeding
+		closeDrawing();
+
+		// Open an existing drawing only if there is no open drawing (i.e. close was successful or unneeded)
+		if (mDrawingWidget && !isDrawingVisible())
+		{
+			clearDrawing();
+
+			if (loadDrawingFromFile(drawingPath))
+			{
+				mFilePath = drawingPath;
+				mDrawingWidget->zoomFit();
+				mStackedWidget->setCurrentIndex(1);
+				mPropertiesDock->setVisible(mPropertiesDockVisibleOnClose);
+
+				emit filePathChanged(mFilePath);
+				emit drawingVisibilityChanged(true);
+			}
+		}
+	}
+}
+
+void MainWindow::saveDrawing(const QString& filePath)
+{
+	//emit filePathChanged(mFilePath);
+
+	if (isDrawingVisible())
+	{
+		if (filePath.isEmpty() && mFilePath.startsWith("Untitled"))
+		{
+			// If no filePath is provided and mFilePath is invalid, then do a "save-as" instead
+			saveDrawingAs();
+		}
+		else
+		{
+			// Use either the provided filePath or the cached mFilePath to save the drawing to file
+			QString drawingPath = (!filePath.isEmpty()) ? filePath : mFilePath;
+
+			if (saveDrawingToFile(drawingPath))
+			{
+				mFilePath = drawingPath;
+				emit filePathChanged(mFilePath);
+			}
+		}
+	}
+}
+
+void MainWindow::saveDrawingAs()
+{
+	if (isDrawingVisible())
+	{
+		QFileDialog::Options options = (mPromptOverwrite) ? QFileDialog::Options() : QFileDialog::DontConfirmOverwrite;
+		QString filePath = (mFilePath.startsWith("Untitled")) ? mWorkingDir.path() : mFilePath;
+
+		filePath = QFileDialog::getSaveFileName(this, "Save File", filePath, mFileFilter, nullptr, options);
+		if (!filePath.isEmpty())
+		{
+			// Ensure that the selected filePath ends with the proper file suffix
+			if (!filePath.endsWith("." + mFileSuffix, Qt::CaseInsensitive))
+				filePath += "." + mFileSuffix;
+
+			// Use the selected filePath to save the drawing to file
+			if (saveDrawingToFile(filePath))
+			{
+				mFilePath = filePath;
+				emit filePathChanged(mFilePath);
+			}
+
+			// Update the cached working directory
+			QFileInfo fileInfo(filePath);
+			mWorkingDir = fileInfo.dir();
+		}
+	}
+}
+
+void MainWindow::closeDrawing()
+{
+	if (isDrawingVisible())
+	{
+		bool proceedToClose = true;
+
+		// If drawing has unsaved changes, prompt the user whether to save before closing
+		if (mPromptCloseUnsaved && !mDrawingWidget->isClean())
+		{
+			QFileInfo fileInfo(mFilePath);
+
+			QMessageBox::StandardButton  button = QMessageBox::question(this, "Save Changes",
+				"Save changes to " + fileInfo.fileName() + " before closing?",
+				QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel, QMessageBox::Yes);
+
+			if (button == QMessageBox::Yes)
+			{
+				if (mFilePath.startsWith("Untitled")) saveDrawingAs();
+				else saveDrawing();
+			}
+
+			proceedToClose = ((button == QMessageBox::Yes && mDrawingWidget->isClean()) ||
+				button == QMessageBox::No);
+		}
+
+		if (proceedToClose)
+		{
+			// Hide the drawing widget and clear it to its default state
+			mStackedWidget->setCurrentIndex(0);
+			mFilePath = "";
+			mPropertiesDockVisibleOnClose = mPropertiesDock->isVisible();
+			mPropertiesDock->setVisible(false);
+
+			clearDrawing();
+
+			emit filePathChanged(mFilePath);
+			emit drawingVisibilityChanged(false);
+		}
+	}
+}
+
+//==================================================================================================
+
+void MainWindow::exportPng()
+{
+	if (isDrawingVisible())
+	{
+		QString filePath = MainWindow::filePath();
+		QFileDialog::Options options =
+			(shouldPromptOnOverwrite()) ? QFileDialog::Options() : QFileDialog::DontConfirmOverwrite;
+
+		if (filePath.startsWith("Untitled")) filePath = workingDir().path();
+		else filePath = filePath.left(filePath.length() - fileSuffix().length() - 1) + ".png";
+
+		filePath = QFileDialog::getSaveFileName(this, "Export PNG", filePath,
+			"Portable Network Graphics (*.png);;All Files (*)", nullptr, options);
+		if (!filePath.isEmpty())
+		{
+			if (!filePath.endsWith(".png", Qt::CaseInsensitive)) filePath += ".png";
+
+			DrawingWidget* drawing = MainWindow::drawing();
+			QRectF sceneRect = drawing->sceneRect();
+			QSize exportSize = mExportSize;
+			if (!exportSize.isValid()) exportSize = (sceneRect.size() / 4).toSize();
+
+			ExportOptionsDialog exportDialog(drawing->sceneRect(), exportSize, mExportMaintainAspectRatio, this);
+			if (exportDialog.exec() == ExportOptionsDialog::Accepted)
+			{
+				mExportSize = exportDialog.exportSize();
+				mExportMaintainAspectRatio = exportDialog.maintainAspectRatio();
+
+				QImage pngImage(mExportSize, QImage::Format_ARGB32);
+				QPainter painter;
+
+				drawing->clearSelection();
+
+				painter.begin(&pngImage);
+				painter.scale(pngImage.width() / sceneRect.width(), pngImage.height() / sceneRect.height());
+				painter.translate(-sceneRect.left(), -sceneRect.top());
+				painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing, true);
+				drawing->renderExport(&painter);
+				painter.end();
+
+				pngImage.save(filePath, "PNG");
+			}
+		}
+	}
+}
+
+void MainWindow::exportSvg()
+{
+	if (isDrawingVisible())
+	{
+		QString filePath = MainWindow::filePath();
+		QFileDialog::Options options =
+			(shouldPromptOnOverwrite()) ? QFileDialog::Options() : QFileDialog::DontConfirmOverwrite;
+
+		if (filePath.startsWith("Untitled")) filePath = workingDir().path();
+		else filePath = filePath.left(filePath.length() - fileSuffix().length() - 1) + ".svg";
+
+		filePath = QFileDialog::getSaveFileName(this, "Export SVG", filePath,
+			"Scalable Vector Graphics (*.svg);;All Files (*)", nullptr, options);
+		if (!filePath.isEmpty())
+		{
+			if (!filePath.endsWith(".svg", Qt::CaseInsensitive)) filePath += ".svg";
+
+			DrawingWidget* drawing = MainWindow::drawing();
+			QRectF sceneRect = drawing->sceneRect();
+			QSize exportSize = mExportSize;
+			if (!exportSize.isValid()) exportSize = (sceneRect.size() / 4).toSize();
+
+			ExportOptionsDialog exportDialog(drawing->sceneRect(), exportSize, mExportMaintainAspectRatio, this);
+			if (exportDialog.exec() == ExportOptionsDialog::Accepted)
+			{
+				mExportSize = exportDialog.exportSize();
+				mExportMaintainAspectRatio = exportDialog.maintainAspectRatio();
+
+				// Todo: SVG generation
+			}
+		}
+	}
+}
+
+//==================================================================================================
+
+void MainWindow::preferences()
+{
+	PreferencesDialog dialog(this);
+	dialog.setPrompts(shouldPromptOnClosingUnsaved(), shouldPromptOnOverwrite());
+	dialog.setDefaultDrawingProperties(defaultDrawingProperties());
+
+	if (dialog.exec() == QDialog::Accepted)
+	{
+		setPromptOnClosingUnsaved(dialog.shouldPromptOnClosingUnsaved());
+		setPromptOnOverwrite(dialog.shouldPromptOnOverwrite());
+		setDefaultDrawingProperties(dialog.defaultDrawingProperties());
+	}
+}
+
+void MainWindow::about()
+{
+	AboutDialog dialog(this);
+	dialog.exec();
+}
+
+//==================================================================================================
+
+void MainWindow::updateWindow(bool drawingVisible)
+{
+	if (mDrawingWidget)
+	{
+		QList<QAction*> actionList = actions();
+		if (actionList.size() >= NumberOfActions)
+		{
+			actionList[SaveAction]->setEnabled(drawingVisible);
+			actionList[SaveAsAction]->setEnabled(drawingVisible);
+			actionList[CloseAction]->setEnabled(drawingVisible);
+			actionList[ExportPngAction]->setEnabled(drawingVisible);
+			actionList[ExportSvgAction]->setEnabled(drawingVisible);
+		}
+
+		QList<QAction*> drawingActionList = mDrawingWidget->actions();
+		for(auto actionIter = drawingActionList.begin(); actionIter != drawingActionList.end(); actionIter++)
+			(*actionIter)->setEnabled(drawingVisible);
+
+		QList<QAction*> modeActionList = mDrawingWidget->modeActions();
+		for(auto actionIter = modeActionList.begin(); actionIter != modeActionList.end(); actionIter++)
+			(*actionIter)->setEnabled(drawingVisible);
+
+		if (mPropertiesBrowser)
+			mPropertiesBrowser->setDrawingProperties(mDrawingWidget->properties());
+	}
+}
+
+void MainWindow::updateWindowTitle(const QString& filePath)
+{
+	QFileInfo fileInfo(filePath);
+	QString fileName = fileInfo.fileName();
+
+	QMainWindow::setWindowTitle(fileName.isEmpty() ? mApplicationName : fileName + " - " + mApplicationName);
+}
+
+//==================================================================================================
+
+void MainWindow::setZoomComboText(qreal scale)
+{
+	mZoomCombo->setCurrentText(QString::number(1000 * scale, 'g', 4) + "%");
+}
+
+void MainWindow::setZoomLevel(const QString& text)
+{
+	if (text == "Fit to Page")
+	{
+		drawing()->zoomFit();
+	}
+	else
+	{
+		QString numText = text;
+		if (numText.endsWith("%")) numText = numText.left(numText.size() - 1);
+
+		bool ok = false;
+		qreal newScale = numText.toFloat(&ok);
+		if (ok) drawing()->setScale(newScale / 1000);
+	}
+}
+
+//==================================================================================================
+
+void MainWindow::setModeText(Drawing::Mode mode)
+{
+	QString modeText = "Select Mode";
+
+	switch (mode)
+	{
+	case Drawing::ScrollMode: modeText = "Scroll Mode"; break;
+	case Drawing::ZoomMode: modeText = "Zoom Mode"; break;
+	default: break;
+	}
+
+	mModeLabel->setText(modeText);
+}
+
+void MainWindow::setModifiedText(bool clean)
+{
+	mModifiedLabel->setText((clean) ? "" : "Modified");
+}
+
+void MainWindow::setMouseInfoText(const QPointF& position)
+{
+	mMouseInfoLabel->setText(positionToString(position));
+}
+
+void MainWindow::setMouseInfoText(const QPointF& position1, const QPointF& position2)
+{
+	mMouseInfoLabel->setText(positionToString(position1) + " - " + positionToString(position2) + "  " +
+		QString(QChar(0x394)) + " = " + positionToString(position2 - position1));
 }
 
 //==================================================================================================
@@ -122,6 +710,138 @@ void MainWindow::setModeFromPlaceAction(QAction* action)
 		}
 		else mDrawingWidget->setDefaultMode();
 	}
+}
+
+//==================================================================================================
+
+void MainWindow::resetExportSize(bool drawingVisible)
+{
+	mExportSize = QSize();
+	Q_UNUSED(drawingVisible);
+}
+
+void MainWindow::resetExportSize(const QHash<QString,QVariant>& properties)
+{
+	if (properties.contains("sceneRect")) mExportSize = QSize();
+}
+
+//==================================================================================================
+
+bool MainWindow::saveDrawingToFile(const QString& filePath)
+{
+	QFile dataFile(filePath);
+
+	bool fileError = !dataFile.open(QIODevice::WriteOnly);
+	if (!fileError)
+	{
+		QXmlStreamWriter xml(&dataFile);
+		xml.setAutoFormatting(true);
+		xml.setAutoFormattingIndent(2);
+
+		xml.writeStartDocument();
+		xml.writeStartElement(mApplicationName.toLower() + "-drawing");
+		mDrawingWidget->writeToXml(&xml);
+		xml.writeEndElement();
+		xml.writeEndDocument();
+
+		dataFile.close();
+
+		mDrawingWidget->setClean();
+		mDrawingWidget->viewport()->update();
+	}
+
+	if (fileError)
+	{
+		QMessageBox::critical(this, "Error Saving File",
+			"Unable to open file for saving.  File not saved: " + filePath);
+	}
+
+	return (!fileError);
+}
+
+bool MainWindow::loadDrawingFromFile(const QString& filePath)
+{
+	QFile dataFile(filePath);
+
+	bool fileError = !dataFile.open(QIODevice::ReadOnly);
+	if (!fileError)
+	{
+		clearDrawing();
+
+		QXmlStreamReader xml(&dataFile);
+
+		while (xml.readNextStartElement())
+		{
+			if (xml.name() == mApplicationName.toLower() + "-drawing")
+				mDrawingWidget->readFromXml(&xml);
+			else
+				xml.skipCurrentElement();
+		}
+
+		dataFile.close();
+
+		mDrawingWidget->setClean();
+		mDrawingWidget->viewport()->update();
+
+		mFilePath = filePath;
+	}
+
+	if (fileError)
+	{
+		QMessageBox::critical(this, "Error Reading File",
+			"File could not be read. Please ensure that this file is valid: " + filePath);
+	}
+
+	return (!fileError);
+}
+
+void MainWindow::clearDrawing()
+{
+	if (mDrawingWidget)
+	{
+		mDrawingWidget->clearItems();
+		mDrawingWidget->setProperties(mDefaultDrawingProperties);
+		mDrawingWidget->setClean();
+	}
+}
+
+//==================================================================================================
+
+void MainWindow::showEvent(QShowEvent* event)
+{
+	QMainWindow::showEvent(event);
+
+	if (!event->spontaneous())
+	{
+		if (mDrawingWidget) mDrawingWidget->zoomFit();
+	}
+	else if (!mWindowState.isEmpty()) restoreState(mWindowState);
+}
+
+void MainWindow::hideEvent(QHideEvent* event)
+{
+	QMainWindow::hideEvent(event);
+
+	if (event->spontaneous()) mWindowState = saveState();
+}
+
+void MainWindow::closeEvent(QCloseEvent* event)
+{
+	closeDrawing();
+
+	if (!isDrawingVisible())
+	{
+		saveSettings();
+		event->accept();
+	}
+	else event->ignore();
+}
+
+//==================================================================================================
+
+QString MainWindow::positionToString(const QPointF& position) const
+{
+	return QString("(%1,%2)").arg(position.x(), 0, 'g', 5, QChar()).arg(position.y(), 0, 'g', 5, QChar());
 }
 
 //==================================================================================================

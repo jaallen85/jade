@@ -3,7 +3,7 @@ TEMPLATE = app
 TARGET = jade
 DESTDIR = bin
 
-QT += core gui svg
+QT += core gui
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += release embed_manifest_dll c++11

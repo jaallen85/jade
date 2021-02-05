@@ -17,6 +17,9 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <DrawingTypes.h>
+#include <QByteArray>
+#include <QDir>
 #include <QHash>
 #include <QList>
 #include <QMainWindow>
@@ -60,7 +63,22 @@ private:
 	QLabel* mModifiedLabel;
 	QLabel* mMouseInfoLabel;
 
-	QHash<QString,QVariant> mDrawingDefaultProperties;
+	QString mApplicationName;
+	QString mFileFilter;
+	QString mFileSuffix;
+	bool mPromptOverwrite;
+	bool mPromptCloseUnsaved;
+	QString mFilePath;
+	QDir mWorkingDir;
+
+	QHash<QString,QVariant> mDefaultDrawingProperties;
+
+	int mNewCount;
+	QByteArray mWindowState;
+	bool mPropertiesDockVisibleOnClose;
+
+	QSize mExportSize;
+	bool mExportMaintainAspectRatio;
 
 	QList<QAction*> mPlaceActions;
 	QList<DrawingPathItem*> mPathItems;
@@ -69,10 +87,72 @@ public:
 	MainWindow(const QString& filePath = QString());
 	~MainWindow();
 
+	DrawingWidget* drawing() const;
+	bool isDrawingVisible() const;
+
+	void setApplicationName(const QString& name);
+	void setFileDialogOptions(const QString& fileFilter, const QString& fileSuffix);
+	void setPromptOnOverwrite(bool prompt);
+	void setPromptOnClosingUnsaved(bool prompt);
+	QString applicationName() const;
+	QString fileFilter() const;
+	QString fileSuffix() const;
+	bool shouldPromptOnOverwrite() const;
+	bool shouldPromptOnClosingUnsaved() const;
+	QString filePath() const;
+	QDir workingDir() const;
+
+	void setDefaultDrawingProperties(const QHash<QString,QVariant>& properties);
+	QHash<QString,QVariant> defaultDrawingProperties() const;
+
+	void saveSettings();
+	void loadSettings();
+
+public slots:
+	void newDrawing();
+	void openDrawing(const QString& filePath = QString());
+	void saveDrawing(const QString& filePath = QString());
+	void saveDrawingAs();
+	void closeDrawing();
+
+	void exportPng();
+	void exportSvg();
+
+	void preferences();
+	void about();
+
+signals:
+	void drawingVisibilityChanged(bool visible);
+	void filePathChanged(const QString& filePath);
+
 private slots:
+	void updateWindow(bool drawingVisible);
+	void updateWindowTitle(const QString& filePath);
+
+	void setZoomComboText(qreal scale);
+	void setZoomLevel(const QString& text);
+
+	void setModeText(Drawing::Mode mode);
+	void setModifiedText(bool clean);
+	void setMouseInfoText(const QPointF& position);
+	void setMouseInfoText(const QPointF& position1, const QPointF& position2);
+
 	void setModeFromPlaceAction(QAction* action);
 
+	void resetExportSize(bool drawingVisible);
+	void resetExportSize(const QHash<QString,QVariant>& properties);
+
 private:
+	bool saveDrawingToFile(const QString& filePath);
+	bool loadDrawingFromFile(const QString& filePath);
+	void clearDrawing();
+
+	void showEvent(QShowEvent* event) override;
+	void hideEvent(QHideEvent* event) override;
+	void closeEvent(QCloseEvent* event) override;
+
+	QString positionToString(const QPointF& position) const;
+
 	void addActions();
 	QAction* addAction(const QString& text, QObject* slotObj, const char* slotFunction,
 		const QString& iconPath = QString(), const QString& shortcut = QString());
