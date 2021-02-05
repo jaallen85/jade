@@ -69,5 +69,39 @@
         <file>arrow/arrow_normal.png</file>
         <file>arrow/arrow_triangle.png</file>
         <file>arrow/arrow_triangle_filled.png</file>
+        <file>items/and_gate.png</file>
+        <file>items/buffer.png</file>
+        <file>items/capacitor1.png</file>
+        <file>items/capacitor2.png</file>
+        <file>items/demultiplexer.png</file>
+        <file>items/diode.png</file>
+        <file>items/flip_flop.png</file>
+        <file>items/flip_flop2.png</file>
+        <file>items/ground1.png</file>
+        <file>items/ground2.png</file>
+        <file>items/iac.png</file>
+        <file>items/idc.png</file>
+        <file>items/inductor1.png</file>
+        <file>items/led.png</file>
+        <file>items/multiplexer.png</file>
+        <file>items/nand_gate.png</file>
+        <file>items/nmos_fet.png</file>
+        <file>items/nor_gate.png</file>
+        <file>items/not_gate.png</file>
+        <file>items/npn_bjt.png</file>
+        <file>items/opamp.png</file>
+        <file>items/or_gate.png</file>
+        <file>items/pmos_fet.png</file>
+        <file>items/pnp_bjt.png</file>
+        <file>items/resistor1.png</file>
+        <file>items/resistor2.png</file>
+        <file>items/schottky_diode.png</file>
+        <file>items/tristate_buffer.png</file>
+        <file>items/tristate_buffer2.png</file>
+        <file>items/vac.png</file>
+        <file>items/vdc.png</file>
+        <file>items/xnor_gate.png</file>
+        <file>items/xor_gate.png</file>
+        <file>items/zener_diode.png</file>
     </qresource>
 </RCC>

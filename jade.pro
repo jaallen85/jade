@@ -11,7 +11,7 @@ CONFIG -= debug
 
 DEFINES += QT_DEPRECATED_WARNINGS
 
-INCLUDEPATH += source source/drawing source/properties
+INCLUDEPATH += source source/drawing source/items source/properties
 
 SOURCES += \
 	source/drawing/DrawingArrow.cpp \
@@ -33,6 +33,9 @@ SOURCES += \
 	source/drawing/DrawingTypes.cpp \
 	source/drawing/DrawingUndo.cpp \
 	source/drawing/DrawingWidget.cpp \
+	\
+	source/items/ElectricItems.cpp \
+	source/items/LogicItems.cpp \
 	\
 	source/properties/HelperWidgets.cpp \
 	source/properties/PropertiesBrowser.cpp \
@@ -65,6 +68,9 @@ HEADERS += \
 	source/drawing/DrawingTypes.h \
 	source/drawing/DrawingUndo.h \
 	source/drawing/DrawingWidget.h \
+	\
+	source/items/ElectricItems.h \
+	source/items/LogicItems.h \
 	\
 	source/properties/HelperWidgets.h \
 	source/properties/PropertiesBrowser.h \

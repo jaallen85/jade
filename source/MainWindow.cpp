@@ -17,7 +17,9 @@
 #include "MainWindow.h"
 #include "AboutDialog.h"
 #include "DrawingBrowser.h"
+#include "ElectricItems.h"
 #include "ExportOptionsDialog.h"
+#include "LogicItems.h"
 #include "PreferencesDialog.h"
 #include "PropertiesBrowser.h"
 #include <DrawingCurveItem.h>
@@ -858,6 +860,8 @@ void MainWindow::addActions()
 	addAction("Preferences...", this, SLOT(preferences()), ":/icons/oxygen/configure.png");
 	addAction("Exit", this, SLOT(close()), ":/icons/oxygen/application-exit.png");
 
+	addAction("Reference Definitions...", mDrawingDock, SLOT(show()));
+
 	addAction("About...", this, SLOT(about()), ":/icons/oxygen/help-about.png");
 	addAction("About Qt...", qApp, SLOT(aboutQt()));
 
@@ -901,6 +905,8 @@ void MainWindow::addActions()
 	addPlaceAction("Place Text Ellipse", ":/icons/items/textellipse.png", new DrawingTextEllipseItem());
 
 	DrawingItem::factory.registerItem(new DrawingPathItem());
+	mElectricItemsAction = addPathItems("Electric Items", ElectricItems::items(), ElectricItems::icons());
+	mLogicItemsAction = addPathItems("Logic Items", LogicItems::items(), LogicItems::icons());
 }
 
 QAction* MainWindow::addAction(const QString& text, QObject* slotObj, const char* slotFunction,
@@ -937,6 +943,18 @@ QAction* MainWindow::addPlaceAction(const QString& text, const QString& iconPath
 		}
 	}
 
+	return action;
+}
+
+QAction* MainWindow::addPathItems(const QString& name, const QList<DrawingPathItem*>& items, const QStringList& icons)
+{
+	QAction* action = new QAction(QIcon(icons.first()), name, this);
+	QMenu* menu = new QMenu(name);
+
+	for(int i = 0; i < items.size() && i < icons.size(); i++)
+		menu->addAction(addPlaceAction("Place " + items[i]->pathName(), icons[i], items[i]));
+
+	action->setMenu(menu);
 	return action;
 }
 
@@ -991,6 +1009,9 @@ void MainWindow::createMenus()
 	menu->addAction(mPlaceActions[MainWindow::PlaceTextAction]);
 	menu->addAction(mPlaceActions[MainWindow::PlaceTextRectAction]);
 	menu->addAction(mPlaceActions[MainWindow::PlaceTextEllipseAction]);
+	menu->addSeparator();
+	menu->addAction(mElectricItemsAction);
+	menu->addAction(mLogicItemsAction);
 
 	menu = menuBar()->addMenu("Object");
 	menu->addAction(drawingActionList[DrawingWidget::RotateAction]);
@@ -1011,6 +1032,7 @@ void MainWindow::createMenus()
 
 	menu = menuBar()->addMenu("View");
 	menu->addAction(drawingActionList[DrawingWidget::PropertiesAction]);
+	menu->addAction(actionList[DrawingBrowserAction]);
 	menu->addSeparator();
 	menu->addAction(drawingActionList[DrawingWidget::ZoomInAction]);
 	menu->addAction(drawingActionList[DrawingWidget::ZoomOutAction]);

@@ -27,4 +27,3 @@ Todo:
 - A lot of testing!!!  Pretty much every line of code still needs to be tested.
 - Add support for defs, just like SVG
 - Add custom SVG exporter
-- Add path items for electric circuit elements and logic gates

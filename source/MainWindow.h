@@ -42,7 +42,7 @@ class MainWindow : public QMainWindow
 private:
 	enum ActionIndex { NewAction, OpenAction, SaveAction, SaveAsAction, CloseAction,
 		ExportPngAction, ExportSvgAction, PreferencesAction, ExitAction,
-		AboutAction, AboutQtAction,	NumberOfActions };
+		DrawingBrowserAction, AboutAction, AboutQtAction, NumberOfActions };
 	enum PlaceActionIndex { PlaceLineAction, PlaceCurveAction, PlacePolylineAction,
 		PlaceRectAction, PlaceEllipseAction, PlacePolygonAction,
 		PlaceTextAction, PlaceTextRectAction, PlaceTextEllipseAction };
@@ -82,6 +82,8 @@ private:
 
 	QList<QAction*> mPlaceActions;
 	QList<DrawingPathItem*> mPathItems;
+	QAction* mElectricItemsAction;
+	QAction* mLogicItemsAction;
 
 public:
 	MainWindow(const QString& filePath = QString());
@@ -158,6 +160,8 @@ private:
 		const QString& iconPath = QString(), const QString& shortcut = QString());
 	QAction* addPlaceAction(const QString& text, const QString& iconPath = QString(),
 		DrawingItem* item = nullptr);
+	QAction* addPathItems(const QString& name, const QList<DrawingPathItem*>& items,
+		const QStringList& icons);
 
 	void createMenus();
 	void createToolBars();
