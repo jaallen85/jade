@@ -26,6 +26,7 @@ SOURCES += \
 	source/drawing/DrawingPathItem.cpp \
 	source/drawing/DrawingPolygonItem.cpp \
 	source/drawing/DrawingPolylineItem.cpp \
+	source/drawing/DrawingReferenceItem.cpp \
 	source/drawing/DrawingRectItem.cpp \
 	source/drawing/DrawingTextEllipseItem.cpp \
 	source/drawing/DrawingTextItem.cpp \
@@ -63,6 +64,7 @@ HEADERS += \
 	source/drawing/DrawingPolygonItem.h \
 	source/drawing/DrawingPolylineItem.h \
 	source/drawing/DrawingRectItem.h \
+	source/drawing/DrawingReferenceItem.h \
 	source/drawing/DrawingTextEllipseItem.h \
 	source/drawing/DrawingTextItem.h \
 	source/drawing/DrawingTextRectItem.h \

@@ -49,6 +49,66 @@ DrawingWidget::DrawingWidget(QWidget* parent) : DrawingCanvas(parent)
 DrawingWidget::~DrawingWidget()
 {
 	clearItems();
+	clearReferenceItems();
+}
+
+//==================================================================================================
+
+void DrawingWidget::addReferenceItem(DrawingItem* item)
+{
+	if (item && item->mWidget == nullptr)
+	{
+		mReferenceItems.append(item);
+		item->mWidget = this;
+	}
+}
+
+void DrawingWidget::insertReferenceItem(int index, DrawingItem* item)
+{
+	if (item && item->mWidget == nullptr)
+	{
+		mReferenceItems.insert(index, item);
+		item->mWidget = this;
+	}
+}
+void DrawingWidget::removeReferenceItem(DrawingItem* item)
+{
+	if (item && item->mWidget == this)
+	{
+		mReferenceItems.removeAll(item);
+		item->mWidget = nullptr;
+	}
+}
+
+void DrawingWidget::clearReferenceItems()
+{
+	DrawingItem* item = nullptr;
+
+	while (!mReferenceItems.empty())
+	{
+		item = mReferenceItems.first();
+		removeReferenceItem(item);
+		delete item;
+		item = nullptr;
+	}
+}
+
+QList<DrawingItem*> DrawingWidget::referenceItems() const
+{
+	return mReferenceItems;
+}
+
+DrawingItem* DrawingWidget::referenceItem(const QString& referenceName) const
+{
+	DrawingItem* referenceItem = nullptr;
+
+	for(auto itemIter = mReferenceItems.begin();
+		referenceItem == nullptr && itemIter != mReferenceItems.end(); itemIter++)
+	{
+		if ((*itemIter)->name() == referenceName) referenceItem = *itemIter;
+	}
+
+	return referenceItem;
 }
 
 //==================================================================================================

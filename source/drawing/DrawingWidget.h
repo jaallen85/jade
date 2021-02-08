@@ -48,6 +48,7 @@ private:
 	enum MouseState { MouseReady, MouseSelect, MouseMoveItems, MouseResizeItem, MouseRubberBand };
 
 private:
+	QList<DrawingItem*> mReferenceItems;
 	QList<DrawingItem*> mItems;
 
 	QList<DrawingItem*> mSelectedItems;
@@ -78,6 +79,13 @@ private:
 public:
 	DrawingWidget(QWidget* parent = nullptr);
 	virtual ~DrawingWidget();
+
+	void addReferenceItem(DrawingItem* item);
+	void insertReferenceItem(int index, DrawingItem* item);
+	void removeReferenceItem(DrawingItem* item);
+	void clearReferenceItems();
+	QList<DrawingItem*> referenceItems() const;
+	DrawingItem* referenceItem(const QString& referenceName) const;
 
 	void addItem(DrawingItem* item);
 	void insertItem(int index, DrawingItem* item);
