@@ -249,12 +249,11 @@ void DrawingRectItem::writeToXml(QXmlStreamWriter* xml)
 {
 	if (xml)
 	{
-		writeTransformToXml(xml, "transform");
-
-		xml->writeAttribute("left", QString::number(mRect.left()));
-		xml->writeAttribute("top", QString::number(mRect.top()));
-		xml->writeAttribute("width", QString::number(mRect.width()));
-		xml->writeAttribute("height", QString::number(mRect.height()));
+		QRectF rect(mapToScene(mRect.topLeft()), mapToScene(mRect.bottomRight()));
+		xml->writeAttribute("left", QString::number(rect.left()));
+		xml->writeAttribute("top", QString::number(rect.top()));
+		xml->writeAttribute("width", QString::number(rect.width()));
+		xml->writeAttribute("height", QString::number(rect.height()));
 
 		if (mCornerRadius > 0)
 			xml->writeAttribute("corner-radius", QString::number(mCornerRadius));
@@ -285,9 +284,38 @@ void DrawingRectItem::readFromXml(QXmlStreamReader* xml)
 		if (attr.hasAttribute("top")) rect.setTop(attr.value("top").toDouble());
 		if (attr.hasAttribute("width")) rect.setWidth(attr.value("width").toDouble());
 		if (attr.hasAttribute("height")) rect.setHeight(attr.value("height").toDouble());
-		setRect(rect);
+		setRect(rect.translated(-rect.topLeft()));
+		setPosition(position() + rect.topLeft());
 
 		xml->skipCurrentElement();
+	}
+}
+
+//==================================================================================================
+
+void DrawingRectItem::exportToSvg(QXmlStreamWriter* xml)
+{
+	if (xml)
+	{
+		xml->writeStartElement("rect");
+
+		QRectF rect(mapToScene(mRect.topLeft()), mapToScene(mRect.bottomRight()));
+		rect = rect.normalized();
+
+		xml->writeAttribute("x", QString::number(rect.left()));
+		xml->writeAttribute("y", QString::number(rect.top()));
+		xml->writeAttribute("width", QString::number(rect.width()));
+		xml->writeAttribute("height", QString::number(rect.height()));
+
+		if (mCornerRadius > 0)
+		{
+			xml->writeAttribute("rx", QString::number(mCornerRadius));
+			xml->writeAttribute("ry", QString::number(mCornerRadius));
+		}
+
+		exportStyleToSvg(xml, mBrush, mPen);
+
+		xml->writeEndElement();
 	}
 }
 

@@ -402,6 +402,13 @@ void DrawingItem::readFromXml(QXmlStreamReader* xml)
 
 //==================================================================================================
 
+void DrawingItem::exportToSvg(QXmlStreamWriter* xml)
+{
+	Q_UNUSED(xml);
+}
+
+//==================================================================================================
+
 void DrawingItem::writeTransformToXml(QXmlStreamWriter* xml, const QString& name)
 {
 	if (xml)
@@ -703,6 +710,101 @@ void DrawingItem::readAlignmentFromXml(QXmlStreamReader* xml, const QString& nam
 
 		alignment = (hAligment | vAligment);
 	}
+}
+
+//==================================================================================================
+
+void DrawingItem::exportStyleToSvg(QXmlStreamWriter* xml, const QBrush& fill, const QPen& stroke)
+{
+	QString styleString;
+	QColor fillColor = fill.color();
+	QColor strokeColor = stroke.brush().color();
+
+	// fill and fill-opacity attributes
+	if (fillColor.alpha() != 0)
+	{
+		if (fillColor.alpha() != 255)
+		{
+			qreal fillOpacity = fillColor.alphaF();
+			fillColor.setAlpha(255);
+			styleString = "fill:" + colorToString(fillColor) + ";fill-opacity:" + QString::number(fillOpacity);
+		}
+		else
+		{
+			styleString = "fill:" + colorToString(fillColor);
+		}
+	}
+	else styleString = "fill:none";
+
+	if (stroke.style() != Qt::NoPen)
+	{
+		// stroke and stroke-opacity attributes
+		if (strokeColor.alpha() != 0)
+		{
+			if (strokeColor.alpha() != 255)
+			{
+				qreal strokeOpacity = strokeColor.alphaF();
+				strokeColor.setAlpha(255);
+				styleString += ";stroke:" + colorToString(strokeColor) + ";stroke-opacity:" + QString::number(strokeOpacity);
+			}
+			else
+			{
+				styleString += ";stroke:" + colorToString(strokeColor);
+			}
+
+			// stroke-width
+			styleString += ";stroke-width:" + QString::number(stroke.widthF());
+
+			// stroke-dasharray
+			switch (stroke.style())
+			{
+			case Qt::DashLine:
+				styleString += QString(";stroke-dasharray:%1 %2").arg(3 * stroke.widthF()).arg(2 * stroke.widthF());
+				break;
+			case Qt::DotLine:
+				styleString += QString(";stroke-dasharray:%1 %2").arg(stroke.widthF()).arg(2 * stroke.widthF());
+				break;
+			case Qt::DashDotLine:
+				styleString += QString(";stroke-dasharray:%1 %3 %2 %3").arg(3 * stroke.widthF()).arg(stroke.widthF()).arg(2 * stroke.widthF());
+				break;
+			case Qt::DashDotDotLine:
+				styleString += QString(";stroke-dasharray:%1 %3 %2 %3 %2 %3").arg(3 * stroke.widthF()).arg(stroke.widthF()).arg(2 * stroke.widthF());
+				break;
+			default:
+				break;
+			}
+
+			// stroke-linecap
+			switch (stroke.capStyle())
+			{
+			case Qt::SquareCap:
+				styleString += ";stroke-linecap:square";
+				break;
+			case Qt::RoundCap:
+				styleString += ";stroke-linecap:round";
+				break;
+			default:
+				break;
+			}
+
+			// stroke-linejoin
+			switch (stroke.joinStyle())
+			{
+			case Qt::BevelJoin:
+				styleString += ";stroke-linejoin:bevel";
+				break;
+			case Qt::RoundJoin:
+				styleString += ";stroke-linejoin:round";
+				break;
+			default:
+				break;
+			}
+		}
+		else styleString += ";stroke:none";
+	}
+	else styleString += ";stroke:none";
+
+	xml->writeAttribute("style", styleString);
 }
 
 //==================================================================================================

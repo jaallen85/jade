@@ -591,13 +591,19 @@ void DrawingWidget::writeToXml(QXmlStreamWriter* xml)
 		xml->writeAttribute("dynamic-grid", QString::number(dynamicGrid()));
 		xml->writeAttribute("dynamic-grid-enabled", isDynamicGridEnabled() ? "true" : "false");
 
-		xml->writeStartElement("defs");
-		DrawingItem::factory.writeItemsToXml(xml, mReferenceItems);
-		xml->writeEndElement();
+		if (!mReferenceItems.isEmpty())
+		{
+			xml->writeStartElement("defs");
+			DrawingItem::factory.writeItemsToXml(xml, mReferenceItems);
+			xml->writeEndElement();
+		}
 
-		xml->writeStartElement("items");
-		DrawingItem::factory.writeItemsToXml(xml, mItems);
-		xml->writeEndElement();
+		if (!mItems.isEmpty())
+		{
+			xml->writeStartElement("items");
+			DrawingItem::factory.writeItemsToXml(xml, mItems);
+			xml->writeEndElement();
+		}
 	}
 }
 
@@ -678,6 +684,42 @@ void DrawingWidget::readFromXml(QXmlStreamReader* xml)
 		}
 
 		emit referenceItemsChanged(mReferenceItems);
+	}
+}
+
+//==================================================================================================
+
+void DrawingWidget::exportToSvg(QXmlStreamWriter* xml, const QSize& size)
+{
+	if (xml)
+	{
+		QRectF sceneRect = this->sceneRect();
+
+		xml->writeStartElement("svg");
+
+		if (size.isValid())
+		{
+			xml->writeAttribute("width", QString::number(size.width()));
+			xml->writeAttribute("height", QString::number(size.height()));
+		}
+
+		xml->writeAttribute("viewBox", QString("%1 %2 %3 %4").arg(sceneRect.left()).arg(
+			sceneRect.top()).arg(sceneRect.width()).arg(sceneRect.height()));
+		xml->writeAttribute("style", "background-color:" + colorToString(backgroundBrush().color()));
+		xml->writeAttribute("xmlns", "http://www.w3.org/2000/svg");
+
+		if (!mReferenceItems.isEmpty())
+		{
+			xml->writeStartElement("defs");
+			for(auto itemIter = mReferenceItems.begin(); itemIter != mReferenceItems.end(); itemIter++)
+				(*itemIter)->exportToSvg(xml);
+			xml->writeEndElement();
+		}
+
+		for(auto itemIter = mItems.begin(); itemIter != mItems.end(); itemIter++)
+			(*itemIter)->exportToSvg(xml);
+
+		xml->writeEndElement();
 	}
 }
 

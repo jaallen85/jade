@@ -67,6 +67,8 @@ public:
 	virtual void writeToXml(QXmlStreamWriter* xml);
 	virtual void readFromXml(QXmlStreamReader* xml);
 
+	virtual void exportToSvg(QXmlStreamWriter* xml);
+
 protected:
 	virtual void updateItemGeometry();
 };
