@@ -45,7 +45,7 @@ private:
 		DrawingBrowserAction, AboutAction, AboutQtAction, NumberOfActions };
 	enum PlaceActionIndex { PlaceLineAction, PlaceCurveAction, PlacePolylineAction,
 		PlaceRectAction, PlaceEllipseAction, PlacePolygonAction,
-		PlaceTextAction, PlaceTextRectAction, PlaceTextEllipseAction };
+		PlaceTextAction, PlaceTextRectAction, PlaceTextEllipseAction, PlaceReferenceAction };
 
 private:
 	DrawingWidget* mDrawingWidget;
@@ -84,7 +84,6 @@ private:
 	QList<DrawingPathItem*> mPathItems;
 	QAction* mElectricItemsAction;
 	QAction* mLogicItemsAction;
-	QAction* mOtherItemsAction;
 
 public:
 	MainWindow(const QString& filePath = QString());

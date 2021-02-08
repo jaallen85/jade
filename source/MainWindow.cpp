@@ -20,15 +20,16 @@
 #include "ElectricItems.h"
 #include "ExportOptionsDialog.h"
 #include "LogicItems.h"
-#include "OtherItems.h"
 #include "PreferencesDialog.h"
 #include "PropertiesBrowser.h"
+#include "ReferenceItemDialog.h"
 #include <DrawingCurveItem.h>
 #include <DrawingEllipseItem.h>
 #include <DrawingLineItem.h>
 #include <DrawingPathItem.h>
 #include <DrawingPolygonItem.h>
 #include <DrawingPolylineItem.h>
+#include <DrawingReferenceItem.h>
 #include <DrawingRectItem.h>
 #include <DrawingTextItem.h>
 #include <DrawingTextEllipseItem.h>
@@ -112,6 +113,8 @@ MainWindow::MainWindow(const QString& filePath) : QMainWindow()
 		mPropertiesBrowser, SLOT(setItemsProperties(const QList<DrawingItem*>&)));
 	connect(mDrawingWidget, SIGNAL(currentItemsChanged(const QList<DrawingItem*>&)),
 		mPropertiesBrowser, SLOT(setItems(const QList<DrawingItem*>&)));
+	connect(mDrawingWidget, SIGNAL(referenceItemsChanged(const QList<DrawingItem*>&)),
+		mPropertiesBrowser, SLOT(updateReferenceItems(const QList<DrawingItem*>&)));
 
 	connect(mPropertiesBrowser, SIGNAL(drawingPropertiesChanged(const QHash<QString,QVariant>&)),
 		mDrawingWidget, SLOT(updateProperties(const QHash<QString,QVariant>&)));
@@ -694,14 +697,29 @@ void MainWindow::setModeFromPlaceAction(QAction* action)
 
 	if (action && mPlaceActions.contains(action))
 	{
-		DrawingItem* item = DrawingItem::factory.createItem(action->property("uniqueKey").toString());
+		DrawingItem* item = nullptr;
 
-		if (item == nullptr)
+		if (action == mPlaceActions[PlaceReferenceAction])
 		{
-			QString pathName = action->property("pathName").toString();
-			for(auto itemIter = mPathItems.begin(); item == nullptr && itemIter != mPathItems.end(); itemIter++)
+			ReferenceItemDialog dialog(mDrawingWidget->referenceItems(), this);
+			if (dialog.exec() == QDialog::Accepted)
 			{
-				if ((*itemIter)->pathName() == pathName) item = (*itemIter)->copy();
+				DrawingReferenceItem* referenceItem = new DrawingReferenceItem();
+				referenceItem->setReferenceName(dialog.referenceName());
+				item = referenceItem;
+			}
+		}
+		else
+		{
+			item = DrawingItem::factory.createItem(action->property("uniqueKey").toString());
+
+			if (item == nullptr)
+			{
+				QString pathName = action->property("pathName").toString();
+				for(auto itemIter = mPathItems.begin(); item == nullptr && itemIter != mPathItems.end(); itemIter++)
+				{
+					if ((*itemIter)->pathName() == pathName) item = (*itemIter)->copy();
+				}
 			}
 		}
 
@@ -805,6 +823,9 @@ void MainWindow::clearDrawing()
 		mDrawingWidget->clearItems();
 		mDrawingWidget->setProperties(mDefaultDrawingProperties);
 		mDrawingWidget->setClean();
+
+		mDrawingWidget->clearReferenceItems();
+		mPropertiesBrowser->updateReferenceItems(QList<DrawingItem*>());
 	}
 }
 
@@ -904,17 +925,11 @@ void MainWindow::addActions()
 	addPlaceAction("Place Text", ":/icons/oxygen/draw-text.png", new DrawingTextItem());
 	addPlaceAction("Place Text Rectangle", ":/icons/items/textrect.png", new DrawingTextRectItem());
 	addPlaceAction("Place Text Ellipse", ":/icons/items/textellipse.png", new DrawingTextEllipseItem());
+	addPlaceAction("Place Reference Object", ":/icons/oxygen/insert-link.png", new DrawingReferenceItem());
 
 	DrawingItem::factory.registerItem(new DrawingPathItem());
 	mElectricItemsAction = addPathItems("Electric Items", ElectricItems::items(), ElectricItems::icons());
 	mLogicItemsAction = addPathItems("Logic Items", LogicItems::items(), LogicItems::icons());
-
-	QList<DrawingItem*> otherItems = createOtherItems();
-	QMenu* otherItemsMenu = new QMenu("Other Items");
-	for(int i = 0; i < otherItems.size(); i++)
-		otherItemsMenu->addAction(addPlaceAction("Place " + otherItems[i]->uniqueKey(), "", otherItems[i]));
-	mOtherItemsAction = new QAction("Other Items", this);
-	mOtherItemsAction->setMenu(otherItemsMenu);
 }
 
 QAction* MainWindow::addAction(const QString& text, QObject* slotObj, const char* slotFunction,
@@ -1017,10 +1032,10 @@ void MainWindow::createMenus()
 	menu->addAction(mPlaceActions[MainWindow::PlaceTextAction]);
 	menu->addAction(mPlaceActions[MainWindow::PlaceTextRectAction]);
 	menu->addAction(mPlaceActions[MainWindow::PlaceTextEllipseAction]);
+	//menu->addAction(mPlaceActions[MainWindow::PlaceReferenceAction]);
 	menu->addSeparator();
 	menu->addAction(mElectricItemsAction);
 	menu->addAction(mLogicItemsAction);
-	menu->addAction(mOtherItemsAction);
 
 	menu = menuBar()->addMenu("Object");
 	menu->addAction(drawingActionList[DrawingWidget::RotateAction]);
@@ -1041,7 +1056,7 @@ void MainWindow::createMenus()
 
 	menu = menuBar()->addMenu("View");
 	menu->addAction(drawingActionList[DrawingWidget::PropertiesAction]);
-	menu->addAction(actionList[DrawingBrowserAction]);
+	//menu->addAction(actionList[DrawingBrowserAction]);
 	menu->addSeparator();
 	menu->addAction(drawingActionList[DrawingWidget::ZoomInAction]);
 	menu->addAction(drawingActionList[DrawingWidget::ZoomOutAction]);
@@ -1102,6 +1117,7 @@ void MainWindow::createToolBars()
 	toolBar->addAction(mPlaceActions[MainWindow::PlaceTextAction]);
 	toolBar->addAction(mPlaceActions[MainWindow::PlaceTextRectAction]);
 	toolBar->addAction(mPlaceActions[MainWindow::PlaceTextEllipseAction]);
+	toolBar->addAction(mPlaceActions[MainWindow::PlaceReferenceAction]);
 	addToolBar(toolBar);
 
 	toolBar = new QToolBar("Object");

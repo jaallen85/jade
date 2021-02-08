@@ -591,6 +591,10 @@ void DrawingWidget::writeToXml(QXmlStreamWriter* xml)
 		xml->writeAttribute("dynamic-grid", QString::number(dynamicGrid()));
 		xml->writeAttribute("dynamic-grid-enabled", isDynamicGridEnabled() ? "true" : "false");
 
+		xml->writeStartElement("defs");
+		DrawingItem::factory.writeItemsToXml(xml, mReferenceItems);
+		xml->writeEndElement();
+
 		xml->writeStartElement("items");
 		DrawingItem::factory.writeItemsToXml(xml, mItems);
 		xml->writeEndElement();
@@ -654,6 +658,7 @@ void DrawingWidget::readFromXml(QXmlStreamReader* xml)
 		else
 			setDynamicGridEnabled(false);
 
+		clearReferenceItems();
 		clearItems();
 		while (xml->readNextStartElement())
 		{
@@ -663,8 +668,16 @@ void DrawingWidget::readFromXml(QXmlStreamReader* xml)
 				for(auto itemIter = items.begin(); itemIter != items.end(); itemIter++)
 					addItem(*itemIter);
 			}
+			else if (xml->name() == "defs")
+			{
+				QList<DrawingItem*> items = DrawingItem::factory.readItemsFromXml(xml);
+				for(auto itemIter = items.begin(); itemIter != items.end(); itemIter++)
+					addReferenceItem(*itemIter);
+			}
 			else xml->skipCurrentElement();
 		}
+
+		emit referenceItemsChanged(mReferenceItems);
 	}
 }
 
@@ -700,6 +713,8 @@ void DrawingWidget::setPlaceMode(const QList<DrawingItem*>& items)
 		setCursor(Qt::CrossCursor);
 
 		mPlaceItems = items;
+		for(auto itemIter = mPlaceItems.begin(); itemIter != mPlaceItems.end(); itemIter++)
+			(*itemIter)->mWidget = this;
 
 		// Move place items so that they are centered under the mouse cursor
 		for(auto itemIter = mPlaceItems.begin(); itemIter != mPlaceItems.end(); itemIter++)

@@ -136,6 +136,7 @@ signals:
 	void canRedoChanged(bool canRedo);
 	void propertiesTriggered();
 	void propertiesChanged(const QHash<QString,QVariant>& properties);
+	void referenceItemsChanged(const QList<DrawingItem*>& items);
 	void currentItemsChanged(const QList<DrawingItem*>& items);
 	void itemsPropertiesChanged(const QList<DrawingItem*>& items);
 	void mouseInfoChanged(const QPointF& position);

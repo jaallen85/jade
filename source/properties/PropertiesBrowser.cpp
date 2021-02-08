@@ -52,6 +52,8 @@ PropertiesBrowser::PropertiesBrowser(QWidget* parent) : QScrollArea(parent)
 	registerDefaultItemWidget("Arrow", new ArrowPropertyWidget("startArrow", "Start Arrow"));
 	registerDefaultItemWidget("Arrow", new ArrowPropertyWidget("endArrow", "End Arrow"));
 
+	mReferenceNameWidget = new ReferenceNamePropertyWidget("referenceName", "Reference");
+	registerItemsWidget("Reference", mReferenceNameWidget);
 	registerItemsWidget("Position", new PositionPropertyWidget("position", "Position"));
 	registerItemsWidget("Line", new LinePropertyWidget("line", ""));
 	registerItemsWidget("Curve", new CurvePropertyWidget("curve", ""));
@@ -208,6 +210,13 @@ void PropertiesBrowser::setItemsProperties(const QList<DrawingItem*>& items)
 	{
 		(*subWidgetIter)->setItems(items);
 	}
+}
+
+//==================================================================================================
+
+void PropertiesBrowser::updateReferenceItems(const QList<DrawingItem*>& items)
+{
+	mReferenceNameWidget->updateReferenceItems(items);
 }
 
 //==================================================================================================

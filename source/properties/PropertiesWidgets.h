@@ -30,7 +30,9 @@ class SizeWidget;
 class QComboBox;
 class QFontComboBox;
 class QGridLayout;
+class QLabel;
 class QLineEdit;
+class QPushButton;
 class QStackedWidget;
 class QTextEdit;
 class QToolButton;
@@ -488,6 +490,41 @@ public:
 
 private slots:
 	void handleValueChange();
+};
+
+//==================================================================================================
+
+class ReferenceNamePropertyWidget : public PropertiesWidget
+{
+	Q_OBJECT
+
+private:
+	HideableCheckBox* mReferenceCheck;
+
+	QLabel* mReferenceLabel;
+	QPushButton* mReferenceButton;
+
+	QList<DrawingItem*> mReferenceItems;
+	DrawingItem* mItem;
+	bool mItemContainsReferenceName;
+
+public:
+	ReferenceNamePropertyWidget(const QString& propertyName, const QString& text,
+		QWidget* parent = nullptr);
+	~ReferenceNamePropertyWidget();
+
+	void setProperties(const QHash<QString,QVariant>& properties) override;
+	QHash<QString,QVariant> properties() const override;
+
+	void setItems(const QList<DrawingItem*>& items) override;
+	bool isValidForItems() const override;
+
+public slots:
+	void updateReferenceItems(const QList<DrawingItem*>& items);
+
+private slots:
+	void handleValueChange();
+	void browseForReferenceItem();
 };
 
 #endif

@@ -16,14 +16,17 @@
 
 #include "PropertiesWidgets.h"
 #include "HelperWidgets.h"
-#include "DrawingItem.h"
-#include "DrawingTypes.h"
+#include "ReferenceItemDialog.h"
+#include <DrawingItem.h>
+#include <DrawingTypes.h>
 #include <QComboBox>
 #include <QFontComboBox>
 #include <QFontMetrics>
 #include <QGridLayout>
+#include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QPushButton>
 #include <QStackedWidget>
 #include <QTextEdit>
 #include <QToolButton>
@@ -1786,4 +1789,125 @@ void GridPropertiesWidget::handleValueChange()
 	mDynamicGridEdit->setEnabled(mDynamicGridEnableCombo->currentIndex() == 1);
 
 	if (!properties.isEmpty()) emit propertiesChanged(properties);
+}
+
+//==================================================================================================
+//==================================================================================================
+//==================================================================================================
+
+ReferenceNamePropertyWidget::ReferenceNamePropertyWidget(const QString& propertyName, const QString& text,
+	QWidget* parent) : PropertiesWidget(propertyName, parent)
+{
+	mReferenceLabel = new QLabel();
+	mReferenceButton = new QPushButton("...");
+	mReferenceButton->setMaximumWidth(QFontMetrics(mReferenceButton->font()).boundingRect("...").width() + 20);
+
+	QWidget* referenceWidget = new QWidget();
+	QHBoxLayout* referenceLayout = new QHBoxLayout();
+	referenceLayout->addWidget(mReferenceLabel, 100);
+	referenceLayout->addWidget(mReferenceButton);
+	referenceLayout->setContentsMargins(0, 0, 0, 0);
+	referenceWidget->setLayout(referenceLayout);
+
+	mReferenceCheck = addWidget(0, QString("%1:").arg(text).trimmed(), referenceWidget);
+	connect(mReferenceCheck, SIGNAL(clicked(bool)), this, SLOT(handleValueChange()));
+	connect(mReferenceButton, SIGNAL(clicked(bool)), this, SLOT(browseForReferenceItem()));
+
+	mItem = nullptr;
+	mItemContainsReferenceName = false;
+}
+
+ReferenceNamePropertyWidget::~ReferenceNamePropertyWidget()
+{
+	mReferenceItems.clear();
+}
+
+//==================================================================================================
+
+void ReferenceNamePropertyWidget::setProperties(const QHash<QString,QVariant>& properties)
+{
+	QString referenceName;
+	if (containsPropertyAndCanConvert<QString>(properties, propertyName(), referenceName))
+	{
+		if (referenceName.isEmpty()) referenceName = "<Unknown>";
+		mReferenceLabel->setText(referenceName);
+	}
+}
+
+QHash<QString,QVariant> ReferenceNamePropertyWidget::properties() const
+{
+	QHash<QString,QVariant> properties;
+
+	if (mReferenceLabel->text() == "<Unknown>")
+		properties.insert(propertyName(), "");
+	else
+		properties.insert(propertyName(), mReferenceLabel->text());
+
+	return properties;
+}
+
+//==================================================================================================
+
+void ReferenceNamePropertyWidget::setItems(const QList<DrawingItem*>& items)
+{
+	mItem = nullptr;
+	mItemContainsReferenceName = false;
+
+	if (items.size() == 1)
+	{
+		mItem = items.first();
+
+		QHash<QString,QVariant> properties = mItem->properties();
+		if (properties.contains(propertyName()))
+		{
+			QVariant value = properties.value(propertyName());
+			mItemContainsReferenceName = value.canConvert<QString>();
+			if (mItemContainsReferenceName)
+			{
+				QString referenceName = value.value<QString>();
+				if (referenceName.isEmpty()) referenceName = "<Unknown>";
+				mReferenceLabel->setText(referenceName);
+			}
+		}
+	}
+}
+
+bool ReferenceNamePropertyWidget::isValidForItems() const
+{
+	return mItemContainsReferenceName;
+}
+
+//==================================================================================================
+
+void ReferenceNamePropertyWidget::updateReferenceItems(const QList<DrawingItem*>& items)
+{
+	mReferenceItems = items;
+}
+
+//==================================================================================================
+
+void ReferenceNamePropertyWidget::handleValueChange()
+{
+	if (mItem)
+	{
+		QHash< DrawingItem*, QHash<QString,QVariant> > itemProperties;
+		itemProperties.insert(mItem, properties());
+		emit propertiesChanged(itemProperties);
+	}
+	else emit propertiesChanged(properties());
+}
+
+void ReferenceNamePropertyWidget::browseForReferenceItem()
+{
+	ReferenceItemDialog dialog(mReferenceItems, this);
+	if (mReferenceLabel->text() != "<Unknown>") dialog.setReferenceName(mReferenceLabel->text());
+
+	if (dialog.exec() == QDialog::Accepted)
+	{
+		QString referenceName = dialog.referenceName();
+		if (referenceName.isEmpty()) referenceName = "<Unknown>";
+		mReferenceLabel->setText(referenceName);
+
+		handleValueChange();
+	}
 }

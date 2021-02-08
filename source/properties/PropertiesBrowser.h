@@ -24,6 +24,7 @@
 
 class DrawingItem;
 class PropertiesWidget;
+class ReferenceNamePropertyWidget;
 class QGroupBox;
 class QStackedWidget;
 class QTabWidget;
@@ -54,6 +55,8 @@ private:
 
 	int mPreferredWidth;
 
+	ReferenceNamePropertyWidget* mReferenceNameWidget;
+
 public:
 	PropertiesBrowser(QWidget* parent = nullptr);
 	virtual ~PropertiesBrowser();
@@ -72,6 +75,8 @@ public slots:
 	void setDrawingProperties(const QHash<QString,QVariant>& properties);
 	void setDefaultItemProperties(const QHash<QString,QVariant>& properties);
 	void setItemsProperties(const QList<DrawingItem*>& items);
+
+	void updateReferenceItems(const QList<DrawingItem*>& items);
 
 signals:
 	void drawingPropertiesChanged(const QHash<QString,QVariant>& properties);

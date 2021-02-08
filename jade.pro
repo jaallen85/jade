@@ -37,7 +37,6 @@ SOURCES += \
 	\
 	source/items/ElectricItems.cpp \
 	source/items/LogicItems.cpp \
-	source/items/OtherItems.cpp \
 	\
 	source/properties/HelperWidgets.cpp \
 	source/properties/PropertiesBrowser.cpp \
@@ -48,6 +47,7 @@ SOURCES += \
 	source/ExportOptionsDialog.cpp \
 	source/MainWindow.cpp \
 	source/PreferencesDialog.cpp \
+	source/ReferenceItemDialog.cpp \
 	source/main.cpp
 
 HEADERS += \
@@ -74,7 +74,6 @@ HEADERS += \
 	\
 	source/items/ElectricItems.h \
 	source/items/LogicItems.h \
-	source/items/OtherItems.h \
 	\
 	source/properties/HelperWidgets.h \
 	source/properties/PropertiesBrowser.h \
@@ -84,7 +83,8 @@ HEADERS += \
 	source/DrawingBrowser.h \
 	source/ExportOptionsDialog.h \
 	source/MainWindow.h \
-	source/PreferencesDialog.h
+	source/PreferencesDialog.h \
+	source/ReferenceItemDialog.h
 
 RESOURCES += icons/icons.qrc
 
