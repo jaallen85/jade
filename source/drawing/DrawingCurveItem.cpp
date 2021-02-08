@@ -307,16 +307,20 @@ void DrawingCurveItem::writeToXml(QXmlStreamWriter* xml)
 {
 	if (xml)
 	{
-		writeTransformToXml(xml, "transform");
+		if (name() != "") xml->writeAttribute("name", name());
 
-		xml->writeAttribute("x1", QString::number(mStartPos.x()));
-		xml->writeAttribute("y1", QString::number(mStartPos.y()));
-		xml->writeAttribute("cx1", QString::number(mStartControlPos.x()));
-		xml->writeAttribute("cy1", QString::number(mStartControlPos.y()));
-		xml->writeAttribute("cx2", QString::number(mEndControlPos.x()));
-		xml->writeAttribute("cy2", QString::number(mEndControlPos.y()));
-		xml->writeAttribute("x2", QString::number(mEndPos.x()));
-		xml->writeAttribute("y2", QString::number(mEndPos.y()));
+		QPointF startPos = mapToScene(mStartPos);
+		QPointF startControlPos = mapToScene(mStartControlPos);
+		QPointF endControlPos = mapToScene(mEndControlPos);
+		QPointF endPos = mapToScene(mEndPos);
+		xml->writeAttribute("x1", QString::number(startPos.x()));
+		xml->writeAttribute("y1", QString::number(startPos.y()));
+		xml->writeAttribute("cx1", QString::number(startControlPos.x()));
+		xml->writeAttribute("cy1", QString::number(startControlPos.y()));
+		xml->writeAttribute("cx2", QString::number(endControlPos.x()));
+		xml->writeAttribute("cy2", QString::number(endControlPos.y()));
+		xml->writeAttribute("x2", QString::number(endPos.x()));
+		xml->writeAttribute("y2", QString::number(endPos.y()));
 
 		writePenToXml(xml, "pen", mPen);
 		writeArrowToXml(xml, "start-arrow", mStartArrow);
@@ -330,6 +334,8 @@ void DrawingCurveItem::readFromXml(QXmlStreamReader* xml)
 	{
 		QXmlStreamAttributes attr = xml->attributes();
 		QPointF p1, cp1, cp2, p2;
+
+		if (attr.hasAttribute("name")) setName(attr.value("name").toString());
 
 		readTransformFromXml(xml, "transform");
 
@@ -346,7 +352,8 @@ void DrawingCurveItem::readFromXml(QXmlStreamReader* xml)
 		if (attr.hasAttribute("cy2")) cp2.setY(attr.value("cy2").toDouble());
 		if (attr.hasAttribute("x2")) p2.setX(attr.value("x2").toDouble());
 		if (attr.hasAttribute("y2")) p2.setY(attr.value("y2").toDouble());
-		setCurve(p1, cp1, cp2, p2);
+		setCurve(QPointF(0,0), cp1 - p1, cp2 - p1, p2 - p1);
+		setPosition(position() + p1);
 
 		xml->skipCurrentElement();
 	}

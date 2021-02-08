@@ -160,6 +160,8 @@ void DrawingReferenceItem::writeToXml(QXmlStreamWriter* xml)
 {
 	if (xml)
 	{
+		if (name() != "") xml->writeAttribute("name", name());
+
 		writeTransformToXml(xml, "transform");
 
 		xml->writeAttribute("referenceName", mReferenceName);
@@ -171,6 +173,8 @@ void DrawingReferenceItem::readFromXml(QXmlStreamReader* xml)
 	if (xml)
 	{
 		QXmlStreamAttributes attr = xml->attributes();
+
+		if (attr.hasAttribute("name")) setName(attr.value("name").toString());
 
 		readTransformFromXml(xml, "transform");
 

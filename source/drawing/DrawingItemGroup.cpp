@@ -120,6 +120,8 @@ void DrawingItemGroup::writeToXml(QXmlStreamWriter* xml)
 {
 	if (xml)
 	{
+		if (name() != "") xml->writeAttribute("name", name());
+
 		writeTransformToXml(xml, "transform");
 
 		factory.writeItemsToXml(xml, mItems);
@@ -131,6 +133,8 @@ void DrawingItemGroup::readFromXml(QXmlStreamReader* xml)
 	if (xml)
 	{
 		QXmlStreamAttributes attr = xml->attributes();
+
+		if (attr.hasAttribute("name")) setName(attr.value("name").toString());
 
 		readTransformFromXml(xml, "transform");
 

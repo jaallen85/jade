@@ -262,12 +262,13 @@ void DrawingLineItem::writeToXml(QXmlStreamWriter* xml)
 {
 	if (xml)
 	{
-		writeTransformToXml(xml, "transform");
+		if (name() != "") xml->writeAttribute("name", name());
 
-		xml->writeAttribute("x1", QString::number(mLine.x1()));
-		xml->writeAttribute("y1", QString::number(mLine.y1()));
-		xml->writeAttribute("x2", QString::number(mLine.x2()));
-		xml->writeAttribute("y2", QString::number(mLine.y2()));
+		QLineF line(mapToScene(mLine.p1()), mapToScene(mLine.p2()));
+		xml->writeAttribute("x1", QString::number(line.x1()));
+		xml->writeAttribute("y1", QString::number(line.y1()));
+		xml->writeAttribute("x2", QString::number(line.x2()));
+		xml->writeAttribute("y2", QString::number(line.y2()));
 
 		writePenToXml(xml, "pen", mPen);
 		writeArrowToXml(xml, "start-arrow", mStartArrow);
@@ -282,6 +283,8 @@ void DrawingLineItem::readFromXml(QXmlStreamReader* xml)
 		QXmlStreamAttributes attr = xml->attributes();
 		QPointF p1, p2;
 
+		if (attr.hasAttribute("name")) setName(attr.value("name").toString());
+
 		readTransformFromXml(xml, "transform");
 
 		readPenFromXml(xml, "pen", mPen);
@@ -293,7 +296,8 @@ void DrawingLineItem::readFromXml(QXmlStreamReader* xml)
 		if (attr.hasAttribute("y1")) p1.setY(attr.value("y1").toDouble());
 		if (attr.hasAttribute("x2")) p2.setX(attr.value("x2").toDouble());
 		if (attr.hasAttribute("y2")) p2.setY(attr.value("y2").toDouble());
-		setLine(QLineF(p1, p2));
+		setLine(QLineF(QPointF(0,0), p2 - p1));
+		setPosition(position() + p1);
 
 		xml->skipCurrentElement();
 	}

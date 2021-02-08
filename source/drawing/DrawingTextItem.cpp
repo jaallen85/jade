@@ -201,6 +201,8 @@ void DrawingTextItem::writeToXml(QXmlStreamWriter* xml)
 {
 	if (xml)
 	{
+		if (name() != "") xml->writeAttribute("name", name());
+
 		writeTransformToXml(xml, "transform");
 
 		writeFontToXml(xml, "font", mFont);
@@ -216,6 +218,8 @@ void DrawingTextItem::readFromXml(QXmlStreamReader* xml)
 	if (xml)
 	{
 		QXmlStreamAttributes attr = xml->attributes();
+
+		if (attr.hasAttribute("name")) setName(attr.value("name").toString());
 
 		readTransformFromXml(xml, "transform");
 

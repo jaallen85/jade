@@ -326,6 +326,8 @@ void DrawingPathItem::writeToXml(QXmlStreamWriter* xml)
 {
 	if (xml)
 	{
+		if (name() != "") xml->writeAttribute("name", name());
+
 		xml->writeAttribute("path-name", mPathName);
 
 		writeTransformToXml(xml, "transform");
@@ -355,6 +357,8 @@ void DrawingPathItem::readFromXml(QXmlStreamReader* xml)
 	{
 		QXmlStreamAttributes attr = xml->attributes();
 		QRectF rect;
+
+		if (attr.hasAttribute("name")) setName(attr.value("name").toString());
 
 		if (attr.hasAttribute("path-name")) mPathName = attr.value("path-name").toString();
 

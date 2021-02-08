@@ -181,7 +181,21 @@ void DrawingTextRectItem::writeToXml(QXmlStreamWriter* xml)
 {
 	if (xml)
 	{
-		DrawingRectItem::writeToXml(xml);
+		if (name() != "") xml->writeAttribute("name", name());
+
+		writeTransformToXml(xml, "transform");
+
+		QRectF rect = DrawingTextRectItem::rect();
+		xml->writeAttribute("left", QString::number(rect.left()));
+		xml->writeAttribute("top", QString::number(rect.top()));
+		xml->writeAttribute("width", QString::number(rect.width()));
+		xml->writeAttribute("height", QString::number(rect.height()));
+
+		if (cornerRadius() > 0)
+			xml->writeAttribute("corner-radius", QString::number(cornerRadius()));
+
+		writePenToXml(xml, "pen", pen());
+		writeBrushToXml(xml, "brush", brush());
 
 		writeFontToXml(xml, "font", mFont);
 		writeBrushToXml(xml, "text", mTextPen.brush());
@@ -195,6 +209,8 @@ void DrawingTextRectItem::readFromXml(QXmlStreamReader* xml)
 	{
 		QXmlStreamAttributes attr = xml->attributes();
 		QRectF rect;
+
+		if (attr.hasAttribute("name")) setName(attr.value("name").toString());
 
 		readTransformFromXml(xml, "transform");
 
@@ -225,6 +241,8 @@ void DrawingTextRectItem::readFromXml(QXmlStreamReader* xml)
 
 		// Do this last so that we ensure a call to updateItemGeometry before exiting this function
 		setRect(rect);
+
+		xml->skipCurrentElement();
 	}
 }
 
