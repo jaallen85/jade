@@ -38,8 +38,8 @@ public:
 	DrawingRectItem(const DrawingRectItem& item);
 	virtual ~DrawingRectItem();
 
-	virtual QString uniqueKey() const;
-	virtual DrawingItem* copy() const;
+	virtual QString uniqueKey() const override;
+	virtual DrawingItem* copy() const override;
 
 	void setRect(const QRectF& rect);
 	QRectF rect() const;
@@ -53,21 +53,21 @@ public:
 	void setBrush(const QBrush& brush);
 	QBrush brush() const;
 
-	virtual void setProperties(const QHash<QString,QVariant>& properties);
-	virtual QHash<QString,QVariant> properties() const;
+	virtual void setProperties(const QHash<QString,QVariant>& properties) override;
+	virtual QHash<QString,QVariant> properties() const override;
 
-	virtual QRectF boundingRect() const;
-	virtual QPainterPath shape() const;
-	virtual bool isValid() const;
+	virtual QRectF boundingRect() const override;
+	virtual QPainterPath shape() const override;
+	virtual bool isValid() const override;
 
-	virtual void render(QPainter* painter);
+	virtual void render(QPainter* painter) override;
 
-	virtual void resize(DrawingItemPoint* point, const QPointF& position);
+	virtual void resize(DrawingItemPoint* point, const QPointF& position) override;
 
-	virtual void writeToXml(QXmlStreamWriter* xml);
-	virtual void readFromXml(QXmlStreamReader* xml);
+	virtual void writeToXml(QXmlStreamWriter* xml) override;
+	virtual void readFromXml(QXmlStreamReader* xml) override;
 
-	virtual void exportToSvg(QXmlStreamWriter* xml);
+	virtual void exportToSvg(QXmlStreamWriter* xml) override;
 
 protected:
 	virtual void updateItemGeometry();

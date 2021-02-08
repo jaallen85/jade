@@ -232,12 +232,11 @@ void DrawingEllipseItem::writeToXml(QXmlStreamWriter* xml)
 {
 	if (xml)
 	{
-		writeTransformToXml(xml, "transform");
-
-		xml->writeAttribute("left", QString::number(mEllipse.left()));
-		xml->writeAttribute("top", QString::number(mEllipse.top()));
-		xml->writeAttribute("width", QString::number(mEllipse.width()));
-		xml->writeAttribute("height", QString::number(mEllipse.height()));
+		QRectF rect(mapToScene(mEllipse.topLeft()), mapToScene(mEllipse.bottomRight()));
+		xml->writeAttribute("left", QString::number(rect.left()));
+		xml->writeAttribute("top", QString::number(rect.top()));
+		xml->writeAttribute("width", QString::number(rect.width()));
+		xml->writeAttribute("height", QString::number(rect.height()));
 
 		writePenToXml(xml, "pen", mPen);
 		writeBrushToXml(xml, "brush", mBrush);
@@ -261,9 +260,32 @@ void DrawingEllipseItem::readFromXml(QXmlStreamReader* xml)
 		if (attr.hasAttribute("top")) rect.setTop(attr.value("top").toDouble());
 		if (attr.hasAttribute("width")) rect.setWidth(attr.value("width").toDouble());
 		if (attr.hasAttribute("height")) rect.setHeight(attr.value("height").toDouble());
-		setEllipse(rect);
+		setEllipse(rect.translated(-rect.topLeft()));
+		setPosition(position() + rect.topLeft());
 
 		xml->skipCurrentElement();
+	}
+}
+
+//==================================================================================================
+
+void DrawingEllipseItem::exportToSvg(QXmlStreamWriter* xml)
+{
+	if (xml)
+	{
+		xml->writeStartElement("ellipse");
+
+		QRectF rect(mapToScene(mEllipse.topLeft()), mapToScene(mEllipse.bottomRight()));
+		rect = rect.normalized();
+
+		xml->writeAttribute("cx", QString::number(rect.center().x()));
+		xml->writeAttribute("cy", QString::number(rect.center().y()));
+		xml->writeAttribute("rx", QString::number(rect.width() / 2));
+		xml->writeAttribute("ry", QString::number(rect.height() / 2));
+
+		exportStyleToSvg(xml, mBrush, mPen);
+
+		xml->writeEndElement();
 	}
 }
 
