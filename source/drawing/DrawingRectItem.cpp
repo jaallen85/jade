@@ -249,6 +249,8 @@ void DrawingRectItem::writeToXml(QXmlStreamWriter* xml)
 {
 	if (xml)
 	{
+		if (name() != "") xml->writeAttribute("name", name());
+
 		QRectF rect(mapToScene(mRect.topLeft()), mapToScene(mRect.bottomRight()));
 		xml->writeAttribute("left", QString::number(rect.left()));
 		xml->writeAttribute("top", QString::number(rect.top()));
@@ -269,6 +271,8 @@ void DrawingRectItem::readFromXml(QXmlStreamReader* xml)
 	{
 		QXmlStreamAttributes attr = xml->attributes();
 		QRectF rect;
+
+		if (attr.hasAttribute("name")) setName(attr.value("name").toString());
 
 		readTransformFromXml(xml, "transform");
 

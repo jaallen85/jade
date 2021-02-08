@@ -247,6 +247,8 @@ void DrawingPolygonItem::writeToXml(QXmlStreamWriter* xml)
 {
 	if (xml)
 	{
+		if (name() != "") xml->writeAttribute("name", name());
+
 		xml->writeAttribute("points", pointsToString(mapToScene(mPolygon)));
 
 		writePenToXml(xml, "pen", mPen);
@@ -260,6 +262,8 @@ void DrawingPolygonItem::readFromXml(QXmlStreamReader* xml)
 	{
 		QXmlStreamAttributes attr = xml->attributes();
 		QPolygonF polygon;
+
+		if (attr.hasAttribute("name")) setName(attr.value("name").toString());
 
 		readTransformFromXml(xml, "transform");
 

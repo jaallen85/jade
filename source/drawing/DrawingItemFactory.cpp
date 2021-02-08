@@ -134,7 +134,6 @@ void DrawingItemFactory::writeItemsToXml(QXmlStreamWriter* xml, const QList<Draw
 		for(auto itemIter = items.begin(); itemIter != items.end(); itemIter++)
 		{
 			xml->writeStartElement((*itemIter)->uniqueKey());
-			if ((*itemIter)->name() != "") xml->writeAttribute("name", (*itemIter)->name());
 			(*itemIter)->writeToXml(xml);
 			xml->writeEndElement();
 		}
@@ -156,9 +155,6 @@ QList<DrawingItem*> DrawingItemFactory::readItemsFromXml(QXmlStreamReader* xml) 
 
 			if (item)
 			{
-				QXmlStreamAttributes attr = xml->attributes();
-				if (attr.hasAttribute("name")) item->setName(attr.value("name").toString());
-
 				item->readFromXml(xml);
 				items.append(item);
 			}
