@@ -129,6 +129,11 @@ QPainterPath DrawingArrow::shape() const
 	return mShape;
 }
 
+QPolygonF DrawingArrow::polygon() const
+{
+	return mPolygon;
+}
+
 //==================================================================================================
 
 void DrawingArrow::render(QPainter* painter, const QBrush& backgroundBrush)

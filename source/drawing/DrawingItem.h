@@ -146,10 +146,13 @@ public:
 	void readAlignmentFromXml(QXmlStreamReader* xml, const QString& name, Qt::Alignment& alignment);
 
 	void exportStyleToSvg(QXmlStreamWriter* xml, const QBrush& fill, const QPen& stroke);
+	void exportArrowToSvg(QXmlStreamWriter* xml, const QPen& pen, const DrawingArrow& arrow);
 
-private:
+protected:
 	QString colorToString(const QColor& color) const;
+	QString pointsToString(const QPolygonF& points) const;
 	QColor colorFromString(const QString& str) const;
+	QPolygonF pointsFromString(const QString& str) const;
 
 public:
 	QPainterPath strokePath(const QPainterPath& path, const QPen& pen) const;

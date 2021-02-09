@@ -59,6 +59,7 @@ public:
 	qreal angle() const;
 
 	QPainterPath shape() const;
+	QPolygonF polygon() const;
 
 	void render(QPainter* painter, const QBrush& backgroundBrush);
 

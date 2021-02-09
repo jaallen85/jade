@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "DrawingItem.h"
+#include "DrawingWidget.h"
 #include <QtMath>
 
 DrawingItem::DrawingItem()
@@ -807,6 +808,60 @@ void DrawingItem::exportStyleToSvg(QXmlStreamWriter* xml, const QBrush& fill, co
 	xml->writeAttribute("style", styleString);
 }
 
+void DrawingItem::exportArrowToSvg(QXmlStreamWriter* xml, const QPen& pen, const DrawingArrow& arrow)
+{
+	QPolygonF polygon;
+
+	QPen arrowPen = pen;
+	arrowPen.setStyle(Qt::SolidLine);
+
+	switch (arrow.style())
+	{
+	case Drawing::ArrowNormal:
+		polygon = arrow.polygon();
+		xml->writeStartElement("path");
+		xml->writeAttribute("d", QString("M %1,%2 L %3,%4 M %1,%2 L %5,%6").arg(
+			mapToScene(polygon[0]).x()).arg(mapToScene(polygon[0]).y()).arg(
+			mapToScene(polygon[1]).x()).arg(mapToScene(polygon[1]).y()).arg(
+			mapToScene(polygon[2]).x()).arg(mapToScene(polygon[2]).y()));
+		exportStyleToSvg(xml, Qt::transparent, arrowPen);
+		xml->writeEndElement();
+		break;
+	case Drawing::ArrowTriangle:
+	case Drawing::ArrowTriangleFilled:
+	case Drawing::ArrowConcave:
+	case Drawing::ArrowConcaveFilled:
+		polygon = arrow.polygon();
+		xml->writeStartElement("polygon");
+		xml->writeAttribute("points", pointsToString(mapToScene(polygon)));
+		if (arrow.style() == Drawing::ArrowTriangleFilled || arrow.style() == Drawing::ArrowConcaveFilled)
+			exportStyleToSvg(xml, arrowPen.brush(), arrowPen);
+		else if (widget())
+			exportStyleToSvg(xml, widget()->backgroundBrush(), arrowPen);
+		else
+			exportStyleToSvg(xml, Qt::transparent, arrowPen);
+		xml->writeEndElement();
+		break;
+	case Drawing::ArrowCircle:
+	case Drawing::ArrowCircleFilled:
+		xml->writeStartElement("ellipse");
+		xml->writeAttribute("cx", QString::number(mapToScene(arrow.position()).x()));
+		xml->writeAttribute("cy", QString::number(mapToScene(arrow.position()).y()));
+		xml->writeAttribute("rx", QString::number(arrow.size() / 2));
+		xml->writeAttribute("ry", QString::number(arrow.size() / 2));
+		if (arrow.style() == Drawing::ArrowCircleFilled)
+			exportStyleToSvg(xml, arrowPen.brush(), arrowPen);
+		else if (widget())
+			exportStyleToSvg(xml, widget()->backgroundBrush(), arrowPen);
+		else
+			exportStyleToSvg(xml, Qt::transparent, arrowPen);
+		xml->writeEndElement();
+		break;
+	default:
+		break;
+	}
+}
+
 //==================================================================================================
 
 QString DrawingItem::colorToString(const QColor& color) const
@@ -829,6 +884,16 @@ QString DrawingItem::colorToString(const QColor& color) const
 	return colorStr;
 }
 
+QString DrawingItem::pointsToString(const QPolygonF& points) const
+{
+	QString pointsStr;
+
+	for(auto pointIter = points.begin(); pointIter != points.end(); pointIter++)
+		pointsStr += QString::number((*pointIter).x()) + "," + QString::number((*pointIter).y()) + " ";
+
+	return pointsStr.trimmed();
+}
+
 QColor DrawingItem::colorFromString(const QString& str) const
 {
 	QColor color;
@@ -848,6 +913,29 @@ QColor DrawingItem::colorFromString(const QString& str) const
 	}
 
 	return color;
+}
+
+QPolygonF DrawingItem::pointsFromString(const QString& str) const
+{
+	QPolygonF points;
+
+	QStringList tokenList = str.split(" ");
+	QStringList coordList;
+	qreal x, y;
+	bool xOk = false, yOk = false;
+
+	for(int i = 0; i < tokenList.size(); i++)
+	{
+		coordList = tokenList[i].split(",");
+		if (coordList.size() == 2)
+		{
+			x = coordList[0].toDouble(&xOk);
+			y = coordList[1].toDouble(&yOk);
+			if (xOk && yOk) points.append(QPointF(x, y));
+		}
+	}
+
+	return points;
 }
 
 //==================================================================================================

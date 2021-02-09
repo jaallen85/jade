@@ -69,8 +69,6 @@ private:
 
 	qreal distanceFromPointToLineSegment(const QPointF& point, const QLineF& line) const;
 
-	QString pointsToString(const QPolygonF& points) const;
-	QPolygonF pointsFromString(const QString& str) const;
 };
 
 #endif

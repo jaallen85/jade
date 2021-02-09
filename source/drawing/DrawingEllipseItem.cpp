@@ -279,6 +279,8 @@ void DrawingEllipseItem::exportToSvg(QXmlStreamWriter* xml)
 	{
 		xml->writeStartElement("ellipse");
 
+		if (name() != "") xml->writeAttribute("id", name());
+
 		QRectF rect(mapToScene(mEllipse.topLeft()), mapToScene(mEllipse.bottomRight()));
 		rect = rect.normalized();
 

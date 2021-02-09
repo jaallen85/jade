@@ -289,6 +289,8 @@ void DrawingPolygonItem::exportToSvg(QXmlStreamWriter* xml)
 	{
 		xml->writeStartElement("polygon");
 
+		if (name() != "") xml->writeAttribute("id", name());
+
 		xml->writeAttribute("points", pointsToString(mapToScene(mPolygon)));
 
 		exportStyleToSvg(xml, mBrush, mPen);
@@ -360,39 +362,4 @@ qreal DrawingPolygonItem::distanceFromPointToLineSegment(const QPointF& point, c
 	}
 
 	return distance;
-}
-
-//==================================================================================================
-
-QString DrawingPolygonItem::pointsToString(const QPolygonF& points) const
-{
-	QString pointsStr;
-
-	for(auto pointIter = points.begin(); pointIter != points.end(); pointIter++)
-		pointsStr += QString::number((*pointIter).x()) + "," + QString::number((*pointIter).y()) + " ";
-
-	return pointsStr.trimmed();
-}
-
-QPolygonF DrawingPolygonItem::pointsFromString(const QString& str) const
-{
-	QPolygonF points;
-
-	QStringList tokenList = str.split(" ");
-	QStringList coordList;
-	qreal x, y;
-	bool xOk = false, yOk = false;
-
-	for(int i = 0; i < tokenList.size(); i++)
-	{
-		coordList = tokenList[i].split(",");
-		if (coordList.size() == 2)
-		{
-			x = coordList[0].toDouble(&xOk);
-			y = coordList[1].toDouble(&yOk);
-			if (xOk && yOk) points.append(QPointF(x, y));
-		}
-	}
-
-	return points;
 }

@@ -354,6 +354,42 @@ void DrawingPolylineItem::readFromXml(QXmlStreamReader* xml)
 
 //==================================================================================================
 
+void DrawingPolylineItem::exportToSvg(QXmlStreamWriter* xml)
+{
+	if (xml)
+	{
+		if (mStartArrow.style() != Drawing::ArrowNone || mEndArrow.style() != Drawing::ArrowNone)
+		{
+			xml->writeStartElement("g");
+			if (name() != "") xml->writeAttribute("id", name());
+
+			xml->writeStartElement("polyline");
+		}
+		else
+		{
+			xml->writeStartElement("polyline");
+			if (name() != "") xml->writeAttribute("id", name());
+		}
+
+		xml->writeAttribute("points", pointsToString(mapToScene(mPolyline)));
+
+		exportStyleToSvg(xml, Qt::transparent, mPen);
+
+		if (mStartArrow.style() != Drawing::ArrowNone || mEndArrow.style() != Drawing::ArrowNone)
+		{
+			xml->writeEndElement();
+
+			if (mStartArrow.style() != Drawing::ArrowNone) exportArrowToSvg(xml, mPen, mStartArrow);
+			if (mEndArrow.style() != Drawing::ArrowNone) exportArrowToSvg(xml, mPen, mEndArrow);
+
+			xml->writeEndElement();
+		}
+		else xml->writeEndElement();
+	}
+}
+
+//==================================================================================================
+
 void DrawingPolylineItem::updateItemGeometry()
 {
 	mBoundingRect = QRectF();
@@ -415,39 +451,4 @@ qreal DrawingPolylineItem::distanceFromPointToLineSegment(const QPointF& point, 
 	}
 
 	return distance;
-}
-
-//==================================================================================================
-
-QString DrawingPolylineItem::pointsToString(const QPolygonF& points) const
-{
-	QString pointsStr;
-
-	for(auto pointIter = points.begin(); pointIter != points.end(); pointIter++)
-		pointsStr += QString::number((*pointIter).x()) + "," + QString::number((*pointIter).y()) + " ";
-
-	return pointsStr.trimmed();
-}
-
-QPolygonF DrawingPolylineItem::pointsFromString(const QString& str) const
-{
-	QPolygonF points;
-
-	QStringList tokenList = str.split(" ");
-	QStringList coordList;
-	qreal x, y;
-	bool xOk = false, yOk = false;
-
-	for(int i = 0; i < tokenList.size(); i++)
-	{
-		coordList = tokenList[i].split(",");
-		if (coordList.size() == 2)
-		{
-			x = coordList[0].toDouble(&xOk);
-			y = coordList[1].toDouble(&yOk);
-			if (xOk && yOk) points.append(QPointF(x, y));
-		}
-	}
-
-	return points;
 }

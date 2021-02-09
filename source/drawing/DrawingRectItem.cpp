@@ -303,6 +303,8 @@ void DrawingRectItem::exportToSvg(QXmlStreamWriter* xml)
 	{
 		xml->writeStartElement("rect");
 
+		if (name() != "") xml->writeAttribute("id", name());
+
 		QRectF rect(mapToScene(mRect.topLeft()), mapToScene(mRect.bottomRight()));
 		rect = rect.normalized();
 
