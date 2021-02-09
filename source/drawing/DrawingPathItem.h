@@ -82,6 +82,8 @@ public:
 	virtual void writeToXml(QXmlStreamWriter* xml) override;
 	virtual void readFromXml(QXmlStreamReader* xml) override;
 
+	virtual void exportToSvg(QXmlStreamWriter* xml) override;
+
 private:
 	void updateItemGeometry();
 
@@ -91,6 +93,8 @@ private:
 	QString pointsToString(const QPolygonF& points) const;
 	QPainterPath pathFromString(const QString& str) const;
 	QPolygonF pointsFromString(const QString& str) const;
+
+	void exportPathToSvg(QXmlStreamWriter* xml, const QPainterPath& path);
 };
 
 #endif

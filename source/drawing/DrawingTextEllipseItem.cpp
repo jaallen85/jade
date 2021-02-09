@@ -240,7 +240,7 @@ void DrawingTextEllipseItem::exportToSvg(QXmlStreamWriter* xml)
 
 		if (name() != "") xml->writeAttribute("id", name());
 
-		writeTransformToXml(xml, "transform");
+		exportTransformToSvg(xml, "transform");
 
 		// Rect
 		xml->writeStartElement("ellipse");

@@ -248,7 +248,7 @@ void DrawingTextItem::exportToSvg(QXmlStreamWriter* xml)
 
 		if (name() != "") xml->writeAttribute("id", name());
 
-		writeTransformToXml(xml, "transform");
+		exportTransformToSvg(xml, "transform");
 		if (mAlignment & Qt::AlignTop)
 			xml->writeAttribute("y", QString::number(mFont.pointSizeF() * 3 / 4));
 		if (mAlignment & Qt::AlignBottom)
