@@ -234,11 +234,12 @@ void DrawingEllipseItem::writeToXml(QXmlStreamWriter* xml)
 	{
 		if (name() != "") xml->writeAttribute("name", name());
 
-		QRectF rect(mapToScene(mEllipse.topLeft()), mapToScene(mEllipse.bottomRight()));
-		xml->writeAttribute("left", QString::number(rect.left()));
-		xml->writeAttribute("top", QString::number(rect.top()));
-		xml->writeAttribute("width", QString::number(rect.width()));
-		xml->writeAttribute("height", QString::number(rect.height()));
+		writeTransformToXml(xml, "transform");
+
+		if (mEllipse.left() != 0) xml->writeAttribute("left", QString::number(mEllipse.left()));
+		if (mEllipse.top() != 0) xml->writeAttribute("top", QString::number(mEllipse.top()));
+		xml->writeAttribute("width", QString::number(mEllipse.width()));
+		xml->writeAttribute("height", QString::number(mEllipse.height()));
 
 		writePenToXml(xml, "pen", mPen);
 		writeBrushToXml(xml, "brush", mBrush);
@@ -250,7 +251,7 @@ void DrawingEllipseItem::readFromXml(QXmlStreamReader* xml)
 	if (xml)
 	{
 		QXmlStreamAttributes attr = xml->attributes();
-		QRectF rect;
+		QRectF ellipse;
 
 		if (attr.hasAttribute("name")) setName(attr.value("name").toString());
 
@@ -260,12 +261,11 @@ void DrawingEllipseItem::readFromXml(QXmlStreamReader* xml)
 		readBrushFromXml(xml, "brush", mBrush);
 
 		// Do this last so that we ensure a call to updateItemGeometry before exiting this function
-		if (attr.hasAttribute("left")) rect.setLeft(attr.value("left").toDouble());
-		if (attr.hasAttribute("top")) rect.setTop(attr.value("top").toDouble());
-		if (attr.hasAttribute("width")) rect.setWidth(attr.value("width").toDouble());
-		if (attr.hasAttribute("height")) rect.setHeight(attr.value("height").toDouble());
-		setEllipse(rect.translated(-rect.topLeft()));
-		setPosition(position() + rect.topLeft());
+		if (attr.hasAttribute("left")) ellipse.setLeft(attr.value("left").toDouble());
+		if (attr.hasAttribute("top")) ellipse.setTop(attr.value("top").toDouble());
+		if (attr.hasAttribute("width")) ellipse.setWidth(attr.value("width").toDouble());
+		if (attr.hasAttribute("height")) ellipse.setHeight(attr.value("height").toDouble());
+		setEllipse(ellipse);
 
 		xml->skipCurrentElement();
 	}

@@ -332,8 +332,8 @@ void DrawingPathItem::writeToXml(QXmlStreamWriter* xml)
 
 		writeTransformToXml(xml, "transform");
 
-		xml->writeAttribute("left", QString::number(mRect.left()));
-		xml->writeAttribute("top", QString::number(mRect.top()));
+		if (mRect.left() != 0) xml->writeAttribute("left", QString::number(mRect.left()));
+		if (mRect.top() != 0) xml->writeAttribute("top", QString::number(mRect.top()));
 		xml->writeAttribute("width", QString::number(mRect.width()));
 		xml->writeAttribute("height", QString::number(mRect.height()));
 

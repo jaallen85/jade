@@ -318,7 +318,9 @@ void DrawingPolylineItem::writeToXml(QXmlStreamWriter* xml)
 	{
 		if (name() != "") xml->writeAttribute("name", name());
 
-		xml->writeAttribute("points", pointsToString(mapToScene(mPolyline)));
+		writeTransformToXml(xml, "transform");
+
+		xml->writeAttribute("points", pointsToString(mPolyline));
 
 		writePenToXml(xml, "pen", mPen);
 		writeArrowToXml(xml, "start-arrow", mStartArrow);
@@ -342,13 +344,9 @@ void DrawingPolylineItem::readFromXml(QXmlStreamReader* xml)
 		readArrowFromXml(xml, "end-arrow", mPen, mEndArrow);
 
 		// Do this last so that we ensure a call to updateItemGeometry before exiting this function
-		if (attr.hasAttribute("points")) polyline = pointsFromString(attr.value("points").toString());
-		if (!polyline.isEmpty())
-		{
-			setPolyline(polyline.translated(-polyline.first()));
-			setPosition(position() + polyline.first());
-		}
-		else setPolyline(polyline);
+		if (attr.hasAttribute("points"))
+			polyline = pointsFromString(attr.value("points").toString());
+		setPolyline(polyline);
 
 		xml->skipCurrentElement();
 	}

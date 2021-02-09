@@ -181,18 +181,7 @@ void DrawingTextEllipseItem::writeToXml(QXmlStreamWriter* xml)
 {
 	if (xml)
 	{
-		if (name() != "") xml->writeAttribute("name", name());
-
-		writeTransformToXml(xml, "transform");
-
-		QRectF ellipse = DrawingTextEllipseItem::ellipse();
-		xml->writeAttribute("left", QString::number(ellipse.left()));
-		xml->writeAttribute("top", QString::number(ellipse.top()));
-		xml->writeAttribute("width", QString::number(ellipse.width()));
-		xml->writeAttribute("height", QString::number(ellipse.height()));
-
-		writePenToXml(xml, "pen", pen());
-		writeBrushToXml(xml, "brush", brush());
+		DrawingEllipseItem::writeToXml(xml);
 
 		writeFontToXml(xml, "font", mFont);
 		writeBrushToXml(xml, "text", mTextPen.brush());
@@ -215,9 +204,12 @@ void DrawingTextEllipseItem::readFromXml(QXmlStreamReader* xml)
 		QBrush brush = Qt::white;
 		readPenFromXml(xml, "pen", pen);
 		readBrushFromXml(xml, "brush", brush);
-		readFontFromXml(xml, "font", mFont);
 		setPen(pen);
 		setBrush(brush);
+
+		QFont font("Arial", 16);
+		readFontFromXml(xml, "font", font);
+		mFont = font;
 
 		brush = Qt::black;
 		readBrushFromXml(xml, "text", brush);

@@ -249,7 +249,9 @@ void DrawingPolygonItem::writeToXml(QXmlStreamWriter* xml)
 	{
 		if (name() != "") xml->writeAttribute("name", name());
 
-		xml->writeAttribute("points", pointsToString(mapToScene(mPolygon)));
+		writeTransformToXml(xml, "transform");
+
+		xml->writeAttribute("points", pointsToString(mPolygon));
 
 		writePenToXml(xml, "pen", mPen);
 		writeBrushToXml(xml, "brush", mBrush);
@@ -271,13 +273,9 @@ void DrawingPolygonItem::readFromXml(QXmlStreamReader* xml)
 		readBrushFromXml(xml, "brush", mBrush);
 
 		// Do this last so that we ensure a call to updateItemGeometry before exiting this function
-		if (attr.hasAttribute("points")) polygon = pointsFromString(attr.value("points").toString());
-		if (!polygon.isEmpty())
-		{
-			setPolygon(polygon.translated(-polygon.first()));
-			setPosition(position() + polygon.first());
-		}
-		else setPolygon(polygon);
+		if (attr.hasAttribute("points"))
+			polygon = pointsFromString(attr.value("points").toString());
+		setPolygon(polygon);
 
 		xml->skipCurrentElement();
 	}

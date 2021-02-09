@@ -251,11 +251,12 @@ void DrawingRectItem::writeToXml(QXmlStreamWriter* xml)
 	{
 		if (name() != "") xml->writeAttribute("name", name());
 
-		QRectF rect(mapToScene(mRect.topLeft()), mapToScene(mRect.bottomRight()));
-		xml->writeAttribute("left", QString::number(rect.left()));
-		xml->writeAttribute("top", QString::number(rect.top()));
-		xml->writeAttribute("width", QString::number(rect.width()));
-		xml->writeAttribute("height", QString::number(rect.height()));
+		writeTransformToXml(xml, "transform");
+
+		if (mRect.left() != 0) xml->writeAttribute("left", QString::number(mRect.left()));
+		if (mRect.top() != 0) xml->writeAttribute("top", QString::number(mRect.top()));
+		xml->writeAttribute("width", QString::number(mRect.width()));
+		xml->writeAttribute("height", QString::number(mRect.height()));
 
 		if (mCornerRadius > 0)
 			xml->writeAttribute("corner-radius", QString::number(mCornerRadius));
@@ -288,8 +289,7 @@ void DrawingRectItem::readFromXml(QXmlStreamReader* xml)
 		if (attr.hasAttribute("top")) rect.setTop(attr.value("top").toDouble());
 		if (attr.hasAttribute("width")) rect.setWidth(attr.value("width").toDouble());
 		if (attr.hasAttribute("height")) rect.setHeight(attr.value("height").toDouble());
-		setRect(rect.translated(-rect.topLeft()));
-		setPosition(position() + rect.topLeft());
+		setRect(rect);
 
 		xml->skipCurrentElement();
 	}

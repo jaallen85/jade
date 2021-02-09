@@ -181,21 +181,7 @@ void DrawingTextRectItem::writeToXml(QXmlStreamWriter* xml)
 {
 	if (xml)
 	{
-		if (name() != "") xml->writeAttribute("name", name());
-
-		writeTransformToXml(xml, "transform");
-
-		QRectF rect = DrawingTextRectItem::rect();
-		xml->writeAttribute("left", QString::number(rect.left()));
-		xml->writeAttribute("top", QString::number(rect.top()));
-		xml->writeAttribute("width", QString::number(rect.width()));
-		xml->writeAttribute("height", QString::number(rect.height()));
-
-		if (cornerRadius() > 0)
-			xml->writeAttribute("corner-radius", QString::number(cornerRadius()));
-
-		writePenToXml(xml, "pen", pen());
-		writeBrushToXml(xml, "brush", brush());
+		DrawingRectItem::writeToXml(xml);
 
 		writeFontToXml(xml, "font", mFont);
 		writeBrushToXml(xml, "text", mTextPen.brush());
@@ -209,23 +195,26 @@ void DrawingTextRectItem::readFromXml(QXmlStreamReader* xml)
 	{
 		QXmlStreamAttributes attr = xml->attributes();
 		QRectF rect;
+		qreal cornerRadius = 0;
 
 		if (attr.hasAttribute("name")) setName(attr.value("name").toString());
 
 		readTransformFromXml(xml, "transform");
 
 		if (attr.hasAttribute("corner-radius"))
-			setCornerRadius(attr.value("corner-radius").toDouble());
-		else
-			setCornerRadius(0);
+			cornerRadius = attr.value("corner-radius").toDouble();
+		setCornerRadius(cornerRadius);
 
 		QPen pen(Qt::black, 1);
 		QBrush brush = Qt::white;
 		readPenFromXml(xml, "pen", pen);
 		readBrushFromXml(xml, "brush", brush);
-		readFontFromXml(xml, "font", mFont);
 		setPen(pen);
 		setBrush(brush);
+
+		QFont font("Arial", 16);
+		readFontFromXml(xml, "font", font);
+		mFont = font;
 
 		brush = Qt::black;
 		readBrushFromXml(xml, "text", brush);
