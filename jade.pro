@@ -11,6 +11,10 @@ CONFIG -= debug
 
 DEFINES += QT_DEPRECATED_WARNINGS
 
+# QuaZIP
+INCLUDEPATH += C:/Development/quazip-0.7.3/quazip $$[QT_INSTALL_HEADERS]/QtZlib
+LIBS += -LC:/Development/quazip-0.7.3/quazip/release/ -lquazip
+
 INCLUDEPATH += source source/drawing source/items source/properties
 
 SOURCES += \
@@ -49,6 +53,7 @@ SOURCES += \
 	source/PreferencesDialog.cpp \
 	source/ReferenceItemDialog.cpp \
 	source/SvgWriter.cpp \
+	source/VsdxWriter.cpp \
 	source/main.cpp
 
 HEADERS += \
@@ -86,7 +91,8 @@ HEADERS += \
 	source/MainWindow.h \
 	source/PreferencesDialog.h \
 	source/ReferenceItemDialog.h \
-	source/SvgWriter.h
+	source/SvgWriter.h \
+	source/VsdxWriter.h
 
 RESOURCES += icons/icons.qrc
 

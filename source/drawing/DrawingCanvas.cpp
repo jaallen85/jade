@@ -656,7 +656,7 @@ void DrawingCanvas::drawBackground(QPainter* painter)
 	}
 
 	// Draw origin
-	if (mGridStyle != Drawing::GridNone && mGrid >= 0)
+	if (mGridStyle != Drawing::GridNone && mGrid >= 0 && mSceneRect.contains(QPointF(0,0)))
 	{
 		qreal radius = mapToScene(QPoint(3, 3)).x() - mapToScene(QPoint(0, 0)).x();
 		painter->drawLine(QPointF(-radius, -radius), QPointF(-radius, radius));

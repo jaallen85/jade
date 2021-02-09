@@ -41,7 +41,7 @@ class MainWindow : public QMainWindow
 
 private:
 	enum ActionIndex { NewAction, OpenAction, SaveAction, SaveAsAction, CloseAction,
-		ExportPngAction, ExportSvgAction, PreferencesAction, ExitAction,
+		ExportPngAction, ExportSvgAction, ExportVsdxAction, PreferencesAction, ExitAction,
 		DrawingBrowserAction, AboutAction, AboutQtAction, NumberOfActions };
 	enum PlaceActionIndex { PlaceLineAction, PlaceCurveAction, PlacePolylineAction,
 		PlaceRectAction, PlaceEllipseAction, PlacePolygonAction,
@@ -119,6 +119,7 @@ public slots:
 
 	void exportPng();
 	void exportSvg();
+	void exportVsdx();
 
 	void preferences();
 	void about();

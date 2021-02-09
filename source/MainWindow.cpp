@@ -24,6 +24,7 @@
 #include "PropertiesBrowser.h"
 #include "ReferenceItemDialog.h"
 #include "SvgWriter.h"
+#include "VsdxWriter.h"
 #include <DrawingCurveItem.h>
 #include <DrawingEllipseItem.h>
 #include <DrawingLineItem.h>
@@ -512,12 +513,11 @@ void MainWindow::exportPng()
 		{
 			if (!filePath.endsWith(".png", Qt::CaseInsensitive)) filePath += ".png";
 
-			DrawingWidget* drawing = MainWindow::drawing();
-			QRectF sceneRect = drawing->sceneRect();
+			QRectF sceneRect = mDrawingWidget->sceneRect();
 			QSize exportSize = mExportSize;
 			if (!exportSize.isValid()) exportSize = (sceneRect.size() / 4).toSize();
 
-			ExportOptionsDialog exportDialog(drawing->sceneRect(), exportSize, mExportMaintainAspectRatio, this);
+			ExportOptionsDialog exportDialog(sceneRect, exportSize, mExportMaintainAspectRatio, this);
 			if (exportDialog.exec() == ExportOptionsDialog::Accepted)
 			{
 				mExportSize = exportDialog.exportSize();
@@ -526,13 +526,13 @@ void MainWindow::exportPng()
 				QImage pngImage(mExportSize, QImage::Format_ARGB32);
 				QPainter painter;
 
-				drawing->clearSelection();
+				mDrawingWidget->clearSelection();
 
 				painter.begin(&pngImage);
 				painter.scale(pngImage.width() / sceneRect.width(), pngImage.height() / sceneRect.height());
 				painter.translate(-sceneRect.left(), -sceneRect.top());
 				painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing, true);
-				drawing->renderExport(&painter);
+				mDrawingWidget->renderExport(&painter);
 				painter.end();
 
 				pngImage.save(filePath, "PNG");
@@ -558,19 +558,49 @@ void MainWindow::exportSvg()
 		{
 			if (!filePath.endsWith(".svg", Qt::CaseInsensitive)) filePath += ".svg";
 
-			DrawingWidget* drawing = MainWindow::drawing();
-			QRectF sceneRect = drawing->sceneRect();
+			QRectF sceneRect = mDrawingWidget->sceneRect();
 			QSize exportSize = mExportSize;
 			if (!exportSize.isValid()) exportSize = (sceneRect.size() / 4).toSize();
 
-			ExportOptionsDialog exportDialog(drawing->sceneRect(), exportSize, mExportMaintainAspectRatio, this);
+			ExportOptionsDialog exportDialog(sceneRect, exportSize, mExportMaintainAspectRatio, this);
 			if (exportDialog.exec() == ExportOptionsDialog::Accepted)
 			{
 				mExportSize = exportDialog.exportSize();
 				mExportMaintainAspectRatio = exportDialog.maintainAspectRatio();
 
+				mDrawingWidget->clearSelection();
+
 				SvgWriter svg(mDrawingWidget);
 				svg.save(filePath, mExportSize);
+			}
+		}
+	}
+}
+
+void MainWindow::exportVsdx()
+{
+	if (isDrawingVisible())
+	{
+		QString filePath = MainWindow::filePath();
+		QFileDialog::Options options =
+			(shouldPromptOnOverwrite()) ? QFileDialog::Options() : QFileDialog::DontConfirmOverwrite;
+
+		if (filePath.startsWith("Untitled")) filePath = workingDir().path();
+		else filePath = filePath.left(filePath.length() - fileSuffix().length() - 1) + ".vsdx";
+
+		filePath = QFileDialog::getSaveFileName(this, "Export VSDX", filePath,
+			"Visio Drawing (*.vsdx);;All Files (*)", nullptr, options);
+		if (!filePath.isEmpty())
+		{
+			if (!filePath.endsWith(".vsdx", Qt::CaseInsensitive)) filePath += ".vsdx";
+
+			mDrawingWidget->clearSelection();
+
+			VsdxWriter vsdx(mDrawingWidget);
+			if (!vsdx.save(filePath))
+			{
+				QMessageBox::critical(this, "VSDX Export Error",
+					"Error exporting diagram to VSDX file.  File may not be exported correctly!");
 			}
 		}
 	}
@@ -612,6 +642,7 @@ void MainWindow::updateWindow(bool drawingVisible)
 			actionList[CloseAction]->setEnabled(drawingVisible);
 			actionList[ExportPngAction]->setEnabled(drawingVisible);
 			actionList[ExportSvgAction]->setEnabled(drawingVisible);
+			actionList[ExportVsdxAction]->setEnabled(drawingVisible);
 		}
 
 		QList<QAction*> drawingActionList = mDrawingWidget->actions();
@@ -881,6 +912,7 @@ void MainWindow::addActions()
 	addAction("Close", this, SLOT(closeDrawing()), ":/icons/oxygen/document-close.png", "Ctrl+W");
 	addAction("Export PNG...", this, SLOT(exportPng()), ":/icons/oxygen/image-x-generic.png");
 	addAction("Export SVG...", this, SLOT(exportSvg()), ":/icons/oxygen/image-svg+xml.png");
+	addAction("Export VSDX...", this, SLOT(exportVsdx()), "");
 	addAction("Preferences...", this, SLOT(preferences()), ":/icons/oxygen/configure.png");
 	addAction("Exit", this, SLOT(close()), ":/icons/oxygen/application-exit.png");
 
@@ -1003,6 +1035,7 @@ void MainWindow::createMenus()
 	menu->addSeparator();
 	menu->addAction(actionList[ExportPngAction]);
 	menu->addAction(actionList[ExportSvgAction]);
+	menu->addAction(actionList[ExportVsdxAction]);
 	menu->addSeparator();
 	menu->addAction(actionList[PreferencesAction]);
 	menu->addSeparator();
