@@ -458,12 +458,32 @@ void SvgWriter::writePathItem(QXmlStreamWriter* xml, DrawingPathItem* item)
 
 void SvgWriter::writeGroupItem(QXmlStreamWriter* xml, DrawingItemGroup* item)
 {
+	if (item)
+	{
+		xml->writeStartElement("g");
+		if (item->name() != "") xml->writeAttribute("id", item->name());
 
+		xml->writeAttribute("transform", transformToString(item->position(), item->transform()));
+
+		writeItems(xml, item->items());
+
+		xml->writeEndElement();
+	}
 }
 
 void SvgWriter::writeReferenceItem(QXmlStreamWriter* xml, DrawingReferenceItem* item)
 {
+	if (item)
+	{
+		xml->writeStartElement("use");
+		if (item->name() != "") xml->writeAttribute("id", item->name());
 
+		xml->writeAttribute("href", item->referenceName());
+
+		xml->writeAttribute("transform", transformToString(item->position(), item->transform()));
+
+		xml->writeEndElement();
+	}
 }
 
 //==================================================================================================
@@ -496,10 +516,8 @@ void SvgWriter::writeArrow(QXmlStreamWriter* xml, DrawingItem* item, const Drawi
 		xml->writeAttribute("points", pointsToString(item->mapToScene(polygon)));
 		if (arrow.style() == Drawing::ArrowTriangleFilled || arrow.style() == Drawing::ArrowConcaveFilled)
 			xml->writeAttribute("style", styleToString(arrowPen.brush(), arrowPen));
-		else if (item->widget())
-			xml->writeAttribute("style", styleToString(item->widget()->backgroundBrush(), arrowPen));
 		else
-			xml->writeAttribute("style", styleToString(Qt::transparent, arrowPen));
+			xml->writeAttribute("style", styleToString(mDrawing->backgroundBrush(), arrowPen));
 		xml->writeEndElement();
 		break;
 	case Drawing::ArrowCircle:
@@ -511,10 +529,8 @@ void SvgWriter::writeArrow(QXmlStreamWriter* xml, DrawingItem* item, const Drawi
 		xml->writeAttribute("ry", QString::number(arrow.size() / 2));
 		if (arrow.style() == Drawing::ArrowCircleFilled)
 			xml->writeAttribute("style", styleToString(arrowPen.brush(), arrowPen));
-		else if (item->widget())
-			xml->writeAttribute("style", styleToString(item->widget()->backgroundBrush(), arrowPen));
 		else
-			xml->writeAttribute("style", styleToString(Qt::transparent, arrowPen));
+			xml->writeAttribute("style", styleToString(mDrawing->backgroundBrush(), arrowPen));
 		xml->writeEndElement();
 		break;
 	default:
