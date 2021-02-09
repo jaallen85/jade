@@ -15,6 +15,18 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "VsdxWriter.h"
+#include <DrawingCurveItem.h>
+#include <DrawingEllipseItem.h>
+#include <DrawingItemGroup.h>
+#include <DrawingLineItem.h>
+#include <DrawingPathItem.h>
+#include <DrawingPolygonItem.h>
+#include <DrawingPolylineItem.h>
+#include <DrawingReferenceItem.h>
+#include <DrawingRectItem.h>
+#include <DrawingTextItem.h>
+#include <DrawingTextEllipseItem.h>
+#include <DrawingTextRectItem.h>
 #include <DrawingWidget.h>
 #include <QTextStream>
 #include <quazip.h>
@@ -26,8 +38,12 @@ VsdxWriter::VsdxWriter(DrawingWidget* drawing)
 
 	mDrawingUnits = "in";
 	mDrawingScale = 0.001;
+	mPageMargin = 0.25;
 	//mDrawingUnits = "mm";
 	//mDrawingScale = 0.025;
+	//mPageMargin = 5.0;
+
+	mShapeIndex = 0;
 }
 
 VsdxWriter::~VsdxWriter()
@@ -40,6 +56,8 @@ VsdxWriter::~VsdxWriter()
 bool VsdxWriter::save(const QString& filePath)
 {
 	bool errorOccurred = false;
+
+	mShapeIndex = 0;
 
 	QuaZip vsdxFile(filePath);
 
@@ -214,11 +232,10 @@ QString VsdxWriter::writePages()
 {
 	QString pages;
 
-	const qreal margin = 0.25;
-	QString pageWidth = QString::number(mDrawing->sceneRect().width() * mDrawingScale + 2 * margin);
-	QString pageHeight = QString::number(mDrawing->sceneRect().height() * mDrawingScale + 2 * margin);
-	QString xRulerOrigin = QString::number(margin - mDrawing->sceneRect().left() * mDrawingScale);
-	QString yRulerOrigin = QString::number(margin + mDrawing->sceneRect().bottom() * mDrawingScale);
+	QString pageWidth = QString::number(mDrawing->sceneRect().width() * mDrawingScale + 2 * mPageMargin);
+	QString pageHeight = QString::number(mDrawing->sceneRect().height() * mDrawingScale + 2 * mPageMargin);
+	QString xRulerOrigin = QString::number(mPageMargin - mDrawing->sceneRect().left() * mDrawingScale);
+	QString yRulerOrigin = QString::number(mPageMargin + mDrawing->sceneRect().bottom() * mDrawingScale);
 	QString xGridOrigin = xRulerOrigin;
 	QString yGridOrigin = yRulerOrigin;
 
@@ -310,5 +327,354 @@ QString VsdxWriter::writeWindows()
 
 QString VsdxWriter::writeItems(const QList<DrawingItem*>& items)
 {
-	return QString();
+	QString shapes;
+	QString key;
+
+	for(auto itemIter = items.begin(); itemIter != items.end(); itemIter++)
+	{
+		key = (*itemIter)->uniqueKey();
+
+		if (key == "rect") shapes += writeRectItem(dynamic_cast<DrawingRectItem*>(*itemIter));
+		else if (key == "ellipse") shapes += writeEllipseItem(dynamic_cast<DrawingEllipseItem*>(*itemIter));
+		else if (key == "line") shapes += writeLineItem(dynamic_cast<DrawingLineItem*>(*itemIter));
+		else if (key == "curve") shapes += writeCurveItem(dynamic_cast<DrawingCurveItem*>(*itemIter));
+		else if (key == "polyline") shapes += writePolylineItem(dynamic_cast<DrawingPolylineItem*>(*itemIter));
+		else if (key == "polygon") shapes += writePolygonItem(dynamic_cast<DrawingPolygonItem*>(*itemIter));
+		else if (key == "text") shapes += writeTextItem(dynamic_cast<DrawingTextItem*>(*itemIter));
+		else if (key == "textRect") shapes += writeTextRectItem(dynamic_cast<DrawingTextRectItem*>(*itemIter));
+		else if (key == "textEllipse") shapes += writeTextEllipseItem(dynamic_cast<DrawingTextEllipseItem*>(*itemIter));
+		else if (key == "path") shapes += writePathItem(dynamic_cast<DrawingPathItem*>(*itemIter));
+		else if (key == "group") shapes += writeGroupItem(dynamic_cast<DrawingItemGroup*>(*itemIter));
+		else if (key == "reference") shapes += writeReferenceItem(dynamic_cast<DrawingReferenceItem*>(*itemIter));
+	}
+
+	return shapes;
+}
+
+QString VsdxWriter::writeRectItem(DrawingRectItem* item)
+{
+	QString shape;
+
+	if (item)
+	{
+
+	}
+
+	return shape;
+}
+
+QString VsdxWriter::writeEllipseItem(DrawingEllipseItem* item)
+{
+	QString shape;
+
+	if (item)
+	{
+
+	}
+
+	return shape;
+}
+
+QString VsdxWriter::writeLineItem(DrawingLineItem* item)
+{
+	QString shape;
+
+	if (item)
+	{
+		QPointF startPoint = mapFromScene(item->mapToScene(item->line().p1()));
+		QPointF endPoint = mapFromScene(item->mapToScene(item->line().p2()));
+		QPointF centerPoint = (startPoint + endPoint) / 2;
+		qreal xSpan = qAbs(endPoint.x() - startPoint.x());
+		qreal ySpan = qAbs(endPoint.y() - startPoint.y());
+		qreal width = qSqrt(xSpan * xSpan + ySpan * ySpan);
+		qreal angle = qAtan2(endPoint.y() - startPoint.y(), endPoint.x() - startPoint.x());
+
+		mShapeIndex++;
+
+		QString indexStr = QString::number(mShapeIndex);
+		QString pinXStr = QString::number(centerPoint.x());
+		QString pinYStr = QString::number(centerPoint.y());
+		QString widthStr = QString::number(width);
+		QString locPinXStr = QString::number(width / 2);
+		QString angleStr = QString::number(angle);
+		QString beginXStr = QString::number(startPoint.x());
+		QString beginYStr = QString::number(startPoint.y());
+		QString endXStr = QString::number(endPoint.x());
+		QString endYStr = QString::number(endPoint.y());
+
+		shape += "    <Shape ID='" + indexStr + "' Type='Shape' LineStyle='3' FillStyle='3' TextStyle='3'>\n";
+		shape += "      <Cell N='PinX' V='" + pinXStr + "' F='(BeginX+EndX)/2'/>\n";
+		shape += "      <Cell N='PinY' V='" + pinYStr + "' F='(BeginY+EndY)/2'/>\n";
+		shape += "      <Cell N='Width' V='" + widthStr + "' F='SQRT((EndX-BeginX)^2+(EndY-BeginY)^2)'/>\n";
+		shape += "      <Cell N='Height' V='0'/>\n";
+		shape += "      <Cell N='LocPinX' V='" + locPinXStr + "' F='Width*0.5'/>\n";
+		shape += "      <Cell N='LocPinY' V='0' F='Height*0.5'/>\n";
+		shape += "      <Cell N='Angle' V='" + angleStr + "' F='ATAN2(EndY-BeginY,EndX-BeginX)'/>\n";
+		shape += "      <Cell N='FlipX' V='0'/>\n";
+		shape += "      <Cell N='FlipY' V='0'/>\n";
+		shape += "      <Cell N='ResizeMode' V='0'/>\n";
+		shape += "      <Cell N='BeginX' V='" + beginXStr + "'/>\n";
+		shape += "      <Cell N='BeginY' V='" + beginYStr + "'/>\n";
+		shape += "      <Cell N='EndX' V='" + endXStr + "'/>\n";
+		shape += "      <Cell N='EndY' V='" + endYStr + "'/>\n";
+
+		shape += writeStyle(Qt::transparent, item->pen());
+		shape += writeArrow(item->startArrow(), item->pen(), true);
+		shape += writeArrow(item->endArrow(), item->pen(), false);
+
+		shape += "      <Section N='Geometry' IX='0'>\n";
+		shape += "    	  <Cell N='NoFill' V='1'/>\n";
+		shape += "    	  <Cell N='NoLine' V='0'/>\n";
+		shape += "    	  <Cell N='NoShow' V='0'/>\n";
+		shape += "    	  <Cell N='NoSnap' V='0'/>\n";
+		shape += "    	  <Cell N='NoQuickDrag' V='0'/>\n";
+		shape += "    	  <Row T='MoveTo' IX='1'>\n";
+		shape += "    	    <Cell N='X' V='0' F='Width*0'/>\n";
+		shape += "    	    <Cell N='Y' V='0'/>\n";
+		shape += "    	  </Row>\n";
+		shape += "        <Row T='LineTo' IX='2'>\n";
+		shape += "          <Cell N='X' V='" + widthStr + "' F='Width*1'/>\n";
+		shape += "      	<Cell N='Y' V='0'/>\n";
+		shape += "        </Row>\n";
+		shape += "      </Section>\n";
+		shape += "    </Shape>\n";
+	}
+
+	return shape;
+}
+
+QString VsdxWriter::writeCurveItem(DrawingCurveItem* item)
+{
+	QString shape;
+
+	if (item)
+	{
+
+	}
+
+	return shape;
+}
+
+QString VsdxWriter::writePolylineItem(DrawingPolylineItem* item)
+{
+	QString shape;
+
+	if (item)
+	{
+
+	}
+
+	return shape;
+}
+
+QString VsdxWriter::writePolygonItem(DrawingPolygonItem* item)
+{
+	QString shape;
+
+	if (item)
+	{
+
+	}
+
+	return shape;
+}
+
+QString VsdxWriter::writeTextItem(DrawingTextItem* item)
+{
+	QString shape;
+
+	if (item)
+	{
+
+	}
+
+	return shape;
+}
+
+QString VsdxWriter::writeTextRectItem(DrawingTextRectItem* item)
+{
+	QString shape;
+
+	if (item)
+	{
+
+	}
+
+	return shape;
+}
+
+QString VsdxWriter::writeTextEllipseItem(DrawingTextEllipseItem* item)
+{
+	QString shape;
+
+	if (item)
+	{
+
+	}
+
+	return shape;
+}
+
+QString VsdxWriter::writePathItem(DrawingPathItem* item)
+{
+	QString shape;
+
+	if (item)
+	{
+
+	}
+
+	return shape;
+}
+
+QString VsdxWriter::writeGroupItem(DrawingItemGroup* item)
+{
+	QString shape;
+
+	if (item)
+	{
+
+	}
+
+	return shape;
+}
+
+QString VsdxWriter::writeReferenceItem(DrawingReferenceItem* item)
+{
+	QString shape;
+
+	if (item)
+	{
+
+	}
+
+	return shape;
+}
+
+//==================================================================================================
+
+QString VsdxWriter::writeStyle(const QBrush& brush, const QPen& pen)
+{
+	QString shape;
+
+	QColor brushColor = brush.color();
+	QColor penColor = pen.brush().color();
+
+	// Visio boilerplate stuff
+	shape += "      <Cell N='TextBkgnd' V='#ffffff' F='THEMEGUARD(THEMEVAL(\"BackgroundColor\")+1)'/>\n";
+	shape += "      <Cell N='QuickStyleLineMatrix' V='1'/>\n";
+	shape += "      <Cell N='QuickStyleFillMatrix' V='1'/>\n";
+	shape += "      <Cell N='QuickStyleEffectsMatrix' V='1'/>\n";
+	shape += "      <Cell N='QuickStyleFontMatrix' V='1'/>\n";
+
+	// Brush color
+	shape += "	  <Cell N='FillGradientEnabled' V='0'/>\n";
+	shape += "	  <Cell N='FillForegnd' V='" + colorToString(brushColor) + "'/>\n";
+
+	if (brushColor.alpha() == 0)
+		shape = "    <Cell N='FillPattern' V='0'/>";
+	else
+	{
+		// Brush color alpha
+		if (brushColor.alpha() != 255)
+		{
+			shape += "	  <Cell N='FillForegndTrans' V='" + QString::number(1.0 - brushColor.alphaF()) + "'/>\n";
+			shape += "	  <Cell N='FillBkgndTrans' V='" + QString::number(1.0 - brushColor.alphaF()) + "'/>\n";
+		}
+	}
+
+	// Pen width of 16.0 = 1 pt.  1 pt = 1/72 in.
+	shape += "	  <Cell N='LineWeight' V='" + QString::number(pen.widthF() / 16 / 72) + "'/>\n";
+
+	// Pen color
+	shape += "	  <Cell N='LineGradientEnabled' V='0'/>\n";
+	shape += "	  <Cell N='LineColor' V='" + colorToString(penColor) + "'/>\n";
+
+	if (penColor.alpha() == 0)
+		shape += "	  <Cell N='LinePattern' V='0'/>\n";
+	else
+	{
+		// Pen color alpha
+		if (penColor.alpha() != 255)
+			shape += "	  <Cell N='LineColorTrans' V='" + QString::number(1.0 - penColor.alphaF()) + "'/>\n";
+
+		// Pen style
+		switch (pen.style())
+		{
+		case Qt::NoPen:
+			shape += "	  <Cell N='LinePattern' V='0'/>\n";
+			break;
+		case Qt::DotLine:
+			shape += "	  <Cell N='LinePattern' V='10'/>\n";
+			break;
+		case Qt::DashLine:
+		case Qt::DashDotLine:
+		case Qt::DashDotDotLine:
+			shape += "	  <Cell N='LinePattern' V='9'/>\n";
+			break;
+		default:
+			break;
+		}
+	}
+
+	return shape;
+}
+
+QString VsdxWriter::writeArrow(const DrawingArrow& arrow, const QPen& pen, bool startArrow)
+{
+	QString shape;
+
+	if (arrow.style() != Drawing::ArrowNone)
+	{
+		QString arrowStr = "0";
+		QString arrowSizeStr = "2";
+
+		if (arrow.style() == Drawing::ArrowNormal)
+			arrowStr = "3";
+		else if (arrow.style() == Drawing::ArrowTriangleFilled || arrow.style() == Drawing::ArrowConcaveFilled)
+			arrowStr = "4";
+		else if (arrow.style() == Drawing::ArrowTriangle || arrow.style() == Drawing::ArrowConcave)
+			arrowStr = "16";
+		else if (arrow.style() == Drawing::ArrowCircleFilled)
+			arrowStr = "10";
+		else if (arrow.style() == Drawing::ArrowCircle)
+			arrowStr = "20";
+
+		// This is just a basic mapping of the arrow.size() field to the various options allowed in Visio
+		if (arrow.size() < pen.widthF() * 2)
+			arrowSizeStr = "0";
+		else if (arrow.size() < pen.widthF() * 5)
+			arrowSizeStr = "1";
+
+		if (startArrow)
+		{
+			shape += "	  <Cell N='BeginArrow' V='" + arrowStr + "'/>\n";
+			shape += "	  <Cell N='BeginArrowSize' V='" + arrowSizeStr + "'/>\n";
+		}
+		else
+		{
+			shape += "	  <Cell N='EndArrow' V='" + arrowStr + "'/>\n";
+			shape += "	  <Cell N='EndArrowSize' V='" + arrowSizeStr + "'/>\n";
+		}
+	}
+
+	return shape;
+}
+
+//==================================================================================================
+
+QString VsdxWriter::colorToString(const QColor& color) const
+{
+	return QString("#%1%2%3").arg(color.red(), 2, 16, QChar('0')).arg(
+		color.green(), 2, 16, QChar('0')).arg(color.blue(), 2, 16, QChar('0')).toLower();
+}
+
+//==================================================================================================
+
+QPointF VsdxWriter::mapFromScene(const QPointF& position) const
+{
+	QPointF newPosition;
+	newPosition.setX(mPageMargin - mDrawing->sceneRect().left() * mDrawingScale + position.x() * mDrawingScale);
+	newPosition.setY(mPageMargin + mDrawing->sceneRect().bottom() * mDrawingScale - position.y() * mDrawingScale);
+	return newPosition;
 }

@@ -17,11 +17,16 @@
 #ifndef VSDXWRITER_H
 #define VSDXWRITER_H
 
+#include <DrawingArrow.h>
+#include <QBrush>
+#include <QList>
+#include <QPen>
+#include <QPointF>
 #include <QString>
 
 class DrawingWidget;
 class DrawingItem;
-/*class DrawingItemGroup;
+class DrawingItemGroup;
 class DrawingCurveItem;
 class DrawingEllipseItem;
 class DrawingLineItem;
@@ -32,7 +37,7 @@ class DrawingRectItem;
 class DrawingReferenceItem;
 class DrawingTextItem;
 class DrawingTextEllipseItem;
-class DrawingTextRectItem;*/
+class DrawingTextRectItem;
 class QuaZip;
 
 class VsdxWriter
@@ -42,6 +47,9 @@ private:
 
 	QString mDrawingUnits;
 	qreal mDrawingScale;
+	qreal mPageMargin;
+
+	int mShapeIndex;
 
 public:
 	VsdxWriter(DrawingWidget* drawing);
@@ -64,27 +72,33 @@ private:
 	QString writeWindows();
 
 	QString writeItems(const QList<DrawingItem*>& items);
+	QString writeRectItem(DrawingRectItem* item);
+	QString writeEllipseItem(DrawingEllipseItem* item);
+	QString writeLineItem(DrawingLineItem* item);
+	QString writeCurveItem(DrawingCurveItem* item);
+	QString writePolylineItem(DrawingPolylineItem* item);
+	QString writePolygonItem(DrawingPolygonItem* item);
+	QString writeTextItem(DrawingTextItem* item);
+	QString writeTextRectItem(DrawingTextRectItem* item);
+	QString writeTextEllipseItem(DrawingTextEllipseItem* item);
+	QString writePathItem(DrawingPathItem* item);
+	QString writeGroupItem(DrawingItemGroup* item);
+	QString writeReferenceItem(DrawingReferenceItem* item);
 
-	/*void writeRectItem(QXmlStreamWriter* xml, DrawingRectItem* item);
-	void writeEllipseItem(QXmlStreamWriter* xml, DrawingEllipseItem* item);
-	void writeLineItem(QXmlStreamWriter* xml, DrawingLineItem* item);
-	void writeCurveItem(QXmlStreamWriter* xml, DrawingCurveItem* item);
-	void writePolylineItem(QXmlStreamWriter* xml, DrawingPolylineItem* item);
-	void writePolygonItem(QXmlStreamWriter* xml, DrawingPolygonItem* item);
-	void writeTextItem(QXmlStreamWriter* xml, DrawingTextItem* item);
-	void writeTextRectItem(QXmlStreamWriter* xml, DrawingTextRectItem* item);
-	void writeTextEllipseItem(QXmlStreamWriter* xml, DrawingTextEllipseItem* item);
-	void writePathItem(QXmlStreamWriter* xml, DrawingPathItem* item);
-	void writeGroupItem(QXmlStreamWriter* xml, DrawingItemGroup* item);
-	void writeReferenceItem(QXmlStreamWriter* xml, DrawingReferenceItem* item);
+	QString writeStyle(const QBrush& brush, const QPen& pen);
+	QString writeArrow(const DrawingArrow& arrow, const QPen& pen, bool startArrow);
 
-	void writeArrow(QXmlStreamWriter* xml, DrawingItem* item, const DrawingArrow& arrow, const QPen& pen);
+	/*void writeArrow(DrawingItem* item, const DrawingArrow& arrow, const QPen& pen);
 
 	QString colorToString(const QColor& color) const;
 	QString pointsToString(const QPolygonF& polygon) const;
 	QString styleToString(const QBrush& brush, const QPen& pen);
 	QString styleToString(const QBrush& brush, const QPen& pen, const QFont& font, Qt::Alignment alignment);
 	QString transformToString(const QPointF& position, const QTransform& transform) const;*/
+
+	QString colorToString(const QColor& color) const;
+
+	QPointF mapFromScene(const QPointF& position) const;
 };
 
 #endif
