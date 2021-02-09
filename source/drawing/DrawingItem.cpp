@@ -715,7 +715,30 @@ void DrawingItem::readAlignmentFromXml(QXmlStreamReader* xml, const QString& nam
 
 //==================================================================================================
 
-void DrawingItem::exportStyleToSvg(QXmlStreamWriter* xml, const QBrush& fill, const QPen& stroke)
+void DrawingItem::exportTransformToSvg(QXmlStreamWriter* xml, const QString& name)
+{
+	if (xml)
+	{
+		QString transformStr;
+
+		QTransform transform = mTransform;
+
+		qreal rotation = qAsin(transform.m12()) * 180 / 3.141592654;
+		transform.rotate(-rotation);
+
+		qreal hScale = transform.m11();
+		qreal vScale = transform.m22();
+
+		transformStr= "translate(" + QString::number(mPosition.x()) + "," + QString::number(mPosition.y()) + ")";
+		transformStr += (rotation != 0) ? " rotate(" + QString::number(-rotation) + ")" : "";
+		transformStr += (hScale != 1.0 || vScale != 1.0) ? " scale(" + QString::number(hScale) + "," + QString::number(vScale) + ")" : "";
+
+		xml->writeAttribute(name, transformStr);
+	}
+}
+
+void DrawingItem::exportStyleToSvg(QXmlStreamWriter* xml, const QBrush& fill, const QPen& stroke,
+	const QFont& font, Qt::Alignment alignment)
 {
 	QString styleString;
 	QColor fillColor = fill.color();
@@ -804,6 +827,25 @@ void DrawingItem::exportStyleToSvg(QXmlStreamWriter* xml, const QBrush& fill, co
 		else styleString += ";stroke:none";
 	}
 	else styleString += ";stroke:none";
+
+	if (font != QFont())
+	{
+		styleString += ";font-family:" + font.family();
+		styleString += ";font-size:" + QString::number(font.pointSizeF()) + "px";
+
+		if (font.bold()) styleString += ";font-weight:bold";
+		if (font.italic()) styleString += ";font-style:italic";
+		if (font.underline()) styleString += ";text-decoration:underline";
+		else if (font.strikeOut()) styleString += ";text-decoration:line-through";
+
+		Qt::Alignment horizontalAlign = (alignment & Qt::AlignHorizontal_Mask);
+		if (horizontalAlign & Qt::AlignHCenter)
+			 styleString += ";text-anchor:middle";
+		else if (horizontalAlign & Qt::AlignRight)
+			 styleString += ";text-anchor:end";
+
+		styleString += ";dominant-baseline:central";
+	}
 
 	xml->writeAttribute("style", styleString);
 }
