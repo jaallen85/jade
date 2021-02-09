@@ -390,24 +390,6 @@ void DrawingPathItem::readFromXml(QXmlStreamReader* xml)
 
 //==================================================================================================
 
-void DrawingPathItem::exportToSvg(QXmlStreamWriter* xml)
-{
-	if (xml)
-	{
-		xml->writeStartElement("path");
-
-		if (name() != "") xml->writeAttribute("id", name());
-
-		exportTransformToSvg(xml, "transform");
-		exportPathToSvg(xml, mPath);
-		exportStyleToSvg(xml, Qt::transparent, mPen);
-
-		xml->writeEndElement();
-	}
-}
-
-//==================================================================================================
-
 void DrawingPathItem::updateItemGeometry()
 {
 	mBoundingRect = QRectF();
@@ -504,16 +486,6 @@ QString DrawingPathItem::pathToString(const QPainterPath& path) const
 	return pathStr.trimmed();
 }
 
-QString DrawingPathItem::pointsToString(const QPolygonF& points) const
-{
-	QString pointsStr;
-
-	for(auto pointIter = points.begin(); pointIter != points.end(); pointIter++)
-		pointsStr += QString::number((*pointIter).x()) + "," + QString::number((*pointIter).y()) + " ";
-
-	return pointsStr.trimmed();
-}
-
 QPainterPath DrawingPathItem::pathFromString(const QString& str) const
 {
 	QPainterPath path;
@@ -549,58 +521,4 @@ QPainterPath DrawingPathItem::pathFromString(const QString& str) const
 	}
 
 	return path;
-}
-
-QPolygonF DrawingPathItem::pointsFromString(const QString& str) const
-{
-	QPolygonF points;
-
-	QStringList tokenList = str.split(" ");
-	QStringList coordList;
-	qreal x, y;
-	bool xOk = false, yOk = false;
-
-	for(int i = 0; i < tokenList.size(); i++)
-	{
-		coordList = tokenList[i].split(",");
-		if (coordList.size() == 2)
-		{
-			x = coordList[0].toDouble(&xOk);
-			y = coordList[1].toDouble(&yOk);
-			if (xOk && yOk) points.append(QPointF(x, y));
-		}
-	}
-
-	return points;
-}
-
-//==================================================================================================
-
-void DrawingPathItem::exportPathToSvg(QXmlStreamWriter* xml, const QPainterPath& path)
-{
-	QString pathStr;
-
-	for(int i = 0; i < path.elementCount(); i++)
-	{
-		QPainterPath::Element element = path.elementAt(i);
-		QPointF mappedElement = mapFromPath(QPointF(element.x, element.y));
-
-		switch (element.type)
-		{
-		case QPainterPath::MoveToElement:
-			pathStr += "M " + QString::number(mappedElement.x()) + " " + QString::number(mappedElement.y()) + " ";
-			break;
-		case QPainterPath::LineToElement:
-			pathStr += "L " + QString::number(mappedElement.x()) + " " + QString::number(mappedElement.y()) + " ";
-			break;
-		case QPainterPath::CurveToElement:
-			pathStr += "C " + QString::number(mappedElement.x()) + " " + QString::number(mappedElement.y()) + " ";
-			break;
-		case QPainterPath::CurveToDataElement:
-			pathStr += QString::number(mappedElement.x()) + " " + QString::number(mappedElement.y()) + " ";
-			break;
-		}
-	}
-
-	xml->writeAttribute("d", pathStr.trimmed());
 }

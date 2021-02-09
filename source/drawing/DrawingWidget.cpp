@@ -689,42 +689,6 @@ void DrawingWidget::readFromXml(QXmlStreamReader* xml)
 
 //==================================================================================================
 
-void DrawingWidget::exportToSvg(QXmlStreamWriter* xml, const QSize& size)
-{
-	if (xml)
-	{
-		QRectF sceneRect = this->sceneRect();
-
-		xml->writeStartElement("svg");
-
-		if (size.isValid())
-		{
-			xml->writeAttribute("width", QString::number(size.width()));
-			xml->writeAttribute("height", QString::number(size.height()));
-		}
-
-		xml->writeAttribute("viewBox", QString("%1 %2 %3 %4").arg(sceneRect.left()).arg(
-			sceneRect.top()).arg(sceneRect.width()).arg(sceneRect.height()));
-		xml->writeAttribute("style", "background-color:" + colorToString(backgroundBrush().color()));
-		xml->writeAttribute("xmlns", "http://www.w3.org/2000/svg");
-
-		if (!mReferenceItems.isEmpty())
-		{
-			xml->writeStartElement("defs");
-			for(auto itemIter = mReferenceItems.begin(); itemIter != mReferenceItems.end(); itemIter++)
-				(*itemIter)->exportToSvg(xml);
-			xml->writeEndElement();
-		}
-
-		for(auto itemIter = mItems.begin(); itemIter != mItems.end(); itemIter++)
-			(*itemIter)->exportToSvg(xml);
-
-		xml->writeEndElement();
-	}
-}
-
-//==================================================================================================
-
 void DrawingWidget::setDefaultMode()
 {
 	clearMode();

@@ -240,30 +240,6 @@ void DrawingTextItem::readFromXml(QXmlStreamReader* xml)
 
 //==================================================================================================
 
-void DrawingTextItem::exportToSvg(QXmlStreamWriter* xml)
-{
-	if (xml)
-	{
-		xml->writeStartElement("text");
-
-		if (name() != "") xml->writeAttribute("id", name());
-
-		exportTransformToSvg(xml, "transform");
-		if (mAlignment & Qt::AlignTop)
-			xml->writeAttribute("y", QString::number(mFont.pointSizeF() * 3 / 4));
-		if (mAlignment & Qt::AlignBottom)
-			xml->writeAttribute("y", QString::number(-mFont.pointSizeF() * 3 / 4));
-
-		exportStyleToSvg(xml, mPen.brush(), Qt::NoPen, mFont, mAlignment);
-
-		xml->writeCharacters(mCaption);
-
-		xml->writeEndElement();
-	}
-}
-
-//==================================================================================================
-
 void DrawingTextItem::updateTextRect(const QFont& font)
 {
 	mTextRect = QRectF();

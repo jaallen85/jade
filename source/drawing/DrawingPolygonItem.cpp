@@ -283,24 +283,6 @@ void DrawingPolygonItem::readFromXml(QXmlStreamReader* xml)
 
 //==================================================================================================
 
-void DrawingPolygonItem::exportToSvg(QXmlStreamWriter* xml)
-{
-	if (xml)
-	{
-		xml->writeStartElement("polygon");
-
-		if (name() != "") xml->writeAttribute("id", name());
-
-		xml->writeAttribute("points", pointsToString(mapToScene(mPolygon)));
-
-		exportStyleToSvg(xml, mBrush, mPen);
-
-		xml->writeEndElement();
-	}
-}
-
-//==================================================================================================
-
 void DrawingPolygonItem::updateItemGeometry()
 {
 	mBoundingRect = QRectF();

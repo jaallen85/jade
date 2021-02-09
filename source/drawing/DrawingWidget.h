@@ -130,8 +130,6 @@ public:
 	virtual void writeToXml(QXmlStreamWriter* xml);
 	virtual void readFromXml(QXmlStreamReader* xml);
 
-	virtual void exportToSvg(QXmlStreamWriter* xml, const QSize& size = QSize());
-
 signals:
 	void cleanChanged(bool clean);
 	void canUndoChanged(bool canUndo);

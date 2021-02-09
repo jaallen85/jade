@@ -305,48 +305,6 @@ void DrawingLineItem::readFromXml(QXmlStreamReader* xml)
 
 //==================================================================================================
 
-void DrawingLineItem::exportToSvg(QXmlStreamWriter* xml)
-{
-	if (xml)
-	{
-		if (mStartArrow.style() != Drawing::ArrowNone || mEndArrow.style() != Drawing::ArrowNone)
-		{
-			xml->writeStartElement("g");
-			if (name() != "") xml->writeAttribute("id", name());
-
-			xml->writeStartElement("line");
-		}
-		else
-		{
-			xml->writeStartElement("line");
-			if (name() != "") xml->writeAttribute("id", name());
-		}
-
-		QPointF p1 = mapToScene(mLine.p1());
-		QPointF p2 = mapToScene(mLine.p2());
-
-		xml->writeAttribute("x1", QString::number(p1.x()));
-		xml->writeAttribute("y1", QString::number(p1.y()));
-		xml->writeAttribute("x2", QString::number(p2.x()));
-		xml->writeAttribute("y2", QString::number(p2.y()));
-
-		exportStyleToSvg(xml, Qt::transparent, mPen);
-
-		if (mStartArrow.style() != Drawing::ArrowNone || mEndArrow.style() != Drawing::ArrowNone)
-		{
-			xml->writeEndElement();
-
-			if (mStartArrow.style() != Drawing::ArrowNone) exportArrowToSvg(xml, mPen, mStartArrow);
-			if (mEndArrow.style() != Drawing::ArrowNone) exportArrowToSvg(xml, mPen, mEndArrow);
-
-			xml->writeEndElement();
-		}
-		else xml->writeEndElement();
-	}
-}
-
-//==================================================================================================
-
 void DrawingLineItem::updateItemGeometry()
 {
 	mBoundingRect = QRectF();

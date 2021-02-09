@@ -273,30 +273,6 @@ void DrawingEllipseItem::readFromXml(QXmlStreamReader* xml)
 
 //==================================================================================================
 
-void DrawingEllipseItem::exportToSvg(QXmlStreamWriter* xml)
-{
-	if (xml)
-	{
-		xml->writeStartElement("ellipse");
-
-		if (name() != "") xml->writeAttribute("id", name());
-
-		QRectF rect(mapToScene(mEllipse.topLeft()), mapToScene(mEllipse.bottomRight()));
-		rect = rect.normalized();
-
-		xml->writeAttribute("cx", QString::number(rect.center().x()));
-		xml->writeAttribute("cy", QString::number(rect.center().y()));
-		xml->writeAttribute("rx", QString::number(rect.width() / 2));
-		xml->writeAttribute("ry", QString::number(rect.height() / 2));
-
-		exportStyleToSvg(xml, mBrush, mPen);
-
-		xml->writeEndElement();
-	}
-}
-
-//==================================================================================================
-
 void DrawingEllipseItem::updateItemGeometry()
 {
 	mBoundingRect = QRectF();

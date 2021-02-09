@@ -130,8 +130,6 @@ public:
 	virtual void writeToXml(QXmlStreamWriter* xml);
 	virtual void readFromXml(QXmlStreamReader* xml);
 
-	virtual void exportToSvg(QXmlStreamWriter* xml);
-
 	void writeTransformToXml(QXmlStreamWriter* xml, const QString& name);
 	void writeBrushToXml(QXmlStreamWriter* xml, const QString& name, const QBrush& brush);
 	void writePenToXml(QXmlStreamWriter* xml, const QString& name, const QPen& pen);
@@ -144,11 +142,6 @@ public:
 	void readArrowFromXml(QXmlStreamReader* xml, const QString& name, const QPen& pen, DrawingArrow& arrow);
 	void readFontFromXml(QXmlStreamReader* xml, const QString& name, QFont& font);
 	void readAlignmentFromXml(QXmlStreamReader* xml, const QString& name, Qt::Alignment& alignment);
-
-	void exportTransformToSvg(QXmlStreamWriter* xml, const QString& name);
-	void exportStyleToSvg(QXmlStreamWriter* xml, const QBrush& fill, const QPen& stroke,
-		const QFont& font = QFont(), Qt::Alignment alignment = Qt::AlignLeft|Qt::AlignBottom);
-	void exportArrowToSvg(QXmlStreamWriter* xml, const QPen& pen, const DrawingArrow& arrow);
 
 protected:
 	QString colorToString(const QColor& color) const;

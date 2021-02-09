@@ -63,8 +63,6 @@ public:
 	virtual void writeToXml(QXmlStreamWriter* xml) override;
 	virtual void readFromXml(QXmlStreamReader* xml) override;
 
-	virtual void exportToSvg(QXmlStreamWriter* xml) override;
-
 protected:
 	virtual void updateItemGeometry();
 };

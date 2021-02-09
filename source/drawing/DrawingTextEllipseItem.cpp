@@ -232,43 +232,6 @@ void DrawingTextEllipseItem::readFromXml(QXmlStreamReader* xml)
 
 //==================================================================================================
 
-void DrawingTextEllipseItem::exportToSvg(QXmlStreamWriter* xml)
-{
-	if (xml)
-	{
-		xml->writeStartElement("g");
-
-		if (name() != "") xml->writeAttribute("id", name());
-
-		exportTransformToSvg(xml, "transform");
-
-		// Rect
-		xml->writeStartElement("ellipse");
-
-		QRectF ellipse = DrawingTextEllipseItem::ellipse().normalized();
-		xml->writeAttribute("cx", QString::number(ellipse.center().x()));
-		xml->writeAttribute("cy", QString::number(ellipse.center().y()));
-		xml->writeAttribute("rx", QString::number(ellipse.width() / 2));
-		xml->writeAttribute("ry", QString::number(ellipse.height() / 2));
-
-		exportStyleToSvg(xml, brush(), pen());
-
-		xml->writeEndElement();
-
-		// Text
-		xml->writeStartElement("text");
-		xml->writeAttribute("x", QString::number(ellipse.center().x()));
-		xml->writeAttribute("y", QString::number(ellipse.center().y()));
-		exportStyleToSvg(xml, mTextPen.brush(), Qt::NoPen, mFont, Qt::AlignCenter);
-		xml->writeCharacters(mCaption);
-		xml->writeEndElement();
-
-		xml->writeEndElement();
-	}
-}
-
-//==================================================================================================
-
 void DrawingTextEllipseItem::updateItemGeometry()
 {
 	DrawingEllipseItem::updateItemGeometry();

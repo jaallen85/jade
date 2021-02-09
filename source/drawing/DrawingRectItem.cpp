@@ -297,36 +297,6 @@ void DrawingRectItem::readFromXml(QXmlStreamReader* xml)
 
 //==================================================================================================
 
-void DrawingRectItem::exportToSvg(QXmlStreamWriter* xml)
-{
-	if (xml)
-	{
-		xml->writeStartElement("rect");
-
-		if (name() != "") xml->writeAttribute("id", name());
-
-		QRectF rect(mapToScene(mRect.topLeft()), mapToScene(mRect.bottomRight()));
-		rect = rect.normalized();
-
-		xml->writeAttribute("x", QString::number(rect.left()));
-		xml->writeAttribute("y", QString::number(rect.top()));
-		xml->writeAttribute("width", QString::number(rect.width()));
-		xml->writeAttribute("height", QString::number(rect.height()));
-
-		if (mCornerRadius > 0)
-		{
-			xml->writeAttribute("rx", QString::number(mCornerRadius));
-			xml->writeAttribute("ry", QString::number(mCornerRadius));
-		}
-
-		exportStyleToSvg(xml, mBrush, mPen);
-
-		xml->writeEndElement();
-	}
-}
-
-//==================================================================================================
-
 void DrawingRectItem::updateItemGeometry()
 {
 	mBoundingRect = QRectF();

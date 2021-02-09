@@ -48,6 +48,7 @@ SOURCES += \
 	source/MainWindow.cpp \
 	source/PreferencesDialog.cpp \
 	source/ReferenceItemDialog.cpp \
+	source/SvgWriter.cpp \
 	source/main.cpp
 
 HEADERS += \
@@ -84,7 +85,8 @@ HEADERS += \
 	source/ExportOptionsDialog.h \
 	source/MainWindow.h \
 	source/PreferencesDialog.h \
-	source/ReferenceItemDialog.h
+	source/ReferenceItemDialog.h \
+	source/SvgWriter.h
 
 RESOURCES += icons/icons.qrc
 

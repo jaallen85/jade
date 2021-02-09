@@ -237,49 +237,6 @@ void DrawingTextRectItem::readFromXml(QXmlStreamReader* xml)
 
 //==================================================================================================
 
-void DrawingTextRectItem::exportToSvg(QXmlStreamWriter* xml)
-{
-	if (xml)
-	{
-		xml->writeStartElement("g");
-
-		if (name() != "") xml->writeAttribute("id", name());
-
-		exportTransformToSvg(xml, "transform");
-
-		// Rect
-		xml->writeStartElement("rect");
-
-		QRectF rect = DrawingTextRectItem::rect().normalized();
-		xml->writeAttribute("x", QString::number(rect.left()));
-		xml->writeAttribute("y", QString::number(rect.top()));
-		xml->writeAttribute("width", QString::number(rect.width()));
-		xml->writeAttribute("height", QString::number(rect.height()));
-
-		if (cornerRadius() > 0)
-		{
-			xml->writeAttribute("rx", QString::number(cornerRadius()));
-			xml->writeAttribute("ry", QString::number(cornerRadius()));
-		}
-
-		exportStyleToSvg(xml, brush(), pen());
-
-		xml->writeEndElement();
-
-		// Text
-		xml->writeStartElement("text");
-		xml->writeAttribute("x", QString::number(rect.center().x()));
-		xml->writeAttribute("y", QString::number(rect.center().y()));
-		exportStyleToSvg(xml, mTextPen.brush(), Qt::NoPen, mFont, Qt::AlignCenter);
-		xml->writeCharacters(mCaption);
-		xml->writeEndElement();
-
-		xml->writeEndElement();
-	}
-}
-
-//==================================================================================================
-
 void DrawingTextRectItem::updateItemGeometry()
 {
 	DrawingRectItem::updateItemGeometry();

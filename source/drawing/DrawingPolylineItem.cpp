@@ -354,42 +354,6 @@ void DrawingPolylineItem::readFromXml(QXmlStreamReader* xml)
 
 //==================================================================================================
 
-void DrawingPolylineItem::exportToSvg(QXmlStreamWriter* xml)
-{
-	if (xml)
-	{
-		if (mStartArrow.style() != Drawing::ArrowNone || mEndArrow.style() != Drawing::ArrowNone)
-		{
-			xml->writeStartElement("g");
-			if (name() != "") xml->writeAttribute("id", name());
-
-			xml->writeStartElement("polyline");
-		}
-		else
-		{
-			xml->writeStartElement("polyline");
-			if (name() != "") xml->writeAttribute("id", name());
-		}
-
-		xml->writeAttribute("points", pointsToString(mapToScene(mPolyline)));
-
-		exportStyleToSvg(xml, Qt::transparent, mPen);
-
-		if (mStartArrow.style() != Drawing::ArrowNone || mEndArrow.style() != Drawing::ArrowNone)
-		{
-			xml->writeEndElement();
-
-			if (mStartArrow.style() != Drawing::ArrowNone) exportArrowToSvg(xml, mPen, mStartArrow);
-			if (mEndArrow.style() != Drawing::ArrowNone) exportArrowToSvg(xml, mPen, mEndArrow);
-
-			xml->writeEndElement();
-		}
-		else xml->writeEndElement();
-	}
-}
-
-//==================================================================================================
-
 void DrawingPolylineItem::updateItemGeometry()
 {
 	mBoundingRect = QRectF();

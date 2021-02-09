@@ -358,51 +358,6 @@ void DrawingCurveItem::readFromXml(QXmlStreamReader* xml)
 
 //==================================================================================================
 
-void DrawingCurveItem::exportToSvg(QXmlStreamWriter* xml)
-{
-	if (xml)
-	{
-		if (mStartArrow.style() != Drawing::ArrowNone || mEndArrow.style() != Drawing::ArrowNone)
-		{
-			xml->writeStartElement("g");
-			if (name() != "") xml->writeAttribute("id", name());
-
-			xml->writeStartElement("path");
-		}
-		else
-		{
-			xml->writeStartElement("path");
-			if (name() != "") xml->writeAttribute("id", name());
-		}
-
-		QPointF startPos = mapToScene(mStartPos);
-		QPointF startControlPos = mapToScene(mStartControlPos);
-		QPointF endControlPos = mapToScene(mEndControlPos);
-		QPointF endPos = mapToScene(mEndPos);
-
-		xml->writeAttribute("d", QString("M %1,%2 C %3,%4 %5,%6 %7,%8").arg(
-			startPos.x()).arg(startPos.y()).arg(
-			startControlPos.x()).arg(startControlPos.y()).arg(
-			endControlPos.x()).arg(endControlPos.y()).arg(
-			endPos.x()).arg(endPos.y()));
-
-		exportStyleToSvg(xml, Qt::transparent, mPen);
-
-		if (mStartArrow.style() != Drawing::ArrowNone || mEndArrow.style() != Drawing::ArrowNone)
-		{
-			xml->writeEndElement();
-
-			if (mStartArrow.style() != Drawing::ArrowNone) exportArrowToSvg(xml, mPen, mStartArrow);
-			if (mEndArrow.style() != Drawing::ArrowNone) exportArrowToSvg(xml, mPen, mEndArrow);
-
-			xml->writeEndElement();
-		}
-		else xml->writeEndElement();
-	}
-}
-
-//==================================================================================================
-
 void DrawingCurveItem::updateItemGeometry()
 {
 	mBoundingRect = QRectF();

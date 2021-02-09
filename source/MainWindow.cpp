@@ -23,6 +23,7 @@
 #include "PreferencesDialog.h"
 #include "PropertiesBrowser.h"
 #include "ReferenceItemDialog.h"
+#include "SvgWriter.h"
 #include <DrawingCurveItem.h>
 #include <DrawingEllipseItem.h>
 #include <DrawingLineItem.h>
@@ -568,27 +569,8 @@ void MainWindow::exportSvg()
 				mExportSize = exportDialog.exportSize();
 				mExportMaintainAspectRatio = exportDialog.maintainAspectRatio();
 
-				QFile svgFile(filePath);
-
-				bool fileError = !svgFile.open(QIODevice::WriteOnly);
-				if (!fileError)
-				{
-					QXmlStreamWriter xml(&svgFile);
-					xml.setAutoFormatting(true);
-					xml.setAutoFormattingIndent(2);
-
-					xml.writeStartDocument();
-					mDrawingWidget->exportToSvg(&xml, mExportSize);
-					xml.writeEndDocument();
-
-					svgFile.close();
-				}
-
-				if (fileError)
-				{
-					QMessageBox::critical(this, "Error Exporting File",
-						"Unable to open file for SVG export.  File not exported: " + filePath);
-				}
+				SvgWriter svg(mDrawingWidget);
+				svg.save(filePath, mExportSize);
 			}
 		}
 	}
