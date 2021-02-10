@@ -364,19 +364,19 @@ QString VsdxWriter::writeRectItem(DrawingRectItem* item)
 		mShapeIndex++;
 
 		QString indexStr = QString::number(mShapeIndex);
-		QString leftStr = QString::number(rect.left());
-		QString topStr = QString::number(rect.top());
+		QString pinXStr = QString::number(rect.left());
+		QString pinYStr = QString::number(rect.bottom());
 		QString widthStr = QString::number(rect.width());
 		QString heightStr = QString::number(rect.height());
 		QString cornerRadiusStr = QString::number(cornerRadius);
 
 		shape += "    <Shape ID='" + indexStr + "' Type='Shape' LineStyle='3' FillStyle='3' TextStyle='3'>\n";
-		shape += "      <Cell N='PinX' V='" + leftStr + "'/>\n";
-		shape += "      <Cell N='PinY' V='" + topStr + "'/>\n";
+		shape += "      <Cell N='PinX' V='" + pinXStr + "'/>\n";
+		shape += "      <Cell N='PinY' V='" + pinYStr + "'/>\n";
 		shape += "      <Cell N='Width' V='" + widthStr + "'/>\n";
 		shape += "      <Cell N='Height' V='" + heightStr + "'/>\n";
 		shape += "      <Cell N='LocPinX' V='0' F='Width*0'/>\n";
-		shape += "      <Cell N='LocPinY' V='0' F='Height*0'/>\n";
+		shape += "      <Cell N='LocPinY' V='" + heightStr + "' F='Height*1'/>\n";
 		shape += "      <Cell N='Angle' V='0'/>\n";
 		shape += "      <Cell N='FlipX' V='0'/>\n";
 		shape += "      <Cell N='FlipY' V='0'/>\n";
@@ -432,20 +432,20 @@ QString VsdxWriter::writeEllipseItem(DrawingEllipseItem* item)
 		mShapeIndex++;
 
 		QString indexStr = QString::number(mShapeIndex);
-		QString leftStr = QString::number(ellipse.left());
-		QString topStr = QString::number(ellipse.top());
+		QString pinXStr = QString::number(ellipse.left());
+		QString pinYStr = QString::number(ellipse.bottom());
 		QString widthStr = QString::number(ellipse.width());
 		QString heightStr = QString::number(ellipse.height());
 		QString xStr = QString::number(ellipse.width() / 2);
 		QString yStr = QString::number(ellipse.height() / 2);
 
 		shape += "    <Shape ID='" + indexStr + "' Type='Shape' LineStyle='3' FillStyle='3' TextStyle='3'>\n";
-		shape += "      <Cell N='PinX' V='" + leftStr + "'/>\n";
-		shape += "      <Cell N='PinY' V='" + topStr + "'/>\n";
+		shape += "      <Cell N='PinX' V='" + pinXStr + "'/>\n";
+		shape += "      <Cell N='PinY' V='" + pinYStr + "'/>\n";
 		shape += "      <Cell N='Width' V='" + widthStr + "'/>\n";
 		shape += "      <Cell N='Height' V='" + heightStr + "'/>\n";
 		shape += "      <Cell N='LocPinX' V='0' F='Width*0'/>\n";
-		shape += "      <Cell N='LocPinY' V='0' F='Height*0'/>\n";
+		shape += "      <Cell N='LocPinY' V='" + heightStr + "' F='Height*1'/>\n";
 		shape += "      <Cell N='Angle' V='0'/>\n";
 		shape += "      <Cell N='FlipX' V='0'/>\n";
 		shape += "      <Cell N='FlipY' V='0'/>\n";
@@ -678,12 +678,10 @@ QString VsdxWriter::writePolylineItem(DrawingPolylineItem* item)
 		mShapeIndex++;
 
 		QString indexStr = QString::number(mShapeIndex);
-		QString pinXStr = QString::number(boundingRect.center().x());
-		QString pinYStr = QString::number(boundingRect.center().y());
+		QString pinXStr = QString::number(boundingRect.left());
+		QString pinYStr = QString::number(boundingRect.bottom());
 		QString widthStr = QString::number(boundingRect.width());
 		QString heightStr = QString::number(boundingRect.height());
-		QString locPinXStr = QString::number(boundingRect.width() / 2);
-		QString locPinYStr = QString::number(boundingRect.height() / 2);
 		QString rowIndexStr, xStr, yStr, xFormulaStr, yFormulaStr;
 
 		shape += "    <Shape ID='" + indexStr + "' Type='Shape' LineStyle='3' FillStyle='3' TextStyle='3'>\n";
@@ -691,8 +689,8 @@ QString VsdxWriter::writePolylineItem(DrawingPolylineItem* item)
 		shape += "      <Cell N='PinY' V='" + pinYStr + "'/>\n";
 		shape += "      <Cell N='Width' V='" + widthStr + "'/>\n";
 		shape += "      <Cell N='Height' V='" + heightStr + "'/>\n";
-		shape += "      <Cell N='LocPinX' V='" + locPinXStr + "' F='Width*0.5'/>\n";
-		shape += "      <Cell N='LocPinY' V='" + locPinYStr + "' F='Height*0.5'/>\n";
+		shape += "      <Cell N='LocPinX' V='0' F='Width*0'/>\n";
+		shape += "      <Cell N='LocPinY' V='" + heightStr + "' F='Height*1'/>\n";
 		shape += "      <Cell N='Angle' V='0'/>\n";
 		shape += "      <Cell N='FlipX' V='0'/>\n";
 		shape += "      <Cell N='FlipY' V='0'/>\n";
@@ -758,12 +756,10 @@ QString VsdxWriter::writePolygonItem(DrawingPolygonItem* item)
 		mShapeIndex++;
 
 		QString indexStr = QString::number(mShapeIndex);
-		QString pinXStr = QString::number(boundingRect.center().x());
-		QString pinYStr = QString::number(boundingRect.center().y());
+		QString pinXStr = QString::number(boundingRect.left());
+		QString pinYStr = QString::number(boundingRect.bottom());
 		QString widthStr = QString::number(boundingRect.width());
 		QString heightStr = QString::number(boundingRect.height());
-		QString locPinXStr = QString::number(boundingRect.width() / 2);
-		QString locPinYStr = QString::number(boundingRect.height() / 2);
 		QString rowIndexStr, xStr, yStr, xFormulaStr, yFormulaStr;
 
 		shape += "    <Shape ID='" + indexStr + "' Type='Shape' LineStyle='3' FillStyle='3' TextStyle='3'>\n";
@@ -771,8 +767,8 @@ QString VsdxWriter::writePolygonItem(DrawingPolygonItem* item)
 		shape += "      <Cell N='PinY' V='" + pinYStr + "'/>\n";
 		shape += "      <Cell N='Width' V='" + widthStr + "'/>\n";
 		shape += "      <Cell N='Height' V='" + heightStr + "'/>\n";
-		shape += "      <Cell N='LocPinX' V='" + locPinXStr + "' F='Width*0.5'/>\n";
-		shape += "      <Cell N='LocPinY' V='" + locPinYStr + "' F='Height*0.5'/>\n";
+		shape += "      <Cell N='LocPinX' V='0' F='Width*0'/>\n";
+		shape += "      <Cell N='LocPinY' V='" + heightStr + "' F='Height*1'/>\n";
 		shape += "      <Cell N='Angle' V='0'/>\n";
 		shape += "      <Cell N='FlipX' V='0'/>\n";
 		shape += "      <Cell N='FlipY' V='0'/>\n";
