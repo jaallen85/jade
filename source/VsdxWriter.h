@@ -86,6 +86,7 @@ private:
 	QString writeReferenceItem(DrawingReferenceItem* item);
 
 	QString writeStyle(const QBrush& brush, const QPen& pen);
+	QString writeStyle(const QBrush& brush, const QPen& pen, const QBrush& textBrush, const QFont& font, Qt::Alignment alignment);
 	QString writeArrow(const DrawingArrow& arrow, const QPen& pen, bool startArrow);
 
 	/*void writeArrow(DrawingItem* item, const DrawingArrow& arrow, const QPen& pen);
