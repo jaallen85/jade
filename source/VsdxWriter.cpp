@@ -108,17 +108,17 @@ QString VsdxWriter::writeContentTypes()
 {
 	QString contentTypes;
 
-	contentTypes += "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n";
-	contentTypes += "<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">\n";
-	contentTypes += "  <Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/>\n";
-	contentTypes += "  <Default Extension=\"xml\" ContentType=\"application/xml\"/>\n";
-	contentTypes += "  <Override PartName=\"/visio/document.xml\" ContentType=\"application/vnd.ms-visio.drawing.main+xml\"/>\n";
-	contentTypes += "  <Override PartName=\"/visio/pages/pages.xml\" ContentType=\"application/vnd.ms-visio.pages+xml\"/>\n";
-	contentTypes += "  <Override PartName=\"/visio/pages/page1.xml\" ContentType=\"application/vnd.ms-visio.page+xml\"/>\n";
-	contentTypes += "  <Override PartName=\"/visio/windows.xml\" ContentType=\"application/vnd.ms-visio.windows+xml\"/>\n";
-	contentTypes += "  <Override PartName=\"/docProps/core.xml\" ContentType=\"application/vnd.openxmlformats-package.core-properties+xml\"/>\n";
-	contentTypes += "  <Override PartName=\"/docProps/app.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.extended-properties+xml\"/>\n";
-	contentTypes += "  <Override PartName=\"/docProps/custom.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.custom-properties+xml\"/>\n";
+	contentTypes += "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n";
+	contentTypes += "<Types xmlns='http://schemas.openxmlformats.org/package/2006/content-types'>\n";
+	contentTypes += "  <Default Extension='rels' ContentType='application/vnd.openxmlformats-package.relationships+xml'/>\n";
+	contentTypes += "  <Default Extension='xml' ContentType='application/xml'/>\n";
+	contentTypes += "  <Override PartName='/visio/document.xml' ContentType='application/vnd.ms-visio.drawing.main+xml'/>\n";
+	contentTypes += "  <Override PartName='/visio/pages/pages.xml' ContentType='application/vnd.ms-visio.pages+xml'/>\n";
+	contentTypes += "  <Override PartName='/visio/pages/page1.xml' ContentType='application/vnd.ms-visio.page+xml'/>\n";
+	contentTypes += "  <Override PartName='/visio/windows.xml' ContentType='application/vnd.ms-visio.windows+xml'/>\n";
+	contentTypes += "  <Override PartName='/docProps/core.xml' ContentType='application/vnd.openxmlformats-package.core-properties+xml'/>\n";
+	contentTypes += "  <Override PartName='/docProps/app.xml' ContentType='application/vnd.openxmlformats-officedocument.extended-properties+xml'/>\n";
+	contentTypes += "  <Override PartName='/docProps/custom.xml' ContentType='application/vnd.openxmlformats-officedocument.custom-properties+xml'/>\n";
 	contentTypes += "</Types>\n";
 
 	return contentTypes;
@@ -128,12 +128,12 @@ QString VsdxWriter::writeRels()
 {
 	QString rels;
 
-	rels += "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n";
-	rels += "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">\n";
-	rels += "  <Relationship Id=\"rId3\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties\" Target=\"docProps/core.xml\"/>\n";
-	rels += "  <Relationship Id=\"rId1\" Type=\"http://schemas.microsoft.com/visio/2010/relationships/document\" Target=\"visio/document.xml\"/>\n";
-	rels += "  <Relationship Id=\"rId5\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/custom-properties\" Target=\"docProps/custom.xml\"/>\n";
-	rels += "  <Relationship Id=\"rId4\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties\" Target=\"docProps/app.xml\"/>\n";
+	rels += "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n";
+	rels += "<Relationships xmlns='http://schemas.openxmlformats.org/package/2006/relationships'>\n";
+	rels += "  <Relationship Id='rId3' Type='http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties' Target='docProps/core.xml'/>\n";
+	rels += "  <Relationship Id='rId1' Type='http://schemas.microsoft.com/visio/2010/relationships/document' Target='visio/document.xml'/>\n";
+	rels += "  <Relationship Id='rId5' Type='http://schemas.openxmlformats.org/officeDocument/2006/relationships/custom-properties' Target='docProps/custom.xml'/>\n";
+	rels += "  <Relationship Id='rId4' Type='http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties' Target='docProps/app.xml'/>\n";
 	rels += "</Relationships>\n";
 
 	return rels;
@@ -143,13 +143,13 @@ QString VsdxWriter::writeApp()
 {
 	QString app;
 
-	app += "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n";
-	app += "<Properties xmlns=\"http://schemas.openxmlformats.org/officeDocument/2006/extended-properties\" xmlns:vt=\"http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes\">\n";
+	app += "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n";
+	app += "<Properties xmlns='http://schemas.openxmlformats.org/officeDocument/2006/extended-properties' xmlns:vt='http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes'>\n";
 	app += "  <Template/>\n";
 	app += "  <Application>Microsoft Visio</Application>\n";
 	app += "  <ScaleCrop>false</ScaleCrop>\n";
 	app += "  <HeadingPairs>\n";
-	app += "    <vt:vector size=\"2\" baseType=\"variant\">\n";
+	app += "    <vt:vector size='2' baseType='variant'>\n";
 	app += "      <vt:variant>\n";
 	app += "        <vt:lpstr>Pages</vt:lpstr>\n";
 	app += "      </vt:variant>\n";
@@ -159,7 +159,7 @@ QString VsdxWriter::writeApp()
 	app += "    </vt:vector>\n";
 	app += "  </HeadingPairs>\n";
 	app += "  <TitlesOfParts>\n";
-	app += "    <vt:vector size=\"1\" baseType=\"lpstr\">\n";
+	app += "    <vt:vector size='1' baseType='lpstr'>\n";
 	app += "      <vt:lpstr>Page-1</vt:lpstr>\n";
 	app += "    </vt:vector>\n";
 	app += "  </TitlesOfParts>\n";
@@ -179,8 +179,8 @@ QString VsdxWriter::writeCore()
 {
 	QString core;
 
-	core += "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n";
-	core += "<cp:coreProperties xmlns:cp=\"http://schemas.openxmlformats.org/package/2006/metadata/core-properties\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:dcterms=\"http://purl.org/dc/terms/\" xmlns:dcmitype=\"http://purl.org/dc/dcmitype/\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+	core += "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n";
+	core += "<cp:coreProperties xmlns:cp='http://schemas.openxmlformats.org/package/2006/metadata/core-properties' xmlns:dc='http://purl.org/dc/elements/1.1/' xmlns:dcterms='http://purl.org/dc/terms/' xmlns:dcmitype='http://purl.org/dc/dcmitype/' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>\n";
 	core += "  <dc:title/>\n";
 	core += "  <dc:subject/>\n";
 	core += "  <dc:creator/>\n";
@@ -197,18 +197,18 @@ QString VsdxWriter::writeCustom()
 {
 	QString custom;
 
-	custom += "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n";
-	custom += "<Properties xmlns=\"http://schemas.openxmlformats.org/officeDocument/2006/custom-properties\" xmlns:vt=\"http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes\">\n";
-	custom += "  <property fmtid=\"{D5CDD505-2E9C-101B-9397-08002B2CF9AE}\" pid=\"2\" name=\"_VPID_ALTERNATENAMES\">\n";
+	custom += "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n";
+	custom += "<Properties xmlns='http://schemas.openxmlformats.org/officeDocument/2006/custom-properties' xmlns:vt='http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes'>\n";
+	custom += "  <property fmtid='{D5CDD505-2E9C-101B-9397-08002B2CF9AE}' pid='2' name='_VPID_ALTERNATENAMES'>\n";
 	custom += "    <vt:lpwstr/>\n";
 	custom += "  </property>\n";
-	custom += "  <property fmtid=\"{D5CDD505-2E9C-101B-9397-08002B2CF9AE}\" pid=\"3\" name=\"BuildNumberCreated\">\n";
+	custom += "  <property fmtid='{D5CDD505-2E9C-101B-9397-08002B2CF9AE}' pid='3' name='BuildNumberCreated'>\n";
 	custom += "    <vt:i4>1074146641</vt:i4>\n";
 	custom += "  </property>\n";
-	custom += "  <property fmtid=\"{D5CDD505-2E9C-101B-9397-08002B2CF9AE}\" pid=\"4\" name=\"BuildNumberEdited\">\n";
+	custom += "  <property fmtid='{D5CDD505-2E9C-101B-9397-08002B2CF9AE}' pid='4' name='BuildNumberEdited'>\n";
 	custom += "    <vt:i4>1074146641</vt:i4>\n";
 	custom += "  </property>\n";
-	custom += "  <property fmtid=\"{D5CDD505-2E9C-101B-9397-08002B2CF9AE}\" pid=\"5\" name=\"IsMetric\">\n";
+	custom += "  <property fmtid='{D5CDD505-2E9C-101B-9397-08002B2CF9AE}' pid='5' name='IsMetric'>\n";
 	custom += QString("    <vt:bool>") + ((mDrawingUnits == "mm") ? "true" : "false") + "</vt:bool>\n";
 	custom += "  </property>\n";
 	custom += "</Properties>\n";
@@ -220,9 +220,9 @@ QString VsdxWriter::writePagesRels()
 {
 	QString rels;
 
-	rels += "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n";
-	rels += "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">\n";
-	rels += "  <Relationship Id=\"rId1\" Type=\"http://schemas.microsoft.com/visio/2010/relationships/page\" Target=\"page1.xml\"/>\n";
+	rels += "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n";
+	rels += "<Relationships xmlns='http://schemas.openxmlformats.org/package/2006/relationships'>\n";
+	rels += "  <Relationship Id='rId1' Type='http://schemas.microsoft.com/visio/2010/relationships/page' Target='page1.xml'/>\n";
 	rels += "</Relationships>\n";
 
 	return rels;
@@ -239,33 +239,33 @@ QString VsdxWriter::writePages()
 	QString xGridOrigin = xRulerOrigin;
 	QString yGridOrigin = yRulerOrigin;
 
-	pages += "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
-	pages += "<Pages xmlns=\"http://schemas.microsoft.com/office/visio/2012/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" xml:space=\"preserve\">\n";
-	pages += " <Page ID=\"0\" NameU=\"Page-1\" Name=\"Page-1\">\n";
-	pages += "    <PageSheet LineStyle=\"0\" FillStyle=\"0\" TextStyle=\"0\">\n";
-	pages += "      <Cell N=\"PageWidth\" V=\"" + pageWidth + "\"/>\n";
-	pages += "      <Cell N=\"PageHeight\" V=\"" + pageHeight + "\"/>\n";
-	pages += "      <Cell N=\"ShdwOffsetX\" V=\"0.125\"/>\n";
-	pages += "      <Cell N=\"ShdwOffsetY\" V=\"-0.125\"/>\n";
-	pages += "      <Cell N=\"PageScale\" V=\"1\" U=\"IN_F\"/>\n";
-	pages += "      <Cell N=\"DrawingScale\" V=\"1\" U=\"IN_F\"/>\n";
-	pages += "      <Cell N=\"DrawingSizeType\" V=\"3\"/>\n";
-	pages += "      <Cell N=\"DrawingScaleType\" V=\"0\"/>\n";
-	pages += "      <Cell N=\"InhibitSnap\" V=\"0\"/>\n";
-	pages += "      <Cell N=\"PageLockReplace\" V=\"0\" U=\"BOOL\"/>\n";
-	pages += "      <Cell N=\"PageLockDuplicate\" V=\"0\" U=\"BOOL\"/>\n";
-	pages += "      <Cell N=\"UIVisibility\" V=\"0\"/>\n";
-	pages += "      <Cell N=\"ShdwType\" V=\"0\"/>\n";
-	pages += "      <Cell N=\"ShdwObliqueAngle\" V=\"0\"/>\n";
-	pages += "      <Cell N=\"ShdwScaleFactor\" V=\"1\"/>\n";
-	pages += "      <Cell N=\"DrawingResizeType\" V=\"2\"/>\n";
-	pages += "      <Cell N=\"PageShapeSplit\" V=\"1\"/>\n";
-	pages += "      <Cell N=\"XRulerOrigin\" V=\"" + xRulerOrigin + "\" U=\"" + mDrawingUnits + "\"/>\n";
-	pages += "      <Cell N=\"YRulerOrigin\" V=\"" + yRulerOrigin + "\" U=\"" + mDrawingUnits + "\"/>\n";
-	pages += "      <Cell N=\"XGridOrigin\" V=\"" + xGridOrigin + "\" U=\"" + mDrawingUnits + "\"/>\n";
-	pages += "      <Cell N=\"YGridOrigin\" V=\"" + yGridOrigin + "\" U=\"" + mDrawingUnits + "\"/>\n";
+	pages += "<?xml version='1.0' encoding='utf-8'?>\n";
+	pages += "<Pages xmlns='http://schemas.microsoft.com/office/visio/2012/main' xmlns:r='http://schemas.openxmlformats.org/officeDocument/2006/relationships' xml:space='preserve'>\n";
+	pages += " <Page ID='0' NameU='Page-1' Name='Page-1'>\n";
+	pages += "    <PageSheet LineStyle='0' FillStyle='0' TextStyle='0'>\n";
+	pages += "      <Cell N='PageWidth' V='" + pageWidth + "'/>\n";
+	pages += "      <Cell N='PageHeight' V='" + pageHeight + "'/>\n";
+	pages += "      <Cell N='ShdwOffsetX' V='0.125'/>\n";
+	pages += "      <Cell N='ShdwOffsetY' V='-0.125'/>\n";
+	pages += "      <Cell N='PageScale' V='1' U='IN_F'/>\n";
+	pages += "      <Cell N='DrawingScale' V='1' U='IN_F'/>\n";
+	pages += "      <Cell N='DrawingSizeType' V='3'/>\n";
+	pages += "      <Cell N='DrawingScaleType' V='0'/>\n";
+	pages += "      <Cell N='InhibitSnap' V='0'/>\n";
+	pages += "      <Cell N='PageLockReplace' V='0' U='BOOL'/>\n";
+	pages += "      <Cell N='PageLockDuplicate' V='0' U='BOOL'/>\n";
+	pages += "      <Cell N='UIVisibility' V='0'/>\n";
+	pages += "      <Cell N='ShdwType' V='0'/>\n";
+	pages += "      <Cell N='ShdwObliqueAngle' V='0'/>\n";
+	pages += "      <Cell N='ShdwScaleFactor' V='1'/>\n";
+	pages += "      <Cell N='DrawingResizeType' V='2'/>\n";
+	pages += "      <Cell N='PageShapeSplit' V='1'/>\n";
+	pages += "      <Cell N='XRulerOrigin' V='" + xRulerOrigin + "' U='" + mDrawingUnits + "'/>\n";
+	pages += "      <Cell N='YRulerOrigin' V='" + yRulerOrigin + "' U='" + mDrawingUnits + "'/>\n";
+	pages += "      <Cell N='XGridOrigin' V='" + xGridOrigin + "' U='" + mDrawingUnits + "'/>\n";
+	pages += "      <Cell N='YGridOrigin' V='" + yGridOrigin + "' U='" + mDrawingUnits + "'/>\n";
 	pages += "    </PageSheet>\n";
-	pages += "    <Rel r:id=\"rId1\"/>\n";
+	pages += "    <Rel r:id='rId1'/>\n";
 	pages += "  </Page>\n";
 	pages += "</Pages>\n";
 
@@ -276,8 +276,8 @@ QString VsdxWriter::writePage1()
 {
 	QString page;
 
-	page += "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
-	page += "<PageContents xmlns=\"http://schemas.microsoft.com/office/visio/2012/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" xml:space=\"preserve\">\n";
+	page += "<?xml version='1.0' encoding='utf-8'?>\n";
+	page += "<PageContents xmlns='http://schemas.microsoft.com/office/visio/2012/main' xmlns:r='http://schemas.openxmlformats.org/officeDocument/2006/relationships' xml:space='preserve'>\n";
 	page += "  <Shapes>\n";
 
 	page += writeItems(mDrawing->items());
@@ -292,10 +292,10 @@ QString VsdxWriter::writeDocumentRels()
 {
 	QString rels;
 
-	rels += "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n";
-	rels += "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">\n";
-	rels += "  <Relationship Id=\"rId2\" Type=\"http://schemas.microsoft.com/visio/2010/relationships/windows\" Target=\"windows.xml\"/>\n";
-	rels += "  <Relationship Id=\"rId1\" Type=\"http://schemas.microsoft.com/visio/2010/relationships/pages\" Target=\"pages/pages.xml\"/>\n";
+	rels += "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n";
+	rels += "<Relationships xmlns='http://schemas.openxmlformats.org/package/2006/relationships'>\n";
+	rels += "  <Relationship Id='rId2' Type='http://schemas.microsoft.com/visio/2010/relationships/windows' Target='windows.xml'/>\n";
+	rels += "  <Relationship Id='rId1' Type='http://schemas.microsoft.com/visio/2010/relationships/pages' Target='pages/pages.xml'/>\n";
 	rels += "</Relationships>\n";
 
 	return rels;
@@ -305,8 +305,8 @@ QString VsdxWriter::writeDocument()
 {
 	QString document;
 
-	document += "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
-	document += "<VisioDocument xmlns=\"http://schemas.microsoft.com/office/visio/2012/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" xml:space=\"preserve\">\n";
+	document += "<?xml version='1.0' encoding='utf-8'?>\n";
+	document += "<VisioDocument xmlns='http://schemas.microsoft.com/office/visio/2012/main' xmlns:r='http://schemas.openxmlformats.org/officeDocument/2006/relationships' xml:space='preserve'>\n";
 	document += "</VisioDocument>\n";
 
 	return document;
@@ -316,8 +316,8 @@ QString VsdxWriter::writeWindows()
 {
 	QString windows;
 
-	windows += "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
-	windows += "<Windows xmlns=\"http://schemas.microsoft.com/office/visio/2012/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" xml:space=\"preserve\">\n";
+	windows += "<?xml version='1.0' encoding='utf-8'?>\n";
+	windows += "<Windows xmlns='http://schemas.microsoft.com/office/visio/2012/main' xmlns:r='http://schemas.openxmlformats.org/officeDocument/2006/relationships' xml:space='preserve'>\n";
 	windows += "</Windows>\n";
 
 	return windows;
@@ -383,7 +383,7 @@ QString VsdxWriter::writeRectItem(DrawingRectItem* item)
 		shape += "      <Cell N='ResizeMode' V='0'/>\n";
 
 		if (cornerRadius != 0)
-			shape += "      <Cell N=\"Rounding\" V=\"" + cornerRadiusStr + "\"/>\n";
+			shape += "      <Cell N='Rounding' V='" + cornerRadiusStr + "'/>\n";
 
 		shape += writeStyle(item->brush(), item->pen());
 
@@ -547,7 +547,115 @@ QString VsdxWriter::writeCurveItem(DrawingCurveItem* item)
 
 	if (item)
 	{
+		QPointF p1 = mapFromScene(item->mapToScene(item->curveStartPosition()));
+		QPointF cp1 = mapFromScene(item->mapToScene(item->curveStartControlPosition()));
+		QPointF cp2 = mapFromScene(item->mapToScene(item->curveEndControlPosition()));
+		QPointF p2 = mapFromScene(item->mapToScene(item->curveEndPosition()));
+		qreal xSpan = qAbs(p2.x() - p1.x());
+		qreal ySpan = qAbs(p2.y() - p1.y());
+		qreal width = qSqrt(xSpan * xSpan + ySpan * ySpan);
+		qreal angle = qAtan2(p2.y() - p1.y(), p2.x() - p1.x());
 
+		// Calculate height
+		qreal x, y, dist, minDist, maxDist;
+		for(qreal ratio = 0.0; ratio <= 1.0; ratio += 0.001)
+		{
+			x = ((1 - ratio)*(1 - ratio)*(1 - ratio) * p1.x() +
+					3*ratio*(1 - ratio)*(1 - ratio) * cp1.x() +
+					3*ratio*ratio*(1 - ratio) * cp2.x() +
+					ratio*ratio*ratio * p2.x());
+			y = ((1 - ratio)*(1 - ratio)*(1 - ratio) * p1.y() +
+				3*ratio*(1 - ratio)*(1 - ratio) * cp1.y() +
+				3*ratio*ratio*(1 - ratio) * cp2.y() +
+				ratio*ratio*ratio * p2.y());
+
+			// From https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
+			dist = ((p2.y() - p1.y()) * x - (p2.x() - p1.x()) * y +	p2.x() * p1.y() - p1.x() * p2.y()) / width;
+
+			if (ratio == 0.0)
+			{
+				minDist = dist;
+				maxDist = dist;
+			}
+			else
+			{
+				minDist = qMin(minDist, dist);
+				maxDist = qMax(maxDist, dist);
+			}
+		}
+
+		qreal height = maxDist - minDist;
+
+		// Caclulate a, b, c, and d
+		QTransform transform;
+		transform.rotateRadians(-angle);
+		transform.translate(-p1.x(), -p1.y());
+		QPointF cp1Rel = transform.map(cp1);
+		QPointF cp2Rel = transform.map(cp2);
+		qreal a = cp1Rel.x() / width;
+		qreal b = cp1Rel.y() / height + 0.5;
+		qreal c = cp2Rel.x() / width;
+		qreal d = cp2Rel.y() / height + 0.5;
+
+		mShapeIndex++;
+
+		QString indexStr = QString::number(mShapeIndex);
+		QString pinXStr = QString::number((p1.x() + p2.x()) / 2);
+		QString pinYStr = QString::number((p1.y() + p2.y()) / 2);
+		QString widthStr = QString::number(width);
+		QString heightStr = QString::number(height);
+		QString locPinXStr = QString::number(width / 2);
+		QString locPinYStr = QString::number(height / 2);
+		QString angleStr = QString::number(angle);
+		QString beginXStr = QString::number(p1.x());
+		QString beginYStr = QString::number(p1.y());
+		QString endXStr = QString::number(p2.x());
+		QString endYStr = QString::number(p2.y());
+		QString aStr = QString::number(a);
+		QString bStr = QString::number(b);
+		QString cStr = QString::number(c);
+		QString dStr = QString::number(d);
+
+		shape += "    <Shape ID='" + indexStr + "' Type='Shape' LineStyle='3' FillStyle='3' TextStyle='3'>\n";
+		shape += "      <Cell N='PinX' V='" + pinXStr + "' F='(BeginX+EndX)/2'/>\n";
+		shape += "      <Cell N='PinY' V='" + pinYStr + "' F='(BeginY+EndY)/2'/>\n";
+		shape += "      <Cell N='Width' V='" + widthStr + "' F='SQRT((EndX-BeginX)^2+(EndY-BeginY)^2)'/>\n";
+		shape += "      <Cell N='Height' V='" + heightStr + "'/>\n";
+		shape += "      <Cell N='LocPinX' V='" + locPinXStr + "' F='Width*0.5'/>\n";
+		shape += "      <Cell N='LocPinY' V='" + locPinYStr + "' F='Height*0.5'/>\n";
+		shape += "      <Cell N='Angle' V='" + angleStr + "' F='ATAN2(EndY-BeginY,EndX-BeginX)'/>\n";
+		shape += "      <Cell N='FlipX' V='0'/>\n";
+		shape += "      <Cell N='FlipY' V='0'/>\n";
+		shape += "      <Cell N='ResizeMode' V='0'/>\n";
+		shape += "      <Cell N='BeginX' V='" + beginXStr + "'/>\n";
+		shape += "      <Cell N='BeginY' V='" + beginYStr + "'/>\n";
+		shape += "      <Cell N='EndX' V='" + endXStr + "'/>\n";
+		shape += "      <Cell N='EndY' V='" + endYStr + "'/>\n";
+
+		shape += writeStyle(Qt::transparent, item->pen());
+		shape += writeArrow(item->startArrow(), item->pen(), true);
+		shape += writeArrow(item->endArrow(), item->pen(), false);
+
+		shape += "      <Section N='Geometry' IX='0'>\n";
+		shape += "    	  <Cell N='NoFill' V='1'/>\n";
+		shape += "    	  <Cell N='NoLine' V='0'/>\n";
+		shape += "    	  <Cell N='NoShow' V='0'/>\n";
+		shape += "    	  <Cell N='NoSnap' V='0'/>\n";
+		shape += "    	  <Cell N='NoQuickDrag' V='0'/>\n";
+		shape += "    	  <Row T='MoveTo' IX='1'>\n";
+		shape += "    	    <Cell N='X' V='0' F='Width*0'/>\n";
+		shape += "    	    <Cell N='Y' V='" + locPinYStr + "' F='Height*0.5'/>\n";
+		shape += "    	  </Row>\n";
+		shape += "       <Row T='RelCubBezTo' IX='2'>\n";
+		shape += "         <Cell N='X' V='1'/>\n";
+		shape += "         <Cell N='Y' V='0.5'/>\n";
+		shape += "         <Cell N='A' V='" + aStr + "'/>\n";
+		shape += "         <Cell N='B' V='" + bStr + "'/>\n";
+		shape += "         <Cell N='C' V='" + cStr + "'/>\n";
+		shape += "         <Cell N='D' V='" + dStr + "'/>\n";
+		shape += "        </Row>\n";
+		shape += "      </Section>\n";
+		shape += "    </Shape>\n";
 	}
 
 	return shape;
@@ -659,7 +767,7 @@ QString VsdxWriter::writeStyle(const QBrush& brush, const QPen& pen)
 	QColor penColor = pen.brush().color();
 
 	// Visio boilerplate stuff
-	shape += "      <Cell N='TextBkgnd' V='#ffffff' F='THEMEGUARD(THEMEVAL(\"BackgroundColor\")+1)'/>\n";
+	shape += "      <Cell N='TextBkgnd' V='#ffffff' F='THEMEGUARD(THEMEVAL('BackgroundColor')+1)'/>\n";
 	shape += "      <Cell N='QuickStyleLineMatrix' V='1'/>\n";
 	shape += "      <Cell N='QuickStyleFillMatrix' V='1'/>\n";
 	shape += "      <Cell N='QuickStyleEffectsMatrix' V='1'/>\n";
