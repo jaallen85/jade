@@ -982,32 +982,45 @@ QString VsdxWriter::writeTextEllipseItem(DrawingTextEllipseItem* item)
 
 	if (item)
 	{
-		/*QRectF ellipse = QRectF(mapFromScene(item->mapToScene(item->ellipse().topLeft())),
+		QRectF ellipse = QRectF(mapFromScene(item->mapToScene(item->ellipse().topLeft())),
 								mapFromScene(item->mapToScene(item->ellipse().bottomRight()))).normalized();
+
+		qreal angle = 0;
+		if (item->transform().m12() != 0) angle = qAsin(item->transform().m12());
+		else angle = qAcos(item->transform().m11());
+
+		QTransform shapeTransform;
+		shapeTransform.translate(ellipse.center().x(), ellipse.center().y());
+		shapeTransform.rotate(-angle * 180 / 3.141592654);
+		shapeTransform.translate(-ellipse.center().x(), -ellipse.center().y());
+		ellipse = shapeTransform.mapRect(ellipse);
 
 		mShapeIndex++;
 
 		QString indexStr = QString::number(mShapeIndex);
-		QString pinXStr = QString::number(ellipse.left());
-		QString pinYStr = QString::number(ellipse.bottom());
+		QString pinXStr = QString::number(ellipse.center().x());
+		QString pinYStr = QString::number(ellipse.center().y());
 		QString widthStr = QString::number(ellipse.width());
 		QString heightStr = QString::number(ellipse.height());
+		QString locPinXStr = QString::number(ellipse.width() / 2);
+		QString locPinYStr = QString::number(ellipse.height() / 2);
 		QString xStr = QString::number(ellipse.width() / 2);
 		QString yStr = QString::number(ellipse.height() / 2);
+		QString angleStr = QString::number(angle);
 
 		shape += "    <Shape ID='" + indexStr + "' Type='Shape' LineStyle='3' FillStyle='3' TextStyle='3'>\n";
 		shape += "      <Cell N='PinX' V='" + pinXStr + "'/>\n";
 		shape += "      <Cell N='PinY' V='" + pinYStr + "'/>\n";
 		shape += "      <Cell N='Width' V='" + widthStr + "'/>\n";
 		shape += "      <Cell N='Height' V='" + heightStr + "'/>\n";
-		shape += "      <Cell N='LocPinX' V='0' F='Width*0'/>\n";
-		shape += "      <Cell N='LocPinY' V='" + heightStr + "' F='Height*1'/>\n";
-		shape += "      <Cell N='Angle' V='0'/>\n";
+		shape += "      <Cell N='LocPinX' V='" + locPinXStr + "' F='Width*0.5'/>\n";
+		shape += "      <Cell N='LocPinY' V='" + locPinYStr + "' F='Height*0.5'/>\n";
+		shape += "      <Cell N='Angle' V='" + angleStr + "'/>\n";
 		shape += "      <Cell N='FlipX' V='0'/>\n";
 		shape += "      <Cell N='FlipY' V='0'/>\n";
 		shape += "      <Cell N='ResizeMode' V='0'/>\n";
 
-		shape += writeStyle(item->brush(), item->pen());
+		shape += writeStyle(item->brush(), item->pen(), item->textBrush(), item->font(), Qt::AlignCenter);
 
 		shape += "      <Section N='Geometry' IX='0'>\n";
 		shape += "        <Cell N='NoFill' V='0'/>\n";
@@ -1024,7 +1037,8 @@ QString VsdxWriter::writeTextEllipseItem(DrawingTextEllipseItem* item)
 		shape += "          <Cell N='D' V='" + heightStr + "' U='DL' F='Height*1'/>\n";
 		shape += "        </Row>\n";
 		shape += "      </Section>\n";
-		shape += "    </Shape>\n";*/
+		shape += "      <Text>" + item->caption() + "</Text>\n";
+		shape += "    </Shape>\n";
 	}
 
 	return shape;
