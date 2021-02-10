@@ -667,7 +667,75 @@ QString VsdxWriter::writePolylineItem(DrawingPolylineItem* item)
 
 	if (item)
 	{
+		QPolygonF polyline = item->polyline();
+		QPolygonF mappedPolyline;
+		for(auto pointIter = polyline.begin(); pointIter != polyline.end(); pointIter++)
+			mappedPolyline.append(mapFromScene(item->mapToScene(*pointIter)));
+		QRectF boundingRect = mappedPolyline.boundingRect();
+		int rowIndex = 1;
+		qreal x, y, xFormulaScale, yFormulaScale;
 
+		mShapeIndex++;
+
+		QString indexStr = QString::number(mShapeIndex);
+		QString pinXStr = QString::number(boundingRect.center().x());
+		QString pinYStr = QString::number(boundingRect.center().y());
+		QString widthStr = QString::number(boundingRect.width());
+		QString heightStr = QString::number(boundingRect.height());
+		QString locPinXStr = QString::number(boundingRect.width() / 2);
+		QString locPinYStr = QString::number(boundingRect.height() / 2);
+		QString rowIndexStr, xStr, yStr, xFormulaStr, yFormulaStr;
+
+		shape += "    <Shape ID='" + indexStr + "' Type='Shape' LineStyle='3' FillStyle='3' TextStyle='3'>\n";
+		shape += "      <Cell N='PinX' V='" + pinXStr + "'/>\n";
+		shape += "      <Cell N='PinY' V='" + pinYStr + "'/>\n";
+		shape += "      <Cell N='Width' V='" + widthStr + "'/>\n";
+		shape += "      <Cell N='Height' V='" + heightStr + "'/>\n";
+		shape += "      <Cell N='LocPinX' V='" + locPinXStr + "' F='Width*0.5'/>\n";
+		shape += "      <Cell N='LocPinY' V='" + locPinYStr + "' F='Height*0.5'/>\n";
+		shape += "      <Cell N='Angle' V='0'/>\n";
+		shape += "      <Cell N='FlipX' V='0'/>\n";
+		shape += "      <Cell N='FlipY' V='0'/>\n";
+		shape += "      <Cell N='ResizeMode' V='0'/>\n";
+
+		shape += writeStyle(Qt::transparent, item->pen());
+		shape += writeArrow(item->startArrow(), item->pen(), true);
+		shape += writeArrow(item->endArrow(), item->pen(), false);
+
+		shape += "      <Section N='Geometry' IX='0'>\n";
+		shape += "    	  <Cell N='NoFill' V='1'/>\n";
+		shape += "    	  <Cell N='NoLine' V='0'/>\n";
+		shape += "    	  <Cell N='NoShow' V='0'/>\n";
+		shape += "    	  <Cell N='NoSnap' V='0'/>\n";
+		shape += "    	  <Cell N='NoQuickDrag' V='0'/>\n";
+
+		for(auto pointIter = mappedPolyline.begin(); pointIter != mappedPolyline.end(); pointIter++)
+		{
+			x = pointIter->x() - boundingRect.left();
+			y = pointIter->y() - boundingRect.top();
+			xFormulaScale = x / boundingRect.width();
+			yFormulaScale = y / boundingRect.height();
+
+			rowIndexStr = QString::number(rowIndex);
+			xStr = QString::number(x);
+			yStr = QString::number(y);
+			xFormulaStr = "Width*" + QString::number(xFormulaScale);
+			yFormulaStr = "Height*" + QString::number(yFormulaScale);
+
+			if (rowIndex == 1)
+				shape += "    	  <Row T='MoveTo' IX='" + rowIndexStr + "'>\n";
+			else
+				shape += "    	  <Row T='LineTo' IX='" + rowIndexStr + "'>\n";
+
+			shape += "          <Cell N='X' V='" + xStr + "' F='" + xFormulaStr + "'/>\n";
+			shape += "          <Cell N='Y' V='" + yStr + "' F='" + yFormulaStr + "'/>\n";
+			shape += "        </Row>\n";
+
+			rowIndex++;
+		}
+
+		shape += "      </Section>\n";
+		shape += "    </Shape>\n";
 	}
 
 	return shape;
@@ -679,7 +747,85 @@ QString VsdxWriter::writePolygonItem(DrawingPolygonItem* item)
 
 	if (item)
 	{
+		QPolygonF polygon = item->polygon();
+		QPolygonF mappedPolygon;
+		for(auto pointIter = polygon.begin(); pointIter != polygon.end(); pointIter++)
+			mappedPolygon.append(mapFromScene(item->mapToScene(*pointIter)));
+		QRectF boundingRect = mappedPolygon.boundingRect();
+		int rowIndex = 1;
+		qreal x, y, xFormulaScale, yFormulaScale;
 
+		mShapeIndex++;
+
+		QString indexStr = QString::number(mShapeIndex);
+		QString pinXStr = QString::number(boundingRect.center().x());
+		QString pinYStr = QString::number(boundingRect.center().y());
+		QString widthStr = QString::number(boundingRect.width());
+		QString heightStr = QString::number(boundingRect.height());
+		QString locPinXStr = QString::number(boundingRect.width() / 2);
+		QString locPinYStr = QString::number(boundingRect.height() / 2);
+		QString rowIndexStr, xStr, yStr, xFormulaStr, yFormulaStr;
+
+		shape += "    <Shape ID='" + indexStr + "' Type='Shape' LineStyle='3' FillStyle='3' TextStyle='3'>\n";
+		shape += "      <Cell N='PinX' V='" + pinXStr + "'/>\n";
+		shape += "      <Cell N='PinY' V='" + pinYStr + "'/>\n";
+		shape += "      <Cell N='Width' V='" + widthStr + "'/>\n";
+		shape += "      <Cell N='Height' V='" + heightStr + "'/>\n";
+		shape += "      <Cell N='LocPinX' V='" + locPinXStr + "' F='Width*0.5'/>\n";
+		shape += "      <Cell N='LocPinY' V='" + locPinYStr + "' F='Height*0.5'/>\n";
+		shape += "      <Cell N='Angle' V='0'/>\n";
+		shape += "      <Cell N='FlipX' V='0'/>\n";
+		shape += "      <Cell N='FlipY' V='0'/>\n";
+		shape += "      <Cell N='ResizeMode' V='0'/>\n";
+
+		shape += writeStyle(item->brush(), item->pen());
+
+		shape += "      <Section N='Geometry' IX='0'>\n";
+		shape += "    	  <Cell N='NoFill' V='0'/>\n";
+		shape += "    	  <Cell N='NoLine' V='0'/>\n";
+		shape += "    	  <Cell N='NoShow' V='0'/>\n";
+		shape += "    	  <Cell N='NoSnap' V='0'/>\n";
+		shape += "    	  <Cell N='NoQuickDrag' V='0'/>\n";
+
+		for(auto pointIter = mappedPolygon.begin(); pointIter != mappedPolygon.end(); pointIter++)
+		{
+			x = pointIter->x() - boundingRect.left();
+			y = pointIter->y() - boundingRect.top();
+			xFormulaScale = x / boundingRect.width();
+			yFormulaScale = y / boundingRect.height();
+
+			rowIndexStr = QString::number(rowIndex);
+			xStr = QString::number(x);
+			yStr = QString::number(y);
+			xFormulaStr = "Width*" + QString::number(xFormulaScale);
+			yFormulaStr = "Height*" + QString::number(yFormulaScale);
+
+			if (rowIndex == 1)
+				shape += "    	  <Row T='MoveTo' IX='" + rowIndexStr + "'>\n";
+			else
+				shape += "    	  <Row T='LineTo' IX='" + rowIndexStr + "'>\n";
+
+			shape += "          <Cell N='X' V='" + xStr + "' F='" + xFormulaStr + "'/>\n";
+			shape += "          <Cell N='Y' V='" + yStr + "' F='" + yFormulaStr + "'/>\n";
+			shape += "        </Row>\n";
+
+			rowIndex++;
+		}
+
+		x = mappedPolygon.first().x() - boundingRect.left();
+		y = mappedPolygon.first().y() - boundingRect.top();
+
+		rowIndexStr = QString::number(rowIndex);
+		xStr = QString::number(x);
+		yStr = QString::number(y);
+
+		shape += "    	  <Row T='LineTo' IX='" + rowIndexStr + "'>\n";
+		shape += "          <Cell N='X' V='" + xStr + "' F='Geometry1.X1'/>\n";
+		shape += "          <Cell N='Y' V='" + yStr + "' F='Geometry1.Y1'/>\n";
+		shape += "        </Row>\n";
+
+		shape += "      </Section>\n";
+		shape += "    </Shape>\n";
 	}
 
 	return shape;
@@ -767,56 +913,54 @@ QString VsdxWriter::writeStyle(const QBrush& brush, const QPen& pen)
 	QColor penColor = pen.brush().color();
 
 	// Visio boilerplate stuff
-	shape += "      <Cell N='TextBkgnd' V='#ffffff' F='THEMEGUARD(THEMEVAL('BackgroundColor')+1)'/>\n";
+	shape += "      <Cell N='TextBkgnd' V='#ffffff' F='THEMEGUARD(THEMEVAL(\"BackgroundColor\")+1)'/>\n";
 	shape += "      <Cell N='QuickStyleLineMatrix' V='1'/>\n";
 	shape += "      <Cell N='QuickStyleFillMatrix' V='1'/>\n";
 	shape += "      <Cell N='QuickStyleEffectsMatrix' V='1'/>\n";
 	shape += "      <Cell N='QuickStyleFontMatrix' V='1'/>\n";
 
 	// Brush color
-	shape += "	  <Cell N='FillGradientEnabled' V='0'/>\n";
-	shape += "	  <Cell N='FillForegnd' V='" + colorToString(brushColor) + "'/>\n";
+	shape += "      <Cell N='FillForegnd' V='" + colorToString(brushColor) + "'/>\n";
 
 	if (brushColor.alpha() == 0)
-		shape = "    <Cell N='FillPattern' V='0'/>";
+		shape += "      <Cell N='FillPattern' V='0'/>";
 	else
 	{
 		// Brush color alpha
 		if (brushColor.alpha() != 255)
 		{
-			shape += "	  <Cell N='FillForegndTrans' V='" + QString::number(1.0 - brushColor.alphaF()) + "'/>\n";
-			shape += "	  <Cell N='FillBkgndTrans' V='" + QString::number(1.0 - brushColor.alphaF()) + "'/>\n";
+			shape += "      <Cell N='FillForegndTrans' V='" + QString::number(1.0 - brushColor.alphaF()) + "'/>\n";
+			shape += "      <Cell N='FillBkgndTrans' V='" + QString::number(1.0 - brushColor.alphaF()) + "'/>\n";
 		}
 	}
 
 	// Pen width of 16.0 = 1 pt.  1 pt = 1/72 in.
-	shape += "	  <Cell N='LineWeight' V='" + QString::number(pen.widthF() / 16 / 72) + "'/>\n";
+	shape += "      <Cell N='LineWeight' V='" + QString::number(pen.widthF() / 16 / 72) + "'/>\n";
 
 	// Pen color
-	shape += "	  <Cell N='LineGradientEnabled' V='0'/>\n";
-	shape += "	  <Cell N='LineColor' V='" + colorToString(penColor) + "'/>\n";
+	shape += "      <Cell N='LineColor' V='" + colorToString(penColor) + "'/>\n";
 
 	if (penColor.alpha() == 0)
-		shape += "	  <Cell N='LinePattern' V='0'/>\n";
+		shape += "      <Cell N='LinePattern' V='0'/>\n";
 	else
 	{
 		// Pen color alpha
 		if (penColor.alpha() != 255)
-			shape += "	  <Cell N='LineColorTrans' V='" + QString::number(1.0 - penColor.alphaF()) + "'/>\n";
+			shape += "      <Cell N='LineColorTrans' V='" + QString::number(1.0 - penColor.alphaF()) + "'/>\n";
 
 		// Pen style
 		switch (pen.style())
 		{
 		case Qt::NoPen:
-			shape += "	  <Cell N='LinePattern' V='0'/>\n";
+			shape += "      <Cell N='LinePattern' V='0'/>\n";
 			break;
 		case Qt::DotLine:
-			shape += "	  <Cell N='LinePattern' V='10'/>\n";
+			shape += "      <Cell N='LinePattern' V='10'/>\n";
 			break;
 		case Qt::DashLine:
 		case Qt::DashDotLine:
 		case Qt::DashDotDotLine:
-			shape += "	  <Cell N='LinePattern' V='9'/>\n";
+			shape += "      <Cell N='LinePattern' V='9'/>\n";
 			break;
 		default:
 			break;
@@ -854,13 +998,13 @@ QString VsdxWriter::writeArrow(const DrawingArrow& arrow, const QPen& pen, bool 
 
 		if (startArrow)
 		{
-			shape += "	  <Cell N='BeginArrow' V='" + arrowStr + "'/>\n";
-			shape += "	  <Cell N='BeginArrowSize' V='" + arrowSizeStr + "'/>\n";
+			shape += "      <Cell N='BeginArrow' V='" + arrowStr + "'/>\n";
+			shape += "      <Cell N='BeginArrowSize' V='" + arrowSizeStr + "'/>\n";
 		}
 		else
 		{
-			shape += "	  <Cell N='EndArrow' V='" + arrowStr + "'/>\n";
-			shape += "	  <Cell N='EndArrowSize' V='" + arrowSizeStr + "'/>\n";
+			shape += "      <Cell N='EndArrow' V='" + arrowStr + "'/>\n";
+			shape += "      <Cell N='EndArrowSize' V='" + arrowSizeStr + "'/>\n";
 		}
 	}
 
