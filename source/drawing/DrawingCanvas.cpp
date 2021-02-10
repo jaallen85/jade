@@ -41,7 +41,7 @@ DrawingCanvas::DrawingCanvas(QWidget* parent) : QAbstractScrollArea(parent)
 	mGridSpacingMajor = 8;
 	mGridSpacingMinor = 2;
 	mDynamicGridBaseValue = 1000;
-	mDynamicGridEnabled = false;
+	mDynamicGridEnabled = true;
 
 	mScale = 1.0;
 	mMode = Drawing::DefaultMode;

@@ -91,7 +91,7 @@ DrawingPathItem* ElectricItems::createResistor1()
 	path.moveTo(150, 0); path.lineTo(200, 0);
 
 	item->setPathName("Resistor 1");
-	item->setRect(pathRect);
+	item->setRect(QTransform().scale(1.25, 1.25).mapRect(pathRect));
 	item->setPath(path, pathRect);
 	item->addConnectionPoint(QPointF(-200, 0));
 	item->addConnectionPoint(QPointF(200, 0));
@@ -113,7 +113,7 @@ DrawingPathItem* ElectricItems::createResistor2()
 	path.moveTo(150, 0); path.lineTo(200, 0);
 
 	item->setPathName("Resistor 2");
-	item->setRect(pathRect);
+	item->setRect(QTransform().scale(1.25, 1.25).mapRect(pathRect));
 	item->setPath(path, pathRect);
 	item->addConnectionPoint(QPointF(-200, 0));
 	item->addConnectionPoint(QPointF(200, 0));
@@ -132,7 +132,7 @@ DrawingPathItem* ElectricItems::createCapacitor1()
 	path.moveTo(25, 0); path.lineTo(200, 0);
 
 	item->setPathName("Capacitor 1");
-	item->setRect(pathRect);
+	item->setRect(QTransform().scale(1.25, 1.25).mapRect(pathRect));
 	item->setPath(path, pathRect);
 	item->addConnectionPoint(QPointF(-200, 0));
 	item->addConnectionPoint(QPointF(200, 0));
@@ -152,7 +152,7 @@ DrawingPathItem* ElectricItems::createCapacitor2()
 	path.moveTo(25, 0); path.lineTo(200, 0);
 
 	item->setPathName("Capacitor 2");
-	item->setRect(pathRect);
+	item->setRect(QTransform().scale(1.25, 1.25).mapRect(pathRect));
 	item->setPath(path, pathRect);
 	item->addConnectionPoint(QPointF(-200, 0));
 	item->addConnectionPoint(QPointF(200, 0));
@@ -178,7 +178,7 @@ DrawingPathItem* ElectricItems::createInductor1()
 	path.moveTo(240, 0); path.lineTo(300, 0);
 
 	item->setPathName("Inductor 1");
-	item->setRect(pathRect);
+	item->setRect(QTransform().scale(1.25, 1.25).mapRect(pathRect));
 	item->setPath(path, pathRect);
 	item->addConnectionPoint(QPointF(-300, 0));
 	item->addConnectionPoint(QPointF(300, 0));
@@ -198,7 +198,7 @@ DrawingPathItem* ElectricItems::createDiode()
 	path.moveTo(50, 0); path.lineTo(200, 0);
 
 	item->setPathName("Diode");
-	item->setRect(pathRect);
+	item->setRect(QTransform().scale(1.25, 1.25).mapRect(pathRect));
 	item->setPath(path, pathRect);
 	item->addConnectionPoint(QPointF(-200, 0));
 	item->addConnectionPoint(QPointF(200, 0));
@@ -220,7 +220,7 @@ DrawingPathItem* ElectricItems::createZenerDiode()
 	path.moveTo(50, 0); path.lineTo(200, 0);
 
 	item->setPathName("Zener Diode");
-	item->setRect(pathRect);
+	item->setRect(QTransform().scale(1.25, 1.25).mapRect(pathRect));
 	item->setPath(path, pathRect);
 	item->addConnectionPoint(QPointF(-200, 0));
 	item->addConnectionPoint(QPointF(200, 0));
@@ -244,7 +244,7 @@ DrawingPathItem* ElectricItems::createSchottkyDiode()
 	path.moveTo(50, 0); path.lineTo(200, 0);
 
 	item->setPathName("Schottky Diode");
-	item->setRect(pathRect);
+	item->setRect(QTransform().scale(1.25, 1.25).mapRect(pathRect));
 	item->setPath(path, pathRect);
 	item->addConnectionPoint(QPointF(-200, 0));
 	item->addConnectionPoint(QPointF(200, 0));
@@ -276,7 +276,7 @@ DrawingPathItem* ElectricItems::createNpnBjt()
 	path.moveTo(100, 100); path.lineTo(41.55, 129.14);
 
 	item->setPathName("NPN BJT");
-	item->setRect(pathRect);
+	item->setRect(QTransform().scale(1.25, 1.25).mapRect(pathRect));
 	item->setPath(path, pathRect);
 	item->addConnectionPoint(QPointF(-200, 0));
 	item->addConnectionPoint(QPointF(100, -200));
@@ -309,7 +309,7 @@ DrawingPathItem* ElectricItems::createPnpBjt()
 	path.moveTo(-75, 50); path.lineTo(-45.86, 102.45);
 
 	item->setPathName("PNP BJT");
-	item->setRect(pathRect);
+	item->setRect(QTransform().scale(1.25, 1.25).mapRect(pathRect));
 	item->setPath(path, pathRect);
 	item->addConnectionPoint(QPointF(-200, 0));
 	item->addConnectionPoint(QPointF(100, -200));
@@ -344,7 +344,7 @@ DrawingPathItem* ElectricItems::createNmosFet()
 	path.moveTo(0, 0); path.lineTo(42.43, 42.43);
 
 	item->setPathName("NMOS FET");
-	item->setRect(pathRect);
+	item->setRect(QTransform().scale(1.25, 1.25).mapRect(pathRect));
 	item->setPath(path, pathRect);
 	item->addConnectionPoint(QPointF(-200, 0));
 	item->addConnectionPoint(QPointF(100, -200));
@@ -380,7 +380,7 @@ DrawingPathItem* ElectricItems::createPmosFet()
 	path.moveTo(100, 0); path.lineTo(57.57, 42.43);
 
 	item->setPathName("PMOS FET");
-	item->setRect(pathRect);
+	item->setRect(QTransform().scale(1.25, 1.25).mapRect(pathRect));
 	item->setPath(path, pathRect);
 	item->addConnectionPoint(QPointF(-200, 0));
 	item->addConnectionPoint(QPointF(100, -200));
@@ -402,7 +402,7 @@ DrawingPathItem* ElectricItems::createGround1()
 	path.moveTo(-50, 150); path.lineTo(50, 150);
 
 	item->setPathName("Ground 1");
-	item->setRect(pathRect);
+	item->setRect(QTransform().scale(1.25, 1.25).mapRect(pathRect));
 	item->setPath(path, pathRect);
 	item->addConnectionPoint(QPointF(0, 0));
 
@@ -422,7 +422,7 @@ DrawingPathItem* ElectricItems::createGround2()
 	path.moveTo(0, 150); path.lineTo(-100, 50);
 
 	item->setPathName("Ground 2");
-	item->setRect(pathRect);
+	item->setRect(QTransform().scale(1.25, 1.25).mapRect(pathRect));
 	item->setPath(path, pathRect);
 	item->addConnectionPoint(QPointF(0, 0));
 
@@ -445,7 +445,7 @@ DrawingPathItem* ElectricItems::createOpAmp()
 	path.moveTo(-170, 100); path.lineTo(-90, 100);
 
 	item->setPathName("Op Amp");
-	item->setRect(pathRect);
+	item->setRect(QTransform().scale(1.25, 1.25).mapRect(pathRect));
 	item->setPath(path, pathRect);
 	item->addConnectionPoint(QPointF(-300, -100));
 	item->addConnectionPoint(QPointF(-300, 100));
@@ -476,7 +476,7 @@ DrawingPathItem* ElectricItems::createLed()
 	path.moveTo(170, -75); path.lineTo(170, -45);
 
 	item->setPathName("LED");
-	item->setRect(pathRect);
+	item->setRect(QTransform().scale(1.25, 1.25).mapRect(pathRect));
 	item->setPath(path, pathRect);
 	item->addConnectionPoint(QPointF(-200, 0));
 	item->addConnectionPoint(QPointF(200, 0));
@@ -505,7 +505,7 @@ DrawingPathItem* ElectricItems::createVdc()
 	path.moveTo(-40, 90); path.lineTo(40, 90);
 
 	item->setPathName("DC Voltage");
-	item->setRect(pathRect);
+	item->setRect(QTransform().scale(1.25, 1.25).mapRect(pathRect));
 	item->setPath(path, pathRect);
 	item->addConnectionPoint(QPointF(0, -300));
 	item->addConnectionPoint(QPointF(0, 300));
@@ -532,7 +532,7 @@ DrawingPathItem* ElectricItems::createVac()
 	path.moveTo(-50, 0); path.cubicTo(-10, -120, 10, 120, 50, 0);
 
 	item->setPathName("AC Voltage");
-	item->setRect(pathRect);
+	item->setRect(QTransform().scale(1.25, 1.25).mapRect(pathRect));
 	item->setPath(path, pathRect);
 	item->addConnectionPoint(QPointF(0, -300));
 	item->addConnectionPoint(QPointF(0, 300));
@@ -561,7 +561,7 @@ DrawingPathItem* ElectricItems::createIdc()
 	path.moveTo(0, -100); path.lineTo(42.43, -57.57);
 
 	item->setPathName("DC Current");
-	item->setRect(pathRect);
+	item->setRect(QTransform().scale(1.25, 1.25).mapRect(pathRect));
 	item->setPath(path, pathRect);
 	item->addConnectionPoint(QPointF(0, -300));
 	item->addConnectionPoint(QPointF(0, 300));
@@ -591,7 +591,7 @@ DrawingPathItem* ElectricItems::createIac()
 	path.moveTo(-50, 0); path.cubicTo(-10, -120, 10, 120, 50, 0);
 
 	item->setPathName("AC Current");
-	item->setRect(pathRect);
+	item->setRect(QTransform().scale(1.25, 1.25).mapRect(pathRect));
 	item->setPath(path, pathRect);
 	item->addConnectionPoint(QPointF(0, -300));
 	item->addConnectionPoint(QPointF(0, 300));

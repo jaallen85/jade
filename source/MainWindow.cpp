@@ -318,7 +318,7 @@ void MainWindow::loadSettings()
 	properties.insert("gridSpacingMajor", settings.value("gridSpacingMajor", QVariant(8)));
 	properties.insert("gridSpacingMinor", settings.value("gridSpacingMinor", QVariant(2)));
 	properties.insert("dynamicGrid", settings.value("dynamicGrid", QVariant(1000.0)));
-	properties.insert("dynamicGridEnabled", settings.value("dynamicGridEnabled", QVariant(false)));
+	properties.insert("dynamicGridEnabled", settings.value("dynamicGridEnabled", QVariant(true)));
 	settings.endGroup();
 	setDefaultDrawingProperties(properties);
 	mPropertiesBrowser->setDrawingProperties(properties);

@@ -357,6 +357,10 @@ QString VsdxWriter::writeRectItem(DrawingRectItem* item)
 
 	if (item)
 	{
+		// todo: configure Jade to be better for exporting to Visio
+		// enable dynamic grid with base of 1000
+		// curve item, polygon item, text rect item, text ellipse item, and path items should be a factor of 1000
+
 
 	}
 

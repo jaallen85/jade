@@ -77,7 +77,7 @@ DrawingPathItem* LogicItems::createAndGate()
 	path.moveTo(150, 0); path.lineTo(200, 0);
 
 	item->setPathName("AND Gate");
-	item->setRect(pathRect);
+	item->setRect(QTransform().scale(1.25, 1.25).mapRect(pathRect));
 	item->setPath(path, pathRect);
 	item->addConnectionPoint(QPointF(-200, -50));
 	item->addConnectionPoint(QPointF(-200, 50));
@@ -101,7 +101,7 @@ DrawingPathItem* LogicItems::createOrGate()
 	path.moveTo(150, 0); path.lineTo(200, 0);
 
 	item->setPathName("OR Gate");
-	item->setRect(pathRect);
+	item->setRect(QTransform().scale(1.25, 1.25).mapRect(pathRect));
 	item->setPath(path, pathRect);
 	item->addConnectionPoint(QPointF(-200, -50));
 	item->addConnectionPoint(QPointF(-200, 50));
@@ -128,7 +128,7 @@ DrawingPathItem* LogicItems::createXorGate()
 	path.moveTo(150, 0); path.lineTo(200, 0);
 
 	item->setPathName("XOR Gate");
-	item->setRect(pathRect);
+	item->setRect(QTransform().scale(1.25, 1.25).mapRect(pathRect));
 	item->setPath(path, pathRect);
 	item->addConnectionPoint(QPointF(-200, -50));
 	item->addConnectionPoint(QPointF(-200, 50));
@@ -161,7 +161,7 @@ DrawingPathItem* LogicItems::createXnorGate()
 	path.cubicTo(181.046, 20, 190, 11.0457, 190, 0);
 
 	item->setPathName("XNOR Gate");
-	item->setRect(pathRect);
+	item->setRect(QTransform().scale(1.25, 1.25).mapRect(pathRect));
 	item->setPath(path, pathRect);
 	item->addConnectionPoint(QPointF(-200, -50));
 	item->addConnectionPoint(QPointF(-200, 50));
@@ -191,7 +191,7 @@ DrawingPathItem* LogicItems::createNandGate()
 	path.cubicTo(181.046, 20, 190, 11.0457, 190, 0);
 
 	item->setPathName("NAND Gate");
-	item->setRect(pathRect);
+	item->setRect(QTransform().scale(1.25, 1.25).mapRect(pathRect));
 	item->setPath(path, pathRect);
 	item->addConnectionPoint(QPointF(-200, -50));
 	item->addConnectionPoint(QPointF(-200, 50));
@@ -221,7 +221,7 @@ DrawingPathItem* LogicItems::createNorGate()
 	path.cubicTo(181.046, 20, 190, 11.0457, 190, 0);
 
 	item->setPathName("NOR Gate");
-	item->setRect(pathRect);
+	item->setRect(QTransform().scale(1.25, 1.25).mapRect(pathRect));
 	item->setPath(path, pathRect);
 	item->addConnectionPoint(QPointF(-200, -50));
 	item->addConnectionPoint(QPointF(-200, 50));
@@ -247,7 +247,7 @@ DrawingPathItem* LogicItems::createMultiplexer()
 	path.moveTo(100, 0); path.lineTo(200, 0);
 
 	item->setPathName("Multiplexer");
-	item->setRect(pathRect);
+	item->setRect(QTransform().scale(1.25, 1.25).mapRect(pathRect));
 	item->setPath(path, pathRect);
 	item->addConnectionPoint(QPointF(-200, -100));
 	item->addConnectionPoint(QPointF(-200, 100));
@@ -275,7 +275,7 @@ DrawingPathItem* LogicItems::createDemultiplexer()
 	path.moveTo(-100, 0); path.lineTo(-200, 0);
 
 	item->setPathName("Demultiplexer");
-	item->setRect(pathRect);
+	item->setRect(QTransform().scale(1.25, 1.25).mapRect(pathRect));
 	item->setPath(path, pathRect);
 	item->addConnectionPoint(QPointF(200, -100));
 	item->addConnectionPoint(QPointF(200, 100));
@@ -297,7 +297,7 @@ DrawingPathItem* LogicItems::createBuffer()
 	path.moveTo(50, 0); path.lineTo(200, 0);
 
 	item->setPathName("Buffer");
-	item->setRect(pathRect);
+	item->setRect(QTransform().scale(1.25, 1.25).mapRect(pathRect));
 	item->setPath(path, pathRect);
 	item->addConnectionPoint(QPointF(-200, 0));
 	item->addConnectionPoint(QPointF(200, 0));
@@ -322,7 +322,7 @@ DrawingPathItem* LogicItems::createNotGate()
 	path.cubicTo(81.0457, 20, 90, 11.0457, 90, 0);
 
 	item->setPathName("NOT Gate");
-	item->setRect(pathRect);
+	item->setRect(QTransform().scale(1.25, 1.25).mapRect(pathRect));
 	item->setPath(path, pathRect);
 	item->addConnectionPoint(QPointF(-200, 0));
 	item->addConnectionPoint(QPointF(200, 0));
@@ -343,7 +343,7 @@ DrawingPathItem* LogicItems::createTristateBuffer1()
 	path.moveTo(0, -37.5); path.lineTo(0, -75);
 
 	item->setPathName("Tristate Buffer 1");
-	item->setRect(pathRect);
+	item->setRect(QTransform().scale(1.25, 1.25).mapRect(pathRect));
 	item->setPath(path, pathRect);
 	item->addConnectionPoint(QPointF(-200, 0));
 	item->addConnectionPoint(QPointF(200, 0));
@@ -371,7 +371,7 @@ DrawingPathItem* LogicItems::createTristateBuffer2()
 	path.moveTo(0, -37.5); path.lineTo(0, -75);
 
 	item->setPathName("Tristate Buffer 2");
-	item->setRect(pathRect);
+	item->setRect(QTransform().scale(1.25, 1.25).mapRect(pathRect));
 	item->setPath(path, pathRect);
 	item->addConnectionPoint(QPointF(-200, 0));
 	item->addConnectionPoint(QPointF(200, 0));
@@ -394,7 +394,7 @@ DrawingPathItem* LogicItems::createFlipFlop1()
 	path.moveTo(200, 100); path.lineTo(150, 100);
 
 	item->setPathName("Flip-Flop 1");
-	item->setRect(pathRect);
+	item->setRect(QTransform().scale(1.25, 1.25).mapRect(pathRect));
 	item->setPath(path, pathRect);
 	item->addConnectionPoint(QPointF(-200, -100));
 	item->addConnectionPoint(QPointF(-200, 100));
@@ -423,7 +423,7 @@ DrawingPathItem* LogicItems::createFlipFlop2()
 	path.moveTo(-100, 100); path.lineTo(-150, 150);
 
 	item->setPathName("Flip-Flop 2");
-	item->setRect(pathRect);
+	item->setRect(QTransform().scale(1.25, 1.25).mapRect(pathRect));
 	item->setPath(path, pathRect);
 	item->addConnectionPoint(QPointF(-200, -100));
 	item->addConnectionPoint(QPointF(-200, 100));
