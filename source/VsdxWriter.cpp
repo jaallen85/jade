@@ -833,67 +833,40 @@ QString VsdxWriter::writeTextItem(DrawingTextItem* item)
 
 	if (item)
 	{
-		QFont itemFont = item->font();
-		itemFont.setPointSizeF(itemFont.pointSizeF() * 96 / 72);
+		QPointF pinPosition = mapFromScene(item->position());
+		QRectF rect(QPointF(0, 0), item->boundingRect().size() * mDrawingScale * 1.25);
 
-		QFontMetrics fontMetrics(itemFont);
-		QRect textRect = fontMetrics.boundingRect(item->caption());
-
+		// Change anchor pin location based on alignment
+		// bottom-left ones are correct
+		qreal locPinX = 0, locPinY = 0;
 		Qt::Alignment horizontalAlignment = (item->alignment() & Qt::AlignHorizontal_Mask);
 		Qt::Alignment verticalAlignment = (item->alignment() & Qt::AlignVertical_Mask);
-
-		QRectF itemRect(0, 0, textRect.width() * 1.2, textRect.height() * 1.2);
 		if (horizontalAlignment & Qt::AlignHCenter)
-			itemRect.translate(-itemRect.width() / 2, 0);
+			locPinX = rect.width() / 2;
 		else if (horizontalAlignment & Qt::AlignRight)
-			itemRect.translate(-itemRect.width(), 0);
-
+			locPinX = rect.width();
 		if (verticalAlignment & Qt::AlignVCenter)
-			itemRect.translate(0, -itemRect.height() / 2);
-		else if (verticalAlignment & Qt::AlignBottom)
-			itemRect.translate(0, -itemRect.height());
+			locPinY = rect.height() / 2;
+		else if (verticalAlignment & Qt::AlignTop)
+			locPinY = rect.height();
 
-		QRectF rect = QRectF(mapFromScene(item->mapToScene(itemRect.topLeft())),
-							 mapFromScene(item->mapToScene(itemRect.bottomRight()))).normalized();
-
+		// Calculate rotation angle
 		qreal angle = 0;
 		if (item->transform().m12() != 0) angle = qAsin(item->transform().m12());
 		else angle = qAcos(item->transform().m11());
 
-		QTransform shapeTransform;
-		shapeTransform.translate(rect.center().x(), rect.center().y());
-		shapeTransform.rotate(-angle * 180 / 3.141592654);
-		shapeTransform.translate(-rect.center().x(), -rect.center().y());
-		rect = shapeTransform.mapRect(rect);
-
-		// Change anchor pin location based on alignment
-		qreal pinX = 0, pinY = 0;
-		if (horizontalAlignment & Qt::AlignLeft)
-			pinX = rect.left();
-		else if (horizontalAlignment & Qt::AlignRight)
-			pinX = rect.right();
-		else
-			pinX = rect.center().x();
-
-		if (verticalAlignment & Qt::AlignTop)
-			pinY = rect.bottom();
-		else if (verticalAlignment & Qt::AlignBottom)
-			pinY = rect.top();
-		else
-			pinY = rect.center().y();
-
 		mShapeIndex++;
 
 		QString indexStr = QString::number(mShapeIndex);
-		QString pinXStr = QString::number(pinX);
-		QString pinYStr = QString::number(pinY);
+		QString pinXStr = QString::number(pinPosition.x());
+		QString pinYStr = QString::number(pinPosition.y());
 		QString widthStr = QString::number(rect.width());
 		QString heightStr = QString::number(rect.height());
-		QString locPinXStr = QString::number(pinX - rect.left());
-		QString locPinYStr = QString::number(pinY - rect.top());
-		QString locPinXFormulaStr = "Width*" + QString::number((pinX - rect.left()) / rect.width());
-		QString locPinYFormulaStr = "Height*" + QString::number((pinY - rect.top()) / rect.height());
-		QString angleStr = QString::number(angle);
+		QString locPinXStr = QString::number(locPinX);
+		QString locPinYStr = QString::number(locPinY);
+		QString locPinXFormulaStr = "Width*" + QString::number(locPinX / rect.width());
+		QString locPinYFormulaStr = "Height*" + QString::number(locPinY / rect.height());
+		QString angleStr = QString::number(angle, 'g', 10);
 
 		shape += "    <Shape ID='" + indexStr + "' Type='Shape' LineStyle='3' FillStyle='3' TextStyle='3'>\n";
 		shape += "      <Cell N='PinX' V='" + pinXStr + "'/>\n";
@@ -908,8 +881,8 @@ QString VsdxWriter::writeTextItem(DrawingTextItem* item)
 		shape += "      <Cell N='ResizeMode' V='0'/>\n";
 		shape += "      <Cell N='LeftMargin' V='0.01388888888888889' U='PT'/>\n";
 		shape += "      <Cell N='RightMargin' V='0.01388888888888889' U='PT'/>\n";
-		shape += "      <Cell N='TopMargin' V='0.01388888888888889' U='PT'/>\n";
-		shape += "      <Cell N='BottomMargin' V='0.01388888888888889' U='PT'/>\n";
+		shape += "      <Cell N='TopMargin' V='0' U='PT'/>\n";
+		shape += "      <Cell N='BottomMargin' V='0' U='PT'/>\n";
 
 		shape += writeStyle(Qt::transparent, Qt::NoPen, item->textBrush(), item->font(), item->alignment());
 
@@ -1152,7 +1125,7 @@ QString VsdxWriter::writeStyle(const QBrush& brush, const QPen& pen)
 	QColor penColor = pen.brush().color();
 
 	// Visio boilerplate stuff
-	shape += "      <Cell N='TextBkgnd' V='#ffffff' F='THEMEGUARD(THEMEVAL(\"BackgroundColor\")+1)'/>\n";
+	//shape += "      <Cell N='TextBkgnd' V='#ffffff' F='THEMEGUARD(THEMEVAL(\"BackgroundColor\")+1)'/>\n";
 	shape += "      <Cell N='QuickStyleLineMatrix' V='1'/>\n";
 	shape += "      <Cell N='QuickStyleFillMatrix' V='1'/>\n";
 	shape += "      <Cell N='QuickStyleEffectsMatrix' V='1'/>\n";
