@@ -494,7 +494,7 @@ QString VsdxWriter::writeLineItem(DrawingLineItem* item)
 		QString pinYStr = QString::number(line.center().y());
 		QString widthStr = QString::number(width);
 		QString locPinXStr = QString::number(width / 2);
-		QString angleStr = QString::number(angle);
+		QString angleStr = QString::number(angle, 'g', 10);
 		QString beginXStr = QString::number(line.x1());
 		QString beginYStr = QString::number(line.y1());
 		QString endXStr = QString::number(line.x2());
@@ -606,7 +606,7 @@ QString VsdxWriter::writeCurveItem(DrawingCurveItem* item)
 		QString heightStr = QString::number(height);
 		QString locPinXStr = QString::number(width / 2);
 		QString locPinYStr = QString::number(height / 2);
-		QString angleStr = QString::number(angle);
+		QString angleStr = QString::number(angle, 'g', 10);
 		QString beginXStr = QString::number(p1.x());
 		QString beginYStr = QString::number(p1.y());
 		QString endXStr = QString::number(p2.x());
@@ -949,7 +949,7 @@ QString VsdxWriter::writeTextRectItem(DrawingTextRectItem* item)
 		QString heightStr = QString::number(rect.height());
 		QString locPinXStr = QString::number(rect.width() / 2);
 		QString locPinYStr = QString::number(rect.height() / 2);
-		QString angleStr = QString::number(angle);
+		QString angleStr = QString::number(angle, 'g', 10);
 		QString cornerRadiusStr = QString::number(cornerRadius);
 
 		shape += "    <Shape ID='" + indexStr + "' Type='Shape' LineStyle='3' FillStyle='3' TextStyle='3'>\n";
@@ -1037,7 +1037,7 @@ QString VsdxWriter::writeTextEllipseItem(DrawingTextEllipseItem* item)
 		QString locPinYStr = QString::number(ellipse.height() / 2);
 		QString xStr = QString::number(ellipse.width() / 2);
 		QString yStr = QString::number(ellipse.height() / 2);
-		QString angleStr = QString::number(angle);
+		QString angleStr = QString::number(angle, 'g', 10);
 
 		shape += "    <Shape ID='" + indexStr + "' Type='Shape' LineStyle='3' FillStyle='3' TextStyle='3'>\n";
 		shape += "      <Cell N='PinX' V='" + pinXStr + "'/>\n";
@@ -1079,13 +1079,140 @@ QString VsdxWriter::writeTextEllipseItem(DrawingTextEllipseItem* item)
 	return shape;
 }
 
+#include <QDebug>
+
 QString VsdxWriter::writePathItem(DrawingPathItem* item)
 {
 	QString shape;
 
 	if (item)
 	{
+		/*qreal halfPenWidth = item->pen().widthF() / 2;
+		QRectF itemRect = item->boundingRect().adjusted(halfPenWidth, halfPenWidth, -halfPenWidth, -halfPenWidth);
+		QRectF rect = QRectF(mapFromScene(item->mapToScene(itemRect.topLeft())),
+							 mapFromScene(item->mapToScene(itemRect.bottomRight()))).normalized();*/
 
+		qreal halfPenWidth = item->pen().widthF() / 2;
+		QRectF itemRect = item->boundingRect().adjusted(halfPenWidth, halfPenWidth, -halfPenWidth, -halfPenWidth);
+
+		QPointF pinPosition = mapFromScene(item->position());
+		qreal width = itemRect.width() * mDrawingScale;
+		qreal height = itemRect.height() * mDrawingScale;
+		qreal locPinX = -itemRect.left() * mDrawingScale;
+		qreal locPinY = itemRect.bottom() * mDrawingScale;
+		qDebug() << itemRect << pinPosition << width << height;
+
+		qreal angle = 0;
+		if (item->transform().m12() != 0) angle = qAsin(item->transform().m12());
+		else angle = qAcos(item->transform().m11());
+
+		QTransform transform = item->transform();
+		transform.rotate(-angle * 180 / 3.141592654);
+		qreal hScale = transform.m11();
+		qreal vScale = transform.m22();
+
+		mShapeIndex++;
+
+		QString indexStr = QString::number(mShapeIndex);
+		QString pinXStr = QString::number(pinPosition.x());
+		QString pinYStr = QString::number(pinPosition.y());
+		QString widthStr = QString::number(width);
+		QString heightStr = QString::number(height);
+		QString locPinXStr = QString::number(locPinX);
+		QString locPinYStr = QString::number(locPinY);
+		QString locPinXFormulaStr = "Width*" + QString::number(locPinX / width);
+		QString locPinYFormulaStr = "Height*" + QString::number(locPinY / height);
+		QString angleStr = QString::number(angle, 'g', 10);
+		QString flipXStr = (hScale < 0) ? "1" : "0";
+		QString flipYStr = (vScale < 0) ? "1" : "0";
+
+		shape += "    <Shape ID='" + indexStr + "' Type='Shape' LineStyle='3' FillStyle='3' TextStyle='3'>\n";
+		shape += "      <Cell N='PinX' V='" + pinXStr + "'/>\n";
+		shape += "      <Cell N='PinY' V='" + pinYStr + "'/>\n";
+		shape += "      <Cell N='Width' V='" + widthStr + "'/>\n";
+		shape += "      <Cell N='Height' V='" + heightStr + "'/>\n";
+		shape += "      <Cell N='LocPinX' V='" + locPinXStr + "' F='" + locPinXFormulaStr + "'/>\n";
+		shape += "      <Cell N='LocPinY' V='" + locPinYStr + "' F='" + locPinYFormulaStr + "'/>\n";
+		shape += "      <Cell N='Angle' V='" + angleStr + "'/>\n";
+		shape += "      <Cell N='FlipX' V='" + flipXStr + "'/>\n";
+		shape += "      <Cell N='FlipY' V='" + flipYStr + "'/>\n";
+		shape += "      <Cell N='ResizeMode' V='0'/>\n";
+
+		shape += writeStyle(Qt::transparent, item->pen());
+
+		shape += "      <Section N='Geometry' IX='0'>\n";
+		shape += "    	  <Cell N='NoFill' V='1'/>\n";
+		shape += "    	  <Cell N='NoLine' V='0'/>\n";
+		shape += "    	  <Cell N='NoShow' V='0'/>\n";
+		shape += "    	  <Cell N='NoSnap' V='0'/>\n";
+		shape += "    	  <Cell N='NoQuickDrag' V='0'/>\n";
+
+		QPainterPath path = item->path();
+		QRectF pathRect = item->pathRect();
+		int pathIndex = 1;
+		QPointF prevPoint, curveEndPoint, curveStartControlPoint, curveEndControlPoint;
+		bool curveDataValid = false;
+
+		for(int i = 0; i < path.elementCount(); i++)
+		{
+			QPainterPath::Element element = path.elementAt(i);
+
+			switch (element.type)
+			{
+			case QPainterPath::MoveToElement:
+				prevPoint.setX((element.x - pathRect.left()) / pathRect.width());
+				prevPoint.setY((pathRect.bottom() - element.y) / pathRect.height());
+				shape += "		    <Row T=\"RelMoveTo\" IX=\"" + QString::number(pathIndex) + "\">\n";
+				shape += "		      <Cell N=\"X\" V=\"" + QString::number(prevPoint.x()) + "\"/>\n";
+				shape += "	    	  <Cell N=\"Y\" V=\"" + QString::number(prevPoint.y()) + "\"/>\n";
+				shape += "	    	</Row>\n";
+				pathIndex++;
+				break;
+			case QPainterPath::LineToElement:
+				prevPoint.setX((element.x - pathRect.left()) / pathRect.width());
+				prevPoint.setY((pathRect.bottom() - element.y) / pathRect.height());
+				shape += "		    <Row T=\"RelLineTo\" IX=\"" + QString::number(pathIndex) + "\">\n";
+				shape += "		      <Cell N=\"X\" V=\"" + QString::number(prevPoint.x()) + "\"/>\n";
+				shape += "		      <Cell N=\"Y\" V=\"" + QString::number(prevPoint.y()) + "\"/>\n";
+				shape += "		    </Row>\n";
+				pathIndex++;
+				break;
+			case QPainterPath::CurveToElement:
+				curveStartControlPoint.setX((element.x - pathRect.left()) / pathRect.width());
+				curveStartControlPoint.setY((pathRect.bottom() - element.y) / pathRect.height());
+				curveDataValid = false;
+				break;
+			case QPainterPath::CurveToDataElement:
+				if (curveDataValid)
+				{
+					curveEndPoint.setX((element.x - pathRect.left()) / pathRect.width());
+					curveEndPoint.setY((pathRect.bottom() - element.y) / pathRect.height());
+
+					shape += "		    <Row T=\"RelCubBezTo\" IX=\"" + QString::number(pathIndex) + "\">\n";
+					shape += "		      <Cell N=\"X\" V=\"" + QString::number(curveEndPoint.x()) + "\"/>\n";
+					shape += "		      <Cell N=\"Y\" V=\"" + QString::number(curveEndPoint.y()) + "\"/>\n";
+					shape += "		      <Cell N=\"A\" V=\"" + QString::number(curveStartControlPoint.x()) + "\"/>\n";
+					shape += "		      <Cell N=\"B\" V=\"" + QString::number(curveStartControlPoint.y()) + "\"/>\n";
+					shape += "		      <Cell N=\"C\" V=\"" + QString::number(curveEndControlPoint.x()) + "\"/>\n";
+					shape += "		      <Cell N=\"D\" V=\"" + QString::number(curveEndControlPoint.y()) + "\"/>\n";
+					shape += "		    </Row>\n";
+					pathIndex++;
+
+					prevPoint = curveEndPoint;
+					curveDataValid = false;
+				}
+				else
+				{
+					curveEndControlPoint.setX((element.x - pathRect.left()) / pathRect.width());
+					curveEndControlPoint.setY((pathRect.bottom() - element.y) / pathRect.height());
+					curveDataValid = true;
+				}
+				break;
+			}
+		}
+
+		shape += "      </Section>\n";
+		shape += "    </Shape>\n";
 	}
 
 	return shape;
@@ -1125,7 +1252,6 @@ QString VsdxWriter::writeStyle(const QBrush& brush, const QPen& pen)
 	QColor penColor = pen.brush().color();
 
 	// Visio boilerplate stuff
-	//shape += "      <Cell N='TextBkgnd' V='#ffffff' F='THEMEGUARD(THEMEVAL(\"BackgroundColor\")+1)'/>\n";
 	shape += "      <Cell N='QuickStyleLineMatrix' V='1'/>\n";
 	shape += "      <Cell N='QuickStyleFillMatrix' V='1'/>\n";
 	shape += "      <Cell N='QuickStyleEffectsMatrix' V='1'/>\n";

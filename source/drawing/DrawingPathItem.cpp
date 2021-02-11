@@ -228,7 +228,14 @@ void DrawingPathItem::setProperties(const QHash<QString,QVariant>& properties)
 		}
 		else updateItemGeometry();
 	}
-	else updateItemGeometry();}
+	else updateItemGeometry();
+
+	if (properties.contains("position"))
+	{
+		QVariant variant = properties.value("position");
+		if (variant.canConvert<QPointF>()) setPosition(variant.value<QPointF>());
+	}
+}
 
 QHash<QString,QVariant> DrawingPathItem::properties() const
 {
@@ -236,6 +243,7 @@ QHash<QString,QVariant> DrawingPathItem::properties() const
 
 	properties.insert("pen", mPen);
 	properties.insert("rect", QRectF(mapToScene(mRect.topLeft()), mapToScene(mRect.bottomRight())));
+	properties.insert("position", position());
 
 	return properties;
 }
