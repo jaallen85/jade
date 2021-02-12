@@ -549,67 +549,42 @@ QString VsdxWriter::writePolylineItem(DrawingPolylineItem* item)
 
 	if (item)
 	{
+		QString indent(2 + 2 * mShapeDepth, ' ');
+		QString indentP(2 + 2 * mShapeDepth + 2, ' ');
+		QString indentPP(2 + 2 * mShapeDepth + 4, ' ');
+		QString indentPPP(2 + 2 * mShapeDepth + 6, ' ');
+		QRectF boundingRect = item->boundingRect();
 		QPolygonF polyline = item->polyline();
-		QPolygonF mappedPolyline;
-		for(auto pointIter = polyline.begin(); pointIter != polyline.end(); pointIter++)
-			mappedPolyline.append(mapFromScene(item->mapToScene(*pointIter)));
-		QRectF boundingRect = mappedPolyline.boundingRect();
+		QPointF point;
 		int rowIndex = 1;
-		qreal x, y, xFormulaScale, yFormulaScale;
 
 		mShapeIndex++;
+		shape += indent + QString("<Shape ID='%1' Type='Shape' LineStyle='3' FillStyle='3' TextStyle='3'>\n").arg(mShapeIndex);
 
-		QString indexStr = QString::number(mShapeIndex);
-		QString pinXStr = QString::number(boundingRect.left());
-		QString pinYStr = QString::number(boundingRect.bottom());
-		QString widthStr = QString::number(boundingRect.width());
-		QString heightStr = QString::number(boundingRect.height());
-		QString rowIndexStr, xStr, yStr, xFormulaStr, yFormulaStr;
-
-		shape += "    <Shape ID='" + indexStr + "' Type='Shape' LineStyle='3' FillStyle='3' TextStyle='3'>\n";
-		shape += "      <Cell N='PinX' V='" + pinXStr + "'/>\n";
-		shape += "      <Cell N='PinY' V='" + pinYStr + "'/>\n";
-		shape += "      <Cell N='Width' V='" + widthStr + "'/>\n";
-		shape += "      <Cell N='Height' V='" + heightStr + "'/>\n";
-		shape += "      <Cell N='LocPinX' V='0' F='Width*0'/>\n";
-		shape += "      <Cell N='LocPinY' V='" + heightStr + "' F='Height*1'/>\n";
-		shape += "      <Cell N='Angle' V='0'/>\n";
-		shape += "      <Cell N='FlipX' V='0'/>\n";
-		shape += "      <Cell N='FlipY' V='0'/>\n";
-		shape += "      <Cell N='ResizeMode' V='0'/>\n";
-
+		shape += writePositionAndSize(item->position(), item->boundingRect(), item->transform());
 		shape += writeStyle(Qt::transparent, item->pen());
 		shape += writeArrow(item->startArrow(), item->pen(), true);
 		shape += writeArrow(item->endArrow(), item->pen(), false);
 
-		shape += "      <Section N='Geometry' IX='0'>\n";
-		shape += "    	  <Cell N='NoFill' V='1'/>\n";
-		shape += "    	  <Cell N='NoLine' V='0'/>\n";
-		shape += "    	  <Cell N='NoShow' V='0'/>\n";
-		shape += "    	  <Cell N='NoSnap' V='0'/>\n";
-		shape += "    	  <Cell N='NoQuickDrag' V='0'/>\n";
+		shape += indentP + QString("<Section N='Geometry' IX='0'>\n");
+		shape += indentPP + QString("<Cell N='NoFill' V='1'/>\n");
+		shape += indentPP + QString("<Cell N='NoLine' V='0'/>\n");
+		shape += indentPP + QString("<Cell N='NoShow' V='0'/>\n");
+		shape += indentPP + QString("<Cell N='NoSnap' V='0'/>\n");
+		shape += indentPP + QString("<Cell N='NoQuickDrag' V='0'/>\n");
 
-		for(auto pointIter = mappedPolyline.begin(); pointIter != mappedPolyline.end(); pointIter++)
+		for(auto pointIter = polyline.begin(); pointIter != polyline.end(); pointIter++)
 		{
-			x = pointIter->x() - boundingRect.left();
-			y = pointIter->y() - boundingRect.top();
-			xFormulaScale = x / boundingRect.width();
-			yFormulaScale = y / boundingRect.height();
+			point.setX((pointIter->x() - boundingRect.left()) * mDrawingScale);
+			point.setY((boundingRect.bottom() - pointIter->y()) * mDrawingScale);
 
-			rowIndexStr = QString::number(rowIndex);
-			xStr = QString::number(x);
-			yStr = QString::number(y);
-			xFormulaStr = "Width*" + QString::number(xFormulaScale);
-			yFormulaStr = "Height*" + QString::number(yFormulaScale);
-
-			if (rowIndex == 1)
-				shape += "    	  <Row T='MoveTo' IX='" + rowIndexStr + "'>\n";
-			else
-				shape += "    	  <Row T='LineTo' IX='" + rowIndexStr + "'>\n";
-
-			shape += "          <Cell N='X' V='" + xStr + "' F='" + xFormulaStr + "'/>\n";
-			shape += "          <Cell N='Y' V='" + yStr + "' F='" + yFormulaStr + "'/>\n";
-			shape += "        </Row>\n";
+			shape += indentPP + QString("<Row T='%1' IX='%2'>\n").arg(
+				(rowIndex == 1) ? "MoveTo" : "LineTo").arg(rowIndex);
+			shape += indentPPP + QString("<Cell N='X' V='%1' F='Width*%2'/>\n").arg(
+				point.x(), 0, 'g', 10).arg(point.x() / boundingRect.width() / mDrawingScale, 0, 'g', 10);
+			shape += indentPPP + QString("<Cell N='Y' V='%1' F='Height*%2'/>\n").arg(
+				point.y(), 0, 'g', 10).arg(point.y() / boundingRect.height() / mDrawingScale, 0, 'g', 10);
+			shape += indentPP + QString("</Row>\n");
 
 			rowIndex++;
 		}
@@ -627,35 +602,19 @@ QString VsdxWriter::writePolygonItem(DrawingPolygonItem* item)
 
 	if (item)
 	{
+		QString indent(2 + 2 * mShapeDepth, ' ');
+		QString indentP(2 + 2 * mShapeDepth + 2, ' ');
+		QString indentPP(2 + 2 * mShapeDepth + 4, ' ');
+		QString indentPPP(2 + 2 * mShapeDepth + 6, ' ');
+		QRectF boundingRect = item->boundingRect();
 		QPolygonF polygon = item->polygon();
-		QPolygonF mappedPolygon;
-		for(auto pointIter = polygon.begin(); pointIter != polygon.end(); pointIter++)
-			mappedPolygon.append(mapFromScene(item->mapToScene(*pointIter)));
-		QRectF boundingRect = mappedPolygon.boundingRect();
+		QPointF point;
 		int rowIndex = 1;
-		qreal x, y, xFormulaScale, yFormulaScale;
 
 		mShapeIndex++;
+		shape += indent + QString("<Shape ID='%1' Type='Shape' LineStyle='3' FillStyle='3' TextStyle='3'>\n").arg(mShapeIndex);
 
-		QString indexStr = QString::number(mShapeIndex);
-		QString pinXStr = QString::number(boundingRect.left());
-		QString pinYStr = QString::number(boundingRect.bottom());
-		QString widthStr = QString::number(boundingRect.width());
-		QString heightStr = QString::number(boundingRect.height());
-		QString rowIndexStr, xStr, yStr, xFormulaStr, yFormulaStr;
-
-		shape += "    <Shape ID='" + indexStr + "' Type='Shape' LineStyle='3' FillStyle='3' TextStyle='3'>\n";
-		shape += "      <Cell N='PinX' V='" + pinXStr + "'/>\n";
-		shape += "      <Cell N='PinY' V='" + pinYStr + "'/>\n";
-		shape += "      <Cell N='Width' V='" + widthStr + "'/>\n";
-		shape += "      <Cell N='Height' V='" + heightStr + "'/>\n";
-		shape += "      <Cell N='LocPinX' V='0' F='Width*0'/>\n";
-		shape += "      <Cell N='LocPinY' V='" + heightStr + "' F='Height*1'/>\n";
-		shape += "      <Cell N='Angle' V='0'/>\n";
-		shape += "      <Cell N='FlipX' V='0'/>\n";
-		shape += "      <Cell N='FlipY' V='0'/>\n";
-		shape += "      <Cell N='ResizeMode' V='0'/>\n";
-
+		shape += writePositionAndSize(item->position(), item->boundingRect(), item->transform());
 		shape += writeStyle(item->brush(), item->pen());
 
 		shape += "      <Section N='Geometry' IX='0'>\n";
@@ -665,42 +624,29 @@ QString VsdxWriter::writePolygonItem(DrawingPolygonItem* item)
 		shape += "    	  <Cell N='NoSnap' V='0'/>\n";
 		shape += "    	  <Cell N='NoQuickDrag' V='0'/>\n";
 
-		for(auto pointIter = mappedPolygon.begin(); pointIter != mappedPolygon.end(); pointIter++)
+		for(auto pointIter = polygon.begin(); pointIter != polygon.end(); pointIter++)
 		{
-			x = pointIter->x() - boundingRect.left();
-			y = pointIter->y() - boundingRect.top();
-			xFormulaScale = x / boundingRect.width();
-			yFormulaScale = y / boundingRect.height();
+			point.setX((pointIter->x() - boundingRect.left()) * mDrawingScale);
+			point.setY((boundingRect.bottom() - pointIter->y()) * mDrawingScale);
 
-			rowIndexStr = QString::number(rowIndex);
-			xStr = QString::number(x);
-			yStr = QString::number(y);
-			xFormulaStr = "Width*" + QString::number(xFormulaScale);
-			yFormulaStr = "Height*" + QString::number(yFormulaScale);
-
-			if (rowIndex == 1)
-				shape += "    	  <Row T='MoveTo' IX='" + rowIndexStr + "'>\n";
-			else
-				shape += "    	  <Row T='LineTo' IX='" + rowIndexStr + "'>\n";
-
-			shape += "          <Cell N='X' V='" + xStr + "' F='" + xFormulaStr + "'/>\n";
-			shape += "          <Cell N='Y' V='" + yStr + "' F='" + yFormulaStr + "'/>\n";
-			shape += "        </Row>\n";
+			shape += indentPP + QString("<Row T='%1' IX='%2'>\n").arg(
+				(rowIndex == 1) ? "MoveTo" : "LineTo").arg(rowIndex);
+			shape += indentPPP + QString("<Cell N='X' V='%1' F='Width*%2'/>\n").arg(
+				point.x(), 0, 'g', 10).arg(point.x() / boundingRect.width() / mDrawingScale, 0, 'g', 10);
+			shape += indentPPP + QString("<Cell N='Y' V='%1' F='Height*%2'/>\n").arg(
+				point.y(), 0, 'g', 10).arg(point.y() / boundingRect.height() / mDrawingScale, 0, 'g', 10);
+			shape += indentPP + QString("</Row>\n");
 
 			rowIndex++;
 		}
 
-		x = mappedPolygon.first().x() - boundingRect.left();
-		y = mappedPolygon.first().y() - boundingRect.top();
+		point.setX((polygon.first().x() - boundingRect.left()) * mDrawingScale);
+		point.setY((boundingRect.bottom() - polygon.first().y()) * mDrawingScale);
 
-		rowIndexStr = QString::number(rowIndex);
-		xStr = QString::number(x);
-		yStr = QString::number(y);
-
-		shape += "    	  <Row T='LineTo' IX='" + rowIndexStr + "'>\n";
-		shape += "          <Cell N='X' V='" + xStr + "' F='Geometry1.X1'/>\n";
-		shape += "          <Cell N='Y' V='" + yStr + "' F='Geometry1.Y1'/>\n";
-		shape += "        </Row>\n";
+		shape += indentPP + QString("<Row T='LineTo' IX='%2'>\n").arg(rowIndex);
+		shape += indentPPP + QString("<Cell N='X' V='%1' F='Geometry1.X1'/>\n").arg(point.x(), 0, 'g', 10);
+		shape += indentPPP + QString("<Cell N='Y' V='%1' F='Geometry1.Y1'/>\n").arg(point.y(), 0, 'g', 10);
+		shape += indentPP + QString("</Row>\n");
 
 		shape += "      </Section>\n";
 		shape += "    </Shape>\n";
