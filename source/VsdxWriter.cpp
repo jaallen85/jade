@@ -589,8 +589,8 @@ QString VsdxWriter::writePolylineItem(DrawingPolylineItem* item)
 			rowIndex++;
 		}
 
-		shape += "      </Section>\n";
-		shape += "    </Shape>\n";
+		shape += indentP + QString("</Section>\n");
+		shape += indent + QString("</Shape>\n");
 	}
 
 	return shape;
@@ -617,12 +617,12 @@ QString VsdxWriter::writePolygonItem(DrawingPolygonItem* item)
 		shape += writePositionAndSize(item->position(), item->boundingRect(), item->transform());
 		shape += writeStyle(item->brush(), item->pen());
 
-		shape += "      <Section N='Geometry' IX='0'>\n";
-		shape += "    	  <Cell N='NoFill' V='0'/>\n";
-		shape += "    	  <Cell N='NoLine' V='0'/>\n";
-		shape += "    	  <Cell N='NoShow' V='0'/>\n";
-		shape += "    	  <Cell N='NoSnap' V='0'/>\n";
-		shape += "    	  <Cell N='NoQuickDrag' V='0'/>\n";
+		shape += indentP + QString("<Section N='Geometry' IX='0'>\n");
+		shape += indentPP + QString("<Cell N='NoFill' V='0'/>\n");
+		shape += indentPP + QString("<Cell N='NoLine' V='0'/>\n");
+		shape += indentPP + QString("<Cell N='NoShow' V='0'/>\n");
+		shape += indentPP + QString("<Cell N='NoSnap' V='0'/>\n");
+		shape += indentPP + QString("<Cell N='NoQuickDrag' V='0'/>\n");
 
 		for(auto pointIter = polygon.begin(); pointIter != polygon.end(); pointIter++)
 		{
@@ -648,8 +648,8 @@ QString VsdxWriter::writePolygonItem(DrawingPolygonItem* item)
 		shape += indentPPP + QString("<Cell N='Y' V='%1' F='Geometry1.Y1'/>\n").arg(point.y(), 0, 'g', 10);
 		shape += indentPP + QString("</Row>\n");
 
-		shape += "      </Section>\n";
-		shape += "    </Shape>\n";
+		shape += indentP + QString("</Section>\n");
+		shape += indent + QString("</Shape>\n");
 	}
 
 	return shape;
@@ -674,10 +674,10 @@ QString VsdxWriter::writeTextItem(DrawingTextItem* item)
 
 		shape += writePositionAndSize(item->position(), boundingRect, item->transform());
 
-		shape += indentPP + QString("<Cell N='LeftMargin' V='0.01388888888888889' U='PT'/>\n");
-		shape += indentPP + QString("<Cell N='RightMargin' V='0.01388888888888889' U='PT'/>\n");
-		shape += indentPP + QString("<Cell N='TopMargin' V='0' U='PT'/>\n");
-		shape += indentPP + QString("<Cell N='BottomMargin' V='0' U='PT'/>\n");
+		shape += indentP + QString("<Cell N='LeftMargin' V='0.01388888888888889' U='PT'/>\n");
+		shape += indentP + QString("<Cell N='RightMargin' V='0.01388888888888889' U='PT'/>\n");
+		shape += indentP + QString("<Cell N='TopMargin' V='0' U='PT'/>\n");
+		shape += indentP + QString("<Cell N='BottomMargin' V='0' U='PT'/>\n");
 
 		shape += writeStyle(Qt::transparent, Qt::NoPen, item->textBrush(), item->font(), item->alignment());
 
@@ -734,10 +734,10 @@ QString VsdxWriter::writeTextRectItem(DrawingTextRectItem* item)
 		if (item->cornerRadius() != 0)
 			shape += indentPP + QString("<Cell N='Rounding' V='%1'/>\n").arg(item->cornerRadius() * mDrawingScale, 0, 'g', 10);
 
-		shape += indentPP + QString("<Cell N='LeftMargin' V='0.01388888888888889' U='PT'/>\n");
-		shape += indentPP + QString("<Cell N='RightMargin' V='0.01388888888888889' U='PT'/>\n");
-		shape += indentPP + QString("<Cell N='TopMargin' V='0.01388888888888889' U='PT'/>\n");
-		shape += indentPP + QString("<Cell N='BottomMargin' V='0.01388888888888889' U='PT'/>\n");
+		shape += indentP + QString("<Cell N='LeftMargin' V='0.01388888888888889' U='PT'/>\n");
+		shape += indentP + QString("<Cell N='RightMargin' V='0.01388888888888889' U='PT'/>\n");
+		shape += indentP + QString("<Cell N='TopMargin' V='0.01388888888888889' U='PT'/>\n");
+		shape += indentP + QString("<Cell N='BottomMargin' V='0.01388888888888889' U='PT'/>\n");
 
 		shape += writeStyle(item->brush(), item->pen(), item->textBrush(), item->font(), Qt::AlignCenter);
 
@@ -792,10 +792,10 @@ QString VsdxWriter::writeTextEllipseItem(DrawingTextEllipseItem* item)
 
 		shape += writePositionAndSize(item->position(), item->boundingRect(), item->transform(), &shapeSize);
 
-		shape += indentPP + QString("<Cell N='LeftMargin' V='0.01388888888888889' U='PT'/>\n");
-		shape += indentPP + QString("<Cell N='RightMargin' V='0.01388888888888889' U='PT'/>\n");
-		shape += indentPP + QString("<Cell N='TopMargin' V='0.01388888888888889' U='PT'/>\n");
-		shape += indentPP + QString("<Cell N='BottomMargin' V='0.01388888888888889' U='PT'/>\n");
+		shape += indentP + QString("<Cell N='LeftMargin' V='0.01388888888888889' U='PT'/>\n");
+		shape += indentP + QString("<Cell N='RightMargin' V='0.01388888888888889' U='PT'/>\n");
+		shape += indentP + QString("<Cell N='TopMargin' V='0.01388888888888889' U='PT'/>\n");
+		shape += indentP + QString("<Cell N='BottomMargin' V='0.01388888888888889' U='PT'/>\n");
 
 		shape += writeStyle(item->brush(), item->pen(), item->textBrush(), item->font(), Qt::AlignCenter);
 
@@ -827,70 +827,28 @@ QString VsdxWriter::writePathItem(DrawingPathItem* item)
 
 	if (item)
 	{
-		/*qreal halfPenWidth = item->pen().widthF() / 2;
-		QRectF itemRect = item->boundingRect().adjusted(halfPenWidth, halfPenWidth, -halfPenWidth, -halfPenWidth);
-		QRectF rect = QRectF(mapFromScene(item->mapToScene(itemRect.topLeft())),
-							 mapFromScene(item->mapToScene(itemRect.bottomRight()))).normalized();*/
-
-		qreal halfPenWidth = item->pen().widthF() / 2;
-		QRectF itemRect = item->boundingRect().adjusted(halfPenWidth, halfPenWidth, -halfPenWidth, -halfPenWidth);
-
-		QPointF pinPosition = mapFromScene(item->position());
-		qreal width = itemRect.width() * mDrawingScale;
-		qreal height = itemRect.height() * mDrawingScale;
-		qreal locPinX = -itemRect.left() * mDrawingScale;
-		qreal locPinY = itemRect.bottom() * mDrawingScale;
-
-		qreal angle = 0;
-		if (item->transform().m12() != 0) angle = qAsin(item->transform().m12());
-		else angle = qAcos(item->transform().m11());
-
-		QTransform transform = item->transform();
-		transform.rotate(-angle * 180 / 3.141592654);
-		qreal hScale = transform.m11();
-		qreal vScale = transform.m22();
-
-		mShapeIndex++;
-
-		QString indexStr = QString::number(mShapeIndex);
-		QString pinXStr = QString::number(pinPosition.x());
-		QString pinYStr = QString::number(pinPosition.y());
-		QString widthStr = QString::number(width);
-		QString heightStr = QString::number(height);
-		QString locPinXStr = QString::number(locPinX);
-		QString locPinYStr = QString::number(locPinY);
-		QString locPinXFormulaStr = "Width*" + QString::number(locPinX / width);
-		QString locPinYFormulaStr = "Height*" + QString::number(locPinY / height);
-		QString angleStr = QString::number(angle, 'g', 10);
-		QString flipXStr = (hScale < 0) ? "1" : "0";
-		QString flipYStr = (vScale < 0) ? "1" : "0";
-
-		shape += "    <Shape ID='" + indexStr + "' Type='Shape' LineStyle='3' FillStyle='3' TextStyle='3'>\n";
-		shape += "      <Cell N='PinX' V='" + pinXStr + "'/>\n";
-		shape += "      <Cell N='PinY' V='" + pinYStr + "'/>\n";
-		shape += "      <Cell N='Width' V='" + widthStr + "'/>\n";
-		shape += "      <Cell N='Height' V='" + heightStr + "'/>\n";
-		shape += "      <Cell N='LocPinX' V='" + locPinXStr + "' F='" + locPinXFormulaStr + "'/>\n";
-		shape += "      <Cell N='LocPinY' V='" + locPinYStr + "' F='" + locPinYFormulaStr + "'/>\n";
-		shape += "      <Cell N='Angle' V='" + angleStr + "'/>\n";
-		shape += "      <Cell N='FlipX' V='" + flipXStr + "'/>\n";
-		shape += "      <Cell N='FlipY' V='" + flipYStr + "'/>\n";
-		shape += "      <Cell N='ResizeMode' V='0'/>\n";
-
-		shape += writeStyle(Qt::transparent, item->pen());
-
-		shape += "      <Section N='Geometry' IX='0'>\n";
-		shape += "    	  <Cell N='NoFill' V='1'/>\n";
-		shape += "    	  <Cell N='NoLine' V='0'/>\n";
-		shape += "    	  <Cell N='NoShow' V='0'/>\n";
-		shape += "    	  <Cell N='NoSnap' V='0'/>\n";
-		shape += "    	  <Cell N='NoQuickDrag' V='0'/>\n";
-
+		QString indent(2 + 2 * mShapeDepth, ' ');
+		QString indentP(2 + 2 * mShapeDepth + 2, ' ');
+		QString indentPP(2 + 2 * mShapeDepth + 4, ' ');
+		QString indentPPP(2 + 2 * mShapeDepth + 6, ' ');
 		QPainterPath path = item->path();
 		QRectF pathRect = item->pathRect();
 		int pathIndex = 1;
 		QPointF prevPoint, curveEndPoint, curveStartControlPoint, curveEndControlPoint;
 		bool curveDataValid = false;
+
+		mShapeIndex++;
+		shape += indent + QString("<Shape ID='%1' Type='Shape' LineStyle='3' FillStyle='3' TextStyle='3'>\n").arg(mShapeIndex);
+
+		shape += writePositionAndSize(item->position(), item->boundingRect(), item->transform());
+		shape += writeStyle(Qt::transparent, item->pen());
+
+		shape += indentP + QString("<Section N='Geometry' IX='0'>\n");
+		shape += indentPP + QString("<Cell N='NoFill' V='1'/>\n");
+		shape += indentPP + QString("<Cell N='NoLine' V='0'/>\n");
+		shape += indentPP + QString("<Cell N='NoShow' V='0'/>\n");
+		shape += indentPP + QString("<Cell N='NoSnap' V='0'/>\n");
+		shape += indentPP + QString("<Cell N='NoQuickDrag' V='0'/>\n");
 
 		for(int i = 0; i < path.elementCount(); i++)
 		{
@@ -901,19 +859,19 @@ QString VsdxWriter::writePathItem(DrawingPathItem* item)
 			case QPainterPath::MoveToElement:
 				prevPoint.setX((element.x - pathRect.left()) / pathRect.width());
 				prevPoint.setY((pathRect.bottom() - element.y) / pathRect.height());
-				shape += "		    <Row T=\"RelMoveTo\" IX=\"" + QString::number(pathIndex) + "\">\n";
-				shape += "		      <Cell N=\"X\" V=\"" + QString::number(prevPoint.x()) + "\"/>\n";
-				shape += "	    	  <Cell N=\"Y\" V=\"" + QString::number(prevPoint.y()) + "\"/>\n";
-				shape += "	    	</Row>\n";
+				shape += indentPP + QString("<Row T='RelMoveTo' IX='%1'>\n").arg(pathIndex);
+				shape += indentPPP + QString("<Cell N='X' V='%1'/>\n").arg(prevPoint.x(), 0, 'g', 10);
+				shape += indentPPP + QString("<Cell N='Y' V='%1'/>\n").arg(prevPoint.y(), 0, 'g', 10);
+				shape += indentPP + QString("</Row>\n");
 				pathIndex++;
 				break;
 			case QPainterPath::LineToElement:
 				prevPoint.setX((element.x - pathRect.left()) / pathRect.width());
 				prevPoint.setY((pathRect.bottom() - element.y) / pathRect.height());
-				shape += "		    <Row T=\"RelLineTo\" IX=\"" + QString::number(pathIndex) + "\">\n";
-				shape += "		      <Cell N=\"X\" V=\"" + QString::number(prevPoint.x()) + "\"/>\n";
-				shape += "		      <Cell N=\"Y\" V=\"" + QString::number(prevPoint.y()) + "\"/>\n";
-				shape += "		    </Row>\n";
+				shape += indentPP + QString("<Row T='RelLineTo' IX='%1'>\n").arg(pathIndex);
+				shape += indentPPP + QString("<Cell N='X' V='%1'/>\n").arg(prevPoint.x(), 0, 'g', 10);
+				shape += indentPPP + QString("<Cell N='Y' V='%1'/>\n").arg(prevPoint.y(), 0, 'g', 10);
+				shape += indentPP + QString("</Row>\n");
 				pathIndex++;
 				break;
 			case QPainterPath::CurveToElement:
@@ -927,14 +885,14 @@ QString VsdxWriter::writePathItem(DrawingPathItem* item)
 					curveEndPoint.setX((element.x - pathRect.left()) / pathRect.width());
 					curveEndPoint.setY((pathRect.bottom() - element.y) / pathRect.height());
 
-					shape += "		    <Row T=\"RelCubBezTo\" IX=\"" + QString::number(pathIndex) + "\">\n";
-					shape += "		      <Cell N=\"X\" V=\"" + QString::number(curveEndPoint.x()) + "\"/>\n";
-					shape += "		      <Cell N=\"Y\" V=\"" + QString::number(curveEndPoint.y()) + "\"/>\n";
-					shape += "		      <Cell N=\"A\" V=\"" + QString::number(curveStartControlPoint.x()) + "\"/>\n";
-					shape += "		      <Cell N=\"B\" V=\"" + QString::number(curveStartControlPoint.y()) + "\"/>\n";
-					shape += "		      <Cell N=\"C\" V=\"" + QString::number(curveEndControlPoint.x()) + "\"/>\n";
-					shape += "		      <Cell N=\"D\" V=\"" + QString::number(curveEndControlPoint.y()) + "\"/>\n";
-					shape += "		    </Row>\n";
+					shape += indentPP + QString("<Row T='RelCubBezTo' IX='%1'>\n").arg(pathIndex);
+					shape += indentPPP + QString("<Cell N='X' V='%1'/>\n").arg(curveEndPoint.x(), 0, 'g', 10);
+					shape += indentPPP + QString("<Cell N='Y' V='%1'/>\n").arg(curveEndPoint.y(), 0, 'g', 10);
+					shape += indentPPP + QString("<Cell N='A' V='%1'/>\n").arg(curveStartControlPoint.x(), 0, 'g', 10);
+					shape += indentPPP + QString("<Cell N='B' V='%1'/>\n").arg(curveStartControlPoint.y(), 0, 'g', 10);
+					shape += indentPPP + QString("<Cell N='C' V='%1'/>\n").arg(curveEndControlPoint.x(), 0, 'g', 10);
+					shape += indentPPP + QString("<Cell N='D' V='%1'/>\n").arg(curveEndControlPoint.y(), 0, 'g', 10);
+					shape += indentPP + QString("</Row>\n");
 					pathIndex++;
 
 					prevPoint = curveEndPoint;
@@ -950,8 +908,8 @@ QString VsdxWriter::writePathItem(DrawingPathItem* item)
 			}
 		}
 
-		shape += "      </Section>\n";
-		shape += "    </Shape>\n";
+		shape += indentP + QString("</Section>\n");
+		shape += indent + QString("</Shape>\n");
 	}
 
 	return shape;
@@ -963,7 +921,20 @@ QString VsdxWriter::writeGroupItem(DrawingItemGroup* item)
 
 	if (item)
 	{
+		/*QString indent(2 + 2 * mShapeDepth, ' ');
+		QString indentP(2 + 2 * mShapeDepth + 2, ' ');
+		QString indentPP(2 + 2 * mShapeDepth + 4, ' ');
+		QString indentPPP(2 + 2 * mShapeDepth + 6, ' ');
 
+		QString childItems = writeItems(item->items());
+
+		mShapeIndex++;
+		shape += indent + QString("<Shape ID='%1' Type='Shape' LineStyle='3' FillStyle='3' TextStyle='3'>\n").arg(mShapeIndex);
+
+		shape += writePositionAndSize(item->position(), item->boundingRect(), item->transform());
+		shape += childItems;
+
+		shape += indent + QString("</Shape>\n");*/
 	}
 
 	return shape;
@@ -1068,57 +1039,58 @@ QString VsdxWriter::writeStyle(const QBrush& brush, const QPen& pen)
 {
 	QString shape;
 
+	QString indentP(2 + 2 * mShapeDepth + 2, ' ');
 	QColor brushColor = brush.color();
 	QColor penColor = pen.brush().color();
 
 	// Visio boilerplate stuff
-	shape += "      <Cell N='QuickStyleLineMatrix' V='1'/>\n";
-	shape += "      <Cell N='QuickStyleFillMatrix' V='1'/>\n";
-	shape += "      <Cell N='QuickStyleEffectsMatrix' V='1'/>\n";
-	shape += "      <Cell N='QuickStyleFontMatrix' V='1'/>\n";
+	shape += indentP + "<Cell N='QuickStyleLineMatrix' V='1'/>\n";
+	shape += indentP + "<Cell N='QuickStyleFillMatrix' V='1'/>\n";
+	shape += indentP + "<Cell N='QuickStyleEffectsMatrix' V='1'/>\n";
+	shape += indentP + "<Cell N='QuickStyleFontMatrix' V='1'/>\n";
 
 	// Brush color
-	shape += "      <Cell N='FillForegnd' V='" + colorToString(brushColor) + "'/>\n";
+	shape += indentP + "<Cell N='FillForegnd' V='" + colorToString(brushColor) + "'/>\n";
 
 	if (brushColor.alpha() == 0)
-		shape += "      <Cell N='FillPattern' V='0'/>\n";
+		shape += indentP + "<Cell N='FillPattern' V='0'/>\n";
 	else
 	{
 		// Brush color alpha
 		if (brushColor.alpha() != 255)
 		{
-			shape += "      <Cell N='FillForegndTrans' V='" + QString::number(1.0 - brushColor.alphaF()) + "'/>\n";
-			shape += "      <Cell N='FillBkgndTrans' V='" + QString::number(1.0 - brushColor.alphaF()) + "'/>\n";
+			shape += indentP + "<Cell N='FillForegndTrans' V='" + QString::number(1.0 - brushColor.alphaF()) + "'/>\n";
+			shape += indentP + "<Cell N='FillBkgndTrans' V='" + QString::number(1.0 - brushColor.alphaF()) + "'/>\n";
 		}
 	}
 
 	// Pen width of 16.0 = 1 pt.  1 pt = 1/72 in.
-	shape += "      <Cell N='LineWeight' V='" + QString::number(pen.widthF() / 16 / 72) + "'/>\n";
+	shape += indentP + "<Cell N='LineWeight' V='" + QString::number(pen.widthF() / 16 / 72) + "'/>\n";
 
 	// Pen color
-	shape += "      <Cell N='LineColor' V='" + colorToString(penColor) + "'/>\n";
+	shape += indentP + "<Cell N='LineColor' V='" + colorToString(penColor) + "'/>\n";
 
 	if (penColor.alpha() == 0)
-		shape += "      <Cell N='LinePattern' V='0'/>\n";
+		shape += indentP + "<Cell N='LinePattern' V='0'/>\n";
 	else
 	{
 		// Pen color alpha
 		if (penColor.alpha() != 255)
-			shape += "      <Cell N='LineColorTrans' V='" + QString::number(1.0 - penColor.alphaF()) + "'/>\n";
+			shape += indentP + "<Cell N='LineColorTrans' V='" + QString::number(1.0 - penColor.alphaF()) + "'/>\n";
 
 		// Pen style
 		switch (pen.style())
 		{
 		case Qt::NoPen:
-			shape += "      <Cell N='LinePattern' V='0'/>\n";
+			shape += indentP + "<Cell N='LinePattern' V='0'/>\n";
 			break;
 		case Qt::DotLine:
-			shape += "      <Cell N='LinePattern' V='10'/>\n";
+			shape += indentP + "<Cell N='LinePattern' V='10'/>\n";
 			break;
 		case Qt::DashLine:
 		case Qt::DashDotLine:
 		case Qt::DashDotDotLine:
-			shape += "      <Cell N='LinePattern' V='9'/>\n";
+			shape += indentP + "<Cell N='LinePattern' V='9'/>\n";
 			break;
 		default:
 			break;
@@ -1132,6 +1104,10 @@ QString VsdxWriter::writeStyle(const QBrush& brush, const QPen& pen, const QBrus
 {
 	QString shape;
 
+	QString indentP(2 + 2 * mShapeDepth + 2, ' ');
+	QString indentPP(2 + 2 * mShapeDepth + 4, ' ');
+	QString indentPPP(2 + 2 * mShapeDepth + 6, ' ');
+
 	// Alignment
 	Qt::Alignment verticalAlignment = (alignment & Qt::AlignVertical_Mask);
 
@@ -1140,7 +1116,7 @@ QString VsdxWriter::writeStyle(const QBrush& brush, const QPen& pen, const QBrus
 	else if (verticalAlignment & Qt::AlignBottom) verticalAlignValue = 2;
 
 	if (verticalAlignValue != 1)
-		shape += "      <Cell N='VerticalAlign' V='" + QString::number(verticalAlignValue) + "'/>\n";
+		shape += indentP + "<Cell N='VerticalAlign' V='" + QString::number(verticalAlignValue) + "'/>\n";
 
 	shape += writeStyle(brush, pen);
 
@@ -1152,11 +1128,11 @@ QString VsdxWriter::writeStyle(const QBrush& brush, const QPen& pen, const QBrus
 
 	if (horizontalAlignValue != 1)
 	{
-		shape += "      <Section N='Paragraph'>\n";
-		shape += "        <Row IX='0'>\n";
-		shape += "          <Cell N='HorzAlign' V='" + QString::number(horizontalAlignValue) + "'/>\n";
-		shape += "        </Row>\n";
-		shape += "      </Section>\n";
+		shape += indentP + "<Section N='Paragraph'>\n";
+		shape += indentPP + "<Row IX='0'>\n";
+		shape += indentPPP + "<Cell N='HorzAlign' V='" + QString::number(horizontalAlignValue) + "'/>\n";
+		shape += indentPP + "</Row>\n";
+		shape += indentP + "</Section>\n";
 	}
 
 	// Font and text brush
@@ -1173,7 +1149,7 @@ QString VsdxWriter::writeStyle(const QBrush& brush, const QPen& pen, const QBrus
 
 		if (font.underline()) fontStyle += 4;
 
-		shape += "      <Section N='Character'>\n";
+		shape += indentP + "<Section N='Character'>\n";
 		shape += "	      <Row IX='0'>\n";
 		if (fontName != "")
 			shape += "	        <Cell N='Font' V='" + fontName + "'/>\n";
@@ -1200,6 +1176,7 @@ QString VsdxWriter::writeArrow(const DrawingArrow& arrow, const QPen& pen, bool 
 
 	if (arrow.style() != Drawing::ArrowNone)
 	{
+		QString indentP(2 + 2 * mShapeDepth + 2, ' ');
 		QString arrowStr = "0";
 		QString arrowSizeStr = "2";
 
@@ -1222,13 +1199,13 @@ QString VsdxWriter::writeArrow(const DrawingArrow& arrow, const QPen& pen, bool 
 
 		if (startArrow)
 		{
-			shape += "      <Cell N='BeginArrow' V='" + arrowStr + "'/>\n";
-			shape += "      <Cell N='BeginArrowSize' V='" + arrowSizeStr + "'/>\n";
+			shape += indentP + "<Cell N='BeginArrow' V='" + arrowStr + "'/>\n";
+			shape += indentP + "<Cell N='BeginArrowSize' V='" + arrowSizeStr + "'/>\n";
 		}
 		else
 		{
-			shape += "      <Cell N='EndArrow' V='" + arrowStr + "'/>\n";
-			shape += "      <Cell N='EndArrowSize' V='" + arrowSizeStr + "'/>\n";
+			shape += indentP + "<Cell N='EndArrow' V='" + arrowStr + "'/>\n";
+			shape += indentP + "<Cell N='EndArrowSize' V='" + arrowSizeStr + "'/>\n";
 		}
 	}
 
