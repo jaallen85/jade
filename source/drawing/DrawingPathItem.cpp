@@ -406,7 +406,7 @@ void DrawingPathItem::updateItemGeometry()
 
 	if (isValid())
 	{
-		qreal halfPenWidth = mPen.widthF() / 2;
+		//qreal halfPenWidth = mPen.widthF() / 2;
 		QRectF normalizedRect = mRect.normalized();
 		QPainterPath drawPath;
 
@@ -415,7 +415,7 @@ void DrawingPathItem::updateItemGeometry()
 
 		// Bounding rect
 		mBoundingRect = normalizedRect;
-		mBoundingRect.adjust(-halfPenWidth, -halfPenWidth, halfPenWidth, halfPenWidth);
+		//mBoundingRect.adjust(-halfPenWidth, -halfPenWidth, halfPenWidth, halfPenWidth);
 
 		// Shape
 		//drawPath = mTransformedPath;

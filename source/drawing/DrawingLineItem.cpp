@@ -312,12 +312,12 @@ void DrawingLineItem::updateItemGeometry()
 
 	if (isValid())
 	{
-		qreal halfPenWidth = mPen.widthF() / 2;
+		//qreal halfPenWidth = mPen.widthF() / 2;
 		QPainterPath drawPath;
 
 		// Bounding rect (doesn't include arrows)
 		mBoundingRect = QRectF(mLine.p1(), mLine.p2()).normalized();
-		mBoundingRect.adjust(-halfPenWidth, -halfPenWidth, halfPenWidth, halfPenWidth);
+		//mBoundingRect.adjust(-halfPenWidth, -halfPenWidth, halfPenWidth, halfPenWidth);
 
 		// Shape (includes arrows)
 		drawPath.moveTo(mLine.p1());

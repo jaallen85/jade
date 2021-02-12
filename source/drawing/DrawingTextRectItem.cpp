@@ -248,12 +248,12 @@ void DrawingTextRectItem::updateItemGeometry()
 
 	if (isValid())
 	{
-		qreal halfPenWidth = pen().widthF() / 2;
+		//qreal halfPenWidth = pen().widthF() / 2;
 		QRectF normalizedRect = rect().normalized();
 
 		// Bounding rect
 		mRectBoundingRect = normalizedRect;
-		if (pen().style() != Qt::NoPen) mRectBoundingRect.adjust(-halfPenWidth, -halfPenWidth, halfPenWidth, halfPenWidth);
+		//if (pen().style() != Qt::NoPen) mRectBoundingRect.adjust(-halfPenWidth, -halfPenWidth, halfPenWidth, halfPenWidth);
 
 		mBoundingRect = mRectBoundingRect;
 		mBoundingRect = mBoundingRect.united(mTextBoundingRect);

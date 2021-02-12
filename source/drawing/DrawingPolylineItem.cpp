@@ -362,11 +362,11 @@ void DrawingPolylineItem::updateItemGeometry()
 
 	if (isValid())
 	{
-		qreal halfPenWidth = mPen.widthF() / 2;
+		//qreal halfPenWidth = mPen.widthF() / 2;
 
 		// Bounding rect
 		mBoundingRect = mPolyline.boundingRect().normalized();
-		mBoundingRect.adjust(-halfPenWidth, -halfPenWidth, halfPenWidth, halfPenWidth);
+		//mBoundingRect.adjust(-halfPenWidth, -halfPenWidth, halfPenWidth, halfPenWidth);
 
 		// Shape
 		mStrokePath.moveTo(mPolyline.first());

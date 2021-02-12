@@ -373,11 +373,11 @@ void DrawingCurveItem::updateItemGeometry()
 
 	if (isValid())
 	{
-		qreal halfPenWidth = mPen.widthF() / 2;
+		//qreal halfPenWidth = mPen.widthF() / 2;
 
 		// Bounding rect
 		mBoundingRect = mStrokeRect;
-		mBoundingRect.adjust(-halfPenWidth, -halfPenWidth, halfPenWidth, halfPenWidth);
+		//mBoundingRect.adjust(-halfPenWidth, -halfPenWidth, halfPenWidth, halfPenWidth);
 
 		// Shape
 		mShape = strokePath(mStrokeShape, mPen);

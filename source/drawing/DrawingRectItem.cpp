@@ -304,13 +304,13 @@ void DrawingRectItem::updateItemGeometry()
 
 	if (isValid())
 	{
-		qreal halfPenWidth = mPen.widthF() / 2;
+		//qreal halfPenWidth = mPen.widthF() / 2;
 		QRectF normalizedRect = mRect.normalized();
 		QPainterPath drawPath;
 
 		// Bounding rect
 		mBoundingRect = normalizedRect;
-		if (mPen.style() != Qt::NoPen) mBoundingRect.adjust(-halfPenWidth, -halfPenWidth, halfPenWidth, halfPenWidth);
+		//if (mPen.style() != Qt::NoPen) mBoundingRect.adjust(-halfPenWidth, -halfPenWidth, halfPenWidth, halfPenWidth);
 
 		// Shape
 		if (mPen.style() != Qt::NoPen)
