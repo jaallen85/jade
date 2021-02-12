@@ -941,7 +941,17 @@ QString VsdxWriter::writeReferenceItem(DrawingReferenceItem* item)
 
 	if (item)
 	{
+		DrawingItem* referenceItem = mDrawing->referenceItem(item->referenceName());
 
+		if (referenceItem)
+		{
+			referenceItem->setPosition(item->mapToScene(referenceItem->position()));
+			referenceItem->setTransform(item->transform(), true);
+
+			QList<DrawingItem*> items;
+			items.append(referenceItem);
+			shape = writeItems(items, false);
+		}
 	}
 
 	return shape;
