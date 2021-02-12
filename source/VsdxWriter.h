@@ -72,7 +72,7 @@ private:
 	QString writeDocument();
 	QString writeWindows();
 
-	QString writeItems(const QList<DrawingItem*>& items);
+	QString writeItems(const QList<DrawingItem*>& items, bool increaseDepth = true);
 	QString writeRectItem(DrawingRectItem* item);
 	QString writeEllipseItem(DrawingEllipseItem* item);
 	QString writeLineItem(DrawingLineItem* item);

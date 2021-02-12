@@ -326,12 +326,12 @@ QString VsdxWriter::writeWindows()
 
 //==================================================================================================
 
-QString VsdxWriter::writeItems(const QList<DrawingItem*>& items)
+QString VsdxWriter::writeItems(const QList<DrawingItem*>& items, bool increaseDepth)
 {
 	QString shapes;
 	QString key;
 
-	mShapeDepth++;
+	if (increaseDepth) mShapeDepth++;
 
 	for(auto itemIter = items.begin(); itemIter != items.end(); itemIter++)
 	{
@@ -351,7 +351,7 @@ QString VsdxWriter::writeItems(const QList<DrawingItem*>& items)
 		else if (key == "reference") shapes += writeReferenceItem(dynamic_cast<DrawingReferenceItem*>(*itemIter));
 	}
 
-	mShapeDepth--;
+	if (increaseDepth) mShapeDepth--;
 
 	return shapes;
 }
@@ -921,20 +921,15 @@ QString VsdxWriter::writeGroupItem(DrawingItemGroup* item)
 
 	if (item)
 	{
-		/*QString indent(2 + 2 * mShapeDepth, ' ');
-		QString indentP(2 + 2 * mShapeDepth + 2, ' ');
-		QString indentPP(2 + 2 * mShapeDepth + 4, ' ');
-		QString indentPPP(2 + 2 * mShapeDepth + 6, ' ');
+		// Ungroup items
+		QList<DrawingItem*> itemsUngrouped = DrawingItem::copyItems(item->items());
+		for(auto iter = itemsUngrouped.begin(); iter != itemsUngrouped.end(); iter++)
+		{
+			(*iter)->setPosition(item->mapToScene((*iter)->position()));
+			(*iter)->setTransform(item->transform(), true);
+		}
 
-		QString childItems = writeItems(item->items());
-
-		mShapeIndex++;
-		shape += indent + QString("<Shape ID='%1' Type='Shape' LineStyle='3' FillStyle='3' TextStyle='3'>\n").arg(mShapeIndex);
-
-		shape += writePositionAndSize(item->position(), item->boundingRect(), item->transform());
-		shape += childItems;
-
-		shape += indent + QString("</Shape>\n");*/
+		shape = writeItems(itemsUngrouped, false);
 	}
 
 	return shape;
