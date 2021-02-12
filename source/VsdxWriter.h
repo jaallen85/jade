@@ -50,6 +50,7 @@ private:
 	qreal mPageMargin;
 
 	int mShapeIndex;
+	int mShapeDepth;
 
 public:
 	VsdxWriter(DrawingWidget* drawing);
@@ -85,21 +86,16 @@ private:
 	QString writeGroupItem(DrawingItemGroup* item);
 	QString writeReferenceItem(DrawingReferenceItem* item);
 
+	QString writePositionAndSize(const QPointF& position, const QRectF& boundingRect, const QTransform& transform, QSizeF* shapeSize = nullptr);
+	QString writePositionAndSizeForLine(const QPointF& begin, const QPointF& end, QSizeF* shapeSize = nullptr);
+
 	QString writeStyle(const QBrush& brush, const QPen& pen);
 	QString writeStyle(const QBrush& brush, const QPen& pen, const QBrush& textBrush, const QFont& font, Qt::Alignment alignment);
 	QString writeArrow(const DrawingArrow& arrow, const QPen& pen, bool startArrow);
 
-	/*void writeArrow(DrawingItem* item, const DrawingArrow& arrow, const QPen& pen);
-
-	QString colorToString(const QColor& color) const;
-	QString pointsToString(const QPolygonF& polygon) const;
-	QString styleToString(const QBrush& brush, const QPen& pen);
-	QString styleToString(const QBrush& brush, const QPen& pen, const QFont& font, Qt::Alignment alignment);
-	QString transformToString(const QPointF& position, const QTransform& transform) const;*/
-
-	QString colorToString(const QColor& color) const;
-
 	QPointF mapFromScene(const QPointF& position) const;
+
+	QString colorToString(const QColor& color) const;
 };
 
 #endif
