@@ -27,9 +27,9 @@ StylesWidget::StylesWidget() : QListWidget(), mContextMenu(nullptr)
 
 void StylesWidget::createContextMenu()
 {
-    QAction* newAction = addAction("New...", this, SLOT(newStyle()), ":/icons/archive-insert.png");
+    QAction* newAction = addAction("New...", this, SLOT(insertStyle()), ":/icons/archive-insert.png");
     QAction* editAction = addAction("Edit...", this, SLOT(editStyle()), ":/icons/document-edit.png");
-    QAction* removeAction = addAction("Remove", this, SLOT(removeAction()), ":/icons/archive-remove.png");
+    QAction* removeAction = addAction("Remove", this, SLOT(removeStyle()), ":/icons/archive-remove.png");
 
     mContextMenu = new QMenu(this);
     mContextMenu->addAction(newAction);
@@ -48,6 +48,23 @@ QAction* StylesWidget::addAction(const QString& text, const QObject* slotObject,
 
     QListWidget::addAction(action);
     return action;
+}
+
+//======================================================================================================================
+
+void StylesWidget::insertStyle()
+{
+
+}
+
+void StylesWidget::editStyle()
+{
+
+}
+
+void StylesWidget::removeStyle()
+{
+
 }
 
 //======================================================================================================================

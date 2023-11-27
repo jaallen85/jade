@@ -36,6 +36,13 @@ private:
     QAction* addAction(const QString& text, const QObject* slotObject, const char* slotFunction,
                        const QString& iconPath = QString());
 
+public slots:
+    void insertPage();
+    void duplicatePage();
+    void renamePage();
+    void removePage();
+
+private:
     void contextMenuEvent(QContextMenuEvent* event) override;
 };
 

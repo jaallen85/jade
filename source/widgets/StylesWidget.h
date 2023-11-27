@@ -36,6 +36,12 @@ private:
     QAction* addAction(const QString& text, const QObject* slotObject, const char* slotFunction,
                        const QString& iconPath = QString());
 
+public slots:
+    void insertStyle();
+    void editStyle();
+    void removeStyle();
+
+private:
     void contextMenuEvent(QContextMenuEvent* event) override;
 };
 

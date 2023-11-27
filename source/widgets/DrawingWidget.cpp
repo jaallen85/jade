@@ -157,7 +157,7 @@ void DrawingWidget::createNew()
 
 bool DrawingWidget::load(const QString& fileName)
 {
-    return isClean();
+    return OdgDrawing::load(fileName);
 }
 
 bool DrawingWidget::save(const QString& fileName)
@@ -182,6 +182,16 @@ void DrawingWidget::setScale(double scale)
 
 }
 
+void DrawingWidget::zoomIn()
+{
+
+}
+
+void DrawingWidget::zoomOut()
+{
+
+}
+
 void DrawingWidget::zoomFit()
 {
 
@@ -194,7 +204,147 @@ void DrawingWidget::zoomFitAll()
 
 //======================================================================================================================
 
+void DrawingWidget::insertPage()
+{
+
+}
+
+void DrawingWidget::duplicatePage()
+{
+
+}
+
+void DrawingWidget::removePage()
+{
+
+}
+
+//======================================================================================================================
+
+void DrawingWidget::undo()
+{
+
+}
+
+void DrawingWidget::redo()
+{
+
+}
+
+//======================================================================================================================
+
+void DrawingWidget::removeItems()
+{
+
+}
+
+//======================================================================================================================
+
+void DrawingWidget::cut()
+{
+
+}
+
+void DrawingWidget::copy()
+{
+
+}
+
+void DrawingWidget::paste()
+{
+
+}
+
+//======================================================================================================================
+
+void DrawingWidget::selectAll()
+{
+
+}
+
+void DrawingWidget::selectNone()
+{
+
+}
+
+//======================================================================================================================
+
+void DrawingWidget::rotate()
+{
+
+}
+
+void DrawingWidget::rotateBack()
+{
+
+}
+
+void DrawingWidget::flipHorizontal()
+{
+
+}
+
+void DrawingWidget::flipVertical()
+{
+
+}
+
+//======================================================================================================================
+
+void DrawingWidget::bringForward()
+{
+
+}
+
+void DrawingWidget::sendBackward()
+{
+
+}
+
+void DrawingWidget::bringToFront()
+{
+
+}
+
+void DrawingWidget::sendToBack()
+{
+
+}
+
+//======================================================================================================================
+
+void DrawingWidget::group()
+{
+
+}
+
+void DrawingWidget::ungroup()
+{
+
+}
+
+//======================================================================================================================
+
+void DrawingWidget::insertPoint()
+{
+
+}
+
+void DrawingWidget::removePoint()
+{
+
+}
+
+//======================================================================================================================
+
 void DrawingWidget::contextMenuEvent(QContextMenuEvent* event)
 {
     mContextMenu->popup(event->globalPos());
+}
+
+//======================================================================================================================
+
+void DrawingWidget::setModeFromAction(QAction* action)
+{
+
 }

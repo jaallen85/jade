@@ -21,6 +21,8 @@ cmake_minimum_required(VERSION 3.22)
 set(PROJECT_NAME     Jade)
 set(PROJECT_VERSION  1.5.0)
 set(QT6_PATH         "C:/dev/qt/6.5.3/msvc2019_64")
+set(QUAZIP_PATH      "C:/dev/quazip")
+set(ZLIB_PATH        "C:/dev/zlib")
 
 # Build settings
 project(${PROJECT_NAME} VERSION ${PROJECT_VERSION} LANGUAGES CXX)
@@ -32,8 +34,12 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-set(CMAKE_PREFIX_PATH ${QT6_PATH})
+set(CMAKE_PREFIX_PATH ${QT6_PATH};${QUAZIP_PATH})
 find_package(Qt6 REQUIRED COMPONENTS Widgets)
+
+set(ZLIB_INCLUDE_DIR ${ZLIB_PATH}/include)
+set(ZLIB_LIBRARY ${ZLIB_PATH}/lib/zlib.lib)
+find_package(QuaZip-Qt6)
 
 add_executable(${PROJECT_NAME} WIN32
     icons/icons.qrc
@@ -60,6 +66,7 @@ configure_file(source/version.h.in version.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Widgets)
+target_link_libraries(${PROJECT_NAME} PRIVATE QuaZip::QuaZip)
 
 set(BUILD_DIR $<TARGET_FILE_DIR:${PROJECT_NAME}>)
 set(PLATFORM_SUBDIR $<TARGET_FILE_DIR:${PROJECT_NAME}>/platforms)
@@ -72,7 +79,10 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
         COMMAND ${CMAKE_COMMAND} -E make_directory ${PLATFORM_SUBDIR}
         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${QT6_PATH}/plugins/platforms/qwindowsd.dll" ${PLATFORM_SUBDIR}
         COMMAND ${CMAKE_COMMAND} -E make_directory ${STYLES_SUBDIR}
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${QT6_PATH}/plugins/styles/qwindowsvistastyled.dll" ${STYLES_SUBDIR})
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${QT6_PATH}/plugins/styles/qwindowsvistastyled.dll" ${STYLES_SUBDIR}
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${QT6_PATH}/bin/Qt6Core5Compatd.dll" ${BUILD_DIR}
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${QUAZIP_PATH}/bin/quazip1-qt6d.dll" ${BUILD_DIR}
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${ZLIB_PATH}/bin/zlibd.dll" ${BUILD_DIR})
 else()
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${QT6_PATH}/bin/Qt6Core.dll" ${BUILD_DIR}
@@ -81,7 +91,10 @@ else()
         COMMAND ${CMAKE_COMMAND} -E make_directory ${PLATFORM_SUBDIR}
         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${QT6_PATH}/plugins/platforms/qwindows.dll" ${PLATFORM_SUBDIR}
         COMMAND ${CMAKE_COMMAND} -E make_directory ${STYLES_SUBDIR}
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${QT6_PATH}/plugins/styles/qwindowsvistastyle.dll" ${STYLES_SUBDIR})
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${QT6_PATH}/plugins/styles/qwindowsvistastyle.dll" ${STYLES_SUBDIR}
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${QT6_PATH}/bin/Qt6Core5Compat.dll" ${BUILD_DIR}
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${QUAZIP_PATH}/bin/quazip1-qt6.dll" ${BUILD_DIR}
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${ZLIB_PATH}/bin/zlib.dll" ${BUILD_DIR})
 endif()
 
 # Install settings
@@ -91,3 +104,6 @@ install(FILES "${QT6_PATH}/bin/Qt6Gui.dll" DESTINATION ".")
 install(FILES "${QT6_PATH}/bin/Qt6Widgets.dll" DESTINATION ".")
 install(FILES "${QT6_PATH}/plugins/platforms/qwindows.dll" DESTINATION "platforms")
 install(FILES "${QT6_PATH}/plugins/styles/qwindowsvistastyle.dll" DESTINATION "styles")
+install(FILES "${QT6_PATH}/bin/Qt6Core5Compat.dll" DESTINATION ".")
+install(FILES "${QUAZIP_PATH}/bin/quazip1-qt6.dll" DESTINATION ".")
+install(FILES "${ZLIB_PATH}/bin/zlib.dll" DESTINATION ".")

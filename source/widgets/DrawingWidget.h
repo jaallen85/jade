@@ -56,23 +56,61 @@ private:
 
 public:
     void createNew();
-    bool load(const QString& fileName);
+    bool load(const QString& fileName) override;
     bool save(const QString& fileName);
     void clear();
     bool isClean() const;
 
 public slots:
     void setScale(double scale);
+    void zoomIn();
+    void zoomOut();
     void zoomFit();
     void zoomFitAll();
 
+    void undo();
+    void redo();
+
+    void insertPage();
+    void duplicatePage();
+    void removePage();
+
+    void removeItems();
+
+    void cut();
+    void copy();
+    void paste();
+
+    void selectAll();
+    void selectNone();
+
+    void rotate();
+    void rotateBack();
+    void flipHorizontal();
+    void flipVertical();
+
+    void bringForward();
+    void sendBackward();
+    void bringToFront();
+    void sendToBack();
+
+    void group();
+    void ungroup();
+
+    void insertPoint();
+    void removePoint();
+
 signals:
+    void scaleChanged(double scale);
     void modeTextChanged(const QString& modeText);
     void cleanTextChanged(const QString& modeText);
     void mouseInfoChanged(const QString& modeText);
 
 private:
     void contextMenuEvent(QContextMenuEvent* event) override;
+
+private slots:
+    void setModeFromAction(QAction* action);
 };
 
 #endif

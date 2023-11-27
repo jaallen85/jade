@@ -15,6 +15,9 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "OdgDrawing.h"
+#include <QFile>
+#include <quazip.h>
+#include <quazipfile.h>
 
 OdgDrawing::OdgDrawing() : mUnits(Millimeters)
 {
@@ -31,6 +34,35 @@ OdgDrawing::~OdgDrawing()
 OdgDrawing::Units OdgDrawing::units() const
 {
     return mUnits;
+}
+
+//======================================================================================================================
+
+#include <QDebug>
+
+bool OdgDrawing::load(const QString& fileName)
+{
+    QFile file(fileName);
+    if (!file.open(QFile::ReadOnly)) return false;
+
+    QuaZip odgArchive(&file);
+    if (!odgArchive.open(QuaZip::mdUnzip)) return false;
+
+    //for(auto& name : odgArchive.getFileNameList())
+    //    qDebug() << name;
+
+    QuaZipFile odgFile(&odgArchive);
+    odgArchive.setCurrentFile("styles.xml");
+    if (!odgFile.open(QFile::ReadOnly)) return false;
+    qDebug() << odgFile.read(256);
+    odgFile.close();
+
+    odgArchive.setCurrentFile("content.xml");
+    if (!odgFile.open(QFile::ReadOnly)) return false;
+    qDebug() << odgFile.read(256);
+    odgFile.close();
+
+    return true;
 }
 
 //======================================================================================================================

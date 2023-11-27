@@ -54,6 +54,28 @@ QAction* PagesWidget::addAction(const QString& text, const QObject* slotObject, 
 
 //======================================================================================================================
 
+void PagesWidget::insertPage()
+{
+
+}
+
+void PagesWidget::duplicatePage()
+{
+
+}
+
+void PagesWidget::renamePage()
+{
+
+}
+
+void PagesWidget::removePage()
+{
+
+}
+
+//======================================================================================================================
+
 void PagesWidget::contextMenuEvent(QContextMenuEvent* event)
 {
     mContextMenu->popup(event->globalPos());

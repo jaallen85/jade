@@ -17,6 +17,8 @@
 #ifndef ODGDRAWING_H
 #define ODGDRAWING_H
 
+#include <QString>
+
 class OdgDrawing
 {
 public:
@@ -30,6 +32,8 @@ public:
     virtual ~OdgDrawing();
 
     Units units() const;
+
+    virtual bool load(const QString& fileName);
 
 public:
     static double convertUnits(double value, Units units, Units newUnits);
