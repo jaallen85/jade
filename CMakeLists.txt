@@ -45,6 +45,14 @@ add_executable(${PROJECT_NAME} WIN32
     icons/icons.qrc
     source/odg/OdgDrawing.h
     source/odg/OdgDrawing.cpp
+    source/odg/OdgGlobal.h
+    source/odg/OdgGlobal.cpp
+    source/odg/OdgMarker.h
+    source/odg/OdgMarker.cpp
+    source/odg/OdgReader.h
+    source/odg/OdgReader.cpp
+    source/odg/OdgStyle.h
+    source/odg/OdgStyle.cpp
     source/widgets/DrawingWidget.h
     source/widgets/DrawingWidget.cpp
     source/widgets/PagesWidget.h

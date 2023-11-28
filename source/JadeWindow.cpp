@@ -547,13 +547,13 @@ void JadeWindow::setZoomLevel(const QString& zoomLevelText)
         bool zoomLevelOk = false;
 
         if (zoomLevelText.endsWith("%"))
-            zoomLevel = zoomLevelText.left(zoomLevelText.size() - 1).toDouble(&zoomLevelOk);
+            zoomLevel = zoomLevelText.first(zoomLevelText.size() - 1).toDouble(&zoomLevelOk);
         else
             zoomLevel = zoomLevelText.toDouble(&zoomLevelOk);
 
         if (zoomLevelOk)
         {
-            double scale = zoomLevel * DrawingWidget::convertUnits(2, mDrawingWidget->units(), DrawingWidget::Inches);
+            double scale = zoomLevel * Odg::convertUnits(2, mDrawingWidget->units(), Odg::UnitsInches);
             mDrawingWidget->setScale(scale);
             mZoomCombo->clearFocus();
         }
@@ -562,7 +562,7 @@ void JadeWindow::setZoomLevel(const QString& zoomLevelText)
 
 void JadeWindow::setZoomComboText(qreal scale)
 {
-    double zoomLevel = scale / DrawingWidget::convertUnits(2, mDrawingWidget->units(), DrawingWidget::Inches);
+    double zoomLevel = scale / Odg::convertUnits(2, mDrawingWidget->units(), Odg::UnitsInches);
     mZoomCombo->setCurrentText(QString::number(zoomLevel, 'f', 2) + "%");
 }
 

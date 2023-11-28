@@ -15,74 +15,205 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "OdgDrawing.h"
+#include "OdgReader.h"
+#include "OdgStyle.h"
 #include <QFile>
 #include <quazip.h>
 #include <quazipfile.h>
 
-OdgDrawing::OdgDrawing() : mUnits(Millimeters)
+OdgDrawing::OdgDrawing() : mUnits(Odg::UnitsMillimeters), mStyles()
 {
 
 }
 
 OdgDrawing::~OdgDrawing()
 {
-
+    qDeleteAll(mStyles);
 }
 
 //======================================================================================================================
 
-OdgDrawing::Units OdgDrawing::units() const
+Odg::Units OdgDrawing::units() const
 {
     return mUnits;
 }
 
 //======================================================================================================================
 
-#include <QDebug>
-
 bool OdgDrawing::load(const QString& fileName)
 {
-    QFile file(fileName);
-    if (!file.open(QFile::ReadOnly)) return false;
+    QFile odgFile(fileName);
+    if (!odgFile.open(QFile::ReadOnly)) return false;
 
-    QuaZip odgArchive(&file);
+    QuaZip odgArchive(&odgFile);
     if (!odgArchive.open(QuaZip::mdUnzip)) return false;
 
-    //for(auto& name : odgArchive.getFileNameList())
-    //    qDebug() << name;
+    QuaZipFile xmlFile(&odgArchive);
+    OdgReader xml;
 
-    QuaZipFile odgFile(&odgArchive);
+    // Read document styles from styles.xml
     odgArchive.setCurrentFile("styles.xml");
-    if (!odgFile.open(QFile::ReadOnly)) return false;
-    qDebug() << odgFile.read(256);
-    odgFile.close();
+    if (!xmlFile.open(QFile::ReadOnly)) return false;
 
+    xml.setDevice(&xmlFile);
+    if (!xml.readNextStartElement() || xml.qualifiedName() != QStringLiteral("office:document-styles")) return false;
+    readDocumentStyles(&xml);
+    xmlFile.close();
+
+    // Read document content from content.xml
     odgArchive.setCurrentFile("content.xml");
-    if (!odgFile.open(QFile::ReadOnly)) return false;
-    qDebug() << odgFile.read(256);
-    odgFile.close();
+    if (!xmlFile.open(QFile::ReadOnly)) return false;
 
+    xml.setDevice(&xmlFile);
+    if (!xml.readNextStartElement() || xml.qualifiedName() != QStringLiteral("office:document-content")) return false;
+    readDocumentContent(&xml);
+
+    xmlFile.close();
+
+    odgFile.close();
     return true;
 }
 
 //======================================================================================================================
 
-double OdgDrawing::convertUnits(double value, Units units, Units newUnits)
+void OdgDrawing::readDocumentStyles(OdgReader* xml)
 {
-    // Bypass this function if both provided units are identical (no conversion necessary)
-    if (units == newUnits) return value;
+    // No attributes for <office:document-styles> element
 
-    double unitsConversionFactorToMeters = 1.0, newUnitsConversionFactorFromMeters = 1.0;
+    // Read <office:document-styles> sub-elements
+    while (xml->readNextStartElement())
+    {
+        if (xml->qualifiedName() == QStringLiteral("office:styles"))
+            readStyles(xml);
+        else if (xml->qualifiedName() == QStringLiteral("office:automatic-styles"))
+            readAutomaticPageStyles(xml);
+        else if (xml->qualifiedName() == QStringLiteral("office:master-styles"))
+            readMasterPageStyles(xml);
+        else
+            xml->skipCurrentElement();
+    }
 
-    if (units == Inches)
-        unitsConversionFactorToMeters = 0.0254;
-    else
-        unitsConversionFactorToMeters = 0.001;
+    xml->skipCurrentElement();
+}
 
-    if (newUnits == Inches)
-        newUnitsConversionFactorFromMeters = 1 / 0.0254;
-    else
-        newUnitsConversionFactorFromMeters = 1000;
+void OdgDrawing::readStyles(OdgReader* xml)
+{
+    // No attributes for <office:styles> element
 
-    return value * unitsConversionFactorToMeters * newUnitsConversionFactorFromMeters;
+    // Read <office:styles> sub-elements
+    while (xml->readNextStartElement())
+    {
+        if (xml->qualifiedName() == QStringLiteral("style:default-style"))
+        {
+            OdgStyle* defaultStyle = new OdgStyle(mUnits, true);
+            defaultStyle->readFromXml(xml, mStyles);
+            mStyles.prepend(defaultStyle);
+        }
+        else if (xml->qualifiedName() == QStringLiteral("style:style"))
+        {
+            OdgStyle* style = new OdgStyle(mUnits);
+            style->readFromXml(xml, mStyles);
+            mStyles.append(style);
+        }
+        else xml->skipCurrentElement();
+    }
+}
+
+void OdgDrawing::readAutomaticPageStyles(OdgReader* xml)
+{
+    // No attributes for <office:automatic-styles> element
+
+    // Todo: Read <office:automatic-styles> sub-elements
+    xml->skipCurrentElement();
+}
+
+void OdgDrawing::readMasterPageStyles(OdgReader* xml)
+{
+    // No attributes for <office:master-styles> element
+
+    // Todo: Read <office:master-styles> sub-elements
+    xml->skipCurrentElement();
+}
+
+//======================================================================================================================
+
+#include <QDebug>
+
+void OdgDrawing::readDocumentContent(OdgReader* xml)
+{
+    QList<OdgStyle*> contentStyles;
+
+    // No attributes for <office:document-content> element
+
+    // Read <office:document-content> sub-elements
+    while (xml->readNextStartElement())
+    {
+        if (xml->qualifiedName() == QStringLiteral("office:automatic-styles"))
+            readContentStyles(xml, contentStyles);
+        else if (xml->qualifiedName() == QStringLiteral("office:body"))
+            readBody(xml);
+        else
+            xml->skipCurrentElement();
+    }
+
+    xml->skipCurrentElement();
+
+    qDeleteAll(contentStyles);
+}
+
+void OdgDrawing::readContentStyles(OdgReader* xml, QList<OdgStyle*>& contentStyles)
+{
+    // No attributes for <office:automatic-styles> element
+
+    // Todo: Read <office:automatic-styles> sub-elements
+    while (xml->readNextStartElement())
+    {
+        if (xml->qualifiedName() == QStringLiteral("style:style"))
+        {
+            OdgStyle* style = new OdgStyle(mUnits);
+            style->readFromXml(xml, mStyles);
+            contentStyles.append(style);
+        }
+        else xml->skipCurrentElement();
+    }
+}
+
+void OdgDrawing::readBody(OdgReader* xml)
+{
+    // No attributes for <office:body> element
+
+    // Read <office:body> sub-elements
+    while (xml->readNextStartElement())
+    {
+        if (xml->qualifiedName() == QStringLiteral("office:drawing"))
+            readDrawing(xml);
+        else
+            xml->skipCurrentElement();
+    }
+}
+
+void OdgDrawing::readDrawing(OdgReader* xml)
+{
+    // No attributes for <office:drawing> element
+
+    // Read <office:drawing> sub-elements
+    while (xml->readNextStartElement())
+    {
+        if (xml->qualifiedName() == QStringLiteral("draw:page"))
+            readPage(xml);
+        else
+            xml->skipCurrentElement();
+    }
+}
+
+void OdgDrawing::readPage(OdgReader* xml)
+{
+    // No attributes for <office:page> element
+
+    // Read <office:page> sub-elements
+    while (xml->readNextStartElement())
+    {
+        qDebug() << xml->qualifiedName();
+        xml->skipCurrentElement();
+    }
 }

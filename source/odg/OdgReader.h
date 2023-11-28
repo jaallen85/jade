@@ -1,4 +1,4 @@
-// File: OdgDrawing.h
+// File: OdgReader.h
 // Copyright (C) 2023  Jason Allen
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,41 +14,22 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef ODGDRAWING_H
-#define ODGDRAWING_H
+#ifndef ODGREADER_H
+#define ODGREADER_H
 
-#include <QList>
+#include <QXmlStreamReader>
 #include "OdgGlobal.h"
 
-class OdgReader;
-class OdgStyle;
-
-class OdgDrawing
+class OdgReader : public QXmlStreamReader
 {
 private:
     Odg::Units mUnits;
 
-    QList<OdgStyle*> mStyles;
-
 public:
-    OdgDrawing();
-    virtual ~OdgDrawing();
+    OdgReader();
 
-    Odg::Units units() const;
-
-    virtual bool load(const QString& fileName);
-
-private:
-    void readDocumentStyles(OdgReader* xml);
-    void readStyles(OdgReader* xml);
-    void readAutomaticPageStyles(OdgReader* xml);
-    void readMasterPageStyles(OdgReader* xml);
-
-    void readDocumentContent(OdgReader* xml);
-    void readContentStyles(OdgReader* xml, QList<OdgStyle*>& contentStyles);
-    void readBody(OdgReader* xml);
-    void readDrawing(OdgReader* xml);
-    void readPage(OdgReader* xml);
+    double lengthFromString(const QString& str) const;
+    double percentFromString(const QString& str) const;
 };
 
 #endif
