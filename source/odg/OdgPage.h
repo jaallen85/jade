@@ -1,4 +1,4 @@
-// File: OdgMarker.cpp
+// File: OdgPage.h
 // Copyright (C) 2023  Jason Allen
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,11 +14,38 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "OdgMarker.h"
+#ifndef ODGPAGE_H
+#define ODGPAGE_H
 
-OdgMarker::OdgMarker(Odg::MarkerStyle style, double size) : mStyle(style), mSize(size)
+#include <QList>
+#include <QString>
+
+class QPainter;
+class OdgItem;
+
+class OdgPage
 {
-    // Nothing more to do here.
-}
+private:
+    QString mName;
 
-//======================================================================================================================
+    QList<OdgItem*> mItems;
+
+public:
+    OdgPage(const QString& name = QString());
+    ~OdgPage();
+
+    void setName(const QString& name);
+    QString name() const;
+
+    void addItem(OdgItem* item);
+    void insertItem(int index, OdgItem* item);
+    void removeItem(OdgItem* item);
+    void clearItems();
+    QList<OdgItem*> items() const;
+
+    void paint(QPainter* painter);
+
+    void scaleBy(double scale);
+};
+
+#endif

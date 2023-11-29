@@ -20,7 +20,7 @@
 OdgReader::OdgReader() : QXmlStreamReader(),
     mUnits(Odg::UnitsInches), mPageSize(8.2, 6.2), mPageMargins(0.1, 0.1, 0.1, 0.1)
 {
-    // Nothing to do here.
+    // Nothing more to do here.
 }
 
 //======================================================================================================================

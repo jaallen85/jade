@@ -18,11 +18,12 @@
 #define ODGDRAWING_H
 
 #include <QColor>
-#include <QList>
 #include <QMarginsF>
-#include <QSizeF>
+#include <QRectF>
 #include "OdgGlobal.h"
 
+class QPainter;
+class OdgPage;
 class OdgReader;
 class OdgStyle;
 
@@ -42,6 +43,8 @@ private:
 
     QList<OdgStyle*> mStyles;
 
+    QList<OdgPage*> mPages;
+
 public:
     OdgDrawing();
     virtual ~OdgDrawing();
@@ -54,6 +57,8 @@ public:
     QSizeF pageSize() const;
     QMarginsF pageMargins() const;
     QColor backgroundColor() const;
+    QRectF pageRect() const;
+    QRectF contentRect() const;
 
     void setGrid(double grid);
     void setGridVisible(bool visible);
@@ -65,7 +70,24 @@ public:
     QColor gridColor() const;
     int gridSpacingMajor() const;
     int gridSpacingMinor() const;
+    double roundToGrid(double value) const;
+    QPointF roundToGrid(const QPointF& position) const;
 
+    void addStyle(OdgStyle* style);
+    void insertStyle(int index, OdgStyle* style);
+    void removeStyle(OdgStyle* style);
+    void clearStyles();
+    QList<OdgStyle*> styles() const;
+
+    void addPage(OdgPage* page);
+    void insertPage(int index, OdgPage* page);
+    void removePage(OdgPage* page);
+    void clearPages();
+    QList<OdgPage*> pages() const;
+
+    void paint(QPainter* painter, bool isExport = false);
+
+    virtual bool save(const QString& fileName);
     virtual bool load(const QString& fileName);
 
 private:

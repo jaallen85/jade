@@ -51,6 +51,12 @@ add_executable(${PROJECT_NAME} WIN32
     source/odg/OdgGlobal.cpp
     source/odg/OdgMarker.h
     source/odg/OdgMarker.cpp
+    source/odg/OdgItem.h
+    source/odg/OdgItem.cpp
+    source/odg/OdgMarker.h
+    source/odg/OdgMarker.cpp
+    source/odg/OdgPage.h
+    source/odg/OdgPage.cpp
     source/odg/OdgReader.h
     source/odg/OdgReader.cpp
     source/odg/OdgStyle.h

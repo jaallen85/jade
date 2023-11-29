@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "OdgDrawing.h"
+#include "OdgPage.h"
 #include "OdgReader.h"
 #include "OdgStyle.h"
 #include <QFile>
@@ -23,14 +24,16 @@
 
 OdgDrawing::OdgDrawing() :
     mUnits(Odg::UnitsInches), mPageSize(8.2, 6.2), mPageMargins(0.1, 0.1, 0.1, 0.1), mBackgroundColor(255, 255, 255),
-    mGrid(0.05), mGridVisible(true), mGridColor(77, 153, 153), mGridSpacingMajor(8), mGridSpacingMinor(2), mStyles()
+    mGrid(0.05), mGridVisible(true), mGridColor(77, 153, 153), mGridSpacingMajor(8), mGridSpacingMinor(2),
+    mStyles(), mPages()
 {
-
+    // Nothing more to do here.
 }
 
 OdgDrawing::~OdgDrawing()
 {
-    qDeleteAll(mStyles);
+    clearPages();
+    clearStyles();
 }
 
 //======================================================================================================================
@@ -49,7 +52,14 @@ void OdgDrawing::setUnits(Odg::Units units)
         mPageMargins.setTop(mPageMargins.top() * scaleFactor);
         mPageMargins.setRight(mPageMargins.right() * scaleFactor);
         mPageMargins.setBottom(mPageMargins.bottom() * scaleFactor);
+
         mGrid *= scaleFactor;
+
+        for(auto& style : qAsConst(mStyles))
+            style->scaleBy(scaleFactor);
+
+        for(auto& page : qAsConst(mPages))
+            page->scaleBy(scaleFactor);
     }
 }
 
@@ -88,6 +98,17 @@ QMarginsF OdgDrawing::pageMargins() const
 QColor OdgDrawing::backgroundColor() const
 {
     return mBackgroundColor;
+}
+
+QRectF OdgDrawing::pageRect() const
+{
+    return QRectF(-mPageMargins.left(), -mPageMargins.top(), mPageSize.width(), mPageSize.height());
+}
+
+QRectF OdgDrawing::contentRect() const
+{
+    return QRectF(0, 0, mPageSize.width() - mPageMargins.left() - mPageMargins.right(),
+                  mPageSize.height() - mPageMargins.top() - mPageMargins.bottom());
 }
 
 //======================================================================================================================
@@ -142,7 +163,95 @@ int OdgDrawing::gridSpacingMinor() const
     return mGridSpacingMinor;
 }
 
+double OdgDrawing::roundToGrid(double value) const
+{
+    qreal result = value;
+
+    if (mGrid > 0)
+    {
+        qreal mod = fmod(value, mGrid);
+        result = value - mod;
+        if (mod >= mGrid/2) result += mGrid;
+        else if (mod <= -mGrid/2) result -= mGrid;
+    }
+
+    return result;
+}
+
+QPointF OdgDrawing::roundToGrid(const QPointF& position) const
+{
+    return QPointF(roundToGrid(position.x()), roundToGrid(position.y()));
+}
+
 //======================================================================================================================
+
+void OdgDrawing::addStyle(OdgStyle* style)
+{
+    if (style) mStyles.append(style);
+}
+
+void OdgDrawing::insertStyle(int index, OdgStyle* style)
+{
+    if (style) mStyles.insert(index, style);
+}
+
+void OdgDrawing::removeStyle(OdgStyle* style)
+{
+    if (style) mStyles.removeAll(style);
+}
+
+void OdgDrawing::clearStyles()
+{
+    qDeleteAll(mStyles);
+    mStyles.clear();
+}
+
+QList<OdgStyle*> OdgDrawing::styles() const
+{
+    return mStyles;
+}
+
+//======================================================================================================================
+
+void OdgDrawing::addPage(OdgPage* page)
+{
+    if (page) mPages.append(page);
+}
+
+void OdgDrawing::insertPage(int index, OdgPage* page)
+{
+    if (page) mPages.insert(index, page);
+}
+
+void OdgDrawing::removePage(OdgPage* page)
+{
+    if (page) mPages.removeAll(page);
+}
+
+void OdgDrawing::clearPages()
+{
+    qDeleteAll(mPages);
+    mStyles.clear();
+}
+
+QList<OdgPage*> OdgDrawing::pages() const
+{
+    return mPages;
+}
+
+//======================================================================================================================
+
+void OdgDrawing::paint(QPainter* painter, bool isExport)
+{
+
+}
+
+//======================================================================================================================
+
+bool OdgDrawing::save(const QString& fileName)
+{
+    return true;
+}
 
 bool OdgDrawing::load(const QString& fileName)
 {

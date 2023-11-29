@@ -426,6 +426,18 @@ bool OdgStyle::isTextColorValid() const
 
 //======================================================================================================================
 
+void OdgStyle::scaleBy(double scale)
+{
+    mPenWidth *= scale;
+
+    mStartMarkerSize *= scale;
+    mEndMarkerSize *= scale;
+
+    mFontSize *= scale;
+    mTextPadding.setWidth(mTextPadding.width() * scale);
+    mTextPadding.setHeight(mTextPadding.height() * scale);
+}
+
 void OdgStyle::clear()
 {
     mName.clear();

@@ -146,6 +146,7 @@ public:
     bool isTextPaddingValid() const;
     bool isTextColorValid() const;
 
+    void scaleBy(double scale);
     void clear();
 
     void readFromXml(OdgReader* xml, const QList<OdgStyle*>& styles);

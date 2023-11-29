@@ -19,13 +19,13 @@
 OdgFontStyle::OdgFontStyle(bool bold, bool italic, bool underline, bool strikeOut) :
     mBold(bold), mItalic(italic), mUnderline(underline), mStrikeOut(strikeOut)
 {
-    // Nothing to do here.
+    // Nothing more to do here.
 }
 
 OdgFontStyle::OdgFontStyle(const OdgFontStyle& other) :
     mBold(other.mBold), mItalic(other.mItalic), mUnderline(other.mUnderline), mStrikeOut(other.mStrikeOut)
 {
-    // Nothing to do here.
+    // Nothing more to do here.
 }
 
 //======================================================================================================================
