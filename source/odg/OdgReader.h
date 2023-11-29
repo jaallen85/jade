@@ -18,6 +18,8 @@
 #define ODGREADER_H
 
 #include <QColor>
+#include <QMarginsF>
+#include <QSizeF>
 #include <QXmlStreamReader>
 #include "OdgGlobal.h"
 
@@ -25,15 +27,24 @@ class OdgReader : public QXmlStreamReader
 {
 private:
     Odg::Units mUnits;
+    QSizeF mPageSize;
+    QMarginsF mPageMargins;
 
 public:
     OdgReader();
 
     void setUnits(Odg::Units units);
+    void setPageSize(const QSizeF& size);
+    void setPageMargins(const QMarginsF& margins);
     Odg::Units units() const;
+    QSizeF pageSize() const;
+    QMarginsF pageMargins() const;
 
+    double lengthFromString(const QStringView& str) const;
     double lengthFromString(const QString& str) const;
+    double percentFromString(const QStringView& str) const;
     double percentFromString(const QString& str) const;
+    QColor colorFromString(const QStringView& str) const;
     QColor colorFromString(const QString& str) const;
 };
 

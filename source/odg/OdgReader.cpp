@@ -17,9 +17,10 @@
 #include "OdgReader.h"
 #include <QRegularExpression>
 
-OdgReader::OdgReader() : QXmlStreamReader(), mUnits(Odg::UnitsMillimeters)
+OdgReader::OdgReader() : QXmlStreamReader(),
+    mUnits(Odg::UnitsInches), mPageSize(8.2, 6.2), mPageMargins(0.1, 0.1, 0.1, 0.1)
 {
-
+    // Nothing to do here.
 }
 
 //======================================================================================================================
@@ -29,14 +30,35 @@ void OdgReader::setUnits(Odg::Units units)
     mUnits = units;
 }
 
+void OdgReader::setPageSize(const QSizeF& size)
+{
+    if (size.width() > 0 && size.height() > 0) mPageSize = size;
+}
+
+void OdgReader::setPageMargins(const QMarginsF& margins)
+{
+    if (margins.left() >= 0 && margins.top() >= 0 && margins.right() >= 0 && margins.bottom() >= 0)
+        mPageMargins = margins;
+}
+
 Odg::Units OdgReader::units() const
 {
     return mUnits;
 }
 
+QSizeF OdgReader::pageSize() const
+{
+    return mPageSize;
+}
+
+QMarginsF OdgReader::pageMargins() const
+{
+    return mPageMargins;
+}
+
 //======================================================================================================================
 
-double OdgReader::lengthFromString(const QString& str) const
+double OdgReader::lengthFromString(const QStringView& str) const
 {
     static const QRegularExpression re(R"([-+]?(?:(?:\d*\.\d+)|(?:\d+\.?))(?:[Ee][+-]?\d+)?)");
 
@@ -48,7 +70,7 @@ double OdgReader::lengthFromString(const QString& str) const
         if (!lengthOk) return 0;
 
         bool unitsOk = false;
-        QString unitsStr = str.last(str.size() - match.captured(0).size()).trimmed();
+        QStringView unitsStr = str.last(str.size() - match.captured(0).size()).trimmed();
         Odg::Units units = Odg::unitsFromString(unitsStr, &unitsOk);
 
         if (!unitsOk)
@@ -63,9 +85,14 @@ double OdgReader::lengthFromString(const QString& str) const
     return 0;
 }
 
-double OdgReader::percentFromString(const QString& str) const
+double OdgReader::lengthFromString(const QString& str) const
 {
-    if (str.endsWith("%"))
+    return lengthFromString(QStringView(str));
+}
+
+double OdgReader::percentFromString(const QStringView& str) const
+{
+    if (str.endsWith(QStringLiteral("%")))
     {
         bool valueOk = false;
         double value = str.first(str.size() - 1).toDouble(&valueOk);
@@ -75,6 +102,16 @@ double OdgReader::percentFromString(const QString& str) const
     bool valueOk = false;
     double value = str.toDouble(&valueOk);
     return (valueOk) ? value : 0;
+}
+
+double OdgReader::percentFromString(const QString& str) const
+{
+    return percentFromString(QStringView(str));
+}
+
+QColor OdgReader::colorFromString(const QStringView& str) const
+{
+    return QColor(str);
 }
 
 QColor OdgReader::colorFromString(const QString& str) const

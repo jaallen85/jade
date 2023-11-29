@@ -19,6 +19,8 @@
 
 #include <QColor>
 #include <QList>
+#include <QMarginsF>
+#include <QSizeF>
 #include "OdgGlobal.h"
 
 class OdgReader;
@@ -28,6 +30,9 @@ class OdgDrawing
 {
 private:
     Odg::Units mUnits;
+    QSizeF mPageSize;
+    QMarginsF mPageMargins;
+    QColor mBackgroundColor;
 
     double mGrid;
     bool mGridVisible;
@@ -42,7 +47,13 @@ public:
     virtual ~OdgDrawing();
 
     void setUnits(Odg::Units units);
+    void setPageSize(const QSizeF& size);
+    void setPageMargins(const QMarginsF& margins);
+    void setBackgroundColor(const QColor& color);
     Odg::Units units() const;
+    QSizeF pageSize() const;
+    QMarginsF pageMargins() const;
+    QColor backgroundColor() const;
 
     void setGrid(double grid);
     void setGridVisible(bool visible);
@@ -67,12 +78,16 @@ private:
     void readStyles(OdgReader* xml);
     void readAutomaticPageStyles(OdgReader* xml);
     void readMasterPageStyles(OdgReader* xml);
+    void readPageLayout(OdgReader* xml);
+    void readPageStyle(OdgReader* xml);
+    void readMasterPage(OdgReader* xml);
 
     void readDocumentContent(OdgReader* xml);
     void readContentStyles(OdgReader* xml, QList<OdgStyle*>& contentStyles);
     void readBody(OdgReader* xml);
     void readDrawing(OdgReader* xml);
     void readPage(OdgReader* xml);
+    void readItems(OdgReader* xml);
 };
 
 #endif

@@ -26,29 +26,37 @@ double convertUnits(double value, Units units, Units newUnits)
 
     double unitsConversionFactorToMeters = 1.0, newUnitsConversionFactorFromMeters = 1.0;
 
-    if (units == UnitsInches)
+    switch (units)
+    {
+    case UnitsInches:
         unitsConversionFactorToMeters = 0.0254;
-    else
+        break;
+    default:    // UnitsMillimeters
         unitsConversionFactorToMeters = 0.001;
+        break;
+    }
 
-    if (newUnits == UnitsInches)
+    switch (newUnits)
+    {
+    case UnitsInches:
         newUnitsConversionFactorFromMeters = 1 / 0.0254;
-    else
+        break;
+    default:    // UnitsMillimeters
         newUnitsConversionFactorFromMeters = 1000;
+        break;
+    }
 
     return value * unitsConversionFactorToMeters * newUnitsConversionFactorFromMeters;
 }
 
-Units unitsFromString(const QString& str, bool* ok)
+Units unitsFromString(const QStringView& str, bool* ok)
 {
-    const QString lowerStr = str.toLower();
-
-    if (lowerStr == "mm")
+    if (str.compare(QStringLiteral("mm"), Qt::CaseInsensitive) == 0)
     {
         if (ok) *ok = true;
         return UnitsMillimeters;
     }
-    if (lowerStr == "in")
+    if (str.compare(QStringLiteral("in"), Qt::CaseInsensitive) == 0)
     {
         if (ok) *ok = true;
         return UnitsInches;
@@ -56,6 +64,11 @@ Units unitsFromString(const QString& str, bool* ok)
 
     if (ok) *ok = false;
     return UnitsMillimeters;
+}
+
+Units unitsFromString(const QString& str, bool* ok)
+{
+    return unitsFromString(QStringView(str), ok);
 }
 
 }

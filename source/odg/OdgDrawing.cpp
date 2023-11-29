@@ -21,7 +21,8 @@
 #include <quazip.h>
 #include <quazipfile.h>
 
-OdgDrawing::OdgDrawing() : mUnits(Odg::UnitsInches),
+OdgDrawing::OdgDrawing() :
+    mUnits(Odg::UnitsInches), mPageSize(8.2, 6.2), mPageMargins(0.1, 0.1, 0.1, 0.1), mBackgroundColor(255, 255, 255),
     mGrid(0.05), mGridVisible(true), mGridColor(77, 153, 153), mGridSpacingMajor(8), mGridSpacingMinor(2), mStyles()
 {
 
@@ -42,16 +43,51 @@ void OdgDrawing::setUnits(Odg::Units units)
 
         mUnits = units;
 
+        mPageSize.setWidth(mPageSize.width() * scaleFactor);
+        mPageSize.setHeight(mPageSize.height() * scaleFactor);
+        mPageMargins.setLeft(mPageMargins.left() * scaleFactor);
+        mPageMargins.setTop(mPageMargins.top() * scaleFactor);
+        mPageMargins.setRight(mPageMargins.right() * scaleFactor);
+        mPageMargins.setBottom(mPageMargins.bottom() * scaleFactor);
         mGrid *= scaleFactor;
-
-        //for(auto& page : qAsConst(mPages))
-        //    page->scale(scaleFactor);
     }
 }
+
+void OdgDrawing::setPageSize(const QSizeF& size)
+{
+    if (size.width() > 0 && size.height() > 0) mPageSize = size;
+}
+
+void OdgDrawing::setPageMargins(const QMarginsF& margins)
+{
+    if (margins.left() >= 0 && margins.top() >= 0 && margins.right() >= 0 && margins.bottom() >= 0)
+        mPageMargins = margins;
+}
+
+void OdgDrawing::setBackgroundColor(const QColor& color)
+{
+    mBackgroundColor = color;
+}
+
 
 Odg::Units OdgDrawing::units() const
 {
     return mUnits;
+}
+
+QSizeF OdgDrawing::pageSize() const
+{
+    return mPageSize;
+}
+
+QMarginsF OdgDrawing::pageMargins() const
+{
+    return mPageMargins;
+}
+
+QColor OdgDrawing::backgroundColor() const
+{
+    return mBackgroundColor;
 }
 
 //======================================================================================================================
@@ -148,6 +184,7 @@ bool OdgDrawing::load(const QString& fileName)
     xmlFile.close();
 
     odgFile.close();
+
     return true;
 }
 
@@ -220,7 +257,7 @@ void OdgDrawing::readConfigItem(OdgReader* xml)
             xml->setUnits(mUnits);
         }
         else if (name == QStringLiteral("grid") && type == QStringLiteral("double"))
-            setGrid(text.toDouble());
+            setGrid(xml->lengthFromString(text));
         else if (name == QStringLiteral("gridVisible") && type == QStringLiteral("boolean"))
             setGridVisible(text.trimmed().toLower() == "true");
         else if (name == QStringLiteral("gridColor") && type == QStringLiteral("string"))
@@ -283,8 +320,16 @@ void OdgDrawing::readAutomaticPageStyles(OdgReader* xml)
 {
     // No attributes for <office:automatic-styles> element
 
-    // Todo: Read <office:automatic-styles> sub-elements
-    xml->skipCurrentElement();
+    // Read <office:automatic-styles> sub-elements
+    while (xml->readNextStartElement())
+    {
+        if (xml->qualifiedName() == QStringLiteral("style:page-layout"))
+            readPageLayout(xml);
+        else if (xml->qualifiedName() == QStringLiteral("style:style"))
+            readPageStyle(xml);
+        else
+            xml->skipCurrentElement();
+    }
 }
 
 void OdgDrawing::readMasterPageStyles(OdgReader* xml)
@@ -292,6 +337,116 @@ void OdgDrawing::readMasterPageStyles(OdgReader* xml)
     // No attributes for <office:master-styles> element
 
     // Todo: Read <office:master-styles> sub-elements
+    while (xml->readNextStartElement())
+    {
+        if (xml->qualifiedName() == QStringLiteral("style:master-page"))
+            readMasterPage(xml);
+        else
+            xml->skipCurrentElement();
+    }
+}
+
+void OdgDrawing::readPageLayout(OdgReader* xml)
+{
+    // ASSUMPTION: Each ODG document contains one and only one style:page-layout element
+
+    // Ignore attributes for <style:page-layout> element
+
+    // Read sub-elements for <style:page-layout>
+    while (xml->readNextStartElement())
+    {
+        if (xml->qualifiedName() == QStringLiteral("style:page-layout-properties"))
+        {
+            // Read attributes for <style:page-layout-properties> element
+            const QXmlStreamAttributes attributes = xml->attributes();
+            for(auto& attribute : attributes)
+            {
+                if (attribute.qualifiedName() == QStringLiteral("fo:page-width"))
+                {
+                    setPageSize(QSizeF(xml->lengthFromString(attribute.value()), mPageSize.height()));
+                    xml->setPageSize(mPageSize);
+                }
+                else if (attribute.qualifiedName() == QStringLiteral("fo:page-height"))
+                {
+                    setPageSize(QSizeF(mPageSize.width(), xml->lengthFromString(attribute.value())));
+                    xml->setPageSize(mPageSize);
+                }
+                else if (attribute.qualifiedName() == QStringLiteral("fo:margin-left"))
+                {
+                    setPageMargins(QMarginsF(xml->lengthFromString(attribute.value()), mPageMargins.top(),
+                                             mPageMargins.right(), mPageMargins.bottom()));
+                    xml->setPageMargins(mPageMargins);
+                }
+                else if (attribute.qualifiedName() == QStringLiteral("fo:margin-top"))
+                {
+                    setPageMargins(QMarginsF(mPageMargins.left(), xml->lengthFromString(attribute.value()),
+                                             mPageMargins.right(), mPageMargins.bottom()));
+                    xml->setPageMargins(mPageMargins);
+                }
+                else if (attribute.qualifiedName() == QStringLiteral("fo:margin-right"))
+                {
+                    setPageMargins(QMarginsF(mPageMargins.left(), mPageMargins.top(),
+                                             xml->lengthFromString(attribute.value()), mPageMargins.bottom()));
+                    xml->setPageMargins(mPageMargins);
+                }
+                else if (attribute.qualifiedName() == QStringLiteral("fo:margin-bottom"))
+                {
+                    setPageMargins(QMarginsF(mPageMargins.left(), mPageMargins.top(),
+                                             mPageMargins.right(), xml->lengthFromString(attribute.value())));
+                    xml->setPageMargins(mPageMargins);
+                }
+            }
+        }
+
+        xml->skipCurrentElement();
+    }
+}
+
+void OdgDrawing::readPageStyle(OdgReader* xml)
+{
+    // ASSUMPTION: Each ODG document contains one and only one style:style element with style:family attribute set
+    // to "drawing-page".
+
+    // Ignore attributes for <style:style> element
+
+    // Read sub-elements for <style:style>
+    while (xml->readNextStartElement())
+    {
+        if (xml->qualifiedName() == QStringLiteral("style:drawing-page-properties"))
+        {
+            // Read attributes for <style:drawing-page-properties> element
+            const QXmlStreamAttributes attributes = xml->attributes();
+            for(auto& attribute : attributes)
+            {
+                if (attribute.qualifiedName() == QStringLiteral("draw:fill"))
+                {
+                    if (attribute.value() == QStringLiteral("solid"))
+                        setBackgroundColor(QColor(0, 0, 0));
+                    else
+                        setBackgroundColor(QColor(0, 0, 0, 0));
+                }
+                else if (attribute.qualifiedName() == QStringLiteral("draw:fill-color"))
+                {
+                    setBackgroundColor(xml->colorFromString(attribute.value()));
+                }
+                else if (attribute.qualifiedName() == QStringLiteral("draw:opacity"))
+                {
+                    mBackgroundColor.setAlphaF(xml->percentFromString(attribute.value()));
+                }
+            }
+        }
+
+        xml->skipCurrentElement();
+    }
+}
+
+void OdgDrawing::readMasterPage(OdgReader* xml)
+{
+    // ASSUMPTION: Each ODG document contains one and only one style:master-page element
+
+    // Ignore attributes for <style:master-page> element
+
+    // No sub-elements for <style:master-page>
     xml->skipCurrentElement();
 }
 
@@ -368,12 +523,44 @@ void OdgDrawing::readDrawing(OdgReader* xml)
 
 void OdgDrawing::readPage(OdgReader* xml)
 {
-    // No attributes for <office:page> element
+    /*OdgPage* page = new OdgPage("Page " + QString::number(mPages.size()));
+
+    // Read attributes for <office:page> element
+    const QXmlStreamAttributes attributes = xml->attributes();
+    if (attributes.hasAttribute("draw:name"))
+        page->setName(attributes.value("draw:name").toString());
 
     // Read <office:page> sub-elements
+    const QList<OdgItem*> items = readItems(xml);
+    for(auto& item : items)
+        page->addItem(item);
+
+    addPage(page);*/
+
+    xml->skipCurrentElement();
+}
+
+void OdgDrawing::readItems(OdgReader* xml)
+{
+    // Read <office:page> or <draw:g> sub-elements
     while (xml->readNextStartElement())
     {
-        qDebug() << xml->qualifiedName();
-        xml->skipCurrentElement();
+        if (xml->qualifiedName() == QStringLiteral("draw:line"))
+        {
+
+        }
+        else if (xml->qualifiedName() == QStringLiteral("draw:polyline"))
+        {
+
+        }
+        else if (xml->qualifiedName() == QStringLiteral("draw:custom-shape"))
+        {
+
+        }
+        else if (xml->qualifiedName() == QStringLiteral("draw:g"))
+        {
+
+        }
+        else xml->skipCurrentElement();
     }
 }

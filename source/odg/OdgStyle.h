@@ -19,6 +19,7 @@
 
 #include <QColor>
 #include <QSizeF>
+#include "OdgFontStyle.h"
 #include "OdgGlobal.h"
 
 class OdgReader;
@@ -58,10 +59,7 @@ private:
     // Text options
     QString mFontFamily;
     double mFontSize;
-    bool mFontBold;
-    bool mFontItalic;
-    bool mFontUnderline;
-    bool mFontStrikeOut;
+    OdgFontStyle mFontStyle;
     Qt::Alignment mTextAlignment;
     QSizeF mTextPadding;
     QColor mTextColor;
@@ -76,7 +74,77 @@ private:
 public:
     OdgStyle(Odg::Units units, bool defaultStyle = false);
 
+    void setName(const QString& name);
+    void setParent(OdgStyle* parent);
     QString name() const;
+    OdgStyle* parent() const;
+
+    void setPenStyle(Qt::PenStyle style);
+    void setPenWidth(double width);
+    void setPenColor(const QColor& color);
+    void setPenCapStyle(Qt::PenCapStyle style);
+    void setPenJoinStyle(Qt::PenJoinStyle style);
+    void setBrushColor(const QColor& color);
+    void unsetPenStyle();
+    void unsetPenWidth();
+    void unsetPenColor();
+    void unsetPenCapStyle();
+    void unsetPenJoinStyle();
+    void unsetBrushColor();
+    Qt::PenStyle penStyle() const;
+    double penWidth() const;
+    QColor penColor() const;
+    Qt::PenCapStyle penCapStyle() const;
+    Qt::PenJoinStyle penJoinStyle() const;
+    QColor brushColor() const;
+    bool isPenStyleValid() const;
+    bool isPenWidthValid() const;
+    bool isPenColorValid() const;
+    bool isPenCapStyleValid() const;
+    bool isPenJoinStyleValid() const;
+    bool isBrushColorValid() const;
+
+    void setStartMarkerStyle(Odg::MarkerStyle style);
+    void setStartMarkerSize(double size);
+    void setEndMarkerStyle(Odg::MarkerStyle style);
+    void setEndMarkerSize(double size);
+    void unsetStartMarkerStyle();
+    void unsetStartMarkerSize();
+    void unsetEndMarkerStyle();
+    void unsetEndMarkerSize();
+    Odg::MarkerStyle startMarkerStyle() const;
+    double startMarkerSize() const;
+    Odg::MarkerStyle endMarkerStyle() const;
+    double endMarkerSize() const;
+    bool isStartMarkerStyleValid() const;
+    bool isStartMarkerSizeValid() const;
+    bool isEndMarkerStyleValid() const;
+    bool isEndMarkerSizeValid() const;
+
+    void setFontFamily(const QString& family);
+    void setFontSize(double size);
+    void setFontStyle(const OdgFontStyle& style);
+    void setTextAlignment(Qt::Alignment alignment);
+    void setTextPadding(const QSizeF& padding);
+    void setTextColor(const QColor& color);
+    void unsetFontFamily();
+    void unsetFontSize();
+    void unsetFontStyle();
+    void unsetTextAlignment();
+    void unsetTextPadding();
+    void unsetTextColor();
+    QString fontFamily() const;
+    double fontSize() const;
+    OdgFontStyle fontStyle() const;
+    Qt::Alignment textAlignment() const;
+    QSizeF textPadding() const;
+    QColor textColor() const;
+    bool isFontFamilyValid() const;
+    bool isFontSizeValid() const;
+    bool isFontStyleValid() const;
+    bool isTextAlignmentValid() const;
+    bool isTextPaddingValid() const;
+    bool isTextColorValid() const;
 
     void clear();
 

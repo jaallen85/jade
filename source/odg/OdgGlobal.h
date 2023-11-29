@@ -24,6 +24,7 @@ namespace Odg
     enum Units { UnitsMillimeters, UnitsInches };
 
     double convertUnits(double value, Units units, Units newUnits);
+    Units unitsFromString(const QStringView& str, bool* ok = nullptr);
     Units unitsFromString(const QString& str, bool* ok = nullptr);
 
     enum MarkerStyle { NoMarker, TriangleMarker, CircleMarker };

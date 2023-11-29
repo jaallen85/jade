@@ -17,7 +17,8 @@
 #include "OdgStyle.h"
 #include "OdgReader.h"
 
-OdgStyle::OdgStyle(Odg::Units units, bool defaultStyle) : mName(), mParent(nullptr),
+OdgStyle::OdgStyle(Odg::Units units, bool defaultStyle) :
+    mName(), mParent(nullptr),
     mPenStyle(Qt::SolidLine), mPenWidth(0.0), mPenColor(0, 0, 0),
     mPenCapStyle(Qt::RoundCap), mPenJoinStyle(Qt::RoundJoin), mBrushColor(255, 255, 255),
     mPenStyleValid(defaultStyle), mPenWidthValid(defaultStyle), mPenColorValid(defaultStyle),
@@ -25,7 +26,7 @@ OdgStyle::OdgStyle(Odg::Units units, bool defaultStyle) : mName(), mParent(nullp
     mStartMarkerStyle(Odg::NoMarker), mStartMarkerSize(0.0), mEndMarkerStyle(Odg::NoMarker), mEndMarkerSize(0.0),
     mStartMarkerStyleValid(defaultStyle), mStartMarkerSizeValid(defaultStyle),
     mEndMarkerStyleValid(defaultStyle), mEndMarkerSizeValid(defaultStyle),
-    mFontFamily(), mFontSize(0.0), mFontBold(false), mFontItalic(false), mFontUnderline(false), mFontStrikeOut(false),
+    mFontFamily(), mFontSize(0.0), mFontStyle(),
     mTextAlignment(Qt::AlignCenter), mTextPadding(0.0, 0.0), mTextColor(0, 0, 0),
     mFontFamilyValid(defaultStyle), mFontSizeValid(defaultStyle), mFontStyleValid(defaultStyle),
     mTextAlignmentValid(defaultStyle), mTextPaddingValid(defaultStyle), mTextColorValid(defaultStyle)
@@ -49,9 +50,378 @@ OdgStyle::OdgStyle(Odg::Units units, bool defaultStyle) : mName(), mParent(nullp
 
 //======================================================================================================================
 
+void OdgStyle::setName(const QString& name)
+{
+    mName = name;
+}
+
+void OdgStyle::setParent(OdgStyle* parent)
+{
+    mParent = parent;
+}
+
 QString OdgStyle::name() const
 {
     return mName;
+}
+
+OdgStyle* OdgStyle::parent() const
+{
+    return mParent;
+}
+
+//======================================================================================================================
+
+void OdgStyle::setPenStyle(Qt::PenStyle style)
+{
+    mPenStyle = style;
+    mPenStyleValid = true;
+}
+
+void OdgStyle::setPenWidth(double width)
+{
+    if (width >= 0)
+    {
+        mPenWidth = width;
+        mPenWidthValid = true;
+    }
+}
+
+void OdgStyle::setPenColor(const QColor& color)
+{
+    mPenColor = color;
+    mPenColorValid = true;
+}
+
+void OdgStyle::setPenCapStyle(Qt::PenCapStyle style)
+{
+    mPenCapStyle = style;
+    mPenCapStyleValid = true;
+}
+
+void OdgStyle::setPenJoinStyle(Qt::PenJoinStyle style)
+{
+    mPenJoinStyle = style;
+    mPenJoinStyleValid = true;
+}
+
+void OdgStyle::setBrushColor(const QColor& color)
+{
+    mBrushColor = color;
+    mBrushColorValid = true;
+}
+
+void OdgStyle::unsetPenStyle()
+{
+    mPenStyleValid = false;
+}
+
+void OdgStyle::unsetPenWidth()
+{
+    mPenWidthValid = false;
+}
+
+void OdgStyle::unsetPenColor()
+{
+    mPenColorValid = false;
+}
+
+void OdgStyle::unsetPenCapStyle()
+{
+    mPenCapStyleValid = false;
+}
+
+void OdgStyle::unsetPenJoinStyle()
+{
+    mPenJoinStyleValid = false;
+}
+
+void OdgStyle::unsetBrushColor()
+{
+    mBrushColorValid = false;
+}
+
+Qt::PenStyle OdgStyle::penStyle() const
+{
+    return mPenStyle;
+}
+
+double OdgStyle::penWidth() const
+{
+    return mPenWidth;
+}
+
+QColor OdgStyle::penColor() const
+{
+    return mPenColor;
+}
+
+Qt::PenCapStyle OdgStyle::penCapStyle() const
+{
+    return mPenCapStyle;
+}
+
+Qt::PenJoinStyle OdgStyle::penJoinStyle() const
+{
+    return mPenJoinStyle;
+}
+
+QColor OdgStyle::brushColor() const
+{
+    return mBrushColor;
+}
+
+bool OdgStyle::isPenStyleValid() const
+{
+    return mPenStyleValid;
+}
+
+bool OdgStyle::isPenWidthValid() const
+{
+    return mPenWidthValid;
+}
+
+bool OdgStyle::isPenColorValid() const
+{
+    return mPenColorValid;
+}
+
+bool OdgStyle::isPenCapStyleValid() const
+{
+    return mPenCapStyleValid;
+}
+
+bool OdgStyle::isPenJoinStyleValid() const
+{
+    return mPenJoinStyleValid;
+}
+
+bool OdgStyle::isBrushColorValid() const
+{
+    return mBrushColorValid;
+}
+
+//======================================================================================================================
+
+void OdgStyle::setStartMarkerStyle(Odg::MarkerStyle style)
+{
+    mStartMarkerStyle = style;
+    mStartMarkerStyleValid = true;
+}
+
+void OdgStyle::setStartMarkerSize(double size)
+{
+    if (size >= 0)
+    {
+        mStartMarkerSize = size;
+        mStartMarkerSizeValid = true;
+    }
+}
+
+void OdgStyle::setEndMarkerStyle(Odg::MarkerStyle style)
+{
+    mEndMarkerStyle = style;
+    mEndMarkerStyleValid = true;
+}
+
+void OdgStyle::setEndMarkerSize(double size)
+{
+    if (size >= 0)
+    {
+        mEndMarkerSize = size;
+        mEndMarkerSizeValid = true;
+    }
+}
+
+void OdgStyle::unsetStartMarkerStyle()
+{
+    mStartMarkerStyleValid = false;
+}
+
+void OdgStyle::unsetStartMarkerSize()
+{
+    mStartMarkerSizeValid = false;
+}
+
+void OdgStyle::unsetEndMarkerStyle()
+{
+    mEndMarkerStyleValid = false;
+}
+
+void OdgStyle::unsetEndMarkerSize()
+{
+    mEndMarkerSizeValid = false;
+}
+
+Odg::MarkerStyle OdgStyle::startMarkerStyle() const
+{
+    return mStartMarkerStyle;
+}
+
+double OdgStyle::startMarkerSize() const
+{
+    return mStartMarkerSize;
+}
+
+Odg::MarkerStyle OdgStyle::endMarkerStyle() const
+{
+    return mEndMarkerStyle;
+}
+
+double OdgStyle::endMarkerSize() const
+{
+    return mEndMarkerSize;
+}
+
+bool OdgStyle::isStartMarkerStyleValid() const
+{
+    return mStartMarkerStyleValid;
+}
+
+bool OdgStyle::isStartMarkerSizeValid() const
+{
+    return mStartMarkerSizeValid;
+}
+
+bool OdgStyle::isEndMarkerStyleValid() const
+{
+    return mEndMarkerStyleValid;
+}
+
+bool OdgStyle::isEndMarkerSizeValid() const
+{
+    return mEndMarkerSizeValid;
+}
+
+//======================================================================================================================
+
+void OdgStyle::setFontFamily(const QString& family)
+{
+    mFontFamily = family;
+    mFontFamilyValid = true;
+}
+
+void OdgStyle::setFontSize(double size)
+{
+    if (size >= 0)
+    {
+        mFontSize = size;
+        mFontSizeValid = true;
+    }
+}
+
+void OdgStyle::setFontStyle(const OdgFontStyle& style)
+{
+    mFontStyle = style;
+    mFontStyleValid = true;
+}
+
+void OdgStyle::setTextAlignment(Qt::Alignment alignment)
+{
+    mTextAlignment = alignment;
+    mTextAlignmentValid = true;
+}
+
+void OdgStyle::setTextPadding(const QSizeF& padding)
+{
+    mTextPadding = padding;
+    mTextPaddingValid = true;
+}
+
+void OdgStyle::setTextColor(const QColor& color)
+{
+    mTextColor = color;
+    mTextColorValid = true;
+}
+
+void OdgStyle::unsetFontFamily()
+{
+    mFontFamilyValid = false;
+}
+
+void OdgStyle::unsetFontSize()
+{
+    mFontSizeValid = false;
+}
+
+void OdgStyle::unsetFontStyle()
+{
+    mFontStyleValid = false;
+}
+
+void OdgStyle::unsetTextAlignment()
+{
+    mTextAlignmentValid = false;
+}
+
+void OdgStyle::unsetTextPadding()
+{
+    mTextPaddingValid = false;
+}
+
+void OdgStyle::unsetTextColor()
+{
+    mTextColorValid = false;
+}
+
+QString OdgStyle::fontFamily() const
+{
+    return mFontFamily;
+}
+
+double OdgStyle::fontSize() const
+{
+    return mFontSize;
+}
+
+OdgFontStyle OdgStyle::fontStyle() const
+{
+    return mFontStyle;
+}
+
+Qt::Alignment OdgStyle::textAlignment() const
+{
+    return mTextAlignment;
+}
+
+QSizeF OdgStyle::textPadding() const
+{
+    return mTextPadding;
+}
+
+QColor OdgStyle::textColor() const
+{
+    return mTextColor;
+}
+
+bool OdgStyle::isFontFamilyValid() const
+{
+    return mFontFamilyValid;
+}
+
+bool OdgStyle::isFontSizeValid() const
+{
+    return mFontSizeValid;
+}
+
+bool OdgStyle::isFontStyleValid() const
+{
+    return mFontStyleValid;
+}
+
+bool OdgStyle::isTextAlignmentValid() const
+{
+    return mTextAlignmentValid;
+}
+
+bool OdgStyle::isTextPaddingValid() const
+{
+    return mTextPaddingValid;
+}
+
+bool OdgStyle::isTextColorValid() const
+{
+    return mTextColorValid;
 }
 
 //======================================================================================================================
@@ -82,8 +452,6 @@ void OdgStyle::clear()
 }
 
 //======================================================================================================================
-
-#include <QDebug>
 
 void OdgStyle::readFromXml(OdgReader* xml, const QList<OdgStyle*>& styles)
 {
@@ -123,8 +491,6 @@ void OdgStyle::readFromXml(OdgReader* xml, const QList<OdgStyle*>& styles)
         else
             xml->skipCurrentElement();
     }
-
-    qDebug() << mName << (mParent ? mParent->name() : "none") << mPenColor << mPenColorValid;
 }
 
 //======================================================================================================================
@@ -138,139 +504,121 @@ void OdgStyle::readGraphicProperties(OdgReader* xml)
         if (attribute.qualifiedName() == QStringLiteral("draw:stroke"))
         {
             if (attribute.value() == QStringLiteral("solid"))
-                mPenStyle = Qt::SolidLine;
+                setPenStyle(Qt::SolidLine);
             else if (attribute.value() == QStringLiteral("dash"))
-                mPenStyle = Qt::DashLine;
+                setPenStyle(Qt::DashLine);
             else
-                mPenStyle = Qt::NoPen;
-            mPenStyleValid = true;
+                setPenStyle(Qt::NoPen);
         }
         else if (attribute.qualifiedName() == QStringLiteral("draw:stroke-dash"))
         {
             if (attribute.value() == QStringLiteral("Dash_20__28_Rounded_29_"))
-                mPenStyle = Qt::DashLine;
+                setPenStyle(Qt::DashLine);
             else if (attribute.value() == QStringLiteral("Dot_20__28_Rounded_29_"))
-                mPenStyle = Qt::DotLine;
+                setPenStyle(Qt::DotLine);
             else if (attribute.value() == QStringLiteral("Dash_20_Dot_20__28_Rounded_29_"))
-                mPenStyle = Qt::DashDotLine;
+                setPenStyle(Qt::DashDotLine);
             else if (attribute.value() == QStringLiteral("Dash_20_Dot_20_Dot_20__28_Rounded_29_"))
-                mPenStyle = Qt::DashDotDotLine;
-            mPenStyleValid = true;
+                setPenStyle(Qt::DashDotDotLine);
         }
         else if (attribute.qualifiedName() == QStringLiteral("svg:stroke-width"))
         {
-            mPenWidth = xml->lengthFromString(attribute.value().toString());
-            mPenWidthValid = true;
+            setPenWidth(xml->lengthFromString(attribute.value()));
         }
         else if (attribute.qualifiedName() == QStringLiteral("svg:stroke-color"))
         {
-            mPenColor = xml->colorFromString(attribute.value().toString());
-            mPenColorValid = true;
+            setPenColor(xml->colorFromString(attribute.value()));
         }
         else if (attribute.qualifiedName() == QStringLiteral("svg:stroke-opacity"))
         {
-            mPenColor.setAlphaF(xml->percentFromString(attribute.value().toString()));
-            mPenColorValid = true;
+            mPenColor.setAlphaF(xml->percentFromString(attribute.value()));
         }
         else if (attribute.qualifiedName() == QStringLiteral("svg:stroke-linecap"))
         {
             if (attribute.value() == QStringLiteral("butt"))
-                mPenCapStyle = Qt::FlatCap;
+                setPenCapStyle(Qt::FlatCap);
             else if (attribute.value() == QStringLiteral("square"))
-                mPenCapStyle = Qt::SquareCap;
+                setPenCapStyle(Qt::SquareCap);
             else
-                mPenCapStyle = Qt::RoundCap;
-            mPenCapStyleValid = true;
+                setPenCapStyle(Qt::RoundCap);
         }
         else if (attribute.qualifiedName() == QStringLiteral("draw:stroke-linejoin"))
         {
             if (attribute.value() == QStringLiteral("miter"))
-                mPenJoinStyle = Qt::MiterJoin;
+                setPenJoinStyle(Qt::MiterJoin);
             else if (attribute.value() == QStringLiteral("bevel"))
-                mPenJoinStyle = Qt::BevelJoin;
+                setPenJoinStyle(Qt::BevelJoin);
             else
-                mPenJoinStyle = Qt::RoundJoin;
-            mPenJoinStyleValid = true;
+                setPenJoinStyle(Qt::RoundJoin);
         }
         else if (attribute.qualifiedName() == QStringLiteral("draw:fill"))
         {
             if (attribute.value() == QStringLiteral("solid"))
-                mBrushColor = QColor(0, 0, 0);
+                setBrushColor(QColor(0, 0, 0));
             else
-                mBrushColor = QColor(0, 0, 0, 0);
-            mBrushColorValid = true;
+                setBrushColor(QColor(0, 0, 0, 0));
         }
         else if (attribute.qualifiedName() == QStringLiteral("draw:fill-color"))
         {
-            mBrushColor = xml->colorFromString(attribute.value().toString());
-            mBrushColorValid = true;
+            setBrushColor(xml->colorFromString(attribute.value()));
         }
         else if (attribute.qualifiedName() == QStringLiteral("draw:opacity"))
         {
-            mBrushColor.setAlphaF(xml->percentFromString(attribute.value().toString()));
-            mBrushColorValid = true;
+            mBrushColor.setAlphaF(xml->percentFromString(attribute.value()));
         }
         else if (attribute.qualifiedName() == QStringLiteral("draw:marker-start"))
         {
             if (attribute.value() == QStringLiteral("Triangle"))
-                mStartMarkerStyle = Odg::TriangleMarker;
+                setStartMarkerStyle(Odg::TriangleMarker);
             else if (attribute.value() == QStringLiteral("Circle"))
-                mStartMarkerStyle = Odg::CircleMarker;
+                setStartMarkerStyle(Odg::CircleMarker);
             else
-                mStartMarkerStyle = Odg::NoMarker;
-            mStartMarkerStyleValid = true;
+                setStartMarkerStyle(Odg::NoMarker);
         }
         else if (attribute.qualifiedName() == QStringLiteral("draw:marker-start-width"))
         {
-            mStartMarkerSize = xml->lengthFromString(attribute.value().toString());
-            mStartMarkerSizeValid = true;
+            setStartMarkerSize(xml->lengthFromString(attribute.value()));
         }
         else if (attribute.qualifiedName() == QStringLiteral("draw:marker-end"))
         {
             if (attribute.value() == QStringLiteral("Triangle"))
-                mEndMarkerStyle = Odg::TriangleMarker;
+                setEndMarkerStyle(Odg::TriangleMarker);
             else if (attribute.value() == QStringLiteral("Circle"))
-                mEndMarkerStyle = Odg::CircleMarker;
+                setEndMarkerStyle(Odg::CircleMarker);
             else
-                mEndMarkerStyle = Odg::NoMarker;
-            mEndMarkerStyleValid = true;
+                setEndMarkerStyle(Odg::NoMarker);
         }
         else if (attribute.qualifiedName() == QStringLiteral("draw:marker-end-width"))
         {
-            mEndMarkerSize = xml->lengthFromString(attribute.value().toString());
-            mEndMarkerSizeValid = true;
+            setEndMarkerSize(xml->lengthFromString(attribute.value()));
         }
         else if (attribute.qualifiedName() == QStringLiteral("draw:textarea-horizontal-align"))
         {
-            mTextAlignment = (mTextAlignment & (~Qt::AlignHorizontal_Mask));
+            Qt::Alignment textAlignment = (mTextAlignment & (~Qt::AlignHorizontal_Mask));
             if (attribute.value() == QStringLiteral("left"))
-                mTextAlignment = (mTextAlignment | Qt::AlignLeft);
+                setTextAlignment(textAlignment | Qt::AlignLeft);
             else if (attribute.value() == QStringLiteral("right"))
-                mTextAlignment = (mTextAlignment | Qt::AlignRight);
+                setTextAlignment(textAlignment | Qt::AlignRight);
             else
-                mTextAlignment = (mTextAlignment | Qt::AlignHCenter);
-            mTextAlignmentValid = true;
+                setTextAlignment(textAlignment | Qt::AlignHCenter);
         }
         else if (attribute.qualifiedName() == QStringLiteral("draw:textarea-vertical-align"))
         {
-            mTextAlignment = (mTextAlignment & (~Qt::AlignVertical_Mask));
+            Qt::Alignment textAlignment = (mTextAlignment & (~Qt::AlignVertical_Mask));
             if (attribute.value() == QStringLiteral("top"))
-                mTextAlignment = (mTextAlignment | Qt::AlignTop);
+                setTextAlignment(textAlignment | Qt::AlignTop);
             else if (attribute.value() == QStringLiteral("bottom"))
-                mTextAlignment = (mTextAlignment | Qt::AlignBottom);
+                setTextAlignment(textAlignment | Qt::AlignBottom);
             else
-                mTextAlignment = (mTextAlignment | Qt::AlignVCenter);
-            mTextAlignmentValid = true;
+                setTextAlignment(textAlignment | Qt::AlignVCenter);
         }
         else if (attribute.qualifiedName() == QStringLiteral("fo:padding-left"))
         {
-            mTextPadding.setWidth(xml->lengthFromString(attribute.value().toString()));
-            mTextPaddingValid = true;
+            setTextPadding(QSizeF(xml->lengthFromString(attribute.value()), mTextPadding.height()));
         }
         else if (attribute.qualifiedName() == QStringLiteral("fo:padding-top"))
         {
-            mTextPadding.setHeight(xml->lengthFromString(attribute.value().toString()));
-            mTextPaddingValid = true;
+            setTextPadding(QSizeF(mTextPadding.width(), xml->lengthFromString(attribute.value())));
         }
     }
 
@@ -292,43 +640,39 @@ void OdgStyle::readTextProperties(OdgReader* xml)
     {
         if (attribute.qualifiedName() == QStringLiteral("style:font-name"))
         {
-            mFontFamily = attribute.value().toString();
-            mFontFamilyValid = true;
+            setFontFamily(attribute.value().toString());
         }
         else if (attribute.qualifiedName() == QStringLiteral("fo:font-size"))
         {
-            mFontSize = xml->lengthFromString(attribute.value().toString());
-            mFontSizeValid = true;
+            setFontSize(xml->lengthFromString(attribute.value()));
         }
         else if (attribute.qualifiedName() == QStringLiteral("fo:font-weight"))
         {
-            mFontBold = (attribute.value() == QStringLiteral("bold"));
-            mFontStyleValid = true;
+            bool bold = (attribute.value() == QStringLiteral("bold"));
+            setFontStyle(OdgFontStyle(bold, mFontStyle.isItalic(), mFontStyle.isUnderline(), mFontStyle.isStrikeOut()));
         }
         else if (attribute.qualifiedName() == QStringLiteral("fo:font-style"))
         {
-            mFontItalic = (attribute.value() == QStringLiteral("italic"));
-            mFontStyleValid = true;
+            bool italic = (attribute.value() == QStringLiteral("italic"));
+            setFontStyle(OdgFontStyle(mFontStyle.isBold(), italic, mFontStyle.isUnderline(), mFontStyle.isStrikeOut()));
         }
         else if (attribute.qualifiedName() == QStringLiteral("style:text-underline-style"))
         {
-            mFontUnderline = (attribute.value() == QStringLiteral("solid"));
-            mFontStyleValid = true;
+            bool underline = (attribute.value() == QStringLiteral("solid"));
+            setFontStyle(OdgFontStyle(mFontStyle.isBold(), mFontStyle.isItalic(), underline, mFontStyle.isStrikeOut()));
         }
         else if (attribute.qualifiedName() == QStringLiteral("style:text-line-through-style"))
         {
-            mFontStrikeOut = (attribute.value() == QStringLiteral("solid"));
-            mFontStyleValid = true;
+            bool strikeOut = (attribute.value() == QStringLiteral("solid"));
+            setFontStyle(OdgFontStyle(mFontStyle.isBold(), mFontStyle.isItalic(), mFontStyle.isUnderline(), strikeOut));
         }
         else if (attribute.qualifiedName() == QStringLiteral("fo:color"))
         {
-            mTextColor = xml->colorFromString(attribute.value().toString());
-            mTextColorValid = true;
+            setTextColor(xml->colorFromString(attribute.value()));
         }
         else if (attribute.qualifiedName() == QStringLiteral("loext:opacity"))
         {
-            mTextColor.setAlphaF(xml->percentFromString(attribute.value().toString()));
-            mTextColorValid = true;
+            mTextColor.setAlphaF(xml->percentFromString(attribute.value()));
         }
     }
 
