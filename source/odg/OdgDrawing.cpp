@@ -21,7 +21,8 @@
 #include <quazip.h>
 #include <quazipfile.h>
 
-OdgDrawing::OdgDrawing() : mUnits(Odg::UnitsMillimeters), mStyles()
+OdgDrawing::OdgDrawing() : mUnits(Odg::UnitsInches),
+    mGrid(0.05), mGridVisible(true), mGridColor(77, 153, 153), mGridSpacingMajor(8), mGridSpacingMinor(2), mStyles()
 {
 
 }
@@ -33,9 +34,76 @@ OdgDrawing::~OdgDrawing()
 
 //======================================================================================================================
 
+void OdgDrawing::setUnits(Odg::Units units)
+{
+    if (mUnits != units)
+    {
+        double scaleFactor = Odg::convertUnits(1, mUnits, units);
+
+        mUnits = units;
+
+        mGrid *= scaleFactor;
+
+        //for(auto& page : qAsConst(mPages))
+        //    page->scale(scaleFactor);
+    }
+}
+
 Odg::Units OdgDrawing::units() const
 {
     return mUnits;
+}
+
+//======================================================================================================================
+
+void OdgDrawing::setGrid(double grid)
+{
+    if (grid >= 0) mGrid = grid;
+}
+
+void OdgDrawing::setGridVisible(bool visible)
+{
+    mGridVisible = visible;
+}
+
+void OdgDrawing::setGridColor(const QColor& color)
+{
+    mGridColor = color;
+}
+
+void OdgDrawing::setGridSpacingMajor(int spacing)
+{
+    if (spacing >= 0) mGridSpacingMajor = spacing;
+}
+
+void OdgDrawing::setGridSpacingMinor(int spacing)
+{
+    if (spacing >= 0) mGridSpacingMinor = spacing;
+}
+
+double OdgDrawing::grid() const
+{
+    return mGrid;
+}
+
+bool OdgDrawing::isGridVisible() const
+{
+    return mGridVisible;
+}
+
+QColor OdgDrawing::gridColor() const
+{
+    return mGridColor;
+}
+
+int OdgDrawing::gridSpacingMajor() const
+{
+    return mGridSpacingMajor;
+}
+
+int OdgDrawing::gridSpacingMinor() const
+{
+    return mGridSpacingMinor;
 }
 
 //======================================================================================================================
@@ -50,6 +118,15 @@ bool OdgDrawing::load(const QString& fileName)
 
     QuaZipFile xmlFile(&odgArchive);
     OdgReader xml;
+
+    // Read document settings from settings.xml
+    odgArchive.setCurrentFile("settings.xml");
+    if (!xmlFile.open(QFile::ReadOnly)) return false;
+
+    xml.setDevice(&xmlFile);
+    if (!xml.readNextStartElement() || xml.qualifiedName() != QStringLiteral("office:document-settings")) return false;
+    readDocumentSettings(&xml);
+    xmlFile.close();
 
     // Read document styles from styles.xml
     odgArchive.setCurrentFile("styles.xml");
@@ -72,6 +149,89 @@ bool OdgDrawing::load(const QString& fileName)
 
     odgFile.close();
     return true;
+}
+
+//======================================================================================================================
+
+void OdgDrawing::readDocumentSettings(OdgReader* xml)
+{
+    // No attributes for <office:document-settings> element
+
+    // Read <office:document-settings> sub-elements
+    while (xml->readNextStartElement())
+    {
+        if (xml->qualifiedName() == QStringLiteral("office:settings"))
+            readSettings(xml);
+        else
+            xml->skipCurrentElement();
+    }
+
+    xml->skipCurrentElement();
+}
+
+void OdgDrawing::readSettings(OdgReader* xml)
+{
+    // No attributes for <office:settings> element
+
+    // Read <office:settings> sub-elements
+    while (xml->readNextStartElement())
+    {
+        if (xml->qualifiedName() == QStringLiteral("config:config-item-set"))
+            readConfigItemSet(xml);
+        else
+            xml->skipCurrentElement();
+    }
+}
+
+void OdgDrawing::readConfigItemSet(OdgReader* xml)
+{
+    // Read attributes of <config:config-item-set> element
+    const QXmlStreamAttributes attributes = xml->attributes();
+    if (attributes.hasAttribute("config:name") && attributes.value("config:name") == QStringLiteral("jade:settings"))
+    {
+        // Read <config:config-item-set> sub-elements
+        while (xml->readNextStartElement())
+        {
+            if (xml->qualifiedName() == QStringLiteral("config:config-item"))
+                readConfigItem(xml);
+            else
+                xml->skipCurrentElement();
+        }
+    }
+    else
+    {
+        // Ignore the rest of <config:config-item-set> element
+        xml->skipCurrentElement();
+    }
+}
+
+void OdgDrawing::readConfigItem(OdgReader* xml)
+{
+    // Read attributes and text for <config:config-item> element
+    const QXmlStreamAttributes attributes = xml->attributes();
+    const QString text = xml->readElementText();
+    if (attributes.hasAttribute("config:name") && attributes.hasAttribute("config:type"))
+    {
+        const QStringView name = attributes.value("config:name");
+        const QStringView type = attributes.value("config:type");
+        if (name == QStringLiteral("units") && type == QStringLiteral("string"))
+        {
+            setUnits(Odg::unitsFromString(text));
+            xml->setUnits(mUnits);
+        }
+        else if (name == QStringLiteral("grid") && type == QStringLiteral("double"))
+            setGrid(text.toDouble());
+        else if (name == QStringLiteral("gridVisible") && type == QStringLiteral("boolean"))
+            setGridVisible(text.trimmed().toLower() == "true");
+        else if (name == QStringLiteral("gridColor") && type == QStringLiteral("string"))
+            setGridColor(xml->colorFromString(text));
+        else if (name == QStringLiteral("gridSpacingMajor") && type == QStringLiteral("int"))
+            setGridSpacingMajor(text.toInt());
+        else if (name == QStringLiteral("gridSpacingMinor") && type == QStringLiteral("int"))
+            setGridSpacingMinor(text.toInt());
+    }
+
+    // No sub-elements for <config:config-item>
 }
 
 //======================================================================================================================

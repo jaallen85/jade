@@ -17,6 +17,7 @@
 #ifndef ODGREADER_H
 #define ODGREADER_H
 
+#include <QColor>
 #include <QXmlStreamReader>
 #include "OdgGlobal.h"
 
@@ -28,8 +29,12 @@ private:
 public:
     OdgReader();
 
+    void setUnits(Odg::Units units);
+    Odg::Units units() const;
+
     double lengthFromString(const QString& str) const;
     double percentFromString(const QString& str) const;
+    QColor colorFromString(const QString& str) const;
 };
 
 #endif

@@ -17,6 +17,7 @@
 #ifndef ODGDRAWING_H
 #define ODGDRAWING_H
 
+#include <QColor>
 #include <QList>
 #include "OdgGlobal.h"
 
@@ -28,17 +29,40 @@ class OdgDrawing
 private:
     Odg::Units mUnits;
 
+    double mGrid;
+    bool mGridVisible;
+    QColor mGridColor;
+    int mGridSpacingMajor;
+    int mGridSpacingMinor;
+
     QList<OdgStyle*> mStyles;
 
 public:
     OdgDrawing();
     virtual ~OdgDrawing();
 
+    void setUnits(Odg::Units units);
     Odg::Units units() const;
+
+    void setGrid(double grid);
+    void setGridVisible(bool visible);
+    void setGridColor(const QColor& color);
+    void setGridSpacingMajor(int spacing);
+    void setGridSpacingMinor(int spacing);
+    double grid() const;
+    bool isGridVisible() const;
+    QColor gridColor() const;
+    int gridSpacingMajor() const;
+    int gridSpacingMinor() const;
 
     virtual bool load(const QString& fileName);
 
 private:
+    void readDocumentSettings(OdgReader* xml);
+    void readSettings(OdgReader* xml);
+    void readConfigItemSet(OdgReader* xml);
+    void readConfigItem(OdgReader* xml);
+
     void readDocumentStyles(OdgReader* xml);
     void readStyles(OdgReader* xml);
     void readAutomaticPageStyles(OdgReader* xml);

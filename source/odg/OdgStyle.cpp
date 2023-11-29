@@ -164,7 +164,7 @@ void OdgStyle::readGraphicProperties(OdgReader* xml)
         }
         else if (attribute.qualifiedName() == QStringLiteral("svg:stroke-color"))
         {
-            mPenColor = QColor(attribute.value().toString());
+            mPenColor = xml->colorFromString(attribute.value().toString());
             mPenColorValid = true;
         }
         else if (attribute.qualifiedName() == QStringLiteral("svg:stroke-opacity"))
@@ -202,7 +202,7 @@ void OdgStyle::readGraphicProperties(OdgReader* xml)
         }
         else if (attribute.qualifiedName() == QStringLiteral("draw:fill-color"))
         {
-            mBrushColor = QColor(attribute.value().toString());
+            mBrushColor = xml->colorFromString(attribute.value().toString());
             mBrushColorValid = true;
         }
         else if (attribute.qualifiedName() == QStringLiteral("draw:opacity"))
@@ -322,7 +322,7 @@ void OdgStyle::readTextProperties(OdgReader* xml)
         }
         else if (attribute.qualifiedName() == QStringLiteral("fo:color"))
         {
-            mTextColor = QColor(attribute.value().toString());
+            mTextColor = xml->colorFromString(attribute.value().toString());
             mTextColorValid = true;
         }
         else if (attribute.qualifiedName() == QStringLiteral("loext:opacity"))

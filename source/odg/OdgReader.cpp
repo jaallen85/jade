@@ -24,6 +24,18 @@ OdgReader::OdgReader() : QXmlStreamReader(), mUnits(Odg::UnitsMillimeters)
 
 //======================================================================================================================
 
+void OdgReader::setUnits(Odg::Units units)
+{
+    mUnits = units;
+}
+
+Odg::Units OdgReader::units() const
+{
+    return mUnits;
+}
+
+//======================================================================================================================
+
 double OdgReader::lengthFromString(const QString& str) const
 {
     static const QRegularExpression re(R"([-+]?(?:(?:\d*\.\d+)|(?:\d+\.?))(?:[Ee][+-]?\d+)?)");
@@ -63,4 +75,9 @@ double OdgReader::percentFromString(const QString& str) const
     bool valueOk = false;
     double value = str.toDouble(&valueOk);
     return (valueOk) ? value : 0;
+}
+
+QColor OdgReader::colorFromString(const QString& str) const
+{
+    return QColor(str);
 }
