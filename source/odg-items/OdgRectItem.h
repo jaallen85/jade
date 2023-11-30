@@ -18,7 +18,6 @@
 #define ODGRECTITEM_H
 
 #include "OdgItem.h"
-#include <QBrush>
 #include <QPen>
 
 class OdgRectItem : public OdgItem
@@ -46,9 +45,11 @@ public:
     QBrush brush() const;
     QPen pen() const;
 
-    void paint(QPainter& painter) override;
+    bool isValid() const override;
 
-    void scaleBy(double scale) override;
+    virtual void paint(QPainter& painter) override;
+
+    virtual void scaleBy(double scale) override;
 };
 
 #endif

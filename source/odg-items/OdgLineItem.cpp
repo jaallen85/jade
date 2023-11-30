@@ -82,6 +82,13 @@ OdgMarker OdgLineItem::endMarker() const
 
 //======================================================================================================================
 
+bool OdgLineItem::isValid() const
+{
+    return (mLine.x1() != mLine.x2() || mLine.y1() != mLine.y2());
+}
+
+//======================================================================================================================
+
 void OdgLineItem::paint(QPainter& painter)
 {
     painter.setPen(mPen);

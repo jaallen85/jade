@@ -186,6 +186,13 @@ bool OdgItem::isSelected() const
 
 //======================================================================================================================
 
+bool OdgItem::isValid() const
+{
+    return true;
+}
+
+//======================================================================================================================
+
 void OdgItem::scaleBy(double scale)
 {
     setPosition(QPointF(mPosition.x() * scale, mPosition.y() * scale));

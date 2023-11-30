@@ -99,6 +99,13 @@ QPen OdgRectItem::pen() const
 
 //======================================================================================================================
 
+bool OdgRectItem::isValid() const
+{
+    return (mRect.width() > 0 || mRect.height() > 0);
+}
+
+//======================================================================================================================
+
 void OdgRectItem::paint(QPainter& painter)
 {
     painter.setBrush(mBrush);

@@ -18,9 +18,11 @@
 #define ODGSTYLE_H
 
 #include <QColor>
+#include <QFont>
+#include <QPen>
 #include <QSizeF>
 #include "OdgFontStyle.h"
-#include "OdgGlobal.h"
+#include "OdgMarker.h"
 
 class OdgReader;
 
@@ -147,6 +149,31 @@ public:
     bool isTextColorValid() const;
 
     void clear();
+
+    QPen lookupPen() const;
+    QBrush lookupBrush() const;
+    Qt::PenStyle lookupPenStyle() const;
+    double lookupPenWidth() const;
+    QColor lookupPenColor() const;
+    Qt::PenCapStyle lookupPenCapStyle() const;
+    Qt::PenJoinStyle lookupPenJoinStyle() const;
+    QColor lookupBrushColor() const;
+
+    OdgMarker lookupStartMarker() const;
+    OdgMarker lookupEndMarker() const;
+    Odg::MarkerStyle lookupStartMarkerStyle() const;
+    double lookupStartMarkerSize() const;
+    Odg::MarkerStyle lookupEndMarkerStyle() const;
+    double lookupEndMarkerSize() const;
+
+    QFont lookupFont() const;
+    QBrush lookupTextBrush() const;
+    QString lookupFontFamily() const;
+    double lookupFontSize() const;
+    OdgFontStyle lookupFontStyle() const;
+    Qt::Alignment lookupTextAlignment() const;
+    QSizeF lookupTextPadding() const;
+    QColor lookupTextColor() const;
 };
 
 #endif

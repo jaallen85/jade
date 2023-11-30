@@ -69,6 +69,8 @@ add_executable(${PROJECT_NAME} WIN32
     source/odg-items/OdgLineItem.cpp
     source/odg-items/OdgRectItem.h
     source/odg-items/OdgRectItem.cpp
+    source/odg-items/OdgRoundedRectItem.h
+    source/odg-items/OdgRoundedRectItem.cpp
     source/widgets/DrawingWidget.h
     source/widgets/DrawingWidget.cpp
     source/widgets/PagesWidget.h

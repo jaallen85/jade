@@ -91,12 +91,28 @@ private:
     void readStyleGraphicProperties(QXmlStreamReader& xml, OdgStyle* style);
     void readStyleParagraphProperties(QXmlStreamReader& xml, OdgStyle* style);
     void readStyleTextProperties(QXmlStreamReader& xml, OdgStyle* style);
+    OdgStyle* findStyle(const QStringView& name) const;
 
     void readPage(QXmlStreamReader& xml, OdgPage* page);
     QList<OdgItem*> readItems(QXmlStreamReader& xml);
+    OdgItem* readLine(QXmlStreamReader& xml);
+    OdgItem* readRect(QXmlStreamReader& xml);
+    OdgItem* readEllipse(QXmlStreamReader& xml);
+    OdgItem* readPolyline(QXmlStreamReader& xml);
+    OdgItem* readPolygon(QXmlStreamReader& xml);
+    OdgItem* readPath(QXmlStreamReader& xml);
+    OdgItem* readCustomShape(QXmlStreamReader& xml);
+    OdgItem* readGroup(QXmlStreamReader& xml);
+    QString checkForCaption(QXmlStreamReader& xml);
 
     double lengthFromString(const QStringView& str) const;
     double lengthFromString(const QString& str) const;
+    double xCoordinateFromString(const QStringView& str) const;
+    double xCoordinateFromString(const QString& str) const;
+    double yCoordinateFromString(const QStringView& str) const;
+    double yCoordinateFromString(const QString& str) const;
+    void transformFromString(const QStringView& str, QPointF& position, bool& flipped, int& rotation) const;
+    void transformFromString(const QString& str, QPointF& position, bool& flipped, int& rotation) const;
     double percentFromString(const QStringView& str) const;
     double percentFromString(const QString& str) const;
     QColor colorFromString(const QStringView& str) const;

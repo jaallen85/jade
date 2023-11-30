@@ -15,7 +15,6 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "OdgStyle.h"
-#include "OdgReader.h"
 
 OdgStyle::OdgStyle(Odg::Units units, bool defaultStyle) :
     mName(), mParent(nullptr),
@@ -449,4 +448,193 @@ void OdgStyle::clear()
     mTextAlignmentValid = false;
     mTextPaddingValid = false;
     mTextColorValid = false;
+}
+
+//======================================================================================================================
+
+QPen OdgStyle::lookupPen() const
+{
+    return QPen(QBrush(lookupPenColor()), lookupPenWidth(), lookupPenStyle(), lookupPenCapStyle(), lookupPenJoinStyle());
+}
+
+QBrush OdgStyle::lookupBrush() const
+{
+    return QBrush(lookupBrushColor());
+}
+
+Qt::PenStyle OdgStyle::lookupPenStyle() const
+{
+    if (mPenStyleValid)
+        return mPenStyle;
+    if (mParent)
+        return mParent->lookupPenStyle();
+    return mPenStyle;
+}
+
+double OdgStyle::lookupPenWidth() const
+{
+    if (mPenWidthValid)
+        return mPenWidth;
+    if (mParent)
+        return mParent->lookupPenWidth();
+    return mPenWidth;
+}
+
+QColor OdgStyle::lookupPenColor() const
+{
+    if (mPenColorValid)
+        return mPenColor;
+    if (mParent)
+        return mParent->lookupPenColor();
+    return mPenColor;
+}
+
+Qt::PenCapStyle OdgStyle::lookupPenCapStyle() const
+{
+    if (mPenCapStyleValid)
+        return mPenCapStyle;
+    if (mParent)
+        return mParent->lookupPenCapStyle();
+    return mPenCapStyle;
+}
+
+Qt::PenJoinStyle OdgStyle::lookupPenJoinStyle() const
+{
+    if (mPenJoinStyleValid)
+        return mPenJoinStyle;
+    if (mParent)
+        return mParent->lookupPenJoinStyle();
+    return mPenJoinStyle;
+}
+
+QColor OdgStyle::lookupBrushColor() const
+{
+    if (mBrushColorValid)
+        return mBrushColor;
+    if (mParent)
+        return mParent->lookupBrushColor();
+    return mBrushColor;
+}
+
+//======================================================================================================================
+
+OdgMarker OdgStyle::lookupStartMarker() const
+{
+    return OdgMarker(lookupStartMarkerStyle(), lookupStartMarkerSize());
+}
+
+OdgMarker OdgStyle::lookupEndMarker() const
+{
+    return OdgMarker(lookupEndMarkerStyle(), lookupEndMarkerSize());
+}
+
+Odg::MarkerStyle OdgStyle::lookupStartMarkerStyle() const
+{
+    if (mStartMarkerStyleValid)
+        return mStartMarkerStyle;
+    if (mParent)
+        return mParent->lookupStartMarkerStyle();
+    return mStartMarkerStyle;
+}
+
+double OdgStyle::lookupStartMarkerSize() const
+{
+    if (mStartMarkerSizeValid)
+        return mStartMarkerSize;
+    if (mParent)
+        return mParent->lookupStartMarkerSize();
+    return mStartMarkerSize;
+}
+
+Odg::MarkerStyle OdgStyle::lookupEndMarkerStyle() const
+{
+    if (mEndMarkerStyleValid)
+        return mEndMarkerStyle;
+    if (mParent)
+        return mParent->lookupEndMarkerStyle();
+    return mEndMarkerStyle;
+}
+
+double OdgStyle::lookupEndMarkerSize() const
+{
+    if (mEndMarkerSizeValid)
+        return mEndMarkerSize;
+    if (mParent)
+        return mParent->lookupEndMarkerSize();
+    return mEndMarkerSize;
+}
+
+//======================================================================================================================
+
+QFont OdgStyle::lookupFont() const
+{
+    QFont font(lookupFontFamily());
+    font.setPointSizeF(lookupFontSize());
+
+    OdgFontStyle fontStyle = lookupFontStyle();
+    font.setBold(fontStyle.bold());
+    font.setItalic(fontStyle.italic());
+    font.setUnderline(fontStyle.underline());
+    font.setStrikeOut(fontStyle.strikeOut());
+
+    return font;
+}
+
+QBrush OdgStyle::lookupTextBrush() const
+{
+    return QBrush(lookupTextColor());
+}
+
+QString OdgStyle::lookupFontFamily() const
+{
+    if (mFontFamilyValid)
+        return mFontFamily;
+    if (mParent)
+        return mParent->lookupFontFamily();
+    return mFontFamily;
+}
+
+double OdgStyle::lookupFontSize() const
+{
+    if (mFontSizeValid)
+        return mFontSize;
+    if (mParent)
+        return mParent->lookupFontSize();
+    return mFontSize;
+}
+
+OdgFontStyle OdgStyle::lookupFontStyle() const
+{
+    if (mFontStyleValid)
+        return mFontStyle;
+    if (mParent)
+        return mParent->lookupFontStyle();
+    return mFontStyle;
+}
+
+Qt::Alignment OdgStyle::lookupTextAlignment() const
+{
+    if (mTextAlignmentValid)
+        return mTextAlignment;
+    if (mParent)
+        return mParent->lookupTextAlignment();
+    return mTextAlignment;
+}
+
+QSizeF OdgStyle::lookupTextPadding() const
+{
+    if (mTextPaddingValid)
+        return mTextPadding;
+    if (mParent)
+        return mParent->lookupTextPadding();
+    return mTextPadding;
+}
+
+QColor OdgStyle::lookupTextColor() const
+{
+    if (mTextColorValid)
+        return mTextColor;
+    if (mParent)
+        return mParent->lookupTextColor();
+    return mTextColor;
 }

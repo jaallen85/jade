@@ -33,10 +33,10 @@ public:
     void setItalic(bool italic);
     void setUnderline(bool underline);
     void setStrikeOut(bool strikeOut);
-    bool isBold() const;
-    bool isItalic() const;
-    bool isUnderline() const;
-    bool isStrikeOut() const;
+    bool bold() const;
+    bool italic() const;
+    bool underline() const;
+    bool strikeOut() const;
 
     OdgFontStyle& operator=(const OdgFontStyle &other);
 };

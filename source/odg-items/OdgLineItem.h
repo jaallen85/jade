@@ -46,9 +46,11 @@ public:
     OdgMarker startMarker() const;
     OdgMarker endMarker() const;
 
-    void paint(QPainter& painter);
+    bool isValid() const override;
 
-    void scaleBy(double scale);
+    void paint(QPainter& painter) override;
+
+    void scaleBy(double scale) override;
 
 private:
     bool shouldShowMarker(double size) const;

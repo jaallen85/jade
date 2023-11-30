@@ -74,6 +74,8 @@ public:
     void setSelected(bool selected);
     bool isSelected() const;
 
+    virtual bool isValid() const;
+
     virtual void paint(QPainter& painter) = 0;
 
     virtual void scaleBy(double scale);

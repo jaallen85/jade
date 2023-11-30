@@ -50,22 +50,22 @@ void OdgFontStyle::setStrikeOut(bool strikeOut)
     mStrikeOut = strikeOut;
 }
 
-bool OdgFontStyle::isBold() const
+bool OdgFontStyle::bold() const
 {
     return mBold;
 }
 
-bool OdgFontStyle::isItalic() const
+bool OdgFontStyle::italic() const
 {
     return mItalic;
 }
 
-bool OdgFontStyle::isUnderline() const
+bool OdgFontStyle::underline() const
 {
     return mUnderline;
 }
 
-bool OdgFontStyle::isStrikeOut() const
+bool OdgFontStyle::strikeOut() const
 {
     return mStrikeOut;
 }
@@ -85,16 +85,16 @@ OdgFontStyle& OdgFontStyle::operator=(const OdgFontStyle &other)
 
 bool operator==(const OdgFontStyle& fontStyle1, const OdgFontStyle& fontStyle2)
 {
-    return (fontStyle1.isBold() == fontStyle2.isBold() &&
-            fontStyle1.isItalic() == fontStyle2.isItalic() &&
-            fontStyle1.isUnderline() == fontStyle2.isUnderline() &&
-            fontStyle1.isStrikeOut() == fontStyle2.isStrikeOut());
+    return (fontStyle1.bold() == fontStyle2.bold() &&
+            fontStyle1.italic() == fontStyle2.italic() &&
+            fontStyle1.underline() == fontStyle2.underline() &&
+            fontStyle1.strikeOut() == fontStyle2.strikeOut());
 }
 
 bool operator!=(const OdgFontStyle& fontStyle1, const OdgFontStyle& fontStyle2)
 {
-    return (fontStyle1.isBold() != fontStyle2.isBold() ||
-            fontStyle1.isItalic() != fontStyle2.isItalic() ||
-            fontStyle1.isUnderline() != fontStyle2.isUnderline() ||
-            fontStyle1.isStrikeOut() != fontStyle2.isStrikeOut());
+    return (fontStyle1.bold() != fontStyle2.bold() ||
+            fontStyle1.italic() != fontStyle2.italic() ||
+            fontStyle1.underline() != fontStyle2.underline() ||
+            fontStyle1.strikeOut() != fontStyle2.strikeOut());
 }
