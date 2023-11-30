@@ -28,6 +28,8 @@ namespace Odg
     Units unitsFromString(const QString& str, bool* ok = nullptr);
 
     enum MarkerStyle { NoMarker, TriangleMarker, CircleMarker };
+
+    enum GridStyle { GridHidden, GridDots, GridLines };
 }
 
 #endif

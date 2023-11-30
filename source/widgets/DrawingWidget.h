@@ -56,7 +56,7 @@ private:
 
 public:
     void createNew();
-    bool load(const QString& fileName) override;
+    bool load(const QString& fileName);
     bool save(const QString& fileName);
     void clear();
     bool isClean() const;

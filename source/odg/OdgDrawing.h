@@ -18,14 +18,13 @@
 #define ODGDRAWING_H
 
 #include <QColor>
+#include <QList>
 #include <QMarginsF>
 #include <QRectF>
 #include "OdgGlobal.h"
 
 class QPainter;
 class OdgPage;
-class OdgReader;
-class OdgStyle;
 
 class OdgDrawing
 {
@@ -36,12 +35,10 @@ private:
     QColor mBackgroundColor;
 
     double mGrid;
-    bool mGridVisible;
+    Odg::GridStyle mGridStyle;
     QColor mGridColor;
     int mGridSpacingMajor;
     int mGridSpacingMinor;
-
-    QList<OdgStyle*> mStyles;
 
     QList<OdgPage*> mPages;
 
@@ -61,23 +58,17 @@ public:
     QRectF contentRect() const;
 
     void setGrid(double grid);
-    void setGridVisible(bool visible);
+    void setGridStyle(Odg::GridStyle style);
     void setGridColor(const QColor& color);
     void setGridSpacingMajor(int spacing);
     void setGridSpacingMinor(int spacing);
     double grid() const;
-    bool isGridVisible() const;
+    Odg::GridStyle gridStyle() const;
     QColor gridColor() const;
     int gridSpacingMajor() const;
     int gridSpacingMinor() const;
     double roundToGrid(double value) const;
     QPointF roundToGrid(const QPointF& position) const;
-
-    void addStyle(OdgStyle* style);
-    void insertStyle(int index, OdgStyle* style);
-    void removeStyle(OdgStyle* style);
-    void clearStyles();
-    QList<OdgStyle*> styles() const;
 
     void addPage(OdgPage* page);
     void insertPage(int index, OdgPage* page);
@@ -85,31 +76,7 @@ public:
     void clearPages();
     QList<OdgPage*> pages() const;
 
-    void paint(QPainter* painter, bool isExport = false);
-
-    virtual bool save(const QString& fileName);
-    virtual bool load(const QString& fileName);
-
-private:
-    void readDocumentSettings(OdgReader* xml);
-    void readSettings(OdgReader* xml);
-    void readConfigItemSet(OdgReader* xml);
-    void readConfigItem(OdgReader* xml);
-
-    void readDocumentStyles(OdgReader* xml);
-    void readStyles(OdgReader* xml);
-    void readAutomaticPageStyles(OdgReader* xml);
-    void readMasterPageStyles(OdgReader* xml);
-    void readPageLayout(OdgReader* xml);
-    void readPageStyle(OdgReader* xml);
-    void readMasterPage(OdgReader* xml);
-
-    void readDocumentContent(OdgReader* xml);
-    void readContentStyles(OdgReader* xml, QList<OdgStyle*>& contentStyles);
-    void readBody(OdgReader* xml);
-    void readDrawing(OdgReader* xml);
-    void readPage(OdgReader* xml);
-    void readItems(OdgReader* xml);
+    void paint(QPainter& painter, bool isExport = false);
 };
 
 #endif

@@ -18,27 +18,82 @@
 #define ODGREADER_H
 
 #include <QColor>
+#include <QFile>
+#include <QList>
 #include <QMarginsF>
-#include <QSizeF>
-#include <QXmlStreamReader>
-#include "OdgGlobal.h"
+#include <QRectF>
+#include "OdgStyle.h"
 
-class OdgReader : public QXmlStreamReader
+class QXmlStreamReader;
+class OdgItem;
+class OdgPage;
+
+class OdgReader
 {
 private:
     Odg::Units mUnits;
     QSizeF mPageSize;
     QMarginsF mPageMargins;
+    QColor mBackgroundColor;
+
+    double mGrid;
+    Odg::GridStyle mGridStyle;
+    QColor mGridColor;
+    int mGridSpacingMajor;
+    int mGridSpacingMinor;
+
+    QList<OdgPage*> mPages;
+
+    QFile mFile;
+    QList<OdgStyle*> mStyles;
 
 public:
-    OdgReader();
+    OdgReader(const QString& fileName);
+    ~OdgReader();
 
-    void setUnits(Odg::Units units);
-    void setPageSize(const QSizeF& size);
-    void setPageMargins(const QMarginsF& margins);
     Odg::Units units() const;
     QSizeF pageSize() const;
     QMarginsF pageMargins() const;
+    QColor backgroundColor() const;
+
+    double grid() const;
+    Odg::GridStyle gridStyle() const;
+    QColor gridColor() const;
+    int gridSpacingMajor() const;
+    int gridSpacingMinor() const;
+
+    QList<OdgPage*> takePages();
+
+    bool open();
+    void close();
+
+    bool read();
+
+private:
+    void readDocumentSettings(QXmlStreamReader& xml);
+    void readSettings(QXmlStreamReader& xml);
+    void readConfigItemSet(QXmlStreamReader& xml);
+    void readConfigItem(QXmlStreamReader& xml);
+
+    void readDocumentStyles(QXmlStreamReader& xml);
+    void readStyles(QXmlStreamReader& xml);
+    void readAutomaticPageStyles(QXmlStreamReader& xml);
+    void readMasterPageStyles(QXmlStreamReader& xml);
+    void readPageLayout(QXmlStreamReader& xml);
+    void readPageStyle(QXmlStreamReader& xml);
+    void readMasterPage(QXmlStreamReader& xml);
+
+    void readDocumentContent(QXmlStreamReader& xml);
+    void readBody(QXmlStreamReader& xml);
+    void readDrawing(QXmlStreamReader& xml);
+
+    void readStyle(QXmlStreamReader& xml, OdgStyle* style);
+    void readStyleGraphicProperties(QXmlStreamReader& xml, OdgStyle* style);
+    void readStyleParagraphProperties(QXmlStreamReader& xml, OdgStyle* style);
+    void readStyleTextProperties(QXmlStreamReader& xml, OdgStyle* style);
+
+    void readPage(QXmlStreamReader& xml, OdgPage* page);
+    QList<OdgItem*> readItems(QXmlStreamReader& xml);
 
     double lengthFromString(const QStringView& str) const;
     double lengthFromString(const QString& str) const;

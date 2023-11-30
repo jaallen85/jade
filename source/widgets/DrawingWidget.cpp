@@ -157,7 +157,7 @@ void DrawingWidget::createNew()
 
 bool DrawingWidget::load(const QString& fileName)
 {
-    return OdgDrawing::load(fileName);
+    return isClean();
 }
 
 bool DrawingWidget::save(const QString& fileName)
