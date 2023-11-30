@@ -17,7 +17,11 @@
 #ifndef ODGMARKER_H
 #define ODGMARKER_H
 
+#include <QPainterPath>
+#include <QPen>
 #include "OdgGlobal.h"
+
+class QPainter;
 
 class OdgMarker
 {
@@ -25,8 +29,20 @@ private:
     Odg::MarkerStyle mStyle;
     double mSize;
 
+    QPainterPath mPath;
+
 public:
     OdgMarker(Odg::MarkerStyle style = Odg::NoMarker, double size = 0);
+
+    void setStyle(Odg::MarkerStyle style);
+    void setSize(double size);
+    Odg::MarkerStyle style() const;
+    double size() const;
+
+    void paint(QPainter& painter, const QPen& pen, const QPointF& position, double angle);
+
+private:
+    void updatePath();
 };
 
 #endif

@@ -43,12 +43,16 @@ find_package(QuaZip-Qt6)
 
 add_executable(${PROJECT_NAME} WIN32
     icons/icons.qrc
+    source/odg/OdgControlPoint.h
+    source/odg/OdgControlPoint.cpp
     source/odg/OdgDrawing.h
     source/odg/OdgDrawing.cpp
     source/odg/OdgFontStyle.h
     source/odg/OdgFontStyle.cpp
     source/odg/OdgGlobal.h
     source/odg/OdgGlobal.cpp
+    source/odg/OdgGluePoint.h
+    source/odg/OdgGluePoint.cpp
     source/odg/OdgMarker.h
     source/odg/OdgMarker.cpp
     source/odg/OdgItem.h
@@ -61,6 +65,10 @@ add_executable(${PROJECT_NAME} WIN32
     source/odg/OdgReader.cpp
     source/odg/OdgStyle.h
     source/odg/OdgStyle.cpp
+    source/odg-items/OdgLineItem.h
+    source/odg-items/OdgLineItem.cpp
+    source/odg-items/OdgRectItem.h
+    source/odg-items/OdgRectItem.cpp
     source/widgets/DrawingWidget.h
     source/widgets/DrawingWidget.cpp
     source/widgets/PagesWidget.h
@@ -76,6 +84,7 @@ add_executable(${PROJECT_NAME} WIN32
 
 include_directories(source)
 include_directories(source/odg)
+include_directories(source/odg-items)
 include_directories(source/widgets)
 
 configure_file(source/version.h.in version.h)

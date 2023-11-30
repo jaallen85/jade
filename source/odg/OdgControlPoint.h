@@ -1,4 +1,4 @@
-// File: OdgPage.h
+// File: OdgControlPoint.h
 // Copyright (C) 2023  Jason Allen
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,38 +14,32 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef ODGPAGE_H
-#define ODGPAGE_H
+#ifndef ODGCONTROLPOINT_H
+#define ODGCONTROLPOINT_H
 
-#include <QList>
-#include <QString>
+#include <QPointF>
 
-class QPainter;
-class OdgItem;
+class OdgGluePoint;
 
-class OdgPage
+class OdgControlPoint
 {
 private:
-    QString mName;
-
-    QList<OdgItem*> mItems;
+    QPointF mPosition;
+    bool mConnectable;
+    OdgGluePoint* mGluePoint;
 
 public:
-    OdgPage(const QString& name = QString());
-    ~OdgPage();
+    OdgControlPoint(const QPointF& position = QPointF(), bool connectable = false);
+    ~OdgControlPoint();
 
-    void setName(const QString& name);
-    QString name() const;
+    void setPosition(const QPointF& position);
+    QPointF position() const;
 
-    void addItem(OdgItem* item);
-    void insertItem(int index, OdgItem* item);
-    void removeItem(OdgItem* item);
-    void clearItems();
-    QList<OdgItem*> items() const;
+    void setConnectable(bool connectable);
+    bool isConnectable() const;
 
-    void paint(QPainter& painter);
-
-    void scaleBy(double scale);
+    void setGluePoint(OdgGluePoint* point);
+    OdgGluePoint* gluePoint() const;
 };
 
 #endif

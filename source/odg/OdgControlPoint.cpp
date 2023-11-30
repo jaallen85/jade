@@ -1,4 +1,4 @@
-// File: OdgPage.cpp
+// File: OdgControlPoint.cpp
 // Copyright (C) 2023  Jason Allen
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,70 +14,54 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "OdgPage.h"
-#include "OdgItem.h"
+#include "OdgControlPoint.h"
+#include "OdgGluePoint.h"
 
-OdgPage::OdgPage(const QString& name) : mName(name), mItems()
+OdgControlPoint::OdgControlPoint(const QPointF& position, bool connectable) :
+    mPosition(position), mConnectable(connectable), mGluePoint(nullptr)
 {
     // Nothing more to do here.
 }
 
-OdgPage::~OdgPage()
+OdgControlPoint::~OdgControlPoint()
 {
-    clearItems();
+    setGluePoint(nullptr);
 }
 
 //======================================================================================================================
 
-void OdgPage::setName(const QString& name)
+void OdgControlPoint::setPosition(const QPointF& position)
 {
-    mName = name;
+    mPosition = position;
 }
 
-QString OdgPage::name() const
+QPointF OdgControlPoint::position() const
 {
-    return mName;
-}
-
-//======================================================================================================================
-
-void OdgPage::addItem(OdgItem* item)
-{
-    if (item) mItems.append(item);
-}
-
-void OdgPage::insertItem(int index, OdgItem* item)
-{
-    if (item) mItems.insert(index, item);
-}
-
-void OdgPage::removeItem(OdgItem* item)
-{
-    if (item) mItems.removeAll(item);
-}
-
-void OdgPage::clearItems()
-{
-    qDeleteAll(mItems);
-    mItems.clear();
-}
-
-QList<OdgItem*> OdgPage::items() const
-{
-    return mItems;
+    return mPosition;
 }
 
 //======================================================================================================================
 
-void OdgPage::paint(QPainter& painter)
+void OdgControlPoint::setConnectable(bool connectable)
 {
+    mConnectable = connectable;
+}
 
+bool OdgControlPoint::isConnectable() const
+{
+    return mConnectable;
 }
 
 //======================================================================================================================
 
-void OdgPage::scaleBy(double scale)
+void OdgControlPoint::setGluePoint(OdgGluePoint* point)
 {
-    for(auto& item : qAsConst(mItems))
-        item->scaleBy(scale);
+    if (mGluePoint) mGluePoint->removeConnection(this);
+    mGluePoint = point;
+    if (mGluePoint) mGluePoint->addConnection(this);
+}
+
+OdgGluePoint* OdgControlPoint::gluePoint() const
+{
+    return mGluePoint;
 }

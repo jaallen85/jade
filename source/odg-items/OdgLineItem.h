@@ -1,4 +1,4 @@
-// File: OdgPage.h
+// File: OdgLineItem.h
 // Copyright (C) 2023  Jason Allen
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,38 +14,46 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef ODGPAGE_H
-#define ODGPAGE_H
+#ifndef ODGLINEITEM_H
+#define ODGLINEITEM_H
 
-#include <QList>
-#include <QString>
+#include "OdgItem.h"
+#include "OdgMarker.h"
+#include <QPen>
 
-class QPainter;
-class OdgItem;
-
-class OdgPage
+class OdgLineItem : public OdgItem
 {
 private:
-    QString mName;
+    enum ControlPointIndex { StartControlPoint, EndControlPoint, NumberOfControlPoints };
 
-    QList<OdgItem*> mItems;
+private:
+    QLineF mLine;
+
+    QPen mPen;
+    OdgMarker mStartMarker;
+    OdgMarker mEndMarker;
 
 public:
-    OdgPage(const QString& name = QString());
-    ~OdgPage();
+    OdgLineItem();
 
-    void setName(const QString& name);
-    QString name() const;
+    void setLine(const QLineF& line);
+    QLineF line() const;
 
-    void addItem(OdgItem* item);
-    void insertItem(int index, OdgItem* item);
-    void removeItem(OdgItem* item);
-    void clearItems();
-    QList<OdgItem*> items() const;
+    void setPen(const QPen& pen);
+    void setStartMarker(const OdgMarker& marker);
+    void setEndMarker(const OdgMarker& marker);
+    QPen pen() const;
+    OdgMarker startMarker() const;
+    OdgMarker endMarker() const;
 
     void paint(QPainter& painter);
 
     void scaleBy(double scale);
+
+private:
+    bool shouldShowMarker(double size) const;
+    double startMarkerAngle() const;
+    double endMarkerAngle() const;
 };
 
 #endif

@@ -17,6 +17,8 @@
 #ifndef ODGITEM_H
 #define ODGITEM_H
 
+#include <QList>
+#include <QPainterPath>
 #include <QTransform>
 
 class QPainter;
@@ -26,6 +28,9 @@ class OdgGluePoint;
 class OdgItem
 {
 private:
+    QPointF mPosition;
+    bool mFlipped;
+    int mRotation;
     QTransform mTransform, mTransformInverse;
 
     QList<OdgControlPoint*> mControlPoints;
@@ -37,9 +42,22 @@ public:
     OdgItem();
     virtual ~OdgItem();
 
-    void setTransform(const QTransform& transform);
+    void setPosition(const QPointF& position);
+    void setFlipped(bool flipped);
+    void setRotation(int rotation);
+    QPointF position() const;
+    bool isFlipped() const;
+    int rotation() const;
     QTransform transform() const;
     QTransform transformInverse() const;
+    QPointF mapToScene(const QPointF& position) const;
+    QRectF mapToScene(const QRectF& rect) const;
+    QPolygonF mapToScene(const QPolygonF& polygon) const;
+    QPainterPath mapToScene(const QPainterPath& path) const;
+    QPointF mapFromScene(const QPointF& position) const;
+    QRectF mapFromScene(const QRectF& rect) const;
+    QPolygonF mapFromScene(const QPolygonF& polygon) const;
+    QPainterPath mapFromScene(const QPainterPath& path) const;
 
     void addControlPoint(OdgControlPoint* point);
     void insertControlPoint(int index, OdgControlPoint* point);
@@ -56,9 +74,12 @@ public:
     void setSelected(bool selected);
     bool isSelected() const;
 
-    virtual void paint(QPainter* painter) = 0;
+    virtual void paint(QPainter& painter) = 0;
 
-    virtual void scaleBy(double scale) = 0;
+    virtual void scaleBy(double scale);
+
+private:
+    void updateTransform();
 };
 
 #endif

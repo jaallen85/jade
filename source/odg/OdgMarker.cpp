@@ -15,10 +15,102 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "OdgMarker.h"
+#include <QPainter>
 
 OdgMarker::OdgMarker(Odg::MarkerStyle style, double size) : mStyle(style), mSize(size)
 {
-    // Nothing more to do here.
+    if (mSize < 0) mSize = 0;
 }
 
 //======================================================================================================================
+
+void OdgMarker::setStyle(Odg::MarkerStyle style)
+{
+    mStyle = style;
+    updatePath();
+}
+
+void OdgMarker::setSize(double size)
+{
+    if (size >= 0)
+    {
+        mSize = size;
+        updatePath();
+    }
+}
+
+Odg::MarkerStyle OdgMarker::style() const
+{
+    return mStyle;
+}
+
+double OdgMarker::size() const
+{
+    return mSize;
+}
+
+//======================================================================================================================
+
+void OdgMarker::paint(QPainter& painter, const QPen& pen, const QPointF& position, double angle)
+{
+    if (mStyle != Odg::NoMarker && mSize > 0)
+    {
+        QPen markerPen = pen;
+        markerPen.setStyle(Qt::SolidLine);
+        painter.setPen(markerPen);
+        painter.setBrush(markerPen.brush());
+
+        switch (mStyle)
+        {
+        case Odg::CircleMarker:
+            painter.translate(position);
+            painter.drawPath(mPath);
+            painter.translate(-position);
+            break;
+        case Odg::TriangleMarker:
+            painter.translate(position);
+            painter.rotate(angle);
+            painter.drawPath(mPath);
+            painter.rotate(-angle);
+            painter.translate(-position);
+            break;
+        default:    // Odg::NoMarker
+            break;
+        }
+    }
+}
+
+//======================================================================================================================
+
+void OdgMarker::updatePath()
+{
+    mPath.clear();
+
+    if (mStyle != Odg::NoMarker && mSize > 0)
+    {
+        switch (mStyle)
+        {
+            case Odg::CircleMarker:
+            {
+                mPath.addEllipse(QPointF(0, 0), mSize, mSize);
+                break;
+            }
+            case Odg::TriangleMarker:
+            {
+                const static double angle = M_PI / 6;     // Makes the arrowhead a 60 degree angle
+                const static double sqrt2 = qSqrt(2);
+                const double x = mSize * 2 / sqrt2 * qCos(angle);
+                const double y = mSize * 2 / sqrt2 * qSin(angle);
+                mPath.moveTo(QPointF(0, 0));
+                mPath.lineTo(QPointF(-x, -y));
+                mPath.lineTo(QPointF(-x, y));
+                mPath.closeSubpath();
+                break;
+            }
+            default:    // Odg::NoMarker
+            {
+                break;
+            }
+        }
+    }
+}

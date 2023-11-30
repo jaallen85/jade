@@ -15,9 +15,12 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "OdgItem.h"
+#include "OdgControlPoint.h"
+#include "OdgGluePoint.h"
 
 OdgItem::OdgItem() :
-    mTransform(), mTransformInverse(), mControlPoints(), mGluePoints(), mSelected(false)
+    mPosition(), mFlipped(false), mRotation(0), mTransform(), mTransformInverse(),
+    mControlPoints(), mGluePoints(), mSelected(false)
 {
     // Nothing more to do here.
 }
@@ -30,13 +33,37 @@ OdgItem::~OdgItem()
 
 //======================================================================================================================
 
-void OdgItem::setTransform(const QTransform& transform)
+void OdgItem::setPosition(const QPointF& position)
 {
-    if (transform.isInvertible())
-    {
-        mTransform = transform;
-        mTransformInverse = transform.inverted();
-    }
+    mPosition = position;
+    updateTransform();
+}
+
+void OdgItem::setFlipped(bool flipped)
+{
+    mFlipped = flipped;
+    updateTransform();
+}
+
+void OdgItem::setRotation(int rotation)
+{
+    mRotation = rotation;
+    updateTransform();
+}
+
+QPointF OdgItem::position() const
+{
+    return mPosition;
+}
+
+bool OdgItem::isFlipped() const
+{
+    return mFlipped;
+}
+
+int OdgItem::rotation() const
+{
+    return mRotation;
 }
 
 QTransform OdgItem::transform() const
@@ -47,6 +74,46 @@ QTransform OdgItem::transform() const
 QTransform OdgItem::transformInverse() const
 {
     return mTransformInverse;
+}
+
+QPointF OdgItem::mapToScene(const QPointF& position) const
+{
+    return mTransform.map(position);
+}
+
+QRectF OdgItem::mapToScene(const QRectF& rect) const
+{
+    return QRectF(mapToScene(rect.topLeft()), mapToScene(rect.bottomRight()));
+}
+
+QPolygonF OdgItem::mapToScene(const QPolygonF& polygon) const
+{
+    return mTransform.map(polygon);
+}
+
+QPainterPath OdgItem::mapToScene(const QPainterPath& path) const
+{
+    return mTransform.map(path);
+}
+
+QPointF OdgItem::mapFromScene(const QPointF& position) const
+{
+    return mTransformInverse.map(position);
+}
+
+QRectF OdgItem::mapFromScene(const QRectF& rect) const
+{
+    return QRectF(mapFromScene(rect.topLeft()), mapFromScene(rect.bottomRight()));
+}
+
+QPolygonF OdgItem::mapFromScene(const QPolygonF& polygon) const
+{
+    return mTransformInverse.map(polygon);
+}
+
+QPainterPath OdgItem::mapFromScene(const QPainterPath& path) const
+{
+    return mTransformInverse.map(path);
 }
 
 //======================================================================================================================
@@ -115,4 +182,25 @@ void OdgItem::setSelected(bool selected)
 bool OdgItem::isSelected() const
 {
     return mSelected;
+}
+
+//======================================================================================================================
+
+void OdgItem::scaleBy(double scale)
+{
+    setPosition(QPointF(mPosition.x() * scale, mPosition.y() * scale));
+    for(auto& controlPoint : qAsConst(mControlPoints))
+        controlPoint->setPosition(QPointF(controlPoint->position().x() * scale, controlPoint->position().y() * scale));
+}
+
+//======================================================================================================================
+
+void OdgItem::updateTransform()
+{
+    mTransform.reset();
+    mTransform.translate(mPosition.x(), mPosition.y());
+    if (mFlipped) mTransform.scale(-1, 1);
+    mTransform.rotate(90 * mRotation);
+
+    mTransformInverse = mTransform.inverted();
 }
