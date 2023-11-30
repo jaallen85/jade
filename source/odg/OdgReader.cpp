@@ -20,8 +20,12 @@
 #include <quazip.h>
 #include <quazipfile.h>
 #include "OdgPage.h"
+#include "OdgEllipseItem.h"
 #include "OdgLineItem.h"
 #include "OdgRoundedRectItem.h"
+#include "OdgTextItem.h"
+#include "OdgTextEllipseItem.h"
+#include "OdgTextRoundedRectItem.h"
 
 OdgReader::OdgReader(const QString& fileName) :
     mUnits(Odg::UnitsInches), mPageSize(8.2, 6.2), mPageMargins(0.1, 0.1, 0.1, 0.1), mBackgroundColor(255, 255, 255),
@@ -858,41 +862,41 @@ OdgItem* OdgReader::readRect(QXmlStreamReader& xml)
     if (textItemHintStr == QStringLiteral("text"))
     {
         // Create OdgTextItem
-//        OdgTextItem* textItem = new OdgTextItem();
-//        textItem->setPosition(position);
-//        textItem->setFlipped(flipped);
-//        textItem->setRotation(rotation);
-//        textItem->setFont(paragraphStyle->lookupFont());
-//        textItem->setAlignment(paragraphStyle->lookupTextAlignment());
-//        textItem->setPadding(paragraphStyle->lookupTextPadding());
-//        textItem->setBrush(paragraphStyle->lookupTextBrush());
-//        textItem->setCaption(caption);
-//        if (textItem->isValid()) return textItem;
+        OdgTextItem* textItem = new OdgTextItem();
+        textItem->setPosition(position);
+        textItem->setFlipped(flipped);
+        textItem->setRotation(rotation);
+        textItem->setFont(paragraphStyle->lookupFont());
+        textItem->setTextAlignment(paragraphStyle->lookupTextAlignment());
+        textItem->setTextPadding(paragraphStyle->lookupTextPadding());
+        textItem->setTextBrush(paragraphStyle->lookupTextBrush());
+        textItem->setCaption(caption);
+        if (textItem->isValid()) return textItem;
 
-//        delete textItem;
-//        return nullptr;
+        delete textItem;
+        return nullptr;
     }
 
     if (textItemHintStr == QStringLiteral("text-rect") || !caption.isEmpty())
     {
         // Create OdgTextRoundedRectItem
-//        OdgTextRoundedRectItem* textRectItem = new OdgTextRoundedRectItem();
-//        textRectItem->setPosition(position);
-//        textRectItem->setFlipped(flipped);
-//        textRectItem->setRotation(rotation);
-//        textRectItem->setRect(QRectF(left, top, width, height));
-//        textRectItem->setCornerRadius(cornerRadius);
-//        textRectItem->setBrush(graphicStyle->lookupBrush());
-//        textRectItem->setPen(graphicStyle->lookupPen());
-//        textRectItem->setFont(paragraphStyle->lookupFont());
-//        textRectItem->setTextAlignment(paragraphStyle->lookupTextAlignment());
-//        textRectItem->setTextPadding(paragraphStyle->lookupTextPadding());
-//        textRectItem->setTextBrush(paragraphStyle->lookupTextBrush());
-//        textRectItem->setCaption(caption);
-//        if (textRectItem->isValid()) return textRectItem;
+        OdgTextRoundedRectItem* textRectItem = new OdgTextRoundedRectItem();
+        textRectItem->setPosition(position);
+        textRectItem->setFlipped(flipped);
+        textRectItem->setRotation(rotation);
+        textRectItem->setRect(QRectF(left, top, width, height));
+        textRectItem->setCornerRadius(cornerRadius);
+        textRectItem->setBrush(graphicStyle->lookupBrush());
+        textRectItem->setPen(graphicStyle->lookupPen());
+        textRectItem->setFont(paragraphStyle->lookupFont());
+        textRectItem->setTextAlignment(paragraphStyle->lookupTextAlignment());
+        textRectItem->setTextPadding(paragraphStyle->lookupTextPadding());
+        textRectItem->setTextBrush(paragraphStyle->lookupTextBrush());
+        textRectItem->setCaption(caption);
+        if (textRectItem->isValid()) return textRectItem;
 
-//        delete textRectItem;
-//        return nullptr;
+        delete textRectItem;
+        return nullptr;
     }
 
     // Create OdgRoundedRectItem
@@ -912,7 +916,75 @@ OdgItem* OdgReader::readRect(QXmlStreamReader& xml)
 
 OdgItem* OdgReader::readEllipse(QXmlStreamReader& xml)
 {
-    xml.skipCurrentElement();
+    // Read attributes of <draw:ellipse> element
+    OdgStyle* graphicStyle = mStyles.first();
+    OdgStyle* paragraphStyle = mStyles.first();
+    QPointF position;
+    bool flipped = false;
+    int rotation = 0;
+    double left = 0, top = 0, width = 0, height = 0;
+    QStringView textItemHintStr;
+
+    const QXmlStreamAttributes attributes = xml.attributes();
+    for(auto& attribute : attributes)
+    {
+        if (attribute.qualifiedName() == QStringLiteral("draw:style-name"))
+        {
+            graphicStyle = findStyle(attribute.value());
+            if (paragraphStyle == mStyles.first()) paragraphStyle = graphicStyle;
+        }
+        else if (attribute.qualifiedName() == QStringLiteral("draw:text-style-name"))
+            paragraphStyle = findStyle(attribute.value());
+        else if (attribute.qualifiedName() == QStringLiteral("draw:transform"))
+            transformFromString(attribute.value(), position, flipped, rotation);
+        else if (attribute.qualifiedName() == QStringLiteral("svg:x"))
+            left = lengthFromString(attribute.value());
+        else if (attribute.qualifiedName() == QStringLiteral("svg:y"))
+            top = lengthFromString(attribute.value());
+        else if (attribute.qualifiedName() == QStringLiteral("svg:width"))
+            width = lengthFromString(attribute.value());
+        else if (attribute.qualifiedName() == QStringLiteral("svg:height"))
+            height = lengthFromString(attribute.value());
+        else if (attribute.qualifiedName() == QStringLiteral("jade:text-item-hint"))
+            textItemHintStr = attribute.value();
+    }
+
+    // Read sub-elements for <draw:ellipse>
+    QString caption = checkForCaption(xml);
+
+    // Create OdgTextEllipseItem or OdgEllipseItem as needed
+    if (textItemHintStr == QStringLiteral("text-ellipse") || !caption.isEmpty())
+    {
+        // Create OdgTextRoundedRectItem
+        OdgTextEllipseItem* textEllipseItem = new OdgTextEllipseItem();
+        textEllipseItem->setPosition(position);
+        textEllipseItem->setFlipped(flipped);
+        textEllipseItem->setRotation(rotation);
+        textEllipseItem->setRect(QRectF(left, top, width, height));
+        textEllipseItem->setBrush(graphicStyle->lookupBrush());
+        textEllipseItem->setPen(graphicStyle->lookupPen());
+        textEllipseItem->setFont(paragraphStyle->lookupFont());
+        textEllipseItem->setTextAlignment(paragraphStyle->lookupTextAlignment());
+        textEllipseItem->setTextPadding(paragraphStyle->lookupTextPadding());
+        textEllipseItem->setTextBrush(paragraphStyle->lookupTextBrush());
+        textEllipseItem->setCaption(caption);
+        if (textEllipseItem->isValid()) return textEllipseItem;
+
+        delete textEllipseItem;
+        return nullptr;
+    }
+
+    // Create OdgRoundedRectItem
+    OdgEllipseItem* ellipseItem = new OdgEllipseItem();
+    ellipseItem->setPosition(position);
+    ellipseItem->setFlipped(flipped);
+    ellipseItem->setRotation(rotation);
+    ellipseItem->setRect(QRectF(left, top, width, height));
+    ellipseItem->setBrush(graphicStyle->lookupBrush());
+    ellipseItem->setPen(graphicStyle->lookupPen());
+    if (ellipseItem->isValid()) return ellipseItem;
+
+    delete ellipseItem;
     return nullptr;
 }
 

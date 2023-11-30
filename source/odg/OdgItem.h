@@ -80,6 +80,14 @@ public:
 
     virtual void scaleBy(double scale);
 
+protected:
+    QRectF drawText(QPainter& painter, const QPointF& anchorPoint, const QFont& font, Qt::Alignment alignment,
+                    const QSizeF& padding, const QBrush& brush, const QString& caption);
+    void calculateTextRect(const QPointF& anchorPoint, const QFont& font, Qt::Alignment alignment,
+                           const QSizeF& padding, const QString& caption, QRectF& itemTextRect,
+                           QRectF& scaledTextRect, double& scaleFactor) const;
+    double calculateTextScaleFactor(const QFont& font) const;
+
 private:
     void updateTransform();
 };

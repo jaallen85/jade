@@ -65,12 +65,20 @@ add_executable(${PROJECT_NAME} WIN32
     source/odg/OdgReader.cpp
     source/odg/OdgStyle.h
     source/odg/OdgStyle.cpp
+    source/odg-items/OdgEllipseItem.h
+    source/odg-items/OdgEllipseItem.cpp
     source/odg-items/OdgLineItem.h
     source/odg-items/OdgLineItem.cpp
     source/odg-items/OdgRectItem.h
     source/odg-items/OdgRectItem.cpp
     source/odg-items/OdgRoundedRectItem.h
     source/odg-items/OdgRoundedRectItem.cpp
+    source/odg-items/OdgTextEllipseItem.h
+    source/odg-items/OdgTextEllipseItem.cpp
+    source/odg-items/OdgTextItem.h
+    source/odg-items/OdgTextItem.cpp
+    source/odg-items/OdgTextRoundedRectItem.h
+    source/odg-items/OdgTextRoundedRectItem.cpp
     source/widgets/DrawingWidget.h
     source/widgets/DrawingWidget.cpp
     source/widgets/PagesWidget.h

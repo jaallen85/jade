@@ -18,7 +18,7 @@
 #include "OdgControlPoint.h"
 #include <QPainter>
 
-OdgLineItem::OdgLineItem() : mLine(), mPen(), mStartMarker(), mEndMarker()
+OdgLineItem::OdgLineItem() : OdgItem(), mLine(), mPen(), mStartMarker(), mEndMarker()
 {
     for(int i = 0; i < NumberOfControlPoints; i++) addControlPoint(new OdgControlPoint(QPointF(0, 0), true));
 }

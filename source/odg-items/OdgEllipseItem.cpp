@@ -1,4 +1,4 @@
-// File: OdgRoundedRectItem.cpp
+// File: OdgEllipseItem.cpp
 // Copyright (C) 2023  Jason Allen
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,39 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "OdgRoundedRectItem.h"
+#include "OdgEllipseItem.h"
 #include <QPainter>
 
-OdgRoundedRectItem::OdgRoundedRectItem() : OdgRectItem(), mCornerRadius(0)
+OdgEllipseItem::OdgEllipseItem() : OdgRectItem()
 {
     // Nothing more to do here.
 }
 
 //======================================================================================================================
 
-void OdgRoundedRectItem::setCornerRadius(double radius)
-{
-    if (radius >= 0) mCornerRadius = radius;
-}
-
-double OdgRoundedRectItem::cornerRadius() const
-{
-    return mCornerRadius;
-}
-
-//======================================================================================================================
-
-void OdgRoundedRectItem::paint(QPainter& painter)
+void OdgEllipseItem::paint(QPainter& painter)
 {
     painter.setBrush(brush());
     painter.setPen(pen());
-    painter.drawRoundedRect(rect(), mCornerRadius, mCornerRadius);
-}
-
-//======================================================================================================================
-
-void OdgRoundedRectItem::scaleBy(double scale)
-{
-    OdgRectItem::scaleBy(scale);
-    mCornerRadius *= scale;
+    painter.drawEllipse(rect());
 }
