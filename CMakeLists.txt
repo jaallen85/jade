@@ -45,6 +45,8 @@ add_executable(${PROJECT_NAME} WIN32
     icons/icons.qrc
     source/odg/OdgControlPoint.h
     source/odg/OdgControlPoint.cpp
+    source/odg/OdgCurve.h
+    source/odg/OdgCurve.cpp
     source/odg/OdgDrawing.h
     source/odg/OdgDrawing.cpp
     source/odg/OdgFontStyle.h
@@ -65,10 +67,20 @@ add_executable(${PROJECT_NAME} WIN32
     source/odg/OdgReader.cpp
     source/odg/OdgStyle.h
     source/odg/OdgStyle.cpp
+    source/odg-items/OdgCurveItem.h
+    source/odg-items/OdgCurveItem.cpp
     source/odg-items/OdgEllipseItem.h
     source/odg-items/OdgEllipseItem.cpp
+    source/odg-items/OdgGroupItem.h
+    source/odg-items/OdgGroupItem.cpp
     source/odg-items/OdgLineItem.h
     source/odg-items/OdgLineItem.cpp
+    source/odg-items/OdgPathItem.h
+    source/odg-items/OdgPathItem.cpp
+    source/odg-items/OdgPolygonItem.h
+    source/odg-items/OdgPolygonItem.cpp
+    source/odg-items/OdgPolylineItem.h
+    source/odg-items/OdgPolylineItem.cpp
     source/odg-items/OdgRectItem.h
     source/odg-items/OdgRectItem.cpp
     source/odg-items/OdgRoundedRectItem.h

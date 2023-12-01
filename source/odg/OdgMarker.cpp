@@ -51,6 +51,34 @@ double OdgMarker::size() const
 
 //======================================================================================================================
 
+QPainterPath OdgMarker::shape(const QPen& pen, const QPointF& position, double angle) const
+{
+    QPainterPath shape;
+
+    if (mStyle != Odg::NoMarker && mSize > 0)
+    {
+        // Transform the path to the specified position and angle
+        QTransform transform;
+        transform.translate(position.x(), position.y());
+        transform.rotate(angle);
+        const QPainterPath transformedPath = transform.map(mPath);
+
+        // Create a shape representing the outline of the path
+        QPainterPathStroker ps;
+        ps.setWidth((pen.widthF() <= 0.0) ? 1E-6 : pen.widthF());
+        ps.setCapStyle(Qt::SquareCap);
+        ps.setJoinStyle(Qt::BevelJoin);
+        shape = ps.createStroke(transformedPath);
+
+        // The final shape includes both the outline and the interior of the marker
+        shape = shape.united(transformedPath);
+    }
+
+    return shape;
+}
+
+//======================================================================================================================
+
 void OdgMarker::paint(QPainter& painter, const QPen& pen, const QPointF& position, double angle)
 {
     if (mStyle != Odg::NoMarker && mSize > 0)

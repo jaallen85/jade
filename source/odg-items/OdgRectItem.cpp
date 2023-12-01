@@ -47,14 +47,14 @@ void OdgRectItem::setRect(const QRectF& rect)
         if (controlPoints.size() >= NumberOfControlPoints)
         {
             QPointF center = mRect.center();
-            controlPoints[TopLeftControlPoint]->setPosition(QPointF(mRect.left(), mRect.top()));
-            controlPoints[TopMiddleControlPoint]->setPosition(QPointF(center.x(), mRect.top()));
-            controlPoints[TopRightControlPoint]->setPosition(QPointF(mRect.right(), mRect.top()));
-            controlPoints[MiddleRightControlPoint]->setPosition(QPointF(mRect.right(), center.y()));
-            controlPoints[BottomRightControlPoint]->setPosition(QPointF(mRect.right(), mRect.bottom()));
-            controlPoints[BottomMiddleControlPoint]->setPosition(QPointF(center.x(), mRect.bottom()));
-            controlPoints[BottomLeftControlPoint]->setPosition(QPointF(mRect.left(), mRect.bottom()));
-            controlPoints[MiddleLeftControlPoint]->setPosition(QPointF(mRect.left(), center.y()));
+            controlPoints.at(TopLeftControlPoint)->setPosition(QPointF(mRect.left(), mRect.top()));
+            controlPoints.at(TopMiddleControlPoint)->setPosition(QPointF(center.x(), mRect.top()));
+            controlPoints.at(TopRightControlPoint)->setPosition(QPointF(mRect.right(), mRect.top()));
+            controlPoints.at(MiddleRightControlPoint)->setPosition(QPointF(mRect.right(), center.y()));
+            controlPoints.at(BottomRightControlPoint)->setPosition(QPointF(mRect.right(), mRect.bottom()));
+            controlPoints.at(BottomMiddleControlPoint)->setPosition(QPointF(center.x(), mRect.bottom()));
+            controlPoints.at(BottomLeftControlPoint)->setPosition(QPointF(mRect.left(), mRect.bottom()));
+            controlPoints.at(MiddleLeftControlPoint)->setPosition(QPointF(mRect.left(), center.y()));
         }
 
         // Set glue point positions to match mRect
@@ -62,10 +62,10 @@ void OdgRectItem::setRect(const QRectF& rect)
         if (gluePoints.size() >= NumberOfGluePoints)
         {
             QPointF center = mRect.center();
-            gluePoints[TopGluePoint]->setPosition(QPointF(center.x(), mRect.top()));
-            gluePoints[RightGluePoint]->setPosition(QPointF(mRect.right(), center.y()));
-            gluePoints[BottomGluePoint]->setPosition(QPointF(center.x(), mRect.bottom()));
-            gluePoints[LeftGluePoint]->setPosition(QPointF(mRect.left(), center.y()));
+            gluePoints.at(TopGluePoint)->setPosition(QPointF(center.x(), mRect.top()));
+            gluePoints.at(RightGluePoint)->setPosition(QPointF(mRect.right(), center.y()));
+            gluePoints.at(BottomGluePoint)->setPosition(QPointF(center.x(), mRect.bottom()));
+            gluePoints.at(LeftGluePoint)->setPosition(QPointF(mRect.left(), center.y()));
         }
     }
 }
@@ -99,6 +99,41 @@ QPen OdgRectItem::pen() const
 
 //======================================================================================================================
 
+QRectF OdgRectItem::boundingRect() const
+{
+    QRectF rect = mRect.normalized();
+
+    // Adjust for pen width
+    const double halfPenWidth = mPen.widthF() / 2;
+    rect.adjust(-halfPenWidth, -halfPenWidth, halfPenWidth, halfPenWidth);
+
+    return rect;
+}
+
+QPainterPath OdgRectItem::shape() const
+{
+    QPainterPath shape;
+
+    // Calculate rect shape
+    const QRectF normalizedRect = mRect.normalized();
+
+    if (mPen.style() != Qt::NoPen)
+    {
+        QPainterPath rectPath;
+        rectPath.addRect(normalizedRect);
+
+        shape = strokePath(rectPath, mPen);
+        if (mBrush.color().alpha() > 0)
+            shape = shape.united(rectPath);
+    }
+    else
+    {
+        shape.addRect(normalizedRect);
+    }
+
+    return shape;
+}
+
 bool OdgRectItem::isValid() const
 {
     return (mRect.width() > 0 || mRect.height() > 0);
@@ -118,6 +153,8 @@ void OdgRectItem::paint(QPainter& painter)
 void OdgRectItem::scaleBy(double scale)
 {
     OdgItem::scaleBy(scale);
+
     setRect(QRectF(mRect.left() * scale, mRect.top() * scale, mRect.width() * scale, mRect.height() * scale));
+
     mPen.setWidthF(mPen.widthF() * scale);
 }

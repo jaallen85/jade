@@ -203,6 +203,19 @@ void OdgItem::scaleBy(double scale)
 
 //======================================================================================================================
 
+QPainterPath OdgItem::strokePath(const QPainterPath& path, const QPen& pen) const
+{
+    if (path.isEmpty()) return path;
+
+    QPainterPathStroker ps;
+    ps.setWidth((pen.widthF() <= 0.0) ? 1E-6 : pen.widthF());
+    ps.setCapStyle(Qt::SquareCap);
+    ps.setJoinStyle(Qt::BevelJoin);
+    return ps.createStroke(path);
+}
+
+//======================================================================================================================
+
 QRectF OdgItem::drawText(QPainter& painter, const QPointF& anchorPoint, const QFont& font, Qt::Alignment alignment,
                          const QSizeF& padding, const QBrush& brush, const QString& caption)
 {

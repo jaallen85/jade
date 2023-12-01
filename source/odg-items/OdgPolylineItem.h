@@ -1,4 +1,4 @@
-// File: OdgTextRoundedRectItem.h
+// File: OdgPolylineItem.h
 // Copyright (C) 2023  Jason Allen
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,38 +14,34 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef ODGTEXTROUNDEDRECTITEM_H
-#define ODGTEXTROUNDEDRECTITEM_H
+#ifndef ODGPOLYLINEITEM_H
+#define ODGPOLYLINEITEM_H
 
-#include "OdgRoundedRectItem.h"
-#include <QFont>
+#include "OdgItem.h"
+#include "OdgMarker.h"
+#include <QPen>
 
-class OdgTextRoundedRectItem : public OdgRoundedRectItem
+class OdgPolylineItem : public OdgItem
 {
 private:
-    QString mCaption;
+    QPolygonF mPolyline;
 
-    QFont mFont;
-    Qt::Alignment mTextAlignment;
-    QSizeF mTextPadding;
-    QBrush mTextBrush;
-
-    QRectF mTextRect;
+    QPen mPen;
+    OdgMarker mStartMarker;
+    OdgMarker mEndMarker;
 
 public:
-    OdgTextRoundedRectItem();
+    OdgPolylineItem();
 
-    void setCaption(const QString& caption);
-    QString caption() const;
+    void setPolyline(const QPolygonF& polyline);
+    QPolygonF polyline() const;
 
-    void setFont(const QFont& font);
-    void setTextAlignment(Qt::Alignment alignment);
-    void setTextPadding(const QSizeF& padding);
-    void setTextBrush(const QBrush& brush);
-    QFont font() const;
-    Qt::Alignment textAlignment() const;
-    QSizeF textPadding() const;
-    QBrush textBrush() const;
+    void setPen(const QPen& pen);
+    void setStartMarker(const OdgMarker& marker);
+    void setEndMarker(const OdgMarker& marker);
+    QPen pen() const;
+    OdgMarker startMarker() const;
+    OdgMarker endMarker() const;
 
     QRectF boundingRect() const override;
     QPainterPath shape() const override;
@@ -56,7 +52,10 @@ public:
     void scaleBy(double scale) override;
 
 private:
-    QPointF calculateAnchorPoint(Qt::Alignment alignment) const;
+    bool shouldShowStartMarker() const;
+    bool shouldShowEndMarker() const;
+    double startMarkerAngle() const;
+    double endMarkerAngle() const;
 };
 
 #endif

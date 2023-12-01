@@ -1,4 +1,4 @@
-// File: OdgLineItem.h
+// File: OdgGroupItem.h
 // Copyright (C) 2023  Jason Allen
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,50 +14,35 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef ODGLINEITEM_H
-#define ODGLINEITEM_H
+#ifndef ODGGROUPITEM_H
+#define ODGGROUPITEM_H
 
 #include "OdgItem.h"
-#include "OdgMarker.h"
-#include <QPen>
 
-class OdgLineItem : public OdgItem
+class OdgGroupItem : public OdgItem
 {
 private:
-    enum ControlPointIndex { StartControlPoint, EndControlPoint, NumberOfControlPoints };
+    enum ControlPointIndex { TopLeftControlPoint, TopMiddleControlPoint, TopRightControlPoint, MiddleRightControlPoint,
+                             BottomRightControlPoint, BottomMiddleControlPoint, BottomLeftControlPoint,
+                             MiddleLeftControlPoint, NumberOfControlPoints };
 
 private:
-    QLineF mLine;
-
-    QPen mPen;
-    OdgMarker mStartMarker;
-    OdgMarker mEndMarker;
+    QList<OdgItem*> mItems;
 
 public:
-    OdgLineItem();
+    OdgGroupItem();
+    ~OdgGroupItem();
 
-    void setLine(const QLineF& line);
-    QLineF line() const;
-
-    void setPen(const QPen& pen);
-    void setStartMarker(const OdgMarker& marker);
-    void setEndMarker(const OdgMarker& marker);
-    QPen pen() const;
-    OdgMarker startMarker() const;
-    OdgMarker endMarker() const;
+    void setItems(const QList<OdgItem*>& items);
+    QList<OdgItem*> items() const;
 
     QRectF boundingRect() const override;
     QPainterPath shape() const override;
     bool isValid() const override;
 
-    void paint(QPainter& painter) override;
+    virtual void paint(QPainter& painter) override;
 
-    void scaleBy(double scale) override;
-
-private:
-    bool shouldShowMarker(double size) const;
-    double startMarkerAngle() const;
-    double endMarkerAngle() const;
+    virtual void scaleBy(double scale) override;
 };
 
 #endif

@@ -20,8 +20,13 @@
 #include <quazip.h>
 #include <quazipfile.h>
 #include "OdgPage.h"
+#include "OdgCurveItem.h"
 #include "OdgEllipseItem.h"
+#include "OdgGroupItem.h"
 #include "OdgLineItem.h"
+#include "OdgPathItem.h"
+#include "OdgPolygonItem.h"
+#include "OdgPolylineItem.h"
 #include "OdgRoundedRectItem.h"
 #include "OdgTextItem.h"
 #include "OdgTextEllipseItem.h"
@@ -714,7 +719,7 @@ void OdgReader::readStyleTextProperties(QXmlStreamReader& xml, OdgStyle* style)
 
 OdgStyle* OdgReader::findStyle(const QStringView& name) const
 {
-    for(auto& style : qAsConst(mStyles))
+    for(auto& style : mStyles)
     {
         if (style->name() == name)
             return style;
@@ -955,7 +960,7 @@ OdgItem* OdgReader::readEllipse(QXmlStreamReader& xml)
     // Create OdgTextEllipseItem or OdgEllipseItem as needed
     if (textItemHintStr == QStringLiteral("text-ellipse") || !caption.isEmpty())
     {
-        // Create OdgTextRoundedRectItem
+        // Create OdgTextEllipseItem
         OdgTextEllipseItem* textEllipseItem = new OdgTextEllipseItem();
         textEllipseItem->setPosition(position);
         textEllipseItem->setFlipped(flipped);
@@ -974,7 +979,7 @@ OdgItem* OdgReader::readEllipse(QXmlStreamReader& xml)
         return nullptr;
     }
 
-    // Create OdgRoundedRectItem
+    // Create OdgEllipseItem
     OdgEllipseItem* ellipseItem = new OdgEllipseItem();
     ellipseItem->setPosition(position);
     ellipseItem->setFlipped(flipped);
@@ -990,33 +995,356 @@ OdgItem* OdgReader::readEllipse(QXmlStreamReader& xml)
 
 OdgItem* OdgReader::readPolyline(QXmlStreamReader& xml)
 {
+    // Read attributes of <draw:polyline> element
+    OdgStyle* style = mStyles.first();
+    QPointF position;
+    bool flipped = false;
+    int rotation = 0;
+    double left = 0, top = 0, width = 0, height = 0;
+    QRectF viewBox;
+    QPolygonF points;
+
+    const QXmlStreamAttributes attributes = xml.attributes();
+    for(auto& attribute : attributes)
+    {
+        if (attribute.qualifiedName() == QStringLiteral("draw:style-name"))
+            style = findStyle(attribute.value());
+        else if (attribute.qualifiedName() == QStringLiteral("draw:transform"))
+            transformFromString(attribute.value(), position, flipped, rotation);
+        else if (attribute.qualifiedName() == QStringLiteral("svg:x"))
+            left = lengthFromString(attribute.value());
+        else if (attribute.qualifiedName() == QStringLiteral("svg:y"))
+            top = lengthFromString(attribute.value());
+        else if (attribute.qualifiedName() == QStringLiteral("svg:width"))
+            width = lengthFromString(attribute.value());
+        else if (attribute.qualifiedName() == QStringLiteral("svg:height"))
+            height = lengthFromString(attribute.value());
+        else if (attribute.qualifiedName() == QStringLiteral("svg:viewBox"))
+            viewBox = viewBoxFromString(attribute.value());
+        else if (attribute.qualifiedName() == QStringLiteral("draw:points"))
+            points = pointsFromString(attribute.value());
+    }
+
+    // No sub-elements for <draw:polyline>
     xml.skipCurrentElement();
+
+    // Map polyline from viewBox coordinates to item coordinates
+    if (width != 0 || height != 0 || viewBox.width() != 0 || viewBox.height() != 0) return nullptr;
+
+    QTransform transform;
+    transform.translate(-viewBox.left(), -viewBox.top());
+    transform.scale(width / viewBox.width(), height / viewBox.height());
+    transform.translate(left, top);
+    const QPolygonF mappedPoints = transform.map(points);
+
+    // Create OdgPolylineItem
+    OdgPolylineItem* polylineItem = new OdgPolylineItem();
+    polylineItem->setPosition(position);
+    polylineItem->setFlipped(flipped);
+    polylineItem->setRotation(rotation);
+    polylineItem->setPolyline(mappedPoints);
+    polylineItem->setPen(style->lookupPen());
+    polylineItem->setStartMarker(style->lookupStartMarker());
+    polylineItem->setEndMarker(style->lookupEndMarker());
+    if (polylineItem->isValid()) return polylineItem;
+
+    delete polylineItem;
     return nullptr;
 }
 
 OdgItem* OdgReader::readPolygon(QXmlStreamReader& xml)
 {
+    // Read attributes of <draw:polygon> element
+    OdgStyle* style = mStyles.first();
+    QPointF position;
+    bool flipped = false;
+    int rotation = 0;
+    double left = 0, top = 0, width = 0, height = 0;
+    QRectF viewBox;
+    QPolygonF points;
+
+    const QXmlStreamAttributes attributes = xml.attributes();
+    for(auto& attribute : attributes)
+    {
+        if (attribute.qualifiedName() == QStringLiteral("draw:style-name"))
+            style = findStyle(attribute.value());
+        else if (attribute.qualifiedName() == QStringLiteral("draw:transform"))
+            transformFromString(attribute.value(), position, flipped, rotation);
+        else if (attribute.qualifiedName() == QStringLiteral("svg:x"))
+            left = lengthFromString(attribute.value());
+        else if (attribute.qualifiedName() == QStringLiteral("svg:y"))
+            top = lengthFromString(attribute.value());
+        else if (attribute.qualifiedName() == QStringLiteral("svg:width"))
+            width = lengthFromString(attribute.value());
+        else if (attribute.qualifiedName() == QStringLiteral("svg:height"))
+            height = lengthFromString(attribute.value());
+        else if (attribute.qualifiedName() == QStringLiteral("svg:viewBox"))
+            viewBox = viewBoxFromString(attribute.value());
+        else if (attribute.qualifiedName() == QStringLiteral("draw:points"))
+            points = pointsFromString(attribute.value());
+    }
+
+    // No sub-elements for <draw:polygon>
     xml.skipCurrentElement();
+
+    // Map polygon from viewBox coordinates to item coordinates
+    if (width != 0 || height != 0 || viewBox.width() != 0 || viewBox.height() != 0) return nullptr;
+
+    QTransform transform;
+    transform.translate(-viewBox.left(), -viewBox.top());
+    transform.scale(width / viewBox.width(), height / viewBox.height());
+    transform.translate(left, top);
+    const QPolygonF mappedPoints = transform.map(points);
+
+    // Create OdgPolylineItem
+    OdgPolygonItem* polygonItem = new OdgPolygonItem();
+    polygonItem->setPosition(position);
+    polygonItem->setFlipped(flipped);
+    polygonItem->setRotation(rotation);
+    polygonItem->setPolygon(mappedPoints);
+    polygonItem->setBrush(style->lookupBrush());
+    polygonItem->setPen(style->lookupPen());
+    if (polygonItem->isValid()) return polygonItem;
+
+    delete polygonItem;
     return nullptr;
 }
 
 OdgItem* OdgReader::readPath(QXmlStreamReader& xml)
 {
+    // Read attributes of <draw:path> element
+    OdgStyle* style = mStyles.first();
+    QPointF position;
+    bool flipped = false;
+    int rotation = 0;
+    double left = 0, top = 0, width = 0, height = 0;
+    QRectF viewBox;
+    QPainterPath path;
+
+    const QXmlStreamAttributes attributes = xml.attributes();
+    for(auto& attribute : attributes)
+    {
+        if (attribute.qualifiedName() == QStringLiteral("draw:style-name"))
+            style = findStyle(attribute.value());
+        else if (attribute.qualifiedName() == QStringLiteral("draw:transform"))
+            transformFromString(attribute.value(), position, flipped, rotation);
+        else if (attribute.qualifiedName() == QStringLiteral("svg:x"))
+            left = lengthFromString(attribute.value());
+        else if (attribute.qualifiedName() == QStringLiteral("svg:y"))
+            top = lengthFromString(attribute.value());
+        else if (attribute.qualifiedName() == QStringLiteral("svg:width"))
+            width = lengthFromString(attribute.value());
+        else if (attribute.qualifiedName() == QStringLiteral("svg:height"))
+            height = lengthFromString(attribute.value());
+        else if (attribute.qualifiedName() == QStringLiteral("svg:viewBox"))
+            viewBox = viewBoxFromString(attribute.value());
+        else if (attribute.qualifiedName() == QStringLiteral("svg:d"))
+            path = pathFromString(attribute.value());
+    }
+
+    // No sub-elements for <draw:polygon>
     xml.skipCurrentElement();
+
+
+    if (path.elementCount() == 4 && path.elementAt(0).isMoveTo() and path.elementAt(1).isCurveTo())
+    {
+        // Create curve object
+        if (width != 0 || height != 0 || viewBox.width() != 0 || viewBox.height() != 0) return nullptr;
+
+        QTransform transform;
+        transform.translate(-viewBox.left(), -viewBox.top());
+        transform.scale(width / viewBox.width(), height / viewBox.height());
+        transform.translate(left, top);
+
+        OdgCurve curve;
+        curve.setP1(transform.map(QPointF(path.elementAt(0).x, path.elementAt(0).y)));
+        curve.setCP1(transform.map(QPointF(path.elementAt(1).x, path.elementAt(1).y)));
+        curve.setCP2(transform.map(QPointF(path.elementAt(2).x, path.elementAt(2).y)));
+        curve.setP2(transform.map(QPointF(path.elementAt(3).x, path.elementAt(3).y)));
+
+        // Create OdgCurveItem
+        OdgCurveItem* curveItem = new OdgCurveItem();
+        curveItem->setPosition(position);
+        curveItem->setFlipped(flipped);
+        curveItem->setRotation(rotation);
+        curveItem->setCurve(curve);
+        curveItem->setPen(style->lookupPen());
+        curveItem->setStartMarker(style->lookupStartMarker());
+        curveItem->setEndMarker(style->lookupEndMarker());
+        if (curveItem->isValid()) return curveItem;
+
+        delete curveItem;
+        return nullptr;
+    }
+
+    // Create OdgPathItem
+    OdgPathItem* pathItem = new OdgPathItem();
+    pathItem->setPosition(position);
+    pathItem->setFlipped(flipped);
+    pathItem->setRotation(rotation);
+    pathItem->setPath(path, viewBox);
+    pathItem->setBrush(style->lookupBrush());
+    pathItem->setPen(style->lookupPen());
+    if (pathItem->isValid()) return pathItem;
+
+    delete pathItem;
     return nullptr;
 }
 
 OdgItem* OdgReader::readCustomShape(QXmlStreamReader& xml)
 {
-    xml.skipCurrentElement();
+    // Read attributes of <draw:custom-shape> element
+    OdgStyle* graphicStyle = mStyles.first();
+    OdgStyle* paragraphStyle = mStyles.first();
+    QPointF position;
+    bool flipped = false;
+    int rotation = 0;
+    double left = 0, top = 0, width = 0, height = 0;
+
+    const QXmlStreamAttributes attributes = xml.attributes();
+    for(auto& attribute : attributes)
+    {
+        if (attribute.qualifiedName() == QStringLiteral("draw:style-name"))
+        {
+            graphicStyle = findStyle(attribute.value());
+            if (paragraphStyle == mStyles.first()) paragraphStyle = graphicStyle;
+        }
+        else if (attribute.qualifiedName() == QStringLiteral("draw:text-style-name"))
+            paragraphStyle = findStyle(attribute.value());
+        else if (attribute.qualifiedName() == QStringLiteral("draw:transform"))
+            transformFromString(attribute.value(), position, flipped, rotation);
+        else if (attribute.qualifiedName() == QStringLiteral("svg:x"))
+            left = lengthFromString(attribute.value());
+        else if (attribute.qualifiedName() == QStringLiteral("svg:y"))
+            top = lengthFromString(attribute.value());
+        else if (attribute.qualifiedName() == QStringLiteral("svg:width"))
+            width = lengthFromString(attribute.value());
+        else if (attribute.qualifiedName() == QStringLiteral("svg:height"))
+            height = lengthFromString(attribute.value());
+    }
+
+    // Read sub-elements for <draw:rect>
+    QString enhancedGeometryType;
+    QPainterPath enhancedGeometryPath;
+    QRectF enhancedGeometryPathRect;
+    QString caption = checkForCaptionAndEnhancedGeometry(xml, enhancedGeometryType, enhancedGeometryPath,
+                                                         enhancedGeometryPathRect);
+
+    // Create OdgTextRoundedRectItem, OdgRoundedRectItem, OdgTextEllipseItem, OdgEllipseItem, or OdgPathItem as needed
+    if (enhancedGeometryType == QStringLiteral("rectangle"))
+    {
+        if (!caption.isEmpty())
+        {
+            // Create OdgTextRoundedRectItem
+            OdgTextRoundedRectItem* textRectItem = new OdgTextRoundedRectItem();
+            textRectItem->setPosition(position);
+            textRectItem->setFlipped(flipped);
+            textRectItem->setRotation(rotation);
+            textRectItem->setRect(QRectF(left, top, width, height));
+            textRectItem->setBrush(graphicStyle->lookupBrush());
+            textRectItem->setPen(graphicStyle->lookupPen());
+            textRectItem->setFont(paragraphStyle->lookupFont());
+            textRectItem->setTextAlignment(paragraphStyle->lookupTextAlignment());
+            textRectItem->setTextPadding(paragraphStyle->lookupTextPadding());
+            textRectItem->setTextBrush(paragraphStyle->lookupTextBrush());
+            textRectItem->setCaption(caption);
+            if (textRectItem->isValid()) return textRectItem;
+
+            delete textRectItem;
+            return nullptr;
+        }
+
+        // Create OdgRoundedRectItem
+        OdgRoundedRectItem* rectItem = new OdgRoundedRectItem();
+        rectItem->setPosition(position);
+        rectItem->setFlipped(flipped);
+        rectItem->setRotation(rotation);
+        rectItem->setRect(QRectF(left, top, width, height));
+        rectItem->setBrush(graphicStyle->lookupBrush());
+        rectItem->setPen(graphicStyle->lookupPen());
+        if (rectItem->isValid()) return rectItem;
+
+        delete rectItem;
+        return nullptr;
+    }
+
+    if (enhancedGeometryType == QStringLiteral("ellipse"))
+    {
+        if (!caption.isEmpty())
+        {
+            // Create OdgTextEllipseItem
+            OdgTextEllipseItem* textEllipseItem = new OdgTextEllipseItem();
+            textEllipseItem->setPosition(position);
+            textEllipseItem->setFlipped(flipped);
+            textEllipseItem->setRotation(rotation);
+            textEllipseItem->setRect(QRectF(left, top, width, height));
+            textEllipseItem->setBrush(graphicStyle->lookupBrush());
+            textEllipseItem->setPen(graphicStyle->lookupPen());
+            textEllipseItem->setFont(paragraphStyle->lookupFont());
+            textEllipseItem->setTextAlignment(paragraphStyle->lookupTextAlignment());
+            textEllipseItem->setTextPadding(paragraphStyle->lookupTextPadding());
+            textEllipseItem->setTextBrush(paragraphStyle->lookupTextBrush());
+            textEllipseItem->setCaption(caption);
+            if (textEllipseItem->isValid()) return textEllipseItem;
+
+            delete textEllipseItem;
+            return nullptr;
+        }
+
+        // Create OdgEllipseItem
+        OdgEllipseItem* ellipseItem = new OdgEllipseItem();
+        ellipseItem->setPosition(position);
+        ellipseItem->setFlipped(flipped);
+        ellipseItem->setRotation(rotation);
+        ellipseItem->setRect(QRectF(left, top, width, height));
+        ellipseItem->setBrush(graphicStyle->lookupBrush());
+        ellipseItem->setPen(graphicStyle->lookupPen());
+        if (ellipseItem->isValid()) return ellipseItem;
+
+        delete ellipseItem;
+        return nullptr;
+    }
+
+    // Create OdgPathItem
+    OdgPathItem* pathItem = new OdgPathItem();
+    pathItem->setPosition(position);
+    pathItem->setFlipped(flipped);
+    pathItem->setRotation(rotation);
+    pathItem->setPath(enhancedGeometryPath, enhancedGeometryPathRect);
+    pathItem->setBrush(graphicStyle->lookupBrush());
+    pathItem->setPen(graphicStyle->lookupPen());
+    if (pathItem->isValid()) return pathItem;
+
+    delete pathItem;
     return nullptr;
 }
 
 OdgItem* OdgReader::readGroup(QXmlStreamReader& xml)
 {
-    xml.skipCurrentElement();
+    // No attributes for <draw:g> element
+
+    // Read sub-elements of <draw:g>
+    const QList<OdgItem*> items = readItems(xml);
+
+    // Create OdgPathItem
+    OdgGroupItem* groupItem = new OdgGroupItem();
+
+    if (!items.isEmpty())
+    {
+        // Put the group position equal to the position of the last item and adjust each item's position accordingly
+        groupItem->setPosition(items.last()->position());
+        for(auto& item : items)
+            item->setPosition(groupItem->mapFromScene(item->position()));
+    }
+
+    groupItem->setItems(items);
+    if (groupItem->isValid()) return groupItem;
+
+    delete groupItem;
     return nullptr;
 }
+
+//======================================================================================================================
 
 QString OdgReader::checkForCaption(QXmlStreamReader& xml)
 {
@@ -1040,8 +1368,53 @@ QString OdgReader::checkForCaption(QXmlStreamReader& xml)
                 }
             }
         }
+        else xml.skipCurrentElement();
     }
 
+    return caption;
+}
+
+QString OdgReader::checkForCaptionAndEnhancedGeometry(QXmlStreamReader& xml, QString& enhancedGeometryType,
+                                                      QPainterPath& enhancedGeometryPath,
+                                                      QRectF& enhancedGeometryPathRect)
+{
+    QString caption;
+
+    while (xml.readNextStartElement())
+    {
+        if (xml.qualifiedName() == QStringLiteral("text:p"))
+        {
+            // Ignore attributes for <text:p>
+
+            // Read sub-elements for <text:p>
+            while (xml.readNextStartElement())
+            {
+                if (xml.qualifiedName() == QStringLiteral("text:span"))
+                {
+                    if (caption.isEmpty())
+                        caption = xml.readElementText();
+                    else
+                        caption += "\n" + xml.readElementText();
+                }
+            }
+        }
+        else if (xml.qualifiedName() == QStringLiteral("draw:enhanced-geometry"))
+        {
+            // Read attributes of <draw:path> element
+            const QXmlStreamAttributes attributes = xml.attributes();
+            for(auto& attribute : attributes)
+            {
+                if (attribute.qualifiedName() == QStringLiteral("draw:type"))
+                    enhancedGeometryType = attribute.value().toString();
+                else if (attribute.qualifiedName() == QStringLiteral("svg:viewBox"))
+                    enhancedGeometryPathRect = viewBoxFromString(attribute.value());
+                else if (attribute.qualifiedName() == QStringLiteral("draw:enhanced-path"))
+                    enhancedGeometryPath = pathFromEnhancedString(attribute.value());
+            }
+
+        }
+        else xml.skipCurrentElement();
+    }
     return caption;
 }
 
@@ -1099,6 +1472,37 @@ double OdgReader::yCoordinateFromString(const QString& str) const
     return yCoordinateFromString(QStringView(str));
 }
 
+double OdgReader::percentFromString(const QStringView& str) const
+{
+    if (str.endsWith(QStringLiteral("%")))
+    {
+        bool valueOk = false;
+        double value = str.first(str.size() - 1).toDouble(&valueOk);
+        return (valueOk) ? value / 100 : 0;
+    }
+
+    bool valueOk = false;
+    double value = str.toDouble(&valueOk);
+    return (valueOk) ? value : 0;
+}
+
+double OdgReader::percentFromString(const QString& str) const
+{
+    return percentFromString(QStringView(str));
+}
+
+QColor OdgReader::colorFromString(const QStringView& str) const
+{
+    return QColor(str);
+}
+
+QColor OdgReader::colorFromString(const QString& str) const
+{
+    return QColor(str);
+}
+
+//======================================================================================================================
+
 void OdgReader::transformFromString(const QStringView& str, QPointF& position, bool& flipped, int& rotation) const
 {
     const QList<QStringView> tokens = str.split(QStringLiteral(")"));
@@ -1133,31 +1537,283 @@ void OdgReader::transformFromString(const QString& str, QPointF& position, bool&
     transformFromString(QStringView(str), position, flipped, rotation);
 }
 
-double OdgReader::percentFromString(const QStringView& str) const
+QRectF OdgReader::viewBoxFromString(const QStringView& str) const
 {
-    if (str.endsWith(QStringLiteral("%")))
+    QRectF viewBox;
+
+    const QList<QStringView> tokens = str.split(QStringLiteral(" "));
+    if (tokens.size() == 4)
     {
         bool valueOk = false;
-        double value = str.first(str.size() - 1).toDouble(&valueOk);
-        return (valueOk) ? value / 100 : 0;
+        double value = tokens.at(0).trimmed().toDouble(&valueOk);
+        if (valueOk) viewBox.setLeft(value);
+
+        value = tokens.at(1).trimmed().toDouble(&valueOk);
+        if (valueOk) viewBox.setTop(value);
+
+        value = tokens.at(2).trimmed().toDouble(&valueOk);
+        if (valueOk) viewBox.setWidth(value);
+
+        value = tokens.at(3).trimmed().toDouble(&valueOk);
+        if (valueOk) viewBox.setHeight(value);
     }
 
-    bool valueOk = false;
-    double value = str.toDouble(&valueOk);
-    return (valueOk) ? value : 0;
+    return viewBox;
 }
 
-double OdgReader::percentFromString(const QString& str) const
+QRectF OdgReader::viewBoxFromString(const QString& str) const
 {
-    return percentFromString(QStringView(str));
+    return viewBoxFromString(QStringView(str));
 }
 
-QColor OdgReader::colorFromString(const QStringView& str) const
+QPolygonF OdgReader::pointsFromString(const QStringView& str) const
 {
-    return QColor(str);
+    QPolygonF points;
+
+    const QList<QStringView> pointTokens = str.split(QStringLiteral(" "));
+    for(auto& pointToken : pointTokens)
+    {
+        const QList<QStringView> coordinateTokens = pointToken.split(QStringLiteral(","));
+        if (coordinateTokens.size() == 2)
+        {
+            bool xOk = false, yOk = false;
+            double x = coordinateTokens.at(0).trimmed().toDouble(&xOk);
+            double y = coordinateTokens.at(1).trimmed().toDouble(&yOk);
+            if (xOk && yOk) points.append(QPointF(x, y));
+        }
+    }
+
+    return points;
 }
 
-QColor OdgReader::colorFromString(const QString& str) const
+QPolygonF OdgReader::pointsFromString(const QString& str) const
 {
-    return QColor(str);
+    return pointsFromString(QStringView(str));
 }
+
+QPainterPath OdgReader::pathFromString(const QStringView& str) const
+{
+    QPainterPath path;
+
+    const QList<QStringView> tokens = str.split(QStringLiteral(" "));
+    const int tokenSize = tokens.size();
+    int tokenIndex = 0;
+    QStringView command;
+    QPointF previousPosition;
+    double x2 = 0, y2 = 0, cx1 = 0, cy1 = 0, cx2 = 0, cy2 = 0;
+    bool x2Ok = false, y2Ok = false, cx1Ok = false, cy1Ok = false, cx2Ok = false, cy2Ok = false;
+
+    while (tokenIndex < tokenSize)
+    {
+        command = tokens.at(tokenIndex).trimmed();
+        if (command == QStringLiteral("M"))
+        {
+            if (tokenIndex + 2 < tokenSize)
+            {
+                x2 = tokens.at(tokenIndex + 1).trimmed().toDouble(&x2Ok);
+                y2 = tokens.at(tokenIndex + 2).trimmed().toDouble(&y2Ok);
+                if (x2Ok && y2Ok) path.moveTo(x2, y2);
+            }
+
+            tokenIndex += 3;
+        }
+        else if (command == QStringLiteral("m"))
+        {
+            if (tokenIndex + 2 < tokenSize)
+            {
+                x2 = tokens.at(tokenIndex + 1).trimmed().toDouble(&x2Ok);
+                y2 = tokens.at(tokenIndex + 2).trimmed().toDouble(&y2Ok);
+                if (x2Ok && y2Ok) path.moveTo(previousPosition.x() + x2, previousPosition.y() + y2);
+            }
+
+            tokenIndex += 3;
+        }
+        else if (command == QStringLiteral("H"))
+        {
+            if (tokenIndex + 1 < tokenSize)
+            {
+                x2 = tokens.at(tokenIndex + 1).trimmed().toDouble(&x2Ok);
+                if (x2Ok) path.lineTo(x2, previousPosition.y());
+            }
+
+            tokenIndex += 2;
+        }
+        else if (command == QStringLiteral("h"))
+        {
+            if (tokenIndex + 1 < tokenSize)
+            {
+                x2 = tokens.at(tokenIndex + 1).trimmed().toDouble(&x2Ok);
+                if (x2Ok) path.lineTo(previousPosition.x() + x2, previousPosition.y());
+            }
+
+            tokenIndex += 2;
+        }
+        else if (command == QStringLiteral("V"))
+        {
+            if (tokenIndex + 1 < tokenSize)
+            {
+                y2 = tokens.at(tokenIndex + 1).trimmed().toDouble(&y2Ok);
+                if (y2Ok) path.lineTo(previousPosition.x(), y2);
+            }
+
+            tokenIndex += 2;
+        }
+        else if (command == QStringLiteral("v"))
+        {
+            if (tokenIndex + 1 < tokenSize)
+            {
+                y2 = tokens.at(tokenIndex + 1).trimmed().toDouble(&y2Ok);
+                if (y2Ok) path.lineTo(previousPosition.x(), previousPosition.y() + y2);
+            }
+
+            tokenIndex += 2;
+        }
+        else if (command == QStringLiteral("L"))
+        {
+            if (tokenIndex + 2 < tokenSize)
+            {
+                x2 = tokens.at(tokenIndex + 1).trimmed().toDouble(&x2Ok);
+                y2 = tokens.at(tokenIndex + 2).trimmed().toDouble(&y2Ok);
+                if (x2Ok && y2Ok) path.lineTo(x2, y2);
+            }
+
+            tokenIndex += 3;
+        }
+        else if (command == QStringLiteral("l"))
+        {
+            if (tokenIndex + 2 < tokenSize)
+            {
+                x2 = tokens.at(tokenIndex + 1).trimmed().toDouble(&x2Ok);
+                y2 = tokens.at(tokenIndex + 2).trimmed().toDouble(&y2Ok);
+                if (x2Ok && y2Ok) path.lineTo(previousPosition.x() + x2, previousPosition.y() + y2);
+            }
+
+            tokenIndex += 3;
+        }
+        else if (command == QStringLiteral("C"))
+        {
+            if (tokenIndex + 6 < tokenSize)
+            {
+                cx1 = tokens.at(tokenIndex + 1).trimmed().toDouble(&x2Ok);
+                cy1 = tokens.at(tokenIndex + 2).trimmed().toDouble(&y2Ok);
+                cx2 = tokens.at(tokenIndex + 3).trimmed().toDouble(&x2Ok);
+                cy2 = tokens.at(tokenIndex + 4).trimmed().toDouble(&y2Ok);
+                x2 = tokens.at(tokenIndex + 5).trimmed().toDouble(&x2Ok);
+                y2 = tokens.at(tokenIndex + 6).trimmed().toDouble(&y2Ok);
+            }
+            if (cx1Ok && cy1Ok && cx2Ok && cy2Ok && x2Ok && y2Ok) path.cubicTo(cx1, cy1, cx2, cy2, x2, y2);
+
+            tokenIndex += 7;
+        }
+        else if (command == QStringLiteral("c"))
+        {
+            if (tokenIndex + 6 < tokenSize)
+            {
+                cx1 = tokens.at(tokenIndex + 1).trimmed().toDouble(&x2Ok);
+                cy1 = tokens.at(tokenIndex + 2).trimmed().toDouble(&y2Ok);
+                cx2 = tokens.at(tokenIndex + 3).trimmed().toDouble(&x2Ok);
+                cy2 = tokens.at(tokenIndex + 4).trimmed().toDouble(&y2Ok);
+                x2 = tokens.at(tokenIndex + 5).trimmed().toDouble(&x2Ok);
+                y2 = tokens.at(tokenIndex + 6).trimmed().toDouble(&y2Ok);
+                if (cx1Ok && cy1Ok && cx2Ok && cy2Ok && x2Ok && y2Ok)
+                {
+                    path.cubicTo(previousPosition.x() + cx1, previousPosition.y() + cy1,
+                                 previousPosition.x() + cx2, previousPosition.y() + cy2,
+                                 previousPosition.x() + x2, previousPosition.y() + y2);
+                }
+            }
+
+            tokenIndex += 7;
+        }
+        else if (command == QStringLiteral("Z") || command == QStringLiteral("z"))
+        {
+            path.closeSubpath();
+            tokenIndex++;
+        }
+        else
+        {
+            tokenIndex++;
+        }
+
+        previousPosition = path.currentPosition();
+    }
+
+    return path;
+}
+
+QPainterPath OdgReader::pathFromString(const QString& str) const
+{
+    return pathFromString(QStringView(str));
+}
+
+QPainterPath OdgReader::pathFromEnhancedString(const QStringView& str) const
+{
+    QPainterPath path;
+
+    const QList<QStringView> tokens = str.split(QStringLiteral(" "));
+    const int tokenSize = tokens.size();
+    int tokenIndex = 0;
+    QStringView command;
+    double x2 = 0, y2 = 0, cx1 = 0, cy1 = 0, cx2 = 0, cy2 = 0;
+    bool x2Ok = false, y2Ok = false, cx1Ok = false, cy1Ok = false, cx2Ok = false, cy2Ok = false;
+
+    while (tokenIndex < tokenSize)
+    {
+        command = tokens.at(tokenIndex).trimmed();
+
+        if (command == QStringLiteral("M"))
+        {
+            if (tokenIndex + 2 < tokenSize)
+            {
+                x2 = tokens.at(tokenIndex + 1).trimmed().toDouble(&x2Ok);
+                y2 = tokens.at(tokenIndex + 2).trimmed().toDouble(&y2Ok);
+                if (x2Ok && y2Ok) path.moveTo(x2, y2);
+            }
+
+            tokenIndex += 3;
+        }
+        else if (command == QStringLiteral("L"))
+        {
+            if (tokenIndex + 2 < tokenSize)
+            {
+                x2 = tokens.at(tokenIndex + 1).trimmed().toDouble(&x2Ok);
+                y2 = tokens.at(tokenIndex + 2).trimmed().toDouble(&y2Ok);
+                if (x2Ok && y2Ok) path.lineTo(x2, y2);
+            }
+
+            tokenIndex += 3;
+        }
+        else if (command == QStringLiteral("C"))
+        {
+            if (tokenIndex + 6 < tokenSize)
+            {
+                cx1 = tokens.at(tokenIndex + 1).trimmed().toDouble(&x2Ok);
+                cy1 = tokens.at(tokenIndex + 2).trimmed().toDouble(&y2Ok);
+                cx2 = tokens.at(tokenIndex + 3).trimmed().toDouble(&x2Ok);
+                cy2 = tokens.at(tokenIndex + 4).trimmed().toDouble(&y2Ok);
+                x2 = tokens.at(tokenIndex + 5).trimmed().toDouble(&x2Ok);
+                y2 = tokens.at(tokenIndex + 6).trimmed().toDouble(&y2Ok);
+            }
+            if (cx1Ok && cy1Ok && cx2Ok && cy2Ok && x2Ok && y2Ok) path.cubicTo(cx1, cy1, cx2, cy2, x2, y2);
+
+            tokenIndex += 7;
+        }
+        else if (command == QStringLiteral("Z") || command == QStringLiteral("z"))
+        {
+            path.closeSubpath();
+            tokenIndex++;
+        }
+        else
+        {
+            tokenIndex++;
+        }
+    }
+
+    return path;
+}
+
+QPainterPath OdgReader::pathFromEnhancedString(const QString& str) const
+{
+    return pathFromEnhancedString(QStringView(str));
+}
+

@@ -24,6 +24,32 @@ OdgEllipseItem::OdgEllipseItem() : OdgRectItem()
 
 //======================================================================================================================
 
+QPainterPath OdgEllipseItem::shape() const
+{
+    QPainterPath shape;
+
+    // Calculate rect shape
+    const QRectF normalizedRect = rect().normalized();
+
+    if (pen().style() != Qt::NoPen)
+    {
+        QPainterPath ellipsePath;
+        ellipsePath.addEllipse(normalizedRect);
+
+        shape = strokePath(ellipsePath, pen());
+        if (brush().color().alpha() > 0)
+            shape = shape.united(ellipsePath);
+    }
+    else
+    {
+        shape.addEllipse(normalizedRect);
+    }
+
+    return shape;
+}
+
+//======================================================================================================================
+
 void OdgEllipseItem::paint(QPainter& painter)
 {
     painter.setBrush(brush());

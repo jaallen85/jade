@@ -30,6 +30,8 @@ public:
     void setCornerRadius(double radius);
     double cornerRadius() const;
 
+    QPainterPath shape() const override;
+
     void paint(QPainter& painter) override;
 
     void scaleBy(double scale) override;

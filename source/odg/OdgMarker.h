@@ -39,6 +39,8 @@ public:
     Odg::MarkerStyle style() const;
     double size() const;
 
+    QPainterPath shape(const QPen& pen, const QPointF& position, double angle) const;
+
     void paint(QPainter& painter, const QPen& pen, const QPointF& position, double angle);
 
 private:

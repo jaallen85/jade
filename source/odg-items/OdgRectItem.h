@@ -45,7 +45,9 @@ public:
     QBrush brush() const;
     QPen pen() const;
 
-    bool isValid() const override;
+    virtual QRectF boundingRect() const override;
+    virtual QPainterPath shape() const override;
+    virtual bool isValid() const override;
 
     virtual void paint(QPainter& painter) override;
 

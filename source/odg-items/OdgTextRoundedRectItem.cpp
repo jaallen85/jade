@@ -79,6 +79,36 @@ QBrush OdgTextRoundedRectItem::textBrush() const
 
 //======================================================================================================================
 
+QRectF OdgTextRoundedRectItem::boundingRect() const
+{
+    QRectF textRect = mTextRect;
+    if (textRect.isNull())
+    {
+        QRectF scaledTextRect;
+        double scaleFactor = 1;
+        calculateTextRect(calculateAnchorPoint(mTextAlignment), mFont, mTextAlignment, mTextPadding, mCaption,
+                          textRect, scaledTextRect, scaleFactor);
+    }
+
+    return OdgRoundedRectItem::boundingRect().united(textRect);
+}
+
+QPainterPath OdgTextRoundedRectItem::shape() const
+{
+    QRectF textRect = mTextRect;
+    if (textRect.isNull())
+    {
+        QRectF scaledTextRect;
+        double scaleFactor = 1;
+        calculateTextRect(calculateAnchorPoint(mTextAlignment), mFont, mTextAlignment, mTextPadding, mCaption,
+                          textRect, scaledTextRect, scaleFactor);
+    }
+
+    QPainterPath textPath;
+    textPath.addRect(textRect);
+    return OdgRoundedRectItem::shape().united(textPath);
+}
+
 bool OdgTextRoundedRectItem::isValid() const
 {
     return (OdgRoundedRectItem::isValid() || !mCaption.isEmpty());
@@ -99,6 +129,7 @@ void OdgTextRoundedRectItem::paint(QPainter& painter)
 void OdgTextRoundedRectItem::scaleBy(double scale)
 {
     OdgRoundedRectItem::scaleBy(scale);
+
     mFont.setPointSizeF(mFont.pointSizeF() * scale);
     mTextPadding.setWidth(mTextPadding.width() * scale);
     mTextPadding.setHeight(mTextPadding.height() * scale);

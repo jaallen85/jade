@@ -91,33 +91,33 @@ void DrawingWidget::createContextMenu()
     QList<QAction*> actions = this->actions();
 
     mContextMenu = new QMenu(this);
-    mContextMenu->addAction(actions[UndoAction]);
-    mContextMenu->addAction(actions[RedoAction]);
+    mContextMenu->addAction(actions.at(UndoAction));
+    mContextMenu->addAction(actions.at(RedoAction));
     mContextMenu->addSeparator();
-    mContextMenu->addAction(actions[CutAction]);
-    mContextMenu->addAction(actions[CopyAction]);
-    mContextMenu->addAction(actions[PasteAction]);
-    mContextMenu->addAction(actions[DeleteAction]);
+    mContextMenu->addAction(actions.at(CutAction));
+    mContextMenu->addAction(actions.at(CopyAction));
+    mContextMenu->addAction(actions.at(PasteAction));
+    mContextMenu->addAction(actions.at(DeleteAction));
     mContextMenu->addSeparator();
-    mContextMenu->addAction(actions[InsertPointAction]);
-    mContextMenu->addAction(actions[RemovePointAction]);
+    mContextMenu->addAction(actions.at(InsertPointAction));
+    mContextMenu->addAction(actions.at(RemovePointAction));
     mContextMenu->addSeparator();
-    mContextMenu->addAction(actions[RotateAction]);
-    mContextMenu->addAction(actions[RotateBackAction]);
-    mContextMenu->addAction(actions[FlipHorizontalAction]);
-    mContextMenu->addAction(actions[FlipVerticalAction]);
+    mContextMenu->addAction(actions.at(RotateAction));
+    mContextMenu->addAction(actions.at(RotateBackAction));
+    mContextMenu->addAction(actions.at(FlipHorizontalAction));
+    mContextMenu->addAction(actions.at(FlipVerticalAction));
     mContextMenu->addSeparator();
-    mContextMenu->addAction(actions[BringForwardAction]);
-    mContextMenu->addAction(actions[SendBackwardAction]);
-    mContextMenu->addAction(actions[BringToFrontAction]);
-    mContextMenu->addAction(actions[SendToBackAction]);
+    mContextMenu->addAction(actions.at(BringForwardAction));
+    mContextMenu->addAction(actions.at(SendBackwardAction));
+    mContextMenu->addAction(actions.at(BringToFrontAction));
+    mContextMenu->addAction(actions.at(SendToBackAction));
     mContextMenu->addSeparator();
-    mContextMenu->addAction(actions[GroupAction]);
-    mContextMenu->addAction(actions[UngroupAction]);
+    mContextMenu->addAction(actions.at(GroupAction));
+    mContextMenu->addAction(actions.at(UngroupAction));
     mContextMenu->addSeparator();
-    mContextMenu->addAction(actions[ZoomInAction]);
-    mContextMenu->addAction(actions[ZoomOutAction]);
-    mContextMenu->addAction(actions[ZoomFitAction]);
+    mContextMenu->addAction(actions.at(ZoomInAction));
+    mContextMenu->addAction(actions.at(ZoomOutAction));
+    mContextMenu->addAction(actions.at(ZoomFitAction));
 }
 
 void DrawingWidget::addNormalAction(const QString& text, const QObject* slotObject, const char* slotFunction,

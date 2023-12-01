@@ -79,6 +79,36 @@ QBrush OdgTextEllipseItem::textBrush() const
 
 //======================================================================================================================
 
+QRectF OdgTextEllipseItem::boundingRect() const
+{
+    QRectF textRect = mTextRect;
+    if (textRect.isNull())
+    {
+        QRectF scaledTextRect;
+        double scaleFactor = 1;
+        calculateTextRect(calculateAnchorPoint(mTextAlignment), mFont, mTextAlignment, mTextPadding, mCaption,
+                          textRect, scaledTextRect, scaleFactor);
+    }
+
+    return OdgEllipseItem::boundingRect().united(textRect);
+}
+
+QPainterPath OdgTextEllipseItem::shape() const
+{
+    QRectF textRect = mTextRect;
+    if (textRect.isNull())
+    {
+        QRectF scaledTextRect;
+        double scaleFactor = 1;
+        calculateTextRect(calculateAnchorPoint(mTextAlignment), mFont, mTextAlignment, mTextPadding, mCaption,
+                          textRect, scaledTextRect, scaleFactor);
+    }
+
+    QPainterPath textPath;
+    textPath.addRect(textRect);
+    return OdgEllipseItem::shape().united(textPath);
+}
+
 bool OdgTextEllipseItem::isValid() const
 {
     return (OdgEllipseItem::isValid() || !mCaption.isEmpty());
@@ -99,6 +129,7 @@ void OdgTextEllipseItem::paint(QPainter& painter)
 void OdgTextEllipseItem::scaleBy(double scale)
 {
     OdgEllipseItem::scaleBy(scale);
+
     mFont.setPointSizeF(mFont.pointSizeF() * scale);
     mTextPadding.setWidth(mTextPadding.width() * scale);
     mTextPadding.setHeight(mTextPadding.height() * scale);

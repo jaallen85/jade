@@ -48,6 +48,8 @@ public:
     QSizeF textPadding() const;
     QBrush textBrush() const;
 
+    QRectF boundingRect() const override;
+    QPainterPath shape() const override;
     bool isValid() const override;
 
     void paint(QPainter& painter) override;

@@ -103,7 +103,10 @@ private:
     OdgItem* readPath(QXmlStreamReader& xml);
     OdgItem* readCustomShape(QXmlStreamReader& xml);
     OdgItem* readGroup(QXmlStreamReader& xml);
+
     QString checkForCaption(QXmlStreamReader& xml);
+    QString checkForCaptionAndEnhancedGeometry(QXmlStreamReader& xml, QString& enhancedGeometryType,
+                                               QPainterPath& enhancedGeometryPath, QRectF& enhancedGeometryPathRect);
 
     double lengthFromString(const QStringView& str) const;
     double lengthFromString(const QString& str) const;
@@ -111,12 +114,21 @@ private:
     double xCoordinateFromString(const QString& str) const;
     double yCoordinateFromString(const QStringView& str) const;
     double yCoordinateFromString(const QString& str) const;
-    void transformFromString(const QStringView& str, QPointF& position, bool& flipped, int& rotation) const;
-    void transformFromString(const QString& str, QPointF& position, bool& flipped, int& rotation) const;
     double percentFromString(const QStringView& str) const;
     double percentFromString(const QString& str) const;
     QColor colorFromString(const QStringView& str) const;
     QColor colorFromString(const QString& str) const;
+
+    void transformFromString(const QStringView& str, QPointF& position, bool& flipped, int& rotation) const;
+    void transformFromString(const QString& str, QPointF& position, bool& flipped, int& rotation) const;
+    QRectF viewBoxFromString(const QStringView& str) const;
+    QRectF viewBoxFromString(const QString& str) const;
+    QPolygonF pointsFromString(const QStringView& str) const;
+    QPolygonF pointsFromString(const QString& str) const;
+    QPainterPath pathFromString(const QStringView& str) const;
+    QPainterPath pathFromString(const QString& str) const;
+    QPainterPath pathFromEnhancedString(const QStringView& str) const;
+    QPainterPath pathFromEnhancedString(const QString& str) const;
 };
 
 #endif

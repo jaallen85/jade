@@ -36,6 +36,32 @@ double OdgRoundedRectItem::cornerRadius() const
 
 //======================================================================================================================
 
+QPainterPath OdgRoundedRectItem::shape() const
+{
+    QPainterPath shape;
+
+    // Calculate rect shape
+    const QRectF normalizedRect = rect().normalized();
+
+    if (pen().style() != Qt::NoPen)
+    {
+        QPainterPath rectPath;
+        rectPath.addRoundedRect(normalizedRect, mCornerRadius, mCornerRadius);
+
+        shape = strokePath(rectPath, pen());
+        if (brush().color().alpha() > 0)
+            shape = shape.united(rectPath);
+    }
+    else
+    {
+        shape.addRoundedRect(normalizedRect, mCornerRadius, mCornerRadius);
+    }
+
+    return shape;
+}
+
+//======================================================================================================================
+
 void OdgRoundedRectItem::paint(QPainter& painter)
 {
     painter.setBrush(brush());
@@ -48,5 +74,6 @@ void OdgRoundedRectItem::paint(QPainter& painter)
 void OdgRoundedRectItem::scaleBy(double scale)
 {
     OdgRectItem::scaleBy(scale);
+
     mCornerRadius *= scale;
 }

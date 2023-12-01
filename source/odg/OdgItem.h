@@ -74,6 +74,8 @@ public:
     void setSelected(bool selected);
     bool isSelected() const;
 
+    virtual QRectF boundingRect() const = 0;
+    virtual QPainterPath shape() const = 0;
     virtual bool isValid() const;
 
     virtual void paint(QPainter& painter) = 0;
@@ -81,6 +83,8 @@ public:
     virtual void scaleBy(double scale);
 
 protected:
+    QPainterPath strokePath(const QPainterPath& path, const QPen& pen) const;
+
     QRectF drawText(QPainter& painter, const QPointF& anchorPoint, const QFont& font, Qt::Alignment alignment,
                     const QSizeF& padding, const QBrush& brush, const QString& caption);
     void calculateTextRect(const QPointF& anchorPoint, const QFont& font, Qt::Alignment alignment,

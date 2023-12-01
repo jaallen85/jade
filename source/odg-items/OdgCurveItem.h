@@ -1,4 +1,4 @@
-// File: OdgTextRoundedRectItem.h
+// File: OdgCurveItem.h
 // Copyright (C) 2023  Jason Allen
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,38 +14,41 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef ODGTEXTROUNDEDRECTITEM_H
-#define ODGTEXTROUNDEDRECTITEM_H
+#ifndef ODGCURVEITEM_H
+#define ODGCURVEITEM_H
 
-#include "OdgRoundedRectItem.h"
-#include <QFont>
+#include "OdgCurve.h"
+#include "OdgItem.h"
+#include "OdgMarker.h"
+#include <QPen>
 
-class OdgTextRoundedRectItem : public OdgRoundedRectItem
+class OdgCurveItem : public OdgItem
 {
 private:
-    QString mCaption;
+    enum ControlPointIndex { StartControlPoint, StartControlBezierPoint, EndControlBezierPoint, EndControlPoint,
+                             NumberOfControlPoints };
 
-    QFont mFont;
-    Qt::Alignment mTextAlignment;
-    QSizeF mTextPadding;
-    QBrush mTextBrush;
+private:
+    OdgCurve mCurve;
 
-    QRectF mTextRect;
+    QPen mPen;
+    OdgMarker mStartMarker;
+    OdgMarker mEndMarker;
+
+    QPainterPath mCurvePath;
 
 public:
-    OdgTextRoundedRectItem();
+    OdgCurveItem();
 
-    void setCaption(const QString& caption);
-    QString caption() const;
+    void setCurve(const OdgCurve& curve);
+    OdgCurve curve() const;
 
-    void setFont(const QFont& font);
-    void setTextAlignment(Qt::Alignment alignment);
-    void setTextPadding(const QSizeF& padding);
-    void setTextBrush(const QBrush& brush);
-    QFont font() const;
-    Qt::Alignment textAlignment() const;
-    QSizeF textPadding() const;
-    QBrush textBrush() const;
+    void setPen(const QPen& pen);
+    void setStartMarker(const OdgMarker& marker);
+    void setEndMarker(const OdgMarker& marker);
+    QPen pen() const;
+    OdgMarker startMarker() const;
+    OdgMarker endMarker() const;
 
     QRectF boundingRect() const override;
     QPainterPath shape() const override;
@@ -56,7 +59,9 @@ public:
     void scaleBy(double scale) override;
 
 private:
-    QPointF calculateAnchorPoint(Qt::Alignment alignment) const;
+    bool shouldShowMarker(double size) const;
+    double startMarkerAngle() const;
+    double endMarkerAngle() const;
 };
 
 #endif

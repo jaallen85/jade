@@ -80,6 +80,27 @@ QBrush OdgTextItem::textBrush() const
 
 //======================================================================================================================
 
+QRectF OdgTextItem::boundingRect() const
+{
+    QRectF textRect = mTextRect;
+    if (textRect.isNull())
+    {
+        QRectF scaledTextRect;
+        double scaleFactor = 1;
+        calculateTextRect(QPointF(0, 0), mFont, mTextAlignment, mTextPadding, mCaption,
+                          textRect, scaledTextRect, scaleFactor);
+    }
+
+    return textRect;
+}
+
+QPainterPath OdgTextItem::shape() const
+{
+    QPainterPath shape;
+    shape.addRect(boundingRect());
+    return shape;
+}
+
 bool OdgTextItem::isValid() const
 {
     return (!mCaption.isEmpty());
@@ -97,6 +118,7 @@ void OdgTextItem::paint(QPainter& painter)
 void OdgTextItem::scaleBy(double scale)
 {
     OdgItem::scaleBy(scale);
+
     mFont.setPointSizeF(mFont.pointSizeF() * scale);
     mTextPadding.setWidth(mTextPadding.width() * scale);
     mTextPadding.setHeight(mTextPadding.height() * scale);
