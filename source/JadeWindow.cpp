@@ -18,7 +18,6 @@
 #include "DrawingWidget.h"
 #include "PagesWidget.h"
 #include "PropertiesWidget.h"
-#include "StylesWidget.h"
 #include <QApplication>
 #include <QCloseEvent>
 #include <QComboBox>
@@ -36,7 +35,7 @@ JadeWindow::JadeWindow() : QMainWindow(), mDrawingWidget(nullptr),
     mPagesWidget(nullptr), mPagesDock(nullptr), mPropertiesWidget(nullptr), mPropertiesDock(nullptr),
     mModeLabel(nullptr), mModifiedLabel(nullptr), mMouseInfoLabel(nullptr), mZoomCombo(nullptr),
     mFilePath(), mNewDrawingCount(0), mWorkingDir(), mPromptOverwrite(true), mPromptCloseUnsaved(true),
-    mPagesDockVisibleOnClose(true), mPropertiesDockVisibleOnClose(true), mStylesDockVisibleOnClose(true)
+    mPagesDockVisibleOnClose(true), mPropertiesDockVisibleOnClose(true)
 {
     mDrawingWidget = new DrawingWidget();
     setCentralWidget(mDrawingWidget);
@@ -46,10 +45,6 @@ JadeWindow::JadeWindow() : QMainWindow(), mDrawingWidget(nullptr),
 
     mPropertiesWidget = new PropertiesWidget();
     mPropertiesDock = addDockWidget("Properties", mPropertiesWidget, Qt::RightDockWidgetArea);
-
-    mStylesWidget = new StylesWidget();
-    mStylesDock = addDockWidget("Styles", mStylesWidget, Qt::RightDockWidgetArea);
-    tabifyDockWidget(mPropertiesDock, mStylesDock);
 
     mModeLabel = addStatusBarLabel("Select Mode", "Place Text Ellipse", mDrawingWidget, SIGNAL(modeTextChanged(QString)));
     mModifiedLabel = addStatusBarLabel("", "Modified", mDrawingWidget, SIGNAL(cleanTextChanged(QString)));
@@ -108,12 +103,6 @@ void JadeWindow::createActions()
     propertiesAction->setCheckable(true);
     propertiesAction->setChecked(true);
     connect(mPropertiesDock, SIGNAL(visibilityChanged(bool)), propertiesAction, SLOT(setChecked(bool)));
-
-    QAction* stylesAction = addAction("Styles...", mStylesDock, SLOT(setVisible(bool)),
-                                      ":/icons/view-list-text.png");
-    stylesAction->setCheckable(true);
-    stylesAction->setChecked(true);
-    connect(mStylesDock, SIGNAL(visibilityChanged(bool)), stylesAction, SLOT(setChecked(bool)));
 
     QAction* pagesAction = addAction("Pages...", mPagesDock, SLOT(setVisible(bool)), ":/icons/view-choose.png");
     pagesAction->setCheckable(true);
@@ -191,7 +180,6 @@ void JadeWindow::createMenus()
 
     QMenu* drawingMenu = menuBar()->addMenu("Drawing");
     drawingMenu->addAction(windowActions.at(JadeWindow::ViewPropertiesAction));
-    drawingMenu->addAction(windowActions.at(JadeWindow::ViewStylesAction));
     drawingMenu->addSeparator();
     drawingMenu->addAction(drawingActions.at(DrawingWidget::InsertPageAction));
     drawingMenu->addAction(drawingActions.at(DrawingWidget::DuplicatePageAction));
@@ -489,16 +477,13 @@ void JadeWindow::setDrawingVisible(bool visible)
     {
         mPagesDock->setVisible(mPagesDockVisibleOnClose);
         mPropertiesDock->setVisible(mPropertiesDockVisibleOnClose);
-        mStylesDock->setVisible(mStylesDockVisibleOnClose);
     }
     else
     {
         mPagesDockVisibleOnClose = mPagesDock->isVisible();
         mPropertiesDockVisibleOnClose = mPropertiesDock->isVisible();
-        mStylesDockVisibleOnClose = mStylesDock->isVisible();
         mPagesDock->setVisible(false);
         mPropertiesDock->setVisible(false);
-        mStylesDock->setVisible(false);
     }
 
     // Update actions
@@ -510,7 +495,6 @@ void JadeWindow::setDrawingVisible(bool visible)
     windowActions.at(JadeWindow::ExportSvgAction)->setEnabled(visible);
     windowActions.at(JadeWindow::ViewPagesAction)->setEnabled(visible);
     windowActions.at(JadeWindow::ViewPropertiesAction)->setEnabled(visible);
-    windowActions.at(JadeWindow::ViewStylesAction)->setEnabled(visible);
 
     const QList<QAction*> drawingActions = mDrawingWidget->actions();
     for(auto& action : drawingActions)

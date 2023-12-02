@@ -97,8 +97,6 @@ add_executable(${PROJECT_NAME} WIN32
     source/widgets/PagesWidget.cpp
     source/widgets/PropertiesWidget.h
     source/widgets/PropertiesWidget.cpp
-    source/widgets/StylesWidget.h
-    source/widgets/StylesWidget.cpp
     source/JadeWindow.h
     source/JadeWindow.cpp
     source/main.cpp

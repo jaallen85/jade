@@ -32,7 +32,7 @@ class JadeWindow : public QMainWindow
 
 public:
     enum ActionIndex { NewAction, OpenAction, SaveAction, SaveAsAction, CloseAction, ExportPngAction, ExportSvgAction,
-                       PreferencesAction, ExitAction, ViewPropertiesAction, ViewStylesAction, ViewPagesAction,
+                       PreferencesAction, ExitAction, ViewPropertiesAction, ViewPagesAction,
                        AboutAction, AboutQtAction };
 
 private:
@@ -43,9 +43,6 @@ private:
 
     PropertiesWidget* mPropertiesWidget;
     QDockWidget* mPropertiesDock;
-
-    StylesWidget* mStylesWidget;
-    QDockWidget* mStylesDock;
 
     QLabel* mModeLabel;
     QLabel* mModifiedLabel;
@@ -60,7 +57,6 @@ private:
     bool mPromptCloseUnsaved;
     bool mPagesDockVisibleOnClose;
     bool mPropertiesDockVisibleOnClose;
-    bool mStylesDockVisibleOnClose;
 
 public:
     JadeWindow();
