@@ -232,9 +232,7 @@ void OdgReader::readConfigItem(QXmlStreamReader& xml)
         else if (name == QStringLiteral("gridStyle") && type == QStringLiteral("string"))
         {
             QString styleStr = text.trimmed().toLower();
-            if (styleStr == "dots")
-                mGridStyle = Odg::GridDots;
-            else if (styleStr == "lines")
+            if (styleStr == "lines")
                 mGridStyle = Odg::GridLines;
             else
                 mGridStyle = Odg::GridHidden;
@@ -295,9 +293,14 @@ void OdgReader::readStyles(QXmlStreamReader& xml)
         }
         else if (xml.qualifiedName() == QStringLiteral("style:style"))
         {
-            OdgStyle* defaultStyle = new OdgStyle(mUnits, false);
-            readStyle(xml, defaultStyle);
-            mStyles.prepend(defaultStyle);
+            if (xml.attributes().value("style:family") == QStringLiteral("drawing-page"))
+                readPageStyle(xml);
+            else
+            {
+                OdgStyle* defaultStyle = new OdgStyle(mUnits, false);
+                readStyle(xml, defaultStyle);
+                mStyles.prepend(defaultStyle);
+            }
         }
         else xml.skipCurrentElement();
     }
@@ -554,7 +557,9 @@ void OdgReader::readStyleGraphicProperties(QXmlStreamReader& xml, OdgStyle* styl
         }
         else if (attribute.qualifiedName() == QStringLiteral("svg:stroke-color"))
         {
-            style->setPenColor(colorFromString(attribute.value()));
+            QColor penColor = colorFromString(attribute.value());
+            penColor.setAlpha(style->penColor().alpha());
+            style->setPenColor(penColor);
         }
         else if (attribute.qualifiedName() == QStringLiteral("svg:stroke-opacity"))
         {
@@ -589,7 +594,9 @@ void OdgReader::readStyleGraphicProperties(QXmlStreamReader& xml, OdgStyle* styl
         }
         else if (attribute.qualifiedName() == QStringLiteral("draw:fill-color"))
         {
-            style->setBrushColor(colorFromString(attribute.value()));
+            QColor brushColor = colorFromString(attribute.value());
+            brushColor.setAlpha(style->brushColor().alpha());
+            style->setBrushColor(brushColor);
         }
         else if (attribute.qualifiedName() == QStringLiteral("draw:opacity"))
         {
@@ -703,7 +710,9 @@ void OdgReader::readStyleTextProperties(QXmlStreamReader& xml, OdgStyle* style)
         }
         else if (attribute.qualifiedName() == QStringLiteral("fo:color"))
         {
-            style->setTextColor(colorFromString(attribute.value()));
+            QColor textColor = colorFromString(attribute.value());
+            textColor.setAlpha(style->textColor().alpha());
+            style->setTextColor(textColor);
         }
         else if (attribute.qualifiedName() == QStringLiteral("loext:opacity"))
         {
@@ -782,7 +791,7 @@ OdgItem* OdgReader::readLine(QXmlStreamReader& xml)
 {
     // Read attributes of <draw:line> element
     OdgStyle* style = mStyles.first();
-    QPointF position;
+    QPointF position(-mPageMargins.left(), -mPageMargins.top());
     bool flipped = false;
     int rotation = 0;
     double x1 = 0, y1 = 0, x2 = 0, y2 = 0;
@@ -796,7 +805,7 @@ OdgItem* OdgReader::readLine(QXmlStreamReader& xml)
             transformFromString(attribute.value(), position, flipped, rotation);
         else if (attribute.qualifiedName() == QStringLiteral("svg:x1"))
             x1 = lengthFromString(attribute.value());
-        else if (attribute.qualifiedName() == QStringLiteral("svg:y2"))
+        else if (attribute.qualifiedName() == QStringLiteral("svg:y1"))
             y1 = lengthFromString(attribute.value());
         else if (attribute.qualifiedName() == QStringLiteral("svg:x2"))
             x2 = lengthFromString(attribute.value());
@@ -827,7 +836,7 @@ OdgItem* OdgReader::readRect(QXmlStreamReader& xml)
     // Read attributes of <draw:rect> element
     OdgStyle* graphicStyle = mStyles.first();
     OdgStyle* paragraphStyle = mStyles.first();
-    QPointF position;
+    QPointF position(-mPageMargins.left(), -mPageMargins.top());
     bool flipped = false;
     int rotation = 0;
     double left = 0, top = 0, width = 0, height = 0;
@@ -864,26 +873,43 @@ OdgItem* OdgReader::readRect(QXmlStreamReader& xml)
     QString caption = checkForCaption(xml);
 
     // Create OdgTextItem, OdgTextRoundedRectItem, or OdgRoundedRectItem as needed
-    if (textItemHintStr == QStringLiteral("text"))
+    if (!caption.isEmpty())
     {
-        // Create OdgTextItem
-        OdgTextItem* textItem = new OdgTextItem();
-        textItem->setPosition(position);
-        textItem->setFlipped(flipped);
-        textItem->setRotation(rotation);
-        textItem->setFont(paragraphStyle->lookupFont());
-        textItem->setTextAlignment(paragraphStyle->lookupTextAlignment());
-        textItem->setTextPadding(paragraphStyle->lookupTextPadding());
-        textItem->setTextBrush(paragraphStyle->lookupTextBrush());
-        textItem->setCaption(caption);
-        if (textItem->isValid()) return textItem;
+        if (textItemHintStr == QStringLiteral("text") ||
+            (graphicStyle->lookupBrush().color().alpha() == 0 && graphicStyle->lookupPen().style() == Qt::NoPen))
+        {
+            Qt::Alignment alignment = graphicStyle->lookupTextAlignment();
+            Qt::Alignment horizontalAlignment = (alignment & Qt::AlignHorizontal_Mask);
+            if (horizontalAlignment == Qt::AlignLeft)
+                position.setX(position.x() + left);
+            else if (horizontalAlignment == Qt::AlignRight)
+                position.setX(position.x() + left + width);
+            else    // Qt::AlignHCenter
+                position.setX(position.x() + left + width / 2);
+            Qt::Alignment verticalAlignment = (alignment & Qt::AlignVertical_Mask);
+            if (verticalAlignment == Qt::AlignTop)
+                position.setY(position.y() + top);
+            else if (verticalAlignment == Qt::AlignBottom)
+                position.setY(position.y() + top + height);
+            else    // Qt::AlignVCenter
+                position.setY(position.y() + top + height / 2);
 
-        delete textItem;
-        return nullptr;
-    }
+            // Create OdgTextItem
+            OdgTextItem* textItem = new OdgTextItem();
+            textItem->setPosition(position);
+            textItem->setFlipped(flipped);
+            textItem->setRotation(rotation);
+            textItem->setFont(paragraphStyle->lookupFont());
+            textItem->setTextAlignment(graphicStyle->lookupTextAlignment());
+            textItem->setTextPadding(graphicStyle->lookupTextPadding());
+            textItem->setTextBrush(paragraphStyle->lookupTextBrush());
+            textItem->setCaption(caption);
+            if (textItem->isValid()) return textItem;
 
-    if (textItemHintStr == QStringLiteral("text-rect") || !caption.isEmpty())
-    {
+            delete textItem;
+            return nullptr;
+        }
+
         // Create OdgTextRoundedRectItem
         OdgTextRoundedRectItem* textRectItem = new OdgTextRoundedRectItem();
         textRectItem->setPosition(position);
@@ -894,8 +920,8 @@ OdgItem* OdgReader::readRect(QXmlStreamReader& xml)
         textRectItem->setBrush(graphicStyle->lookupBrush());
         textRectItem->setPen(graphicStyle->lookupPen());
         textRectItem->setFont(paragraphStyle->lookupFont());
-        textRectItem->setTextAlignment(paragraphStyle->lookupTextAlignment());
-        textRectItem->setTextPadding(paragraphStyle->lookupTextPadding());
+        textRectItem->setTextAlignment(graphicStyle->lookupTextAlignment());
+        textRectItem->setTextPadding(graphicStyle->lookupTextPadding());
         textRectItem->setTextBrush(paragraphStyle->lookupTextBrush());
         textRectItem->setCaption(caption);
         if (textRectItem->isValid()) return textRectItem;
@@ -924,7 +950,7 @@ OdgItem* OdgReader::readEllipse(QXmlStreamReader& xml)
     // Read attributes of <draw:ellipse> element
     OdgStyle* graphicStyle = mStyles.first();
     OdgStyle* paragraphStyle = mStyles.first();
-    QPointF position;
+    QPointF position(-mPageMargins.left(), -mPageMargins.top());
     bool flipped = false;
     int rotation = 0;
     double left = 0, top = 0, width = 0, height = 0;
@@ -958,7 +984,7 @@ OdgItem* OdgReader::readEllipse(QXmlStreamReader& xml)
     QString caption = checkForCaption(xml);
 
     // Create OdgTextEllipseItem or OdgEllipseItem as needed
-    if (textItemHintStr == QStringLiteral("text-ellipse") || !caption.isEmpty())
+    if (!caption.isEmpty())
     {
         // Create OdgTextEllipseItem
         OdgTextEllipseItem* textEllipseItem = new OdgTextEllipseItem();
@@ -969,8 +995,8 @@ OdgItem* OdgReader::readEllipse(QXmlStreamReader& xml)
         textEllipseItem->setBrush(graphicStyle->lookupBrush());
         textEllipseItem->setPen(graphicStyle->lookupPen());
         textEllipseItem->setFont(paragraphStyle->lookupFont());
-        textEllipseItem->setTextAlignment(paragraphStyle->lookupTextAlignment());
-        textEllipseItem->setTextPadding(paragraphStyle->lookupTextPadding());
+        textEllipseItem->setTextAlignment(graphicStyle->lookupTextAlignment());
+        textEllipseItem->setTextPadding(graphicStyle->lookupTextPadding());
         textEllipseItem->setTextBrush(paragraphStyle->lookupTextBrush());
         textEllipseItem->setCaption(caption);
         if (textEllipseItem->isValid()) return textEllipseItem;
@@ -997,7 +1023,7 @@ OdgItem* OdgReader::readPolyline(QXmlStreamReader& xml)
 {
     // Read attributes of <draw:polyline> element
     OdgStyle* style = mStyles.first();
-    QPointF position;
+    QPointF position(-mPageMargins.left(), -mPageMargins.top());
     bool flipped = false;
     int rotation = 0;
     double left = 0, top = 0, width = 0, height = 0;
@@ -1029,7 +1055,7 @@ OdgItem* OdgReader::readPolyline(QXmlStreamReader& xml)
     xml.skipCurrentElement();
 
     // Map polyline from viewBox coordinates to item coordinates
-    if (width != 0 || height != 0 || viewBox.width() != 0 || viewBox.height() != 0) return nullptr;
+    if (viewBox.width() == 0 || viewBox.height() == 0) return nullptr;
 
     QTransform transform;
     transform.translate(-viewBox.left(), -viewBox.top());
@@ -1056,7 +1082,7 @@ OdgItem* OdgReader::readPolygon(QXmlStreamReader& xml)
 {
     // Read attributes of <draw:polygon> element
     OdgStyle* style = mStyles.first();
-    QPointF position;
+    QPointF position(-mPageMargins.left(), -mPageMargins.top());
     bool flipped = false;
     int rotation = 0;
     double left = 0, top = 0, width = 0, height = 0;
@@ -1088,7 +1114,7 @@ OdgItem* OdgReader::readPolygon(QXmlStreamReader& xml)
     xml.skipCurrentElement();
 
     // Map polygon from viewBox coordinates to item coordinates
-    if (width != 0 || height != 0 || viewBox.width() != 0 || viewBox.height() != 0) return nullptr;
+    if (viewBox.width() == 0 || viewBox.height() == 0) return nullptr;
 
     QTransform transform;
     transform.translate(-viewBox.left(), -viewBox.top());
@@ -1114,7 +1140,7 @@ OdgItem* OdgReader::readPath(QXmlStreamReader& xml)
 {
     // Read attributes of <draw:path> element
     OdgStyle* style = mStyles.first();
-    QPointF position;
+    QPointF position(-mPageMargins.left(), -mPageMargins.top());
     bool flipped = false;
     int rotation = 0;
     double left = 0, top = 0, width = 0, height = 0;
@@ -1145,11 +1171,10 @@ OdgItem* OdgReader::readPath(QXmlStreamReader& xml)
     // No sub-elements for <draw:polygon>
     xml.skipCurrentElement();
 
-
-    if (path.elementCount() == 4 && path.elementAt(0).isMoveTo() and path.elementAt(1).isCurveTo())
+    if (path.elementCount() == 4 && path.elementAt(0).isMoveTo() && path.elementAt(1).isCurveTo())
     {
         // Create curve object
-        if (width != 0 || height != 0 || viewBox.width() != 0 || viewBox.height() != 0) return nullptr;
+        if (viewBox.width() == 0 || viewBox.height() == 0) return nullptr;
 
         QTransform transform;
         transform.translate(-viewBox.left(), -viewBox.top());
@@ -1196,7 +1221,7 @@ OdgItem* OdgReader::readCustomShape(QXmlStreamReader& xml)
     // Read attributes of <draw:custom-shape> element
     OdgStyle* graphicStyle = mStyles.first();
     OdgStyle* paragraphStyle = mStyles.first();
-    QPointF position;
+    QPointF position(-mPageMargins.left(), -mPageMargins.top());
     bool flipped = false;
     int rotation = 0;
     double left = 0, top = 0, width = 0, height = 0;
@@ -1230,11 +1255,46 @@ OdgItem* OdgReader::readCustomShape(QXmlStreamReader& xml)
     QString caption = checkForCaptionAndEnhancedGeometry(xml, enhancedGeometryType, enhancedGeometryPath,
                                                          enhancedGeometryPathRect);
 
-    // Create OdgTextRoundedRectItem, OdgRoundedRectItem, OdgTextEllipseItem, OdgEllipseItem, or OdgPathItem as needed
+    // Create OdgTextItem, OdgTextRoundedRectItem, OdgRoundedRectItem, OdgTextEllipseItem, OdgEllipseItem, or
+    // OdgPathItem as needed
     if (enhancedGeometryType == QStringLiteral("rectangle"))
     {
         if (!caption.isEmpty())
         {
+            if (graphicStyle->lookupBrush().color().alpha() == 0 && graphicStyle->lookupPen().style() == Qt::NoPen)
+            {
+                Qt::Alignment alignment = graphicStyle->lookupTextAlignment();
+                Qt::Alignment horizontalAlignment = (alignment & Qt::AlignHorizontal_Mask);
+                if (horizontalAlignment == Qt::AlignLeft)
+                    position.setX(position.x() + left);
+                else if (horizontalAlignment == Qt::AlignRight)
+                    position.setX(position.x() + left + width);
+                else    // Qt::AlignHCenter
+                    position.setX(position.x() + left + width / 2);
+                Qt::Alignment verticalAlignment = (alignment & Qt::AlignVertical_Mask);
+                if (verticalAlignment == Qt::AlignTop)
+                    position.setY(position.y() + top);
+                else if (verticalAlignment == Qt::AlignBottom)
+                    position.setY(position.y() + top + height);
+                else    // Qt::AlignVCenter
+                    position.setY(position.y() + top + height / 2);
+
+                // Create OdgTextItem
+                OdgTextItem* textItem = new OdgTextItem();
+                textItem->setPosition(position);
+                textItem->setFlipped(flipped);
+                textItem->setRotation(rotation);
+                textItem->setFont(paragraphStyle->lookupFont());
+                textItem->setTextAlignment(graphicStyle->lookupTextAlignment());
+                textItem->setTextPadding(graphicStyle->lookupTextPadding());
+                textItem->setTextBrush(paragraphStyle->lookupTextBrush());
+                textItem->setCaption(caption);
+                if (textItem->isValid()) return textItem;
+
+                delete textItem;
+                return nullptr;
+            }
+
             // Create OdgTextRoundedRectItem
             OdgTextRoundedRectItem* textRectItem = new OdgTextRoundedRectItem();
             textRectItem->setPosition(position);
@@ -1244,8 +1304,8 @@ OdgItem* OdgReader::readCustomShape(QXmlStreamReader& xml)
             textRectItem->setBrush(graphicStyle->lookupBrush());
             textRectItem->setPen(graphicStyle->lookupPen());
             textRectItem->setFont(paragraphStyle->lookupFont());
-            textRectItem->setTextAlignment(paragraphStyle->lookupTextAlignment());
-            textRectItem->setTextPadding(paragraphStyle->lookupTextPadding());
+            textRectItem->setTextAlignment(graphicStyle->lookupTextAlignment());
+            textRectItem->setTextPadding(graphicStyle->lookupTextPadding());
             textRectItem->setTextBrush(paragraphStyle->lookupTextBrush());
             textRectItem->setCaption(caption);
             if (textRectItem->isValid()) return textRectItem;
@@ -1281,8 +1341,8 @@ OdgItem* OdgReader::readCustomShape(QXmlStreamReader& xml)
             textEllipseItem->setBrush(graphicStyle->lookupBrush());
             textEllipseItem->setPen(graphicStyle->lookupPen());
             textEllipseItem->setFont(paragraphStyle->lookupFont());
-            textEllipseItem->setTextAlignment(paragraphStyle->lookupTextAlignment());
-            textEllipseItem->setTextPadding(paragraphStyle->lookupTextPadding());
+            textEllipseItem->setTextAlignment(graphicStyle->lookupTextAlignment());
+            textEllipseItem->setTextPadding(graphicStyle->lookupTextPadding());
             textEllipseItem->setTextBrush(paragraphStyle->lookupTextBrush());
             textEllipseItem->setCaption(caption);
             if (textEllipseItem->isValid()) return textEllipseItem;
@@ -1412,10 +1472,79 @@ QString OdgReader::checkForCaptionAndEnhancedGeometry(QXmlStreamReader& xml, QSt
                     enhancedGeometryPath = pathFromEnhancedString(attribute.value());
             }
 
+            xml.skipCurrentElement();
+
         }
         else xml.skipCurrentElement();
     }
     return caption;
+}
+
+//======================================================================================================================
+
+double OdgReader::convertFromReaderUnits(double value, OdgReader::ReaderUnits units, Odg::Units newUnits) const
+{
+    double unitsConversionFactorToMeters = 1.0, newUnitsConversionFactorFromMeters = 1.0;
+
+    switch (units)
+    {
+    case UnitsMillimeters:
+        unitsConversionFactorToMeters = 0.001;
+        break;
+    case UnitsInches:
+        unitsConversionFactorToMeters = 0.0254;
+        break;
+    case UnitsPoints:
+        unitsConversionFactorToMeters = 0.0254 / 96;
+        break;
+    default:    // UnitsCentimeters
+        unitsConversionFactorToMeters = 0.01;
+        break;
+    }
+
+    switch (newUnits)
+    {
+    case Odg::UnitsInches:
+        newUnitsConversionFactorFromMeters = 1 / 0.0254;
+        break;
+    default:    // UnitsMillimeters
+        newUnitsConversionFactorFromMeters = 1000;
+        break;
+    }
+
+    return value * unitsConversionFactorToMeters * newUnitsConversionFactorFromMeters;
+}
+
+OdgReader::ReaderUnits OdgReader::readerUnitsFromString(const QStringView& str, bool* ok) const
+{
+    if (str.compare(QStringLiteral("cm"), Qt::CaseInsensitive) == 0)
+    {
+        if (ok) *ok = true;
+        return UnitsCentimeters;
+    }
+    if (str.compare(QStringLiteral("mm"), Qt::CaseInsensitive) == 0)
+    {
+        if (ok) *ok = true;
+        return UnitsMillimeters;
+    }
+    if (str.compare(QStringLiteral("in"), Qt::CaseInsensitive) == 0)
+    {
+        if (ok) *ok = true;
+        return UnitsInches;
+    }
+    if (str.compare(QStringLiteral("pt"), Qt::CaseInsensitive) == 0)
+    {
+        if (ok) *ok = true;
+        return UnitsPoints;
+    }
+
+    if (ok) *ok = false;
+    return UnitsMillimeters;
+}
+
+OdgReader::ReaderUnits OdgReader::readerUnitsFromString(const QString& str, bool* ok) const
+{
+    return readerUnitsFromString(QStringView(str), ok);
 }
 
 //======================================================================================================================
@@ -1433,7 +1562,7 @@ double OdgReader::lengthFromString(const QStringView& str) const
 
         bool unitsOk = false;
         QStringView unitsStr = str.last(str.size() - match.captured(0).size()).trimmed();
-        Odg::Units units = Odg::unitsFromString(unitsStr, &unitsOk);
+        ReaderUnits units = readerUnitsFromString(unitsStr, &unitsOk);
 
         if (!unitsOk)
         {
@@ -1441,7 +1570,7 @@ double OdgReader::lengthFromString(const QStringView& str) const
             return length;
         }
 
-        return Odg::convertUnits(length, units, mUnits);
+        return convertFromReaderUnits(length, units, mUnits);
     }
 
     return 0;
@@ -1507,27 +1636,38 @@ void OdgReader::transformFromString(const QStringView& str, QPointF& position, b
 {
     const QList<QStringView> tokens = str.split(QStringLiteral(")"));
     QStringView trimmedToken;
+    int startParenIndex = 0;
     for(auto& token : tokens)
     {
         trimmedToken = token.trimmed();
-        if (trimmedToken == QStringLiteral("translate("))
+        startParenIndex = trimmedToken.indexOf(QStringLiteral("("));
+        if (startParenIndex >= 0 && trimmedToken.startsWith(QStringLiteral("translate")))
         {
-            const QList<QStringView> coordinateTokens = trimmedToken.mid(10, -1).split(QStringLiteral(","));
+            const QList<QStringView> coordinateTokens = trimmedToken.mid(startParenIndex + 1, -1).split(QStringLiteral(","));
             if (coordinateTokens.size() == 2)
             {
                 position.setX(position.x() + xCoordinateFromString(coordinateTokens[0].trimmed()));
                 position.setY(position.y() + yCoordinateFromString(coordinateTokens[1].trimmed()));
             }
+            else
+            {
+                const QList<QStringView> coordinateTokensSpaced = trimmedToken.mid(startParenIndex + 1, -1).split(QStringLiteral(" "));
+                if (coordinateTokensSpaced.size() == 2)
+                {
+                    position.setX(position.x() + xCoordinateFromString(coordinateTokensSpaced[0].trimmed()));
+                    position.setY(position.y() + yCoordinateFromString(coordinateTokensSpaced[1].trimmed()));
+                }
+            }
         }
-        else if (trimmedToken == QStringLiteral("scale("))
-        {
-            flipped = !flipped;
-        }
-        else if (trimmedToken == QStringLiteral("rotate("))
+        else if (startParenIndex >= 0 && trimmedToken.startsWith(QStringLiteral("rotate")))
         {
             bool angleOk = false;
-            double angleRadians = trimmedToken.mid(7, -1).toDouble(&angleOk);
-            if (angleOk) rotation = rotation + qRound(angleRadians / (-M_PI / 2));
+            double angleRadians = trimmedToken.mid(startParenIndex + 1, -1).trimmed().toDouble(&angleOk);
+            if (angleOk) rotation += qRound(qRadiansToDegrees(angleRadians) / -90);
+        }
+        else if (startParenIndex >= 0 && trimmedToken.startsWith(QStringLiteral("scale")))
+        {
+            flipped = !flipped;
         }
     }
 }
@@ -1816,4 +1956,3 @@ QPainterPath OdgReader::pathFromEnhancedString(const QString& str) const
 {
     return pathFromEnhancedString(QStringView(str));
 }
-

@@ -98,7 +98,7 @@ private slots:
     void setFilePath(const QString& path);
 
     void setZoomLevel(const QString& zoomLevelText);
-    void setZoomComboText(qreal scale);
+    void setZoomComboText(double scale);
 
     void saveSettings();
     void loadSettings();

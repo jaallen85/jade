@@ -24,6 +24,7 @@
 #include "OdgGlobal.h"
 
 class QPainter;
+class OdgItem;
 class OdgPage;
 
 class OdgDrawing
@@ -76,7 +77,12 @@ public:
     void clearPages();
     QList<OdgPage*> pages() const;
 
-    void paint(QPainter& painter, bool isExport = false);
+protected:
+    void drawBackground(QPainter& painter, bool drawBorder, bool drawGrid);
+    void drawItems(QPainter& painter, const QList<OdgItem*>& items);
+
+private:
+    void drawGridLines(QPainter& painter, const QColor& color, int spacing);
 };
 
 #endif

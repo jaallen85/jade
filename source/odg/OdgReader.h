@@ -31,6 +31,9 @@ class OdgPage;
 class OdgReader
 {
 private:
+    enum ReaderUnits { UnitsCentimeters, UnitsMillimeters, UnitsInches, UnitsPoints };
+
+private:
     Odg::Units mUnits;
     QSizeF mPageSize;
     QMarginsF mPageMargins;
@@ -107,6 +110,10 @@ private:
     QString checkForCaption(QXmlStreamReader& xml);
     QString checkForCaptionAndEnhancedGeometry(QXmlStreamReader& xml, QString& enhancedGeometryType,
                                                QPainterPath& enhancedGeometryPath, QRectF& enhancedGeometryPathRect);
+
+    double convertFromReaderUnits(double value, ReaderUnits units, Odg::Units newUnits) const;
+    ReaderUnits readerUnitsFromString(const QStringView& str, bool* ok = nullptr) const;
+    ReaderUnits readerUnitsFromString(const QString& str, bool* ok = nullptr) const;
 
     double lengthFromString(const QStringView& str) const;
     double lengthFromString(const QString& str) const;

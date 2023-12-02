@@ -61,7 +61,7 @@ JadeWindow::JadeWindow() : QMainWindow(), mDrawingWidget(nullptr),
 
     setWindowTitle("Jade");
     setWindowIcon(QIcon(":/icons/jade.png"));
-    resize(1762, 1000);
+    resize(1732, 1000);
 
     loadSettings();
 }
@@ -218,7 +218,7 @@ void JadeWindow::createToolBars()
     mZoomCombo->setEditable(true);
     mZoomCombo->setCurrentIndex(3);
     connect(mZoomCombo, SIGNAL(textActivated(QString)), this, SLOT(setZoomLevel(QString)));
-    connect(mDrawingWidget, SIGNAL(scaleChanged(qreal)), this, SLOT(setZoomComboText(qreal)));
+    connect(mDrawingWidget, SIGNAL(scaleChanged(double)), this, SLOT(setZoomComboText(double)));
 
     QWidget* zoomWidget = new QWidget();
     QHBoxLayout* zoomLayout = new QHBoxLayout();
@@ -460,7 +460,7 @@ void JadeWindow::showEvent(QShowEvent* event)
     if (event && !event->spontaneous())
     {
         mPropertiesDock->raise();
-        mDrawingWidget->zoomFitAll();
+        mDrawingWidget->zoomFit();
     }
 }
 
@@ -518,7 +518,7 @@ void JadeWindow::setDrawingVisible(bool visible)
 
     // Update drawing
     if (visible)
-        mDrawingWidget->zoomFitAll();
+        mDrawingWidget->zoomFit();
     else
         mDrawingWidget->clear();
 }
@@ -560,7 +560,7 @@ void JadeWindow::setZoomLevel(const QString& zoomLevelText)
     }
 }
 
-void JadeWindow::setZoomComboText(qreal scale)
+void JadeWindow::setZoomComboText(double scale)
 {
     double zoomLevel = scale / Odg::convertUnits(2, mDrawingWidget->units(), Odg::UnitsInches);
     mZoomCombo->setCurrentText(QString::number(zoomLevel, 'f', 2) + "%");

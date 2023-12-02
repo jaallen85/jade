@@ -20,6 +20,7 @@
 OdgMarker::OdgMarker(Odg::MarkerStyle style, double size) : mStyle(style), mSize(size)
 {
     if (mSize < 0) mSize = 0;
+    updatePath();
 }
 
 //======================================================================================================================

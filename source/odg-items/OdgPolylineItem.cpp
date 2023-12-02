@@ -150,7 +150,7 @@ void OdgPolylineItem::paint(QPainter& painter)
 {
     painter.setBrush(QBrush(Qt::transparent));
     painter.setPen(mPen);
-    painter.drawPolygon(mPolyline);
+    painter.drawPolyline(mPolyline);
 
     if (shouldShowStartMarker())
         mStartMarker.paint(painter, mPen, mPolyline.first(), startMarkerAngle());

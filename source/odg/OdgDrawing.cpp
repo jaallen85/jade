@@ -16,6 +16,8 @@
 
 #include "OdgDrawing.h"
 #include "OdgPage.h"
+#include "OdgItem.h"
+#include <QPainter>
 
 OdgDrawing::OdgDrawing() :
     mUnits(Odg::UnitsInches), mPageSize(8.2, 6.2), mPageMargins(0.1, 0.1, 0.1, 0.1), mBackgroundColor(255, 255, 255),
@@ -155,11 +157,11 @@ int OdgDrawing::gridSpacingMinor() const
 
 double OdgDrawing::roundToGrid(double value) const
 {
-    qreal result = value;
+    double result = value;
 
     if (mGrid > 0)
     {
-        qreal mod = fmod(value, mGrid);
+        double mod = fmod(value, mGrid);
         result = value - mod;
         if (mod >= mGrid/2) result += mGrid;
         else if (mod <= -mGrid/2) result -= mGrid;
@@ -203,7 +205,91 @@ QList<OdgPage*> OdgDrawing::pages() const
 
 //======================================================================================================================
 
-void OdgDrawing::paint(QPainter& painter, bool isExport)
+void OdgDrawing::drawBackground(QPainter& painter, bool drawBorder, bool drawGrid)
 {
+    const QColor pageBorderColor(255 - mBackgroundColor.red(), 255 - mBackgroundColor.green(),
+                                 255 - mBackgroundColor.blue());
+    const QColor contentBorderColor(128, 128, 128);
 
+    // Fill background
+    painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing, false);
+    painter.setBackground(QBrush(mBackgroundColor));
+    painter.setBrush(QBrush(mBackgroundColor));
+    if (drawBorder)
+        painter.setPen(QPen(Qt::NoPen));
+    else
+        painter.setPen(QPen(QBrush(pageBorderColor), 0));
+    painter.drawRect(pageRect());
+
+    // Draw content border
+    if (drawBorder)
+    {
+        painter.setBrush(QBrush(Qt::transparent));
+        painter.setPen(QPen(QBrush(contentBorderColor), 0));
+        painter.drawRect(contentRect());
+    }
+
+    // Draw grid
+    if (drawGrid && mGrid > 0)
+    {
+        QColor minorGridColor = QColor::fromHslF(mGridColor.hslHueF(), mGridColor.hslSaturationF(),
+                                                 mGridColor.lightnessF() + (1 - mGridColor.lightnessF()) * 0.7);
+
+        switch (mGridStyle)
+        {
+        case Odg::GridLines:
+            // Minor and Major grid lines
+            drawGridLines(painter, minorGridColor, mGridSpacingMinor);
+            drawGridLines(painter, mGridColor, mGridSpacingMajor);
+
+            // Draw content border again
+            painter.setBrush(QBrush(Qt::transparent));
+            painter.setPen(QPen(QBrush(mGridColor), 0));
+            painter.drawRect(contentRect());
+            break;
+        default:    // Odg::GridHidden
+            break;
+        }
+    }
+}
+
+void OdgDrawing::drawItems(QPainter& painter, const QList<OdgItem*>& items)
+{
+    painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing, true);
+
+    for(auto& item : items)
+    {
+        painter.setTransform(item->transform(), true);
+        item->paint(painter);
+        painter.setTransform(item->transformInverse(), true);
+    }
+}
+
+//======================================================================================================================
+
+void OdgDrawing::drawGridLines(QPainter& painter, const QColor& color, int spacing)
+{
+    if (mGrid > 0 && spacing > 0)
+    {
+        const QRectF gridRect = contentRect();
+
+        painter.setPen(QPen(QBrush(color), 0, Qt::SolidLine));
+
+        const double gridInterval = mGrid * spacing;
+        const int gridLeftIndex = qCeil(gridRect.left() / gridInterval);
+        const int gridRightIndex = qFloor(gridRect.right() / gridInterval);
+        const int gridTopIndex = qCeil(gridRect.top() / gridInterval);
+        const int gridBottomIndex = qFloor(gridRect.bottom() / gridInterval);
+        double x, y;
+        for(int xIndex = gridLeftIndex; xIndex <= gridRightIndex; xIndex++)
+        {
+            x = xIndex * gridInterval;
+            painter.drawLine(QLineF(x, gridRect.top(), x, gridRect.bottom()));
+        }
+        for(int yIndex = gridTopIndex; yIndex <= gridBottomIndex; yIndex++)
+        {
+            y = yIndex * gridInterval;
+            painter.drawLine(QLineF(gridRect.left(), y, gridRect.right(), y));
+        }
+    }
 }

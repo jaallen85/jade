@@ -18,9 +18,16 @@
 #include <QActionGroup>
 #include <QContextMenuEvent>
 #include <QMenu>
+#include <QMessageBox>
+#include <QPainter>
+#include <QScrollBar>
+#include <QStyle>
+#include <QWheelEvent>
+#include "OdgPage.h"
+#include "OdgReader.h"
 
 DrawingWidget::DrawingWidget() : QAbstractScrollArea(), OdgDrawing(),
-    mModeActionGroup(nullptr), mContextMenu(nullptr)
+    mCurrentPage(nullptr), mTransform(), mTransformInverse(), mModeActionGroup(nullptr), mContextMenu(nullptr)
 {
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
@@ -150,6 +157,51 @@ void DrawingWidget::addModeAction(const QString& text, const QString& iconPath, 
 
 //======================================================================================================================
 
+double DrawingWidget::scale() const
+{
+    return mTransform.m11();
+}
+
+QRectF DrawingWidget::visibleRect() const
+{
+    return QRectF(mapToScene(QPoint(0, 0)), mapToScene(QPoint(viewport()->width() - 1, viewport()->height() - 1)));
+}
+
+QPointF DrawingWidget::mapToScene(const QPoint& position) const
+{
+    const QPoint scrollPosition(horizontalScrollBar()->value(), verticalScrollBar()->value());
+    return mTransformInverse.map(QPointF(position + scrollPosition));
+}
+
+QRectF DrawingWidget::mapToScene(const QRect& rect) const
+{
+    return QRectF(mapToScene(rect.topLeft()), mapToScene(rect.bottomRight()));
+}
+
+QPoint DrawingWidget::mapFromScene(const QPointF& position) const
+{
+    const QPoint scrollPosition(horizontalScrollBar()->value(), verticalScrollBar()->value());
+    return mTransform.map(position).toPoint() - scrollPosition;
+}
+
+QRect DrawingWidget::mapFromScene(const QRectF& rect) const
+{
+    return QRect(mapFromScene(rect.topLeft()), mapFromScene(rect.bottomRight()));
+}
+
+//======================================================================================================================
+
+void DrawingWidget::paint(QPainter& painter, bool isExport)
+{
+    if (mCurrentPage)
+    {
+        drawBackground(painter, !isExport, !isExport);
+        drawItems(painter, mCurrentPage->items());
+    }
+}
+
+//======================================================================================================================
+
 void DrawingWidget::createNew()
 {
 
@@ -157,7 +209,39 @@ void DrawingWidget::createNew()
 
 bool DrawingWidget::load(const QString& fileName)
 {
-    return isClean();
+    OdgReader reader(fileName);
+    if (!reader.open())
+    {
+        QMessageBox::critical(this, "File Error", "Error opening " + fileName + " for reading.");
+        return false;
+    }
+
+    if (!reader.read())
+    {
+        QMessageBox::critical(this, "File Error", "Error reading " + fileName + ".  File is invalid.");
+        return false;
+    }
+
+    setUnits(reader.units());
+    setPageSize(reader.pageSize());
+    setPageMargins(reader.pageMargins());
+    setBackgroundColor(reader.backgroundColor());
+
+    setGrid(reader.grid());
+    setGridStyle(reader.gridStyle());
+    setGridColor(reader.gridColor());
+    setGridSpacingMajor(reader.gridSpacingMajor());
+    setGridSpacingMinor(reader.gridSpacingMinor());
+
+    const QList<OdgPage*> pages = reader.takePages();
+    clearPages();
+    for(auto& page : pages)
+        addPage(page);
+
+    mCurrentPage = (pages.isEmpty()) ? nullptr : pages.at(0);
+
+    //mUndoStack.setClean();
+    return true;
 }
 
 bool DrawingWidget::save(const QString& fileName)
@@ -179,27 +263,88 @@ bool DrawingWidget::isClean() const
 
 void DrawingWidget::setScale(double scale)
 {
+    if (scale > 0)
+    {
+        const QPoint previousMousePosition = mapFromGlobal(QCursor::pos());
+        const QPointF previousMouseScenePosition = mapToScene(previousMousePosition);
 
+        // Update view to the new scale
+        updateTransformAndScrollBars(scale);
+        emit scaleChanged(scale);
+
+        // Keep mouse cursor on the same position, if possible.  Otherwise keep the center of the scene rect in the
+        // center of the view.
+        if (viewport()->rect().contains(previousMousePosition))
+            mouseCursorOn(previousMouseScenePosition);
+        else
+            centerOn(pageRect().center());
+    }
 }
 
 void DrawingWidget::zoomIn()
 {
-
+    setScale(scale() * qSqrt(qSqrt(2)));
 }
 
 void DrawingWidget::zoomOut()
 {
-
+    setScale(scale() / qSqrt(qSqrt(2)));
 }
 
 void DrawingWidget::zoomFit()
 {
-
+    zoomToRect(QRectF());
 }
 
-void DrawingWidget::zoomFitAll()
+void DrawingWidget::zoomToRect(const QRectF& rect)
 {
+    const QRectF finalRect = (rect.width() > 0 && rect.height() > 0) ? rect : pageRect();
 
+    // Update view to the new scale
+    const double scaleX = (maximumViewportSize().width() - 3) / finalRect.width();
+    const double scaleY = (maximumViewportSize().height() - 3) / finalRect.height();
+    const double scale = qMin(scaleX, scaleY);
+
+    updateTransformAndScrollBars(scale);
+    emit scaleChanged(scale);
+
+    // Put the center of the rect in the center of the view
+    centerOn(finalRect.center());
+}
+
+void DrawingWidget::ensureVisible(const QRectF& rect)
+{
+    if (!visibleRect().contains(rect)) zoomToRect(rect);
+}
+
+void DrawingWidget::centerOn(const QPointF& position)
+{
+    // Scroll the scroll bars so the specified position is in the center of the view
+    const QPointF oldPosition = mapToScene(viewport()->rect().center());
+    const double scale = this->scale();
+
+    const int horizontalDelta = qRound((position.x() - oldPosition.x()) * scale);
+    const int verticalDelta = qRound((position.y() - oldPosition.y()) * scale);
+
+    horizontalScrollBar()->setValue(horizontalScrollBar()->value() + horizontalDelta);
+    verticalScrollBar()->setValue(verticalScrollBar()->value() + verticalDelta);
+
+    viewport()->update();
+}
+
+void DrawingWidget::mouseCursorOn(const QPointF& position)
+{
+    // Scroll the scroll bars so the specified position is beneath the mouse cursor
+    const QPointF oldPosition = mapToScene(mapFromGlobal(QCursor::pos()));
+    const double scale = this->scale();
+
+    const int horizontalDelta = qRound((position.x() - oldPosition.x()) * scale);
+    const int verticalDelta = qRound((position.y() - oldPosition.y()) * scale);
+
+    horizontalScrollBar()->setValue(horizontalScrollBar()->value() + horizontalDelta);
+    verticalScrollBar()->setValue(verticalScrollBar()->value() + verticalDelta);
+
+    viewport()->update();
 }
 
 //======================================================================================================================
@@ -336,6 +481,91 @@ void DrawingWidget::removePoint()
 }
 
 //======================================================================================================================
+
+void DrawingWidget::paintEvent(QPaintEvent* event)
+{
+    QPainter painter(viewport());
+    painter.setBrush(palette().brush(QPalette::Dark));
+    painter.setPen(QPen(Qt::NoPen));
+    painter.drawRect(rect());
+
+    if (mCurrentPage)
+    {
+        painter.translate(-horizontalScrollBar()->value(), -verticalScrollBar()->value());
+        painter.setTransform(mTransform, true);
+
+        paint(painter);
+    }
+}
+
+//======================================================================================================================
+
+void DrawingWidget::resizeEvent(QResizeEvent* event)
+{
+    QAbstractScrollArea::resizeEvent(event);
+    updateTransformAndScrollBars();
+}
+
+void DrawingWidget::updateTransformAndScrollBars(double scale)
+{
+    if (scale <= 0) scale = this->scale();
+
+    const QRectF pageRect = this->pageRect();
+    const int contentWidth = qRound(pageRect.width() * scale) + 1;
+    const int contentHeight = qRound(pageRect.height() * scale) + 1;
+
+    int viewportWidth = maximumViewportSize().width();
+    int viewportHeight = maximumViewportSize().height();
+
+    const int scrollBarExtent = style()->pixelMetric(QStyle::PM_ScrollBarExtent, nullptr, this);
+    if (contentWidth > viewportWidth && verticalScrollBarPolicy() == Qt::ScrollBarAsNeeded)
+        viewportWidth -= scrollBarExtent;
+    if (contentHeight > viewportHeight && horizontalScrollBarPolicy() == Qt::ScrollBarAsNeeded)
+        viewportHeight -= scrollBarExtent;
+
+    // Update transform
+    mTransform.reset();
+    mTransform.translate(-pageRect.left() * scale, -pageRect.top() * scale);
+    if (contentWidth < viewportWidth)
+        mTransform.translate(-(pageRect.width() * scale - viewportWidth + 1) / 2, 0);
+    if (contentHeight < viewportHeight)
+        mTransform.translate(0, -(pageRect.height() * scale - viewportHeight + 1) / 2);
+    mTransform.scale(scale, scale);
+
+    mTransformInverse = mTransform.inverted();
+
+    // Update scroll bars
+    if (contentWidth > viewportWidth)
+    {
+        horizontalScrollBar()->setRange(-1, contentWidth - viewportWidth + 1);
+        horizontalScrollBar()->setSingleStep(qRound(viewportWidth / 80.0));
+        horizontalScrollBar()->setPageStep(viewportWidth);
+    }
+    else horizontalScrollBar()->setRange(0, 0);
+
+    if (contentHeight > viewportHeight)
+    {
+        verticalScrollBar()->setRange(-1, contentHeight - viewportHeight + 1);
+        verticalScrollBar()->setSingleStep(qRound(viewportHeight / 80.0));
+        verticalScrollBar()->setPageStep(viewportHeight);
+    }
+    else verticalScrollBar()->setRange(0, 0);
+}
+
+//======================================================================================================================
+
+void DrawingWidget::wheelEvent(QWheelEvent* event)
+{
+    if (event->modifiers() & Qt::ControlModifier)
+    {
+        // Zoom in or out on a mouse wheel vertical event if the control key is held down.
+        if (event->angleDelta().y() > 0)
+            zoomIn();
+        else if (event->angleDelta().y() < 0)
+            zoomOut();
+    }
+    else QAbstractScrollArea::wheelEvent(event);
+}
 
 void DrawingWidget::contextMenuEvent(QContextMenuEvent* event)
 {

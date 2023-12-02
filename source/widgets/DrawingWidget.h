@@ -39,6 +39,10 @@ public:
                        ZoomInAction, ZoomOutAction, ZoomFitAction};
 
 private:
+    OdgPage* mCurrentPage;
+
+    QTransform mTransform, mTransformInverse;
+
     QActionGroup* mModeActionGroup;
     QMenu* mContextMenu;
 
@@ -55,6 +59,16 @@ private:
                        const QString& keySequence = QString());
 
 public:
+    double scale() const;
+    QRectF visibleRect() const;
+    QPointF mapToScene(const QPoint& position) const;
+    QRectF mapToScene(const QRect& rect) const;
+    QPoint mapFromScene(const QPointF& position) const;
+    QRect mapFromScene(const QRectF& rect) const;
+
+    void paint(QPainter& painter, bool isExport = false);
+
+public:
     void createNew();
     bool load(const QString& fileName);
     bool save(const QString& fileName);
@@ -66,7 +80,10 @@ public slots:
     void zoomIn();
     void zoomOut();
     void zoomFit();
-    void zoomFitAll();
+    void zoomToRect(const QRectF& rect);
+    void ensureVisible(const QRectF& rect);
+    void centerOn(const QPointF& position);
+    void mouseCursorOn(const QPointF& position);
 
     void undo();
     void redo();
@@ -107,6 +124,12 @@ signals:
     void mouseInfoChanged(const QString& modeText);
 
 private:
+    void paintEvent(QPaintEvent* event) override;
+
+    void resizeEvent(QResizeEvent* event) override;
+    void updateTransformAndScrollBars(double scale = 0.0);
+
+    void wheelEvent(QWheelEvent* event) override;
     void contextMenuEvent(QContextMenuEvent* event) override;
 
 private slots:

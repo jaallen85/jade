@@ -33,7 +33,7 @@ namespace Odg
 
     enum MarkerStyle { NoMarker, TriangleMarker, CircleMarker };
 
-    enum GridStyle { GridHidden, GridDots, GridLines };
+    enum GridStyle { GridHidden, GridLines };
 }
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(Odg::GluePointEscapeDirections)
