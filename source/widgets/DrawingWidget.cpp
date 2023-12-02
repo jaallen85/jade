@@ -15,6 +15,9 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "DrawingWidget.h"
+#include "OdgPage.h"
+#include "OdgItem.h"
+#include "OdgReader.h"
 #include <QActionGroup>
 #include <QContextMenuEvent>
 #include <QMenu>
@@ -23,8 +26,6 @@
 #include <QScrollBar>
 #include <QStyle>
 #include <QWheelEvent>
-#include "OdgPage.h"
-#include "OdgReader.h"
 
 DrawingWidget::DrawingWidget() : QAbstractScrollArea(), OdgDrawing(),
     mCurrentPage(nullptr), mTransform(), mTransformInverse(), mModeActionGroup(nullptr), mContextMenu(nullptr)
@@ -495,6 +496,95 @@ void DrawingWidget::paintEvent(QPaintEvent* event)
         painter.setTransform(mTransform, true);
 
         paint(painter);
+    }
+}
+
+void DrawingWidget::drawBackground(QPainter& painter, bool drawBorder, bool drawGrid)
+{
+    const QColor backgroundColor = this->backgroundColor();
+    const QColor pageBorderColor(255 - backgroundColor.red(), 255 - backgroundColor.green(), 255 - backgroundColor.blue());
+    const QColor contentBorderColor(128, 128, 128);
+
+    // Fill background
+    painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing, false);
+    painter.setBackground(QBrush(backgroundColor));
+    painter.setBrush(QBrush(backgroundColor));
+    if (drawBorder)
+        painter.setPen(QPen(Qt::NoPen));
+    else
+        painter.setPen(QPen(QBrush(pageBorderColor), 0));
+    painter.drawRect(pageRect());
+
+    // Draw content border
+    if (drawBorder)
+    {
+        painter.setBrush(QBrush(Qt::transparent));
+        painter.setPen(QPen(QBrush(contentBorderColor), 0));
+        painter.drawRect(contentRect());
+    }
+
+    // Draw grid
+    if (drawGrid && grid() > 0)
+    {
+        const QColor gridColor = this->gridColor();
+        const QColor minorGridColor = QColor::fromHslF(gridColor.hslHueF(), gridColor.hslSaturationF(),
+                                                       gridColor.lightnessF() + (1 - gridColor.lightnessF()) * 0.7);
+
+        switch (gridStyle())
+        {
+        case Odg::GridLines:
+            // Minor and Major grid lines
+            if (gridSpacingMinor() > 0)
+                drawGridLines(painter, minorGridColor, gridSpacingMinor());
+            if (gridSpacingMajor() > 0)
+                drawGridLines(painter, gridColor, gridSpacingMajor());
+
+            // Draw content border again
+            painter.setBrush(QBrush(Qt::transparent));
+            painter.setPen(QPen(QBrush(gridColor), 0));
+            painter.drawRect(contentRect());
+            break;
+        default:    // Odg::GridHidden
+            break;
+        }
+    }
+}
+
+void DrawingWidget::drawGridLines(QPainter& painter, const QColor& color, int spacing)
+{
+    const QRectF gridRect = contentRect();
+
+    painter.setPen(QPen(QBrush(color), 0, Qt::SolidLine));
+
+    const double gridInterval = grid() * spacing;
+    const int gridLeftIndex = qCeil(gridRect.left() / gridInterval);
+    const int gridRightIndex = qFloor(gridRect.right() / gridInterval);
+    const int gridTopIndex = qCeil(gridRect.top() / gridInterval);
+    const int gridBottomIndex = qFloor(gridRect.bottom() / gridInterval);
+
+    double x = 0, y = 0;
+    for(int xIndex = gridLeftIndex; xIndex <= gridRightIndex; xIndex++)
+    {
+        x = xIndex * gridInterval;
+        painter.drawLine(QLineF(x, gridRect.top(), x, gridRect.bottom()));
+    }
+
+    for(int yIndex = gridTopIndex; yIndex <= gridBottomIndex; yIndex++)
+    {
+        y = yIndex * gridInterval;
+        painter.drawLine(QLineF(gridRect.left(), y, gridRect.right(), y));
+    }
+}
+
+void DrawingWidget::drawItems(QPainter& painter, const QList<OdgItem*>& items)
+{
+    painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing, true);
+
+    for(auto& item : items)
+    {
+        painter.setTransform(item->transform(), true);
+        item->paint(painter);
+        painter.setTransform(item->transformInverse(), true);
     }
 }
 

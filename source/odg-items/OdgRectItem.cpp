@@ -22,11 +22,7 @@
 OdgRectItem::OdgRectItem() : mRect(), mBrush(), mPen()
 {
     for(int i = 0; i < NumberOfControlPoints; i++) addControlPoint(new OdgControlPoint(QPointF(0, 0)));
-
-    addGluePoint(new OdgGluePoint(QPointF(0, 0), Odg::EscapeUp));
-    addGluePoint(new OdgGluePoint(QPointF(0, 0), Odg::EscapeRight));
-    addGluePoint(new OdgGluePoint(QPointF(0, 0), Odg::EscapeDown));
-    addGluePoint(new OdgGluePoint(QPointF(0, 0), Odg::EscapeLeft));
+    for(int i = 0; i < NumberOfGluePoints; i++) addGluePoint(new OdgGluePoint(QPointF(0, 0)));
 }
 
 //======================================================================================================================

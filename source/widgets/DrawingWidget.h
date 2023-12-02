@@ -22,6 +22,7 @@
 
 class QActionGroup;
 class QMenu;
+class OdgItem;
 
 class DrawingWidget : public QAbstractScrollArea, public OdgDrawing
 {
@@ -125,6 +126,9 @@ signals:
 
 private:
     void paintEvent(QPaintEvent* event) override;
+    void drawBackground(QPainter& painter, bool drawBorder, bool drawGrid);
+    void drawGridLines(QPainter& painter, const QColor& color, int spacing);
+    void drawItems(QPainter& painter, const QList<OdgItem*>& items);
 
     void resizeEvent(QResizeEvent* event) override;
     void updateTransformAndScrollBars(double scale = 0.0);

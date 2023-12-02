@@ -17,8 +17,8 @@
 #include "OdgGluePoint.h"
 #include "OdgControlPoint.h"
 
-OdgGluePoint::OdgGluePoint(const QPointF& position, Odg::GluePointEscapeDirections escapeDirections) :
-    mPosition(position), mEscapeDirections(escapeDirections), mConnections()
+OdgGluePoint::OdgGluePoint(const QPointF& position) :
+    mPosition(position), mConnections()
 {
     // Nothing more to do here.
 }
@@ -38,18 +38,6 @@ void OdgGluePoint::setPosition(const QPointF& position)
 QPointF OdgGluePoint::position() const
 {
     return mPosition;
-}
-
-//======================================================================================================================
-
-void OdgGluePoint::setEscapeDirections(Odg::GluePointEscapeDirections directions)
-{
-    mEscapeDirections = directions;
-}
-
-Odg::GluePointEscapeDirections OdgGluePoint::escapeDirections() const
-{
-    return mEscapeDirections;
 }
 
 //======================================================================================================================

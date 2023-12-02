@@ -27,15 +27,9 @@ namespace Odg
     Units unitsFromString(const QStringView& str, bool* ok = nullptr);
     Units unitsFromString(const QString& str, bool* ok = nullptr);
 
-    enum GluePointEscapeDirection { EscapeNone = 0x00, EscapeLeft = 0x01, EscapeRight = 0x02, EscapeHoriztional = 0x03,
-                                    EscapeUp = 0x04, EscapeDown = 0x08, EscapeVertical = 0x0C, EscapeAll = 0x0F };
-    Q_DECLARE_FLAGS(GluePointEscapeDirections, GluePointEscapeDirection)
-
     enum MarkerStyle { NoMarker, TriangleMarker, CircleMarker };
 
     enum GridStyle { GridHidden, GridLines };
 }
-
-Q_DECLARE_OPERATORS_FOR_FLAGS(Odg::GluePointEscapeDirections)
 
 #endif

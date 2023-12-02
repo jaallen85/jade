@@ -19,7 +19,6 @@
 
 #include <QList>
 #include <QPointF>
-#include "OdgGlobal.h"
 
 class OdgControlPoint;
 
@@ -27,18 +26,15 @@ class OdgGluePoint
 {
 private:
     QPointF mPosition;
-    Odg::GluePointEscapeDirections mEscapeDirections;
+
     QList<OdgControlPoint*> mConnections;
 
 public:
-    OdgGluePoint(const QPointF& position = QPointF(), Odg::GluePointEscapeDirections escapeDirections = Odg::EscapeNone);
+    OdgGluePoint(const QPointF& position = QPointF());
     ~OdgGluePoint();
 
     void setPosition(const QPointF& position);
     QPointF position() const;
-
-    void setEscapeDirections(Odg::GluePointEscapeDirections directions);
-    Odg::GluePointEscapeDirections escapeDirections() const;
 
     void addConnection(OdgControlPoint* point);
     void removeConnection(OdgControlPoint* point);
