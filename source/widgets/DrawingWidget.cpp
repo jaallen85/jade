@@ -20,6 +20,7 @@
 #include "OdgItem.h"
 #include "OdgReader.h"
 #include "OdgStyle.h"
+#include "OdgWriter.h"
 #include <QActionGroup>
 #include <QContextMenuEvent>
 #include <QMenu>
@@ -415,7 +416,34 @@ bool DrawingWidget::load(const QString& fileName)
 
 bool DrawingWidget::save(const QString& fileName)
 {
-    return isClean();
+    OdgWriter writer(fileName);
+    if (!writer.open())
+    {
+        QMessageBox::critical(this, "File Error", "Error opening " + fileName + " for writing.");
+        return false;
+    }
+
+    writer.setUnits(mUnits);
+    writer.setPageSize(mPageSize);
+    writer.setPageMargins(mPageMargins);
+    writer.setBackgroundColor(mBackgroundColor);
+    writer.setGrid(mGrid);
+    writer.setGridStyle(mGridStyle);
+    writer.setGridColor(mGridColor);
+    writer.setGridSpacingMajor(mGridSpacingMajor);
+    writer.setGridSpacingMinor(mGridSpacingMinor);
+
+    writer.setDefaultStyle(mDefaultStyle);
+    writer.setPages(mPages);
+
+    if (!writer.write())
+    {
+        QMessageBox::critical(this, "File Error", "Error writing " + fileName + ".  File is invalid.");
+        return false;
+    }
+
+    mUndoStack.setClean();
+    return true;
 }
 
 void DrawingWidget::clear()

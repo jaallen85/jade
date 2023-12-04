@@ -20,6 +20,7 @@
 #include <quazip.h>
 #include <quazipfile.h>
 #include "OdgPage.h"
+#include "OdgStyle.h"
 #include "OdgCurveItem.h"
 #include "OdgEllipseItem.h"
 #include "OdgGroupItem.h"
@@ -43,8 +44,8 @@ OdgReader::OdgReader(const QString& fileName) :
 OdgReader::~OdgReader()
 {
     close();
-    qDeleteAll(mStyles);
     qDeleteAll(mPages);
+    qDeleteAll(mStyles);
 }
 
 //======================================================================================================================
@@ -100,7 +101,7 @@ int OdgReader::gridSpacingMinor() const
 
 OdgStyle* OdgReader::takeDefaultStyle()
 {
-    return mStyles.takeFirst();
+    return (mStyles.isEmpty()) ? nullptr : mStyles.takeFirst();
 }
 
 QList<OdgPage*> OdgReader::takePages()

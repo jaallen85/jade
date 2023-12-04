@@ -67,6 +67,8 @@ add_executable(${PROJECT_NAME} WIN32
     source/odg/OdgReader.cpp
     source/odg/OdgStyle.h
     source/odg/OdgStyle.cpp
+    source/odg/OdgWriter.h
+    source/odg/OdgWriter.cpp
     source/odg-items/OdgCurveItem.h
     source/odg-items/OdgCurveItem.cpp
     source/odg-items/OdgEllipseItem.h

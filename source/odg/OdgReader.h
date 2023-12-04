@@ -21,12 +21,14 @@
 #include <QFile>
 #include <QList>
 #include <QMarginsF>
+#include <QPainterPath>
 #include <QRectF>
-#include "OdgStyle.h"
+#include "OdgGlobal.h"
 
 class QXmlStreamReader;
 class OdgItem;
 class OdgPage;
+class OdgStyle;
 
 class OdgReader
 {
