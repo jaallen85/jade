@@ -47,10 +47,10 @@ public:
     OdgDrawing();
     virtual ~OdgDrawing();
 
-    void setUnits(Odg::Units units);
-    void setPageSize(const QSizeF& size);
-    void setPageMargins(const QMarginsF& margins);
-    void setBackgroundColor(const QColor& color);
+    virtual void setUnits(Odg::Units units);
+    virtual void setPageSize(const QSizeF& size);
+    virtual void setPageMargins(const QMarginsF& margins);
+    virtual void setBackgroundColor(const QColor& color);
     Odg::Units units() const;
     QSizeF pageSize() const;
     QMarginsF pageMargins() const;
@@ -58,11 +58,11 @@ public:
     QRectF pageRect() const;
     QRectF contentRect() const;
 
-    void setGrid(double grid);
-    void setGridStyle(Odg::GridStyle style);
-    void setGridColor(const QColor& color);
-    void setGridSpacingMajor(int spacing);
-    void setGridSpacingMinor(int spacing);
+    virtual void setGrid(double grid);
+    virtual void setGridStyle(Odg::GridStyle style);
+    virtual void setGridColor(const QColor& color);
+    virtual void setGridSpacingMajor(int spacing);
+    virtual void setGridSpacingMinor(int spacing);
     double grid() const;
     Odg::GridStyle gridStyle() const;
     QColor gridColor() const;

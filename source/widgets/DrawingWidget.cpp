@@ -163,6 +163,89 @@ void DrawingWidget::addModeAction(const QString& text, const QString& iconPath, 
 
 //======================================================================================================================
 
+void DrawingWidget::setUnits(Odg::Units units)
+{
+    if (mUnits != units)
+    {
+        OdgDrawing::setUnits(units);
+        emit propertyChanged("units", static_cast<int>(mUnits));
+    }
+}
+
+void DrawingWidget::setPageSize(const QSizeF& size)
+{
+    if (size.width() > 0 && size.height() > 0 && mPageSize != size)
+    {
+        OdgDrawing::setPageSize(size);
+        emit propertyChanged("pageSize", mPageSize);
+    }
+}
+
+void DrawingWidget::setPageMargins(const QMarginsF& margins)
+{
+    if (margins.left() >= 0 && margins.top() >= 0 && margins.right() >= 0 && margins.bottom() >= 0 && mPageMargins != margins)
+    {
+        OdgDrawing::setPageMargins(margins);
+        emit propertyChanged("pageMargins", QVariant::fromValue<QMarginsF>(mPageMargins));
+    }
+}
+
+void DrawingWidget::setBackgroundColor(const QColor& color)
+{
+    if (mBackgroundColor != color)
+    {
+        OdgDrawing::setBackgroundColor(color);
+        emit propertyChanged("backgroundColor", mBackgroundColor);
+    }
+}
+
+void DrawingWidget::setGrid(double grid)
+{
+    if (grid >= 0 && mGrid != grid)
+    {
+        OdgDrawing::setGrid(grid);
+        emit propertyChanged("grid", mGrid);
+    }
+}
+
+void DrawingWidget::setGridStyle(Odg::GridStyle style)
+{
+    if (mGridStyle != style)
+    {
+        OdgDrawing::setGridStyle(style);
+        emit propertyChanged("gridStyle", mGridStyle);
+    }
+}
+
+void DrawingWidget::setGridColor(const QColor& color)
+{
+    if (mGridColor != color)
+    {
+        OdgDrawing::setGridColor(color);
+        emit propertyChanged("gridColor", mGridColor);
+    }
+}
+
+void DrawingWidget::setGridSpacingMajor(int spacing)
+{
+    if (spacing >= 0 && mGridSpacingMajor != spacing)
+    {
+        OdgDrawing::setGridSpacingMajor(spacing);
+        emit propertyChanged("gridSpacingMajor", mGridSpacingMajor);
+    }
+}
+
+void DrawingWidget::setGridSpacingMinor(int spacing)
+{
+    if (spacing >= 0 && mGridSpacingMinor != spacing)
+    {
+        OdgDrawing::setGridSpacingMinor(spacing);
+        emit propertyChanged("gridSpacingMinor", mGridSpacingMinor);
+    }
+}
+
+//======================================================================================================================
+
 OdgPage* DrawingWidget::currentPage() const
 {
     return mCurrentPage;
@@ -240,24 +323,29 @@ bool DrawingWidget::load(const QString& fileName)
         return false;
     }
 
+    clear();
+
+    blockSignals(true);
     setUnits(reader.units());
     setPageSize(reader.pageSize());
     setPageMargins(reader.pageMargins());
     setBackgroundColor(reader.backgroundColor());
-
     setGrid(reader.grid());
     setGridStyle(reader.gridStyle());
     setGridColor(reader.gridColor());
     setGridSpacingMajor(reader.gridSpacingMajor());
     setGridSpacingMinor(reader.gridSpacingMinor());
+    blockSignals(false);
+    emit propertiesChanged();
 
     const QList<OdgPage*> pages = reader.takePages();
-    clearPages();
     for(auto& page : pages)
         addPage(page);
-    setCurrentPageIndex(0);
 
-    //mUndoStack.setClean();
+    setCurrentPageIndex(0);
+    zoomFit();
+
+    mUndoStack.setClean();
     return true;
 }
 
@@ -268,9 +356,11 @@ bool DrawingWidget::save(const QString& fileName)
 
 void DrawingWidget::clear()
 {
-
+    mUndoStack.clear();
 
     mNewPageCount = 0;
+    setCurrentPage(nullptr);
+    clearPages();
 }
 
 bool DrawingWidget::isClean() const

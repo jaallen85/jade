@@ -19,15 +19,26 @@
 
 #include <QStackedWidget>
 
+class QScrollArea;
+class DrawingWidget;
+class DrawingPropertiesWidget;
+
 class PropertiesWidget : public QStackedWidget
 {
     Q_OBJECT
 
 private:
+    DrawingWidget* mDrawing;
 
+    DrawingPropertiesWidget* mDrawingPropertiesWidget;
+    QScrollArea* mDrawingPropertiesScrollArea;
 
 public:
-    PropertiesWidget();
+    PropertiesWidget(DrawingWidget* drawing);
+
+public slots:
+    void setAllDrawingProperties();
+    void setDrawingProperty(const QString& name, const QVariant& value);
 };
 
 #endif

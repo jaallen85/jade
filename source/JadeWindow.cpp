@@ -43,7 +43,7 @@ JadeWindow::JadeWindow() : QMainWindow(), mDrawingWidget(nullptr),
     mPagesWidget = new PagesWidget(mDrawingWidget);
     mPagesDock = addDockWidget("Pages", mPagesWidget, Qt::LeftDockWidgetArea);
 
-    mPropertiesWidget = new PropertiesWidget();
+    mPropertiesWidget = new PropertiesWidget(mDrawingWidget);
     mPropertiesDock = addDockWidget("Properties", mPropertiesWidget, Qt::RightDockWidgetArea);
 
     mModeLabel = addStatusBarLabel("Select Mode", "Place Text Ellipse", mDrawingWidget, SIGNAL(modeTextChanged(QString)));

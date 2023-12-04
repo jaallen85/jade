@@ -64,6 +64,16 @@ private:
                        const QString& keySequence = QString());
 
 public:
+    void setUnits(Odg::Units units) override;
+    void setPageSize(const QSizeF& size) override;
+    void setPageMargins(const QMarginsF& margins) override;
+    void setBackgroundColor(const QColor& color) override;
+    void setGrid(double grid) override;
+    void setGridStyle(Odg::GridStyle style) override;
+    void setGridColor(const QColor& color) override;
+    void setGridSpacingMajor(int spacing) override;
+    void setGridSpacingMinor(int spacing) override;
+
     OdgPage* currentPage() const;
     int currentPageIndex() const;
 
@@ -141,6 +151,8 @@ signals:
     void cleanChanged(bool clean);
     void cleanTextChanged(const QString& modeText);
     void mouseInfoChanged(const QString& modeText);
+    void propertiesChanged();
+    void propertyChanged(const QString& name, const QVariant& value);
 
     void pageInserted(OdgPage* page, int index);
     void pageRemoved(OdgPage* page, int index);

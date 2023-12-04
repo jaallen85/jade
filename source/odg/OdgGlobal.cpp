@@ -49,6 +49,19 @@ double convertUnits(double value, Units units, Units newUnits)
     return value * unitsConversionFactorToMeters * newUnitsConversionFactorFromMeters;
 }
 
+QString unitsToString(Units units)
+{
+    switch (units)
+    {
+    case UnitsInches:
+        return "in";
+    default:    // UnitsMillimeters
+        break;
+    }
+
+    return "mm";
+}
+
 Units unitsFromString(const QStringView& str, bool* ok)
 {
     if (str.compare(QStringLiteral("mm"), Qt::CaseInsensitive) == 0)

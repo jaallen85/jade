@@ -71,13 +71,11 @@ QList<OdgItem*> OdgPage::items() const
 
 void OdgPage::setProperty(const QString& name, const QVariant& value)
 {
-    if (name == "name" && value.canConvert<QString>())
-        setName(value.toString());
+    if (name == "name" && value.canConvert<QString>()) setName(value.toString());
 }
 
 QVariant OdgPage::property(const QString& name) const
 {
-    if (name == "name")
-        return mName;
+    if (name == "name") return mName;
     return QVariant();
 }
