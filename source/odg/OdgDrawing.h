@@ -20,6 +20,7 @@
 #include <QColor>
 #include <QList>
 #include <QMarginsF>
+#include <QObject>
 #include <QRectF>
 #include "OdgGlobal.h"
 
@@ -28,7 +29,7 @@ class OdgPage;
 
 class OdgDrawing
 {
-private:
+protected:
     Odg::Units mUnits;
     QSizeF mPageSize;
     QMarginsF mPageMargins;
@@ -71,8 +72,8 @@ public:
     QPointF roundToGrid(const QPointF& position) const;
 
     void addPage(OdgPage* page);
-    void insertPage(int index, OdgPage* page);
-    void removePage(OdgPage* page);
+    virtual void insertPage(int index, OdgPage* page);
+    virtual void removePage(OdgPage* page);
     void clearPages();
     QList<OdgPage*> pages() const;
 };

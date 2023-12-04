@@ -19,8 +19,8 @@
 
 #include <QList>
 #include <QString>
+#include <QVariant>
 
-class QPainter;
 class OdgItem;
 
 class OdgPage
@@ -43,9 +43,8 @@ public:
     void clearItems();
     QList<OdgItem*> items() const;
 
-    void paint(QPainter& painter);
-
-    void scaleBy(double scale);
+    void setProperty(const QString& name, const QVariant& value);
+    QVariant property(const QString& name) const;
 };
 
 #endif

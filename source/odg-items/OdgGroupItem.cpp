@@ -25,7 +25,8 @@ OdgGroupItem::OdgGroupItem() : mItems()
 
 OdgGroupItem::~OdgGroupItem()
 {
-    setItems(QList<OdgItem*>());
+    qDeleteAll(mItems);
+    mItems.clear();
 }
 
 //======================================================================================================================
@@ -36,19 +37,18 @@ void OdgGroupItem::setItems(const QList<OdgItem*>& items)
     mItems = items;
 
     // Set control point positions to match items' bounding rect
-    const QList<OdgControlPoint*> controlPoints = this->controlPoints();
-    if (controlPoints.size() >= NumberOfControlPoints)
+    if (mControlPoints.size() >= NumberOfControlPoints)
     {
         QRectF rect = boundingRect();
         QPointF center = rect.center();
-        controlPoints.at(TopLeftControlPoint)->setPosition(QPointF(rect.left(), rect.top()));
-        controlPoints.at(TopMiddleControlPoint)->setPosition(QPointF(center.x(), rect.top()));
-        controlPoints.at(TopRightControlPoint)->setPosition(QPointF(rect.right(), rect.top()));
-        controlPoints.at(MiddleRightControlPoint)->setPosition(QPointF(rect.right(), center.y()));
-        controlPoints.at(BottomRightControlPoint)->setPosition(QPointF(rect.right(), rect.bottom()));
-        controlPoints.at(BottomMiddleControlPoint)->setPosition(QPointF(center.x(), rect.bottom()));
-        controlPoints.at(BottomLeftControlPoint)->setPosition(QPointF(rect.left(), rect.bottom()));
-        controlPoints.at(MiddleLeftControlPoint)->setPosition(QPointF(rect.left(), center.y()));
+        mControlPoints.at(TopLeftControlPoint)->setPosition(QPointF(rect.left(), rect.top()));
+        mControlPoints.at(TopMiddleControlPoint)->setPosition(QPointF(center.x(), rect.top()));
+        mControlPoints.at(TopRightControlPoint)->setPosition(QPointF(rect.right(), rect.top()));
+        mControlPoints.at(MiddleRightControlPoint)->setPosition(QPointF(rect.right(), center.y()));
+        mControlPoints.at(BottomRightControlPoint)->setPosition(QPointF(rect.right(), rect.bottom()));
+        mControlPoints.at(BottomMiddleControlPoint)->setPosition(QPointF(center.x(), rect.bottom()));
+        mControlPoints.at(BottomLeftControlPoint)->setPosition(QPointF(rect.left(), rect.bottom()));
+        mControlPoints.at(MiddleLeftControlPoint)->setPosition(QPointF(rect.left(), center.y()));
     }
 }
 

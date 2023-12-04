@@ -18,6 +18,7 @@
 #define DRAWINGWIDGET_H
 
 #include <QAbstractScrollArea>
+#include <QUndoStack>
 #include "OdgDrawing.h"
 
 class QActionGroup;
@@ -41,8 +42,11 @@ public:
 
 private:
     OdgPage* mCurrentPage;
+    int mNewPageCount;
 
     QTransform mTransform, mTransformInverse;
+
+    QUndoStack mUndoStack;
 
     QActionGroup* mModeActionGroup;
     QMenu* mContextMenu;
@@ -60,6 +64,9 @@ private:
                        const QString& keySequence = QString());
 
 public:
+    OdgPage* currentPage() const;
+    int currentPageIndex() const;
+
     double scale() const;
     QRectF visibleRect() const;
     QPointF mapToScene(const QPoint& position) const;
@@ -69,12 +76,15 @@ public:
 
     void paint(QPainter& painter, bool isExport = false);
 
-public:
     void createNew();
     bool load(const QString& fileName);
     bool save(const QString& fileName);
     void clear();
     bool isClean() const;
+
+    void insertPage(int index, OdgPage* page) override;
+    void removePage(OdgPage* page) override;
+    void setPageProperty(OdgPage* page, const QString& name, const QVariant& value);
 
 public slots:
     void setScale(double scale);
@@ -92,7 +102,14 @@ public slots:
     void insertPage();
     void duplicatePage();
     void removePage();
+    void movePage(int newIndex);
 
+    void setCurrentPage(OdgPage* page);
+    void setCurrentPageIndex(int index);
+
+    void renamePage(const QString& name);
+
+    void setPageProperty(const QString& name, const QVariant& value);
     void removeItems();
 
     void cut();
@@ -121,8 +138,15 @@ public slots:
 signals:
     void scaleChanged(double scale);
     void modeTextChanged(const QString& modeText);
+    void cleanChanged(bool clean);
     void cleanTextChanged(const QString& modeText);
     void mouseInfoChanged(const QString& modeText);
+
+    void pageInserted(OdgPage* page, int index);
+    void pageRemoved(OdgPage* page, int index);
+    void currentPageChanged(OdgPage* page);
+    void currentPageIndexChanged(int index);
+    void currentPagePropertyChanged(const QString& name, const QVariant& value);
 
 private:
     void paintEvent(QPaintEvent* event) override;
@@ -138,6 +162,7 @@ private:
 
 private slots:
     void setModeFromAction(QAction* action);
+    void emitCleanChanged(bool clean);
 };
 
 #endif

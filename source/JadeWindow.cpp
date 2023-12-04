@@ -40,7 +40,7 @@ JadeWindow::JadeWindow() : QMainWindow(), mDrawingWidget(nullptr),
     mDrawingWidget = new DrawingWidget();
     setCentralWidget(mDrawingWidget);
 
-    mPagesWidget = new PagesWidget();
+    mPagesWidget = new PagesWidget(mDrawingWidget);
     mPagesDock = addDockWidget("Pages", mPagesWidget, Qt::LeftDockWidgetArea);
 
     mPropertiesWidget = new PropertiesWidget();

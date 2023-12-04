@@ -16,6 +16,7 @@
 
 #include "OdgDrawing.h"
 #include "OdgPage.h"
+#include "OdgItem.h"
 #include <QPainter>
 
 OdgDrawing::OdgDrawing() :
@@ -28,7 +29,8 @@ OdgDrawing::OdgDrawing() :
 
 OdgDrawing::~OdgDrawing()
 {
-    clearPages();
+    qDeleteAll(mPages);
+    mPages.clear();
 }
 
 //======================================================================================================================
@@ -51,7 +53,11 @@ void OdgDrawing::setUnits(Odg::Units units)
         mGrid *= scaleFactor;
 
         for(auto& page : qAsConst(mPages))
-            page->scaleBy(scaleFactor);
+        {
+            const QList<OdgItem*> items = page->items();
+            for(auto& item : items)
+                item->scaleBy(scaleFactor);
+        }
     }
 }
 
@@ -178,7 +184,7 @@ QPointF OdgDrawing::roundToGrid(const QPointF& position) const
 
 void OdgDrawing::addPage(OdgPage* page)
 {
-    if (page) mPages.append(page);
+    insertPage(mPages.size(), page);
 }
 
 void OdgDrawing::insertPage(int index, OdgPage* page)
@@ -193,8 +199,13 @@ void OdgDrawing::removePage(OdgPage* page)
 
 void OdgDrawing::clearPages()
 {
-    qDeleteAll(mPages);
-    mPages.clear();
+    OdgPage* page = nullptr;
+    while (!mPages.isEmpty())
+    {
+        page = mPages.last();
+        removePage(page);
+        delete page;
+    }
 }
 
 QList<OdgPage*> OdgDrawing::pages() const

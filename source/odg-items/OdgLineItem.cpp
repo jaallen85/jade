@@ -35,11 +35,10 @@ void OdgLineItem::setLine(const QLineF& line)
     mLine.translate(-offset);
 
     // Set control point positions to match mLine
-    const QList<OdgControlPoint*> controlPoints = this->controlPoints();
-    if (controlPoints.size() >= NumberOfControlPoints)
+    if (mControlPoints.size() >= NumberOfControlPoints)
     {
-        controlPoints.at(StartControlPoint)->setPosition(mLine.p1());
-        controlPoints.at(EndControlPoint)->setPosition(mLine.p2());
+        mControlPoints.at(StartControlPoint)->setPosition(mLine.p1());
+        mControlPoints.at(EndControlPoint)->setPosition(mLine.p2());
     }
 }
 

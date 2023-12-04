@@ -91,6 +91,8 @@ add_executable(${PROJECT_NAME} WIN32
     source/odg-items/OdgTextItem.cpp
     source/odg-items/OdgTextRoundedRectItem.h
     source/odg-items/OdgTextRoundedRectItem.cpp
+    source/widgets/DrawingUndo.h
+    source/widgets/DrawingUndo.cpp
     source/widgets/DrawingWidget.h
     source/widgets/DrawingWidget.cpp
     source/widgets/PagesWidget.h

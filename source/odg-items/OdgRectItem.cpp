@@ -39,29 +39,27 @@ void OdgRectItem::setRect(const QRectF& rect)
         mRect.translate(-offset);
 
         // Set control point positions to match mRect
-        const QList<OdgControlPoint*> controlPoints = this->controlPoints();
-        if (controlPoints.size() >= NumberOfControlPoints)
+        if (mControlPoints.size() >= NumberOfControlPoints)
         {
             QPointF center = mRect.center();
-            controlPoints.at(TopLeftControlPoint)->setPosition(QPointF(mRect.left(), mRect.top()));
-            controlPoints.at(TopMiddleControlPoint)->setPosition(QPointF(center.x(), mRect.top()));
-            controlPoints.at(TopRightControlPoint)->setPosition(QPointF(mRect.right(), mRect.top()));
-            controlPoints.at(MiddleRightControlPoint)->setPosition(QPointF(mRect.right(), center.y()));
-            controlPoints.at(BottomRightControlPoint)->setPosition(QPointF(mRect.right(), mRect.bottom()));
-            controlPoints.at(BottomMiddleControlPoint)->setPosition(QPointF(center.x(), mRect.bottom()));
-            controlPoints.at(BottomLeftControlPoint)->setPosition(QPointF(mRect.left(), mRect.bottom()));
-            controlPoints.at(MiddleLeftControlPoint)->setPosition(QPointF(mRect.left(), center.y()));
+            mControlPoints.at(TopLeftControlPoint)->setPosition(QPointF(mRect.left(), mRect.top()));
+            mControlPoints.at(TopMiddleControlPoint)->setPosition(QPointF(center.x(), mRect.top()));
+            mControlPoints.at(TopRightControlPoint)->setPosition(QPointF(mRect.right(), mRect.top()));
+            mControlPoints.at(MiddleRightControlPoint)->setPosition(QPointF(mRect.right(), center.y()));
+            mControlPoints.at(BottomRightControlPoint)->setPosition(QPointF(mRect.right(), mRect.bottom()));
+            mControlPoints.at(BottomMiddleControlPoint)->setPosition(QPointF(center.x(), mRect.bottom()));
+            mControlPoints.at(BottomLeftControlPoint)->setPosition(QPointF(mRect.left(), mRect.bottom()));
+            mControlPoints.at(MiddleLeftControlPoint)->setPosition(QPointF(mRect.left(), center.y()));
         }
 
         // Set glue point positions to match mRect
-        const QList<OdgGluePoint*> gluePoints = this->gluePoints();
-        if (gluePoints.size() >= NumberOfGluePoints)
+        if (mGluePoints.size() >= NumberOfGluePoints)
         {
             QPointF center = mRect.center();
-            gluePoints.at(TopGluePoint)->setPosition(QPointF(center.x(), mRect.top()));
-            gluePoints.at(RightGluePoint)->setPosition(QPointF(mRect.right(), center.y()));
-            gluePoints.at(BottomGluePoint)->setPosition(QPointF(center.x(), mRect.bottom()));
-            gluePoints.at(LeftGluePoint)->setPosition(QPointF(mRect.left(), center.y()));
+            mGluePoints.at(TopGluePoint)->setPosition(QPointF(center.x(), mRect.top()));
+            mGluePoints.at(RightGluePoint)->setPosition(QPointF(mRect.right(), center.y()));
+            mGluePoints.at(BottomGluePoint)->setPosition(QPointF(center.x(), mRect.bottom()));
+            mGluePoints.at(LeftGluePoint)->setPosition(QPointF(mRect.left(), center.y()));
         }
     }
 }

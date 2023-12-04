@@ -69,15 +69,15 @@ QList<OdgItem*> OdgPage::items() const
 
 //======================================================================================================================
 
-void OdgPage::paint(QPainter& painter)
+void OdgPage::setProperty(const QString& name, const QVariant& value)
 {
-
+    if (name == "name" && value.canConvert<QString>())
+        setName(value.toString());
 }
 
-//======================================================================================================================
-
-void OdgPage::scaleBy(double scale)
+QVariant OdgPage::property(const QString& name) const
 {
-    for(auto& item : qAsConst(mItems))
-        item->scaleBy(scale);
+    if (name == "name")
+        return mName;
+    return QVariant();
 }

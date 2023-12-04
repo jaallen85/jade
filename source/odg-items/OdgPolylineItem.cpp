@@ -37,9 +37,8 @@ void OdgPolylineItem::setPolyline(const QPolygonF& polyline)
         mPolyline.translate(-offset);
 
         // Ensure that the item has one control point for each polyline vertex
-        const QList<OdgControlPoint*> controlPoints = this->controlPoints();
-        const int numberOfPointsToAdd = mPolyline.size() - controlPoints.size();
-        const int numberOfPointsToRemove = controlPoints.size() - mPolyline.size();
+        const int numberOfPointsToAdd = mPolyline.size() - mControlPoints.size();
+        const int numberOfPointsToRemove = mControlPoints.size() - mPolyline.size();
 
         for(int i = 0; i < numberOfPointsToAdd; i++)
             insertControlPoint(i + 1, new OdgControlPoint(QPointF()));
@@ -47,16 +46,15 @@ void OdgPolylineItem::setPolyline(const QPolygonF& polyline)
         OdgControlPoint* pointToRemove = nullptr;
         for(int i = 0; i < numberOfPointsToRemove; i++)
         {
-            pointToRemove = controlPoints.at(controlPoints.size() - i - 2);
+            pointToRemove = mControlPoints.at(mControlPoints.size() - i - 2);
             removeControlPoint(pointToRemove);
             delete pointToRemove;
         }
 
         // Set point positions to match mPolygon
-        const QList<OdgControlPoint*> finalControlPoints = this->controlPoints();
-        const int finalControlPointCount = qMin(finalControlPoints.size(), mPolyline.size());
+        const int finalControlPointCount = qMin(mControlPoints.size(), mPolyline.size());
         for(int i = 0; i < finalControlPointCount; i++)
-            finalControlPoints.at(i)->setPosition(mPolyline.at(i));
+            mControlPoints.at(i)->setPosition(mPolyline.at(i));
     }
 }
 

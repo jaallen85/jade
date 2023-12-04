@@ -38,13 +38,12 @@ void OdgCurveItem::setCurve(const OdgCurve& curve)
     mCurve.translate(-offset);
 
     // Set control point positions to match mCurve
-    const QList<OdgControlPoint*> controlPoints = this->controlPoints();
-    if (controlPoints.size() >= NumberOfControlPoints)
+    if (mControlPoints.size() >= NumberOfControlPoints)
     {
-        controlPoints.at(StartControlPoint)->setPosition(mCurve.p1());
-        controlPoints.at(StartControlBezierPoint)->setPosition(mCurve.cp1());
-        controlPoints.at(EndControlBezierPoint)->setPosition(mCurve.cp2());
-        controlPoints.at(EndControlPoint)->setPosition(mCurve.p2());
+        mControlPoints.at(StartControlPoint)->setPosition(mCurve.p1());
+        mControlPoints.at(StartControlBezierPoint)->setPosition(mCurve.cp1());
+        mControlPoints.at(EndControlBezierPoint)->setPosition(mCurve.cp2());
+        mControlPoints.at(EndControlPoint)->setPosition(mCurve.p2());
     }
 
     // Update curve path

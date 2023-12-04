@@ -20,16 +20,21 @@
 #include <QListWidget>
 
 class QMenu;
+class DrawingWidget;
+class OdgPage;
 
 class PagesWidget : public QListWidget
 {
     Q_OBJECT
 
 private:
+    DrawingWidget* mDrawing;
     QMenu* mContextMenu;
 
 public:
-    PagesWidget();
+    PagesWidget(DrawingWidget* drawing);
+
+    QSize sizeHint() const override;
 
 private:
     void createContextMenu();
@@ -37,13 +42,20 @@ private:
                        const QString& iconPath = QString());
 
 public slots:
-    void insertPage();
-    void duplicatePage();
     void renamePage();
-    void removePage();
 
 private:
     void contextMenuEvent(QContextMenuEvent* event) override;
+    void dropEvent(QDropEvent* event) override;
+
+private slots:
+    void insertItemForPage(OdgPage* page, int index);
+    void removeItemForPage(OdgPage* page, int index);
+    void updateCurrentRow(int index);
+    void updateCurrentItemText(const QString& name, const QVariant& value);
+
+    void setCurrentPageIndex(int index);
+    void setCurrentPageName(QListWidgetItem* item);
 };
 
 #endif

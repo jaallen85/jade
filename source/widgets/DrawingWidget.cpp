@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "DrawingWidget.h"
+#include "DrawingUndo.h"
 #include "OdgPage.h"
 #include "OdgItem.h"
 #include "OdgReader.h"
@@ -28,11 +29,15 @@
 #include <QWheelEvent>
 
 DrawingWidget::DrawingWidget() : QAbstractScrollArea(), OdgDrawing(),
-    mCurrentPage(nullptr), mTransform(), mTransformInverse(), mModeActionGroup(nullptr), mContextMenu(nullptr)
+    mCurrentPage(nullptr), mNewPageCount(0), mTransform(), mTransformInverse(), mUndoStack(),
+    mModeActionGroup(nullptr), mContextMenu(nullptr)
 {
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     setMouseTracking(true);
+
+    mUndoStack.setUndoLimit(256);
+    connect(&mUndoStack, SIGNAL(cleanChanged(bool)), this, SLOT(emitCleanChanged(bool)));
 
     createActions();
     createContextMenu();
@@ -40,7 +45,7 @@ DrawingWidget::DrawingWidget() : QAbstractScrollArea(), OdgDrawing(),
 
 DrawingWidget::~DrawingWidget()
 {
-    clear();
+    setCurrentPage(nullptr);
 }
 
 //======================================================================================================================
@@ -158,6 +163,18 @@ void DrawingWidget::addModeAction(const QString& text, const QString& iconPath, 
 
 //======================================================================================================================
 
+OdgPage* DrawingWidget::currentPage() const
+{
+    return mCurrentPage;
+}
+
+int DrawingWidget::currentPageIndex() const
+{
+    return (mCurrentPage) ? mPages.indexOf(mCurrentPage) : -1;
+}
+
+//======================================================================================================================
+
 double DrawingWidget::scale() const
 {
     return mTransform.m11();
@@ -238,8 +255,7 @@ bool DrawingWidget::load(const QString& fileName)
     clearPages();
     for(auto& page : pages)
         addPage(page);
-
-    mCurrentPage = (pages.isEmpty()) ? nullptr : pages.at(0);
+    setCurrentPageIndex(0);
 
     //mUndoStack.setClean();
     return true;
@@ -253,11 +269,61 @@ bool DrawingWidget::save(const QString& fileName)
 void DrawingWidget::clear()
 {
 
+
+    mNewPageCount = 0;
 }
 
 bool DrawingWidget::isClean() const
 {
     return true;
+}
+
+//======================================================================================================================
+
+void DrawingWidget::insertPage(int index, OdgPage* page)
+{
+    if (page)
+    {
+        OdgDrawing::insertPage(index, page);
+        emit pageInserted(page, index);
+        setCurrentPage(page);
+    }
+}
+
+void DrawingWidget::removePage(OdgPage* page)
+{
+    if (page)
+    {
+        const int index = mPages.indexOf(page);
+        if (0 <= index && index < mPages.size())
+        {
+            // Determine the index of the current page after this page is removed
+            int newCurrentPageIndex = currentPageIndex();
+            if (newCurrentPageIndex == index)
+            {
+                if (index > 0)
+                    newCurrentPageIndex = index - 1;
+                else if (index < mPages.size() - 1)
+                    newCurrentPageIndex = index + 1;
+            }
+            else newCurrentPageIndex--;
+
+            // Remove the page from the drawing
+            OdgDrawing::removePage(page);
+            emit pageRemoved(page, index);
+            setCurrentPageIndex(newCurrentPageIndex);
+        }
+    }
+}
+
+void DrawingWidget::setPageProperty(OdgPage* page, const QString& name, const QVariant& value)
+{
+    if (page)
+    {
+        page->setProperty(name, value);
+        if (page == mCurrentPage)
+            emit currentPagePropertyChanged(name, value);
+    }
 }
 
 //======================================================================================================================
@@ -350,9 +416,43 @@ void DrawingWidget::mouseCursorOn(const QPointF& position)
 
 //======================================================================================================================
 
+void DrawingWidget::undo()
+{
+    mUndoStack.undo();
+}
+
+void DrawingWidget::redo()
+{
+    mUndoStack.redo();
+}
+
+//======================================================================================================================
+
 void DrawingWidget::insertPage()
 {
+    // Determine a unique name for the new page
+    QString name;
+    bool nameIsUnique = false;
 
+    while (!nameIsUnique)
+    {
+        mNewPageCount++;
+        name = "Page " + QString::number(mNewPageCount);
+
+        nameIsUnique = true;
+        for(const auto& page : qAsConst(mPages))
+        {
+            if (name == page->name())
+            {
+                nameIsUnique = false;
+                break;
+            }
+        }
+    }
+
+    // Create the new page and add it to the view
+    mUndoStack.push(new DrawingInsertPageCommand(this, new OdgPage(name), currentPageIndex() + 1));
+    zoomFit();
 }
 
 void DrawingWidget::duplicatePage()
@@ -362,19 +462,42 @@ void DrawingWidget::duplicatePage()
 
 void DrawingWidget::removePage()
 {
+    if (mCurrentPage) mUndoStack.push(new DrawingRemovePageCommand(this, mCurrentPage));
+}
 
+void DrawingWidget::movePage(int index)
+{
+    if (mCurrentPage) mUndoStack.push(new DrawingMovePageCommand(this, mCurrentPage, index));
 }
 
 //======================================================================================================================
 
-void DrawingWidget::undo()
+void DrawingWidget::setCurrentPage(OdgPage* page)
 {
-
+    if (page != mCurrentPage)
+    {
+        mCurrentPage = page;
+        emit currentPageChanged(mCurrentPage);
+        emit currentPageIndexChanged(currentPageIndex());
+        viewport()->update();
+    }
 }
 
-void DrawingWidget::redo()
+void DrawingWidget::setCurrentPageIndex(int index)
 {
+    setCurrentPage((0 <= index && index < mPages.size()) ? mPages.at(index) : nullptr);
+}
 
+//======================================================================================================================
+
+void DrawingWidget::setPageProperty(const QString& name, const QVariant& value)
+{
+    if (mCurrentPage) mUndoStack.push(new DrawingSetPagePropertyCommand(this, mCurrentPage, name, value));
+}
+
+void DrawingWidget::renamePage(const QString& name)
+{
+    setPageProperty("name", name);
 }
 
 //======================================================================================================================
@@ -667,4 +790,10 @@ void DrawingWidget::contextMenuEvent(QContextMenuEvent* event)
 void DrawingWidget::setModeFromAction(QAction* action)
 {
 
+}
+
+void DrawingWidget::emitCleanChanged(bool clean)
+{
+    emit cleanChanged(clean);
+    emit cleanTextChanged(clean ? "" : "Modified");
 }

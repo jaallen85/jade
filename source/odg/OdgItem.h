@@ -27,7 +27,7 @@ class OdgGluePoint;
 
 class OdgItem
 {
-private:
+protected:
     QPointF mPosition;
     bool mFlipped;
     int mRotation;
@@ -92,7 +92,6 @@ protected:
                            QRectF& scaledTextRect, double& scaleFactor) const;
     double calculateTextScaleFactor(const QFont& font) const;
 
-private:
     void updateTransform();
 };
 
