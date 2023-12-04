@@ -20,10 +20,12 @@
 #include <QAbstractScrollArea>
 #include <QUndoStack>
 #include "OdgDrawing.h"
+#include "OdgMarker.h"
 
 class QActionGroup;
 class QMenu;
 class OdgItem;
+class OdgStyle;
 
 class DrawingWidget : public QAbstractScrollArea, public OdgDrawing
 {
@@ -41,6 +43,9 @@ public:
                        ZoomInAction, ZoomOutAction, ZoomFitAction};
 
 private:
+    OdgDrawing* mDrawingTemplate;
+    OdgStyle* mDefaultStyle;
+
     OdgPage* mCurrentPage;
     int mNewPageCount;
 
@@ -64,6 +69,11 @@ private:
                        const QString& keySequence = QString());
 
 public:
+    void setDrawingTemplate(OdgDrawing* temp);
+    void setDefaultStyle(OdgStyle* style);
+    OdgDrawing* drawingTemplate() const;
+    OdgStyle* defaultStyle() const;
+
     void setUnits(Odg::Units units) override;
     void setPageSize(const QSizeF& size) override;
     void setPageMargins(const QMarginsF& margins) override;
@@ -73,6 +83,9 @@ public:
     void setGridColor(const QColor& color) override;
     void setGridSpacingMajor(int spacing) override;
     void setGridSpacingMinor(int spacing) override;
+
+    void setProperty(const QString& name, const QVariant& value) override;
+    QVariant property(const QString& name) const override;
 
     OdgPage* currentPage() const;
     int currentPageIndex() const;
@@ -108,6 +121,8 @@ public slots:
 
     void undo();
     void redo();
+
+    void setDrawingProperty(const QString& name, const QVariant& value);
 
     void insertPage();
     void duplicatePage();

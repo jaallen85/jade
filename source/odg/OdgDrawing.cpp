@@ -182,6 +182,35 @@ QPointF OdgDrawing::roundToGrid(const QPointF& position) const
 
 //======================================================================================================================
 
+void OdgDrawing::setProperty(const QString& name, const QVariant& value)
+{
+    if (name == "units" && value.canConvert<int>()) setUnits(static_cast<Odg::Units>(value.toInt()));
+    else if (name == "pageSize" && value.canConvert<QSizeF>()) setPageSize(value.value<QSizeF>());
+    else if (name == "pageMargins" && value.canConvert<QMarginsF>()) setPageMargins(value.value<QMarginsF>());
+    else if (name == "backgroundColor" && value.canConvert<QColor>()) setBackgroundColor(value.value<QColor>());
+    else if (name == "grid" && value.canConvert<double>()) setGrid(value.toDouble());
+    else if (name == "gridStyle" && value.canConvert<int>()) setGridStyle(static_cast<Odg::GridStyle>(value.toInt()));
+    else if (name == "gridColor" && value.canConvert<QColor>()) setGridColor(value.value<QColor>());
+    else if (name == "gridSpacingMajor" && value.canConvert<int>()) setGridSpacingMajor(value.toInt());
+    else if (name == "gridSpacingMinor" && value.canConvert<int>()) setGridSpacingMinor(value.toInt());
+}
+
+QVariant OdgDrawing::property(const QString& name) const
+{
+    if (name == "units") return static_cast<int>(mUnits);
+    if (name == "pageSize") return mPageSize;
+    if (name == "pageMargins") return QVariant::fromValue<QMarginsF>(mPageMargins);
+    if (name == "backgroundColor") return mBackgroundColor;
+    if (name == "grid") return mGrid;
+    if (name == "gridStyle") return static_cast<int>(mGridStyle);
+    if (name == "gridColor") return mGridColor;
+    if (name == "gridSpacingMajor") return mGridSpacingMajor;
+    if (name == "gridSpacingMinor") return mGridSpacingMinor;
+    return QVariant();
+}
+
+//======================================================================================================================
+
 void OdgDrawing::addPage(OdgPage* page)
 {
     insertPage(mPages.size(), page);

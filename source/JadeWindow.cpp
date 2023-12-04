@@ -56,7 +56,7 @@ JadeWindow::JadeWindow() : QMainWindow(), mDrawingWidget(nullptr),
 
     setWindowTitle("Jade");
     setWindowIcon(QIcon(":/icons/jade.png"));
-    resize(1732, 1000);
+    resize(1762, 1000);
 
     loadSettings();
 }

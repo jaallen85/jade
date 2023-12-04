@@ -43,6 +43,30 @@ void DrawingUndoCommand::restoreView(DrawingWidget* drawing)
 //======================================================================================================================
 //======================================================================================================================
 
+DrawingSetPropertyCommand::DrawingSetPropertyCommand(
+    DrawingWidget* drawing, const QString& name, const QVariant& value) : QUndoCommand("Set Property"),
+    mDrawing(drawing), mName(name), mNewValue(value), mOldValue()
+{
+    Q_ASSERT(mDrawing != nullptr);
+    mOldValue = mDrawing->property(mName.toUtf8().data());
+}
+
+//======================================================================================================================
+
+void DrawingSetPropertyCommand::redo()
+{
+    mDrawing->setProperty(mName, mNewValue);
+}
+
+void DrawingSetPropertyCommand::undo()
+{
+    mDrawing->setProperty(mName, mOldValue);
+}
+
+//======================================================================================================================
+//======================================================================================================================
+//======================================================================================================================
+
 DrawingInsertPageCommand::DrawingInsertPageCommand(DrawingWidget* drawing, OdgPage* page, int index) :
     QUndoCommand("Insert Page"), mDrawing(drawing), mPage(page), mIndex(index), mUndone(true)
 {
@@ -131,8 +155,8 @@ void DrawingMovePageCommand::undo()
 //======================================================================================================================
 
 DrawingSetPagePropertyCommand::DrawingSetPagePropertyCommand(
-    DrawingWidget* drawing, OdgPage* page, const QString& name, const QVariant& value) : QUndoCommand("Move Page"),
-    mDrawing(drawing), mPage(page), mName(name), mNewValue(value), mOldValue()
+    DrawingWidget* drawing, OdgPage* page, const QString& name, const QVariant& value) :
+    QUndoCommand("Set Page Property"), mDrawing(drawing), mPage(page), mName(name), mNewValue(value), mOldValue()
 {
     Q_ASSERT(mDrawing != nullptr);
     Q_ASSERT(mPage != nullptr);

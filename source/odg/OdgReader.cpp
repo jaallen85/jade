@@ -98,6 +98,11 @@ int OdgReader::gridSpacingMinor() const
 
 //======================================================================================================================
 
+OdgStyle* OdgReader::takeDefaultStyle()
+{
+    return mStyles.takeFirst();
+}
+
 QList<OdgPage*> OdgReader::takePages()
 {
     QList<OdgPage*> pages = mPages;

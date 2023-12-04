@@ -41,6 +41,9 @@ PropertiesWidget::PropertiesWidget(DrawingWidget* drawing) : QStackedWidget(),
 
     connect(mDrawing, SIGNAL(propertyChanged(QString,QVariant)), this, SLOT(setDrawingProperty(QString,QVariant)));
     connect(mDrawing, SIGNAL(propertiesChanged()), this, SLOT(setAllDrawingProperties()));
+
+    connect(mDrawingPropertiesWidget, SIGNAL(propertyChanged(QString,QVariant)),
+            mDrawing, SLOT(setDrawingProperty(QString,QVariant)));
 }
 
 //======================================================================================================================

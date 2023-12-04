@@ -37,14 +37,14 @@ public:
     void setName(const QString& name);
     QString name() const;
 
+    void setProperty(const QString& name, const QVariant& value);
+    QVariant property(const QString& name) const;
+
     void addItem(OdgItem* item);
     void insertItem(int index, OdgItem* item);
     void removeItem(OdgItem* item);
     void clearItems();
     QList<OdgItem*> items() const;
-
-    void setProperty(const QString& name, const QVariant& value);
-    QVariant property(const QString& name) const;
 };
 
 #endif

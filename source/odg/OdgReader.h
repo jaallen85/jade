@@ -45,10 +45,10 @@ private:
     int mGridSpacingMajor;
     int mGridSpacingMinor;
 
+    QList<OdgStyle*> mStyles;
     QList<OdgPage*> mPages;
 
     QFile mFile;
-    QList<OdgStyle*> mStyles;
 
 public:
     OdgReader(const QString& fileName);
@@ -65,6 +65,7 @@ public:
     int gridSpacingMajor() const;
     int gridSpacingMinor() const;
 
+    OdgStyle* takeDefaultStyle();
     QList<OdgPage*> takePages();
 
     bool open();

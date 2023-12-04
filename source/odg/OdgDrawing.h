@@ -71,6 +71,9 @@ public:
     double roundToGrid(double value) const;
     QPointF roundToGrid(const QPointF& position) const;
 
+    virtual void setProperty(const QString& name, const QVariant& value);
+    virtual QVariant property(const QString& name) const;
+
     void addPage(OdgPage* page);
     virtual void insertPage(int index, OdgPage* page);
     virtual void removePage(OdgPage* page);

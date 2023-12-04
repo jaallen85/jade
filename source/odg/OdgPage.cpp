@@ -41,6 +41,19 @@ QString OdgPage::name() const
 
 //======================================================================================================================
 
+void OdgPage::setProperty(const QString& name, const QVariant& value)
+{
+    if (name == "name" && value.canConvert<QString>()) setName(value.toString());
+}
+
+QVariant OdgPage::property(const QString& name) const
+{
+    if (name == "name") return mName;
+    return QVariant();
+}
+
+//======================================================================================================================
+
 void OdgPage::addItem(OdgItem* item)
 {
     if (item) mItems.append(item);
@@ -65,17 +78,4 @@ void OdgPage::clearItems()
 QList<OdgItem*> OdgPage::items() const
 {
     return mItems;
-}
-
-//======================================================================================================================
-
-void OdgPage::setProperty(const QString& name, const QVariant& value)
-{
-    if (name == "name" && value.canConvert<QString>()) setName(value.toString());
-}
-
-QVariant OdgPage::property(const QString& name) const
-{
-    if (name == "name") return mName;
-    return QVariant();
 }

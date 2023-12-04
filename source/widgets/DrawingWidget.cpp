@@ -19,6 +19,7 @@
 #include "OdgPage.h"
 #include "OdgItem.h"
 #include "OdgReader.h"
+#include "OdgStyle.h"
 #include <QActionGroup>
 #include <QContextMenuEvent>
 #include <QMenu>
@@ -29,12 +30,15 @@
 #include <QWheelEvent>
 
 DrawingWidget::DrawingWidget() : QAbstractScrollArea(), OdgDrawing(),
-    mCurrentPage(nullptr), mNewPageCount(0), mTransform(), mTransformInverse(), mUndoStack(),
-    mModeActionGroup(nullptr), mContextMenu(nullptr)
+    mDrawingTemplate(nullptr), mDefaultStyle(nullptr), mCurrentPage(nullptr), mNewPageCount(0),
+    mTransform(), mTransformInverse(), mUndoStack(), mModeActionGroup(nullptr), mContextMenu(nullptr)
 {
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     setMouseTracking(true);
+
+    mDrawingTemplate = new OdgDrawing();
+    mDefaultStyle = new OdgStyle(mUnits, true);
 
     mUndoStack.setUndoLimit(256);
     connect(&mUndoStack, SIGNAL(cleanChanged(bool)), this, SLOT(emitCleanChanged(bool)));
@@ -46,6 +50,8 @@ DrawingWidget::DrawingWidget() : QAbstractScrollArea(), OdgDrawing(),
 DrawingWidget::~DrawingWidget()
 {
     setCurrentPage(nullptr);
+    setDefaultStyle(nullptr);
+    setDrawingTemplate(nullptr);
 }
 
 //======================================================================================================================
@@ -163,6 +169,30 @@ void DrawingWidget::addModeAction(const QString& text, const QString& iconPath, 
 
 //======================================================================================================================
 
+void DrawingWidget::setDrawingTemplate(OdgDrawing* temp)
+{
+    delete mDrawingTemplate;
+    mDrawingTemplate = temp;
+}
+
+void DrawingWidget::setDefaultStyle(OdgStyle* style)
+{
+    delete mDefaultStyle;
+    mDefaultStyle = style;
+}
+
+OdgDrawing* DrawingWidget::drawingTemplate() const
+{
+    return mDrawingTemplate;
+}
+
+OdgStyle* DrawingWidget::defaultStyle() const
+{
+    return mDefaultStyle;
+}
+
+//======================================================================================================================
+
 void DrawingWidget::setUnits(Odg::Units units)
 {
     if (mUnits != units)
@@ -246,6 +276,20 @@ void DrawingWidget::setGridSpacingMinor(int spacing)
 
 //======================================================================================================================
 
+void DrawingWidget::setProperty(const QString& name, const QVariant& value)
+{
+    OdgDrawing::setProperty(name, value);
+    if (name == "pageSize" || name == "pageMargins") zoomFit();
+    else viewport()->update();
+}
+
+QVariant DrawingWidget::property(const QString& name) const
+{
+    return OdgDrawing::property(name);
+}
+
+//======================================================================================================================
+
 OdgPage* DrawingWidget::currentPage() const
 {
     return mCurrentPage;
@@ -305,7 +349,25 @@ void DrawingWidget::paint(QPainter& painter, bool isExport)
 
 void DrawingWidget::createNew()
 {
+    if (mDrawingTemplate)
+    {
+        blockSignals(true);
+        setUnits(mDrawingTemplate->units());
+        setPageSize(mDrawingTemplate->pageSize());
+        setPageMargins(mDrawingTemplate->pageMargins());
+        setBackgroundColor(mDrawingTemplate->backgroundColor());
+        setGrid(mDrawingTemplate->grid());
+        setGridStyle(mDrawingTemplate->gridStyle());
+        setGridColor(mDrawingTemplate->gridColor());
+        setGridSpacingMajor(mDrawingTemplate->gridSpacingMajor());
+        setGridSpacingMinor(mDrawingTemplate->gridSpacingMinor());
+        blockSignals(false);
+        emit propertiesChanged();
+    }
 
+    insertPage();
+
+    mUndoStack.clear();
 }
 
 bool DrawingWidget::load(const QString& fileName)
@@ -338,6 +400,8 @@ bool DrawingWidget::load(const QString& fileName)
     blockSignals(false);
     emit propertiesChanged();
 
+    setDefaultStyle(reader.takeDefaultStyle());
+
     const QList<OdgPage*> pages = reader.takePages();
     for(auto& page : pages)
         addPage(page);
@@ -365,7 +429,7 @@ void DrawingWidget::clear()
 
 bool DrawingWidget::isClean() const
 {
-    return true;
+    return mUndoStack.isClean();
 }
 
 //======================================================================================================================
@@ -514,6 +578,13 @@ void DrawingWidget::undo()
 void DrawingWidget::redo()
 {
     mUndoStack.redo();
+}
+
+//======================================================================================================================
+
+void DrawingWidget::setDrawingProperty(const QString& name, const QVariant& value)
+{
+    if (mCurrentPage) mUndoStack.push(new DrawingSetPropertyCommand(this, name, value));
 }
 
 //======================================================================================================================
@@ -879,7 +950,7 @@ void DrawingWidget::contextMenuEvent(QContextMenuEvent* event)
 
 void DrawingWidget::setModeFromAction(QAction* action)
 {
-
+    //mDefaultStyle
 }
 
 void DrawingWidget::emitCleanChanged(bool clean)

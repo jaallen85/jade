@@ -44,6 +44,25 @@ public:
 //======================================================================================================================
 //======================================================================================================================
 
+class DrawingSetPropertyCommand : public QUndoCommand
+{
+private:
+    DrawingWidget* mDrawing;
+    QString mName;
+    QVariant mNewValue;
+    QVariant mOldValue;
+
+public:
+    DrawingSetPropertyCommand(DrawingWidget* drawing, const QString& name, const QVariant& value);
+
+    void redo() override;
+    void undo() override;
+};
+
+//======================================================================================================================
+//======================================================================================================================
+//======================================================================================================================
+
 class DrawingInsertPageCommand : public QUndoCommand
 {
 private:
