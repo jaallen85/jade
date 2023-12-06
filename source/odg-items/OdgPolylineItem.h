@@ -33,6 +33,8 @@ private:
 public:
     OdgPolylineItem();
 
+	OdgItem* copy() const override;
+
     void setPolyline(const QPolygonF& polyline);
     QPolygonF polyline() const;
 
@@ -43,13 +45,27 @@ public:
     OdgMarker startMarker() const;
     OdgMarker endMarker() const;
 
+	void setProperty(const QString &name, const QVariant &value) override;
+	QVariant property(const QString &name) const override;
+
     QRectF boundingRect() const override;
     QPainterPath shape() const override;
     bool isValid() const override;
 
     void paint(QPainter& painter) override;
 
-    void scaleBy(double scale) override;
+	void resize(OdgControlPoint *point, const QPointF &position, bool snapTo45Degrees) override;
+
+	bool canInsertPoints() const override;
+	bool canRemovePoints() const override;
+	void insertPoint(const QPointF& position) override;
+	void removePoint(const QPointF& position) override;
+
+	void scaleBy(double scale) override;
+
+	void placeCreateEvent(const QRectF& contentRect, double grid) override;
+	OdgControlPoint* placeResizeStartPoint() const override;
+	OdgControlPoint* placeResizeEndPoint() const override;
 
 private:
     bool shouldShowStartMarker() const;

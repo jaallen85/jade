@@ -36,6 +36,8 @@ private:
 public:
     OdgLineItem();
 
+	OdgItem* copy() const override;
+
     void setLine(const QLineF& line);
     QLineF line() const;
 
@@ -46,13 +48,22 @@ public:
     OdgMarker startMarker() const;
     OdgMarker endMarker() const;
 
+	void setProperty(const QString &name, const QVariant &value) override;
+	QVariant property(const QString &name) const override;
+
     QRectF boundingRect() const override;
     QPainterPath shape() const override;
     bool isValid() const override;
 
     void paint(QPainter& painter) override;
 
+	void resize(OdgControlPoint *point, const QPointF &position, bool snapTo45Degrees) override;
+
     void scaleBy(double scale) override;
+
+	void placeCreateEvent(const QRectF& contentRect, double grid) override;
+	OdgControlPoint* placeResizeStartPoint() const override;
+	OdgControlPoint* placeResizeEndPoint() const override;
 
 private:
     bool shouldShowMarker(double size) const;

@@ -31,6 +31,18 @@ OdgGroupItem::~OdgGroupItem()
 
 //======================================================================================================================
 
+OdgItem* OdgGroupItem::copy() const
+{
+	OdgGroupItem* groupItem = new OdgGroupItem();
+	groupItem->setPosition(mPosition);
+	groupItem->setRotation(mRotation);
+	groupItem->setFlipped(mFlipped);
+	groupItem->setItems(copyItems(mItems));
+	return groupItem;
+}
+
+//======================================================================================================================
+
 void OdgGroupItem::setItems(const QList<OdgItem*>& items)
 {
     qDeleteAll(mItems);
@@ -55,6 +67,19 @@ void OdgGroupItem::setItems(const QList<OdgItem*>& items)
 QList<OdgItem*> OdgGroupItem::items() const
 {
     return mItems;
+}
+
+//======================================================================================================================
+
+void OdgGroupItem::setProperty(const QString &name, const QVariant &value)
+{
+	// Nothing to do here.
+}
+
+QVariant OdgGroupItem::property(const QString &name) const
+{
+	if (name == "position") return mPosition;
+	return QVariant();
 }
 
 //======================================================================================================================

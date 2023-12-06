@@ -31,6 +31,8 @@ private:
 public:
     OdgPolygonItem();
 
+	OdgItem* copy() const override;
+
     void setPolygon(const QPolygonF& polygon);
     QPolygonF polygon() const;
 
@@ -39,13 +41,25 @@ public:
     QBrush brush() const;
     QPen pen() const;
 
+	void setProperty(const QString &name, const QVariant &value) override;
+	QVariant property(const QString &name) const override;
+
     QRectF boundingRect() const override;
     QPainterPath shape() const override;
     bool isValid() const override;
 
-    virtual void paint(QPainter& painter) override;
+	void paint(QPainter& painter) override;
 
-    virtual void scaleBy(double scale) override;
+	void resize(OdgControlPoint *point, const QPointF &position, bool snapTo45Degrees) override;
+
+	bool canInsertPoints() const override;
+	bool canRemovePoints() const override;
+	void insertPoint(const QPointF& position) override;
+	void removePoint(const QPointF& position) override;
+
+	void scaleBy(double scale) override;
+
+	void placeCreateEvent(const QRectF& contentRect, double grid) override;
 };
 
 #endif

@@ -25,6 +25,21 @@ OdgPolylineItem::OdgPolylineItem() : OdgItem(), mPolyline(), mPen(), mStartMarke
 
 //======================================================================================================================
 
+OdgItem* OdgPolylineItem::copy() const
+{
+	OdgPolylineItem* polylineItem = new OdgPolylineItem();
+	polylineItem->setPosition(mPosition);
+	polylineItem->setRotation(mRotation);
+	polylineItem->setFlipped(mFlipped);
+	polylineItem->setPolyline(mPolyline);
+	polylineItem->setPen(mPen);
+	polylineItem->setStartMarker(mStartMarker);
+	polylineItem->setEndMarker(mEndMarker);
+	return polylineItem;
+}
+
+//======================================================================================================================
+
 void OdgPolylineItem::setPolyline(const QPolygonF& polyline)
 {
     if (polyline.size() >= 2)
@@ -97,6 +112,82 @@ OdgMarker OdgPolylineItem::endMarker() const
 
 //======================================================================================================================
 
+void OdgPolylineItem::setProperty(const QString &name, const QVariant &value)
+{
+	if (name == "pen" && value.canConvert<QPen>())
+	{
+		setPen(value.value<QPen>());
+	}
+	else if (name == "penStyle" && value.canConvert<int>())
+	{
+		QPen pen = mPen;
+		pen.setStyle(static_cast<Qt::PenStyle>(value.toInt()));
+		setPen(pen);
+	}
+	else if (name == "penWidth" && value.canConvert<double>())
+	{
+		QPen pen = mPen;
+		pen.setWidthF(value.toDouble());
+		setPen(pen);
+	}
+	else if (name == "penColor" && value.canConvert<QColor>())
+	{
+		QPen pen = mPen;
+		pen.setBrush(QBrush(value.value<QColor>()));
+		setPen(pen);
+	}
+	else if (name == "startMarker" && value.canConvert<OdgMarker>())
+	{
+		setStartMarker(value.value<OdgMarker>());
+	}
+	else if (name == "startMarkerStyle" && value.canConvert<int>())
+	{
+		OdgMarker marker = mStartMarker;
+		marker.setStyle(static_cast<Odg::MarkerStyle>(value.toInt()));
+		setStartMarker(marker);
+	}
+	else if (name == "startMarkerSize" && value.canConvert<double>())
+	{
+		OdgMarker marker = mStartMarker;
+		marker.setSize(value.toDouble());
+		setStartMarker(marker);
+	}
+	else if (name == "endMarker" && value.canConvert<OdgMarker>())
+	{
+		setEndMarker(value.value<OdgMarker>());
+	}
+	else if (name == "endMarkerStyle" && value.canConvert<int>())
+	{
+		OdgMarker marker = mEndMarker;
+		marker.setStyle(static_cast<Odg::MarkerStyle>(value.toInt()));
+		setEndMarker(marker);
+	}
+	else if (name == "endMarkerSize" && value.canConvert<double>())
+	{
+		OdgMarker marker = mEndMarker;
+		marker.setSize(value.toDouble());
+		setEndMarker(marker);
+	}
+}
+
+QVariant OdgPolylineItem::property(const QString &name) const
+{
+	if (name == "polyline") return mPolyline;
+	if (name == "pen") return mPen;
+	if (name == "penStyle") return static_cast<int>(mPen.style());
+	if (name == "penWidth") return mPen.widthF();
+	if (name == "penColor") return mPen.brush().color();
+	if (name == "startMarker") return QVariant::fromValue<OdgMarker>(mStartMarker);
+	if (name == "startMarkerStyle") return static_cast<int>(mStartMarker.style());
+	if (name == "startMarkerSize") return mStartMarker.size();
+	if (name == "endMarker") return QVariant::fromValue<OdgMarker>(mEndMarker);
+	if (name == "endMarkerStyle") return static_cast<int>(mEndMarker.style());
+	if (name == "endMarkerSize") return mEndMarker.size();
+	return QVariant();
+}
+
+//======================================================================================================================
+
 QRectF OdgPolylineItem::boundingRect() const
 {
     QRectF rect = mPolyline.boundingRect();
@@ -158,6 +249,91 @@ void OdgPolylineItem::paint(QPainter& painter)
 
 //======================================================================================================================
 
+void OdgPolylineItem::resize(OdgControlPoint* point, const QPointF& position, bool snapTo45Degrees)
+{
+	if (point && mControlPoints.contains(point) && mControlPoints.size() >= 2)
+	{
+		// Determine final point position and convert to item coordinates
+		QPointF pointPosition;
+		if (snapTo45Degrees)
+		{
+			pointPosition = mapFromScene(snapResizeTo45Degrees(point, position, mControlPoints.first(),
+															   mControlPoints.last()));
+		}
+		else
+			pointPosition = mapFromScene(position);
+
+		// Move corresponding polyline vertex
+		QPolygonF polyline = mPolyline;
+
+		const int pointIndex = mControlPoints.indexOf(point);
+		polyline.takeAt(pointIndex);
+		polyline.insert(pointIndex, pointPosition);
+
+		setPolyline(polyline);
+	}
+}
+
+//======================================================================================================================
+
+bool OdgPolylineItem::canInsertPoints() const
+{
+	return (mControlPoints.size() >= 2);
+}
+
+bool OdgPolylineItem::canRemovePoints() const
+{
+	return (mControlPoints.size() > 2);
+}
+
+void OdgPolylineItem::insertPoint(const QPointF& position)
+{
+	if (canInsertPoints())
+	{
+		const QPointF pointPosition = mapFromScene(position);
+
+		double minimumDistance = distanceFromPointToLineSegment(
+			pointPosition, QLineF(mControlPoints.at(0)->position(), mControlPoints.at(1)->position()));
+		double insertIndex = 1;
+		double distance = 0;
+
+		for(int index = 1; index < mControlPoints.size() - 1; index++)
+		{
+			distance = distanceFromPointToLineSegment(
+				pointPosition, QLineF(mControlPoints.at(index)->position(), mControlPoints.at(index + 1)->position()));
+			if (distance < minimumDistance)
+			{
+				insertIndex = index + 1;
+				minimumDistance = distance;
+			}
+		}
+
+		QPolygonF polyline = mPolyline;
+		polyline.insert(insertIndex, pointPosition);
+		setPolyline(polyline);
+	}
+}
+
+void OdgPolylineItem::removePoint(const QPointF& position)
+{
+	if (canRemovePoints())
+	{
+		OdgControlPoint* point = pointNearest(mapFromScene(position));
+		if (point == mControlPoints.first() || point == mControlPoints.last()) point = nullptr;
+
+		if (point)
+		{
+			int removeIndex = mControlPoints.indexOf(point);
+
+			QPolygonF polyline = mPolyline;
+			polyline.takeAt(removeIndex);
+			setPolyline(polyline);
+		}
+	}
+}
+
+//======================================================================================================================
+
 void OdgPolylineItem::scaleBy(double scale)
 {
     OdgItem::scaleBy(scale);
@@ -170,6 +346,25 @@ void OdgPolylineItem::scaleBy(double scale)
     mPen.setWidthF(mPen.widthF() * scale);
     mStartMarker.setSize(mStartMarker.size() * scale);
     mEndMarker.setSize(mEndMarker.size() * scale);
+}
+
+//======================================================================================================================
+
+void OdgPolylineItem::placeCreateEvent(const QRectF& contentRect, double grid)
+{
+	QPolygonF polyline;
+	polyline << QPointF() << QPointF();
+	setPolyline(polyline);
+}
+
+OdgControlPoint* OdgPolylineItem::placeResizeStartPoint() const
+{
+	return (mControlPoints.size() >= 2) ? mControlPoints.first() : nullptr;
+}
+
+OdgControlPoint* OdgPolylineItem::placeResizeEndPoint() const
+{
+	return (mControlPoints.size() >= 2) ? mControlPoints.last() : nullptr;
 }
 
 //======================================================================================================================

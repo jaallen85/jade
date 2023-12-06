@@ -25,6 +25,21 @@ OdgLineItem::OdgLineItem() : OdgItem(), mLine(), mPen(), mStartMarker(), mEndMar
 
 //======================================================================================================================
 
+OdgItem* OdgLineItem::copy() const
+{
+	OdgLineItem* lineItem = new OdgLineItem();
+	lineItem->setPosition(mPosition);
+	lineItem->setRotation(mRotation);
+	lineItem->setFlipped(mFlipped);
+	lineItem->setLine(mLine);
+	lineItem->setPen(mPen);
+	lineItem->setStartMarker(mStartMarker);
+	lineItem->setEndMarker(mEndMarker);
+	return lineItem;
+}
+
+//======================================================================================================================
+
 void OdgLineItem::setLine(const QLineF& line)
 {
     mLine = line;
@@ -81,6 +96,82 @@ OdgMarker OdgLineItem::endMarker() const
 
 //======================================================================================================================
 
+void OdgLineItem::setProperty(const QString &name, const QVariant &value)
+{
+	if (name == "pen" && value.canConvert<QPen>())
+	{
+		setPen(value.value<QPen>());
+	}
+	else if (name == "penStyle" && value.canConvert<int>())
+	{
+		QPen pen = mPen;
+		pen.setStyle(static_cast<Qt::PenStyle>(value.toInt()));
+		setPen(pen);
+	}
+	else if (name == "penWidth" && value.canConvert<double>())
+	{
+		QPen pen = mPen;
+		pen.setWidthF(value.toDouble());
+		setPen(pen);
+	}
+	else if (name == "penColor" && value.canConvert<QColor>())
+	{
+		QPen pen = mPen;
+		pen.setBrush(QBrush(value.value<QColor>()));
+		setPen(pen);
+	}
+	else if (name == "startMarker" && value.canConvert<OdgMarker>())
+	{
+		setStartMarker(value.value<OdgMarker>());
+	}
+	else if (name == "startMarkerStyle" && value.canConvert<int>())
+	{
+		OdgMarker marker = mStartMarker;
+		marker.setStyle(static_cast<Odg::MarkerStyle>(value.toInt()));
+		setStartMarker(marker);
+	}
+	else if (name == "startMarkerSize" && value.canConvert<double>())
+	{
+		OdgMarker marker = mStartMarker;
+		marker.setSize(value.toDouble());
+		setStartMarker(marker);
+	}
+	else if (name == "endMarker" && value.canConvert<OdgMarker>())
+	{
+		setEndMarker(value.value<OdgMarker>());
+	}
+	else if (name == "endMarkerStyle" && value.canConvert<int>())
+	{
+		OdgMarker marker = mEndMarker;
+		marker.setStyle(static_cast<Odg::MarkerStyle>(value.toInt()));
+		setEndMarker(marker);
+	}
+	else if (name == "endMarkerSize" && value.canConvert<double>())
+	{
+		OdgMarker marker = mEndMarker;
+		marker.setSize(value.toDouble());
+		setEndMarker(marker);
+	}
+}
+
+QVariant OdgLineItem::property(const QString &name) const
+{
+	if (name == "line") return mLine;
+	if (name == "pen") return mPen;
+	if (name == "penStyle") return static_cast<int>(mPen.style());
+	if (name == "penWidth") return mPen.widthF();
+	if (name == "penColor") return mPen.brush().color();
+	if (name == "startMarker") return QVariant::fromValue<OdgMarker>(mStartMarker);
+	if (name == "startMarkerStyle") return static_cast<int>(mStartMarker.style());
+	if (name == "startMarkerSize") return mStartMarker.size();
+	if (name == "endMarker") return QVariant::fromValue<OdgMarker>(mEndMarker);
+	if (name == "endMarkerStyle") return static_cast<int>(mEndMarker.style());
+	if (name == "endMarkerSize") return mEndMarker.size();
+	return QVariant();
+}
+
+//======================================================================================================================
+
 QRectF OdgLineItem::boundingRect() const
 {
     QRectF rect = QRectF(mLine.p1(), mLine.p2()).normalized();
@@ -131,6 +222,35 @@ void OdgLineItem::paint(QPainter& painter)
 
 //======================================================================================================================
 
+void OdgLineItem::resize(OdgControlPoint *point, const QPointF &position, bool snapTo45Degrees)
+{
+	if (point && mControlPoints.contains(point) && mControlPoints.size() >= NumberOfControlPoints)
+	{
+		// Determine final point position and convert to item coordinates
+		QPointF pointPosition;
+		if (snapTo45Degrees)
+		{
+			pointPosition = mapFromScene(snapResizeTo45Degrees(point, position, mControlPoints.at(StartControlPoint),
+															   mControlPoints.at(EndControlPoint)));
+		}
+		else
+			pointPosition = mapFromScene(position);
+
+		// Move corresponding line vertex
+		QLineF line = mLine;
+
+		const int pointIndex = mControlPoints.indexOf(point);
+		if (pointIndex == StartControlPoint)
+			line.setP1(pointPosition);
+		else if (pointIndex == EndControlPoint)
+			line.setP2(pointPosition);
+
+		setLine(line);
+	}
+}
+
+//======================================================================================================================
+
 void OdgLineItem::scaleBy(double scale)
 {
     OdgItem::scaleBy(scale);
@@ -140,6 +260,23 @@ void OdgLineItem::scaleBy(double scale)
     mPen.setWidthF(mPen.widthF() * scale);
     mStartMarker.setSize(mStartMarker.size() * scale);
     mEndMarker.setSize(mEndMarker.size() * scale);
+}
+
+//======================================================================================================================
+
+void OdgLineItem::placeCreateEvent(const QRectF& contentRect, double grid)
+{
+	setLine(QLineF());
+}
+
+OdgControlPoint* OdgLineItem::placeResizeStartPoint() const
+{
+	return (mControlPoints.size() >= NumberOfControlPoints) ? mControlPoints.at(StartControlPoint) : nullptr;
+}
+
+OdgControlPoint* OdgLineItem::placeResizeEndPoint() const
+{
+	return (mControlPoints.size() >= NumberOfControlPoints) ? mControlPoints.at(EndControlPoint) : nullptr;
 }
 
 //======================================================================================================================

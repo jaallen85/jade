@@ -24,6 +24,21 @@ OdgRoundedRectItem::OdgRoundedRectItem() : OdgRectItem(), mCornerRadius(0)
 
 //======================================================================================================================
 
+OdgItem* OdgRoundedRectItem::copy() const
+{
+	OdgRoundedRectItem* rectItem = new OdgRoundedRectItem();
+	rectItem->setPosition(mPosition);
+	rectItem->setRotation(mRotation);
+	rectItem->setFlipped(mFlipped);
+	rectItem->setRect(mRect);
+	rectItem->setCornerRadius(mCornerRadius);
+	rectItem->setBrush(mBrush);
+	rectItem->setPen(mPen);
+	return rectItem;
+}
+
+//======================================================================================================================
+
 void OdgRoundedRectItem::setCornerRadius(double radius)
 {
     if (radius >= 0) mCornerRadius = radius;
@@ -32,6 +47,22 @@ void OdgRoundedRectItem::setCornerRadius(double radius)
 double OdgRoundedRectItem::cornerRadius() const
 {
     return mCornerRadius;
+}
+
+//======================================================================================================================
+
+void OdgRoundedRectItem::setProperty(const QString &name, const QVariant &value)
+{
+	if (name == "cornerRadius" && value.canConvert<double>())
+		setCornerRadius(value.toDouble());
+	else
+		OdgRectItem::setProperty(name, value);
+}
+
+QVariant OdgRoundedRectItem::property(const QString &name) const
+{
+	if (name == "cornerRadius") return mCornerRadius;
+	return OdgRectItem::property(name);
 }
 
 //======================================================================================================================

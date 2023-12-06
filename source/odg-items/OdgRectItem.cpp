@@ -27,6 +27,20 @@ OdgRectItem::OdgRectItem() : mRect(), mBrush(), mPen()
 
 //======================================================================================================================
 
+OdgItem* OdgRectItem::copy() const
+{
+	OdgRectItem* rectItem = new OdgRectItem();
+	rectItem->setPosition(mPosition);
+	rectItem->setRotation(mRotation);
+	rectItem->setFlipped(mFlipped);
+	rectItem->setRect(mRect);
+	rectItem->setBrush(mBrush);
+	rectItem->setPen(mPen);
+	return rectItem;
+}
+
+//======================================================================================================================
+
 void OdgRectItem::setRect(const QRectF& rect)
 {
     if (rect.width() >= 0 && rect.height() >= 0)
@@ -93,6 +107,54 @@ QPen OdgRectItem::pen() const
 
 //======================================================================================================================
 
+void OdgRectItem::setProperty(const QString &name, const QVariant &value)
+{
+	if (name == "brush" && value.canConvert<QBrush>())
+	{
+		setBrush(value.value<QBrush>());
+	}
+	else if (name == "brushColor" && value.canConvert<QColor>())
+	{
+		setBrush(QBrush(value.value<QColor>()));
+	}
+	else if (name == "pen" && value.canConvert<QPen>())
+	{
+		setPen(value.value<QPen>());
+	}
+	else if (name == "penStyle" && value.canConvert<int>())
+	{
+		QPen pen = mPen;
+		pen.setStyle(static_cast<Qt::PenStyle>(value.toInt()));
+		setPen(pen);
+	}
+	else if (name == "penWidth" && value.canConvert<double>())
+	{
+		QPen pen = mPen;
+		pen.setWidthF(value.toDouble());
+		setPen(pen);
+	}
+	else if (name == "penColor" && value.canConvert<QColor>())
+	{
+		QPen pen = mPen;
+		pen.setBrush(QBrush(value.value<QColor>()));
+		setPen(pen);
+	}
+}
+
+QVariant OdgRectItem::property(const QString &name) const
+{
+	if (name == "rect") return mRect;
+	if (name == "brush") return mBrush;
+	if (name == "brushColor") return mBrush.color();
+	if (name == "pen") return mPen;
+	if (name == "penStyle") return static_cast<int>(mPen.style());
+	if (name == "penWidth") return mPen.widthF();
+	if (name == "penColor") return mPen.brush().color();
+	return QVariant();
+}
+
+//======================================================================================================================
+
 QRectF OdgRectItem::boundingRect() const
 {
     QRectF rect = mRect.normalized();
@@ -144,6 +206,58 @@ void OdgRectItem::paint(QPainter& painter)
 
 //======================================================================================================================
 
+void OdgRectItem::resize(OdgControlPoint *point, const QPointF &position, bool snapTo45Degrees)
+{
+	if (point && mControlPoints.contains(point) && mControlPoints.size() >= NumberOfControlPoints)
+	{
+		// Determine final point position and convert to item coordinates
+		QPointF pointPosition;
+		if (snapTo45Degrees)
+		{
+			pointPosition = mapFromScene(snapResizeTo45Degrees(point, position, mControlPoints.at(TopLeftControlPoint),
+															   mControlPoints.at(BottomRightControlPoint)));
+		}
+		else
+			pointPosition = mapFromScene(position);
+
+		// Move corresponding rect vertex (and adjacent vertices as needed to maintain rect shape)
+		QRectF rect = mRect;
+		const int pointIndex = mControlPoints.indexOf(point);
+
+		// Ensure that rect.width() >= 0
+		if (pointIndex == TopLeftControlPoint || pointIndex == MiddleLeftControlPoint ||
+			pointIndex == BottomLeftControlPoint)
+		{
+			if (pointPosition.x() > rect.right()) rect.setLeft(rect.right());
+			else rect.setLeft(pointPosition.x());
+		}
+		else if (pointIndex == TopRightControlPoint || pointIndex == MiddleRightControlPoint ||
+			pointIndex == BottomRightControlPoint)
+		{
+			if (pointPosition.x() < rect.left()) rect.setRight(rect.left());
+			else rect.setRight(pointPosition.x());
+		}
+
+		// Ensure that rect.height() >= 0
+		if (pointIndex == TopLeftControlPoint || pointIndex == TopMiddleControlPoint ||
+			pointIndex == TopRightControlPoint)
+		{
+			if (pointPosition.y() > rect.bottom()) rect.setTop(rect.bottom());
+			else rect.setTop(pointPosition.y());
+		}
+		else if (pointIndex == BottomLeftControlPoint || pointIndex == BottomMiddleControlPoint ||
+				 pointIndex == BottomRightControlPoint)
+		{
+			if (pointPosition.y() < rect.top()) rect.setBottom(rect.top());
+			else rect.setBottom(pointPosition.y());
+		}
+
+		setRect(rect);
+	}
+}
+
+//======================================================================================================================
+
 void OdgRectItem::scaleBy(double scale)
 {
     OdgItem::scaleBy(scale);
@@ -151,4 +265,23 @@ void OdgRectItem::scaleBy(double scale)
     setRect(QRectF(mRect.left() * scale, mRect.top() * scale, mRect.width() * scale, mRect.height() * scale));
 
     mPen.setWidthF(mPen.widthF() * scale);
+}
+
+//======================================================================================================================
+
+void OdgRectItem::placeCreateEvent(const QRectF& contentRect, double grid)
+{
+	double size = 8 * grid;
+	if (size <= 0) size = contentRect.width() / 40;
+	setRect(QRectF(-size, -size / 2, 2 * size, size));
+}
+
+OdgControlPoint* OdgRectItem::placeResizeStartPoint() const
+{
+	return (mControlPoints.size() >= NumberOfControlPoints) ? mControlPoints.at(TopLeftControlPoint) : nullptr;
+}
+
+OdgControlPoint* OdgRectItem::placeResizeEndPoint() const
+{
+	return (mControlPoints.size() >= NumberOfControlPoints) ? mControlPoints.at(BottomRightControlPoint) : nullptr;
 }

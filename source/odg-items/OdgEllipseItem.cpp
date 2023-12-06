@@ -24,6 +24,45 @@ OdgEllipseItem::OdgEllipseItem() : OdgRectItem()
 
 //======================================================================================================================
 
+OdgItem* OdgEllipseItem::copy() const
+{
+	OdgEllipseItem* ellipseItem = new OdgEllipseItem();
+	ellipseItem->setPosition(mPosition);
+	ellipseItem->setRotation(mRotation);
+	ellipseItem->setFlipped(mFlipped);
+	ellipseItem->setRect(mRect);
+	ellipseItem->setBrush(mBrush);
+	ellipseItem->setPen(mPen);
+	return ellipseItem;
+}
+
+//======================================================================================================================
+
+void OdgEllipseItem::setEllipse(const QRectF& ellipse)
+{
+	setRect(ellipse);
+}
+
+QRectF OdgEllipseItem::ellipse() const
+{
+	return rect();
+}
+
+//======================================================================================================================
+
+void OdgEllipseItem::setProperty(const QString &name, const QVariant &value)
+{
+	OdgRectItem::setProperty(name, value);
+}
+
+QVariant OdgEllipseItem::property(const QString &name) const
+{
+	if (name == "ellipse") return mRect;
+	return OdgRectItem::property(name);
+}
+
+//======================================================================================================================
+
 QPainterPath OdgEllipseItem::shape() const
 {
     QPainterPath shape;

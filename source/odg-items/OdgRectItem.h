@@ -22,13 +22,13 @@
 
 class OdgRectItem : public OdgItem
 {
-private:
+protected:
     enum ControlPointIndex { TopLeftControlPoint, TopMiddleControlPoint, TopRightControlPoint, MiddleRightControlPoint,
                              BottomRightControlPoint, BottomMiddleControlPoint, BottomLeftControlPoint,
                              MiddleLeftControlPoint, NumberOfControlPoints };
     enum GluePointIndex { TopGluePoint, RightGluePoint, BottomGluePoint, LeftGluePoint, NumberOfGluePoints };
 
-private:
+protected:
     QRectF mRect;
 
     QBrush mBrush;
@@ -37,7 +37,9 @@ private:
 public:
     OdgRectItem();
 
-    void setRect(const QRectF& rect);
+	virtual OdgItem* copy() const override;
+
+	virtual void setRect(const QRectF& rect);
     QRectF rect() const;
 
     void setBrush(const QBrush& brush);
@@ -45,13 +47,22 @@ public:
     QBrush brush() const;
     QPen pen() const;
 
+	virtual void setProperty(const QString &name, const QVariant &value) override;
+	virtual QVariant property(const QString &name) const override;
+
     virtual QRectF boundingRect() const override;
     virtual QPainterPath shape() const override;
     virtual bool isValid() const override;
 
     virtual void paint(QPainter& painter) override;
 
+	virtual void resize(OdgControlPoint *point, const QPointF &position, bool snapTo45Degrees) override;
+
     virtual void scaleBy(double scale) override;
+
+	virtual void placeCreateEvent(const QRectF& contentRect, double grid) override;
+	virtual OdgControlPoint* placeResizeStartPoint() const override;
+	virtual OdgControlPoint* placeResizeEndPoint() const override;
 };
 
 #endif

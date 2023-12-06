@@ -20,17 +20,25 @@
 #include <QPointF>
 
 class OdgGluePoint;
+class OdgItem;
 
 class OdgControlPoint
 {
+    friend class OdgItem;
+
 private:
+    OdgItem* mItem;
+
     QPointF mPosition;
     bool mConnectable;
+
     OdgGluePoint* mGluePoint;
 
 public:
     OdgControlPoint(const QPointF& position = QPointF(), bool connectable = false);
     ~OdgControlPoint();
+
+    OdgItem* item() const;
 
     void setPosition(const QPointF& position);
     QPointF position() const;
@@ -38,7 +46,8 @@ public:
     void setConnectable(bool connectable);
     bool isConnectable() const;
 
-    void setGluePoint(OdgGluePoint* point);
+    void connect(OdgGluePoint* point);
+    void disconnect();
     OdgGluePoint* gluePoint() const;
 };
 

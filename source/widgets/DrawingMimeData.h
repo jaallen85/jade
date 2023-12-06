@@ -1,4 +1,4 @@
-// File: OdgEllipseItem.h
+// File: DrawingMimeData.h
 // Copyright (C) 2023  Jason Allen
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,27 +14,35 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef ODGELLIPSEITEM_H
-#define ODGELLIPSEITEM_H
+#ifndef DRAWINGMIMEDATA_H
+#define DRAWINGMIMEDATA_H
 
-#include "OdgRectItem.h"
+#include <QMimeData>
 
-class OdgEllipseItem : public OdgRectItem
+class OdgItem;
+
+class DrawingMimeData : public QMimeData
 {
+    Q_OBJECT
+
+private:
+    QList<OdgItem*> mItems;
+
 public:
-    OdgEllipseItem();
+    DrawingMimeData();
+    ~DrawingMimeData();
 
-	virtual OdgItem* copy() const override;
+    void setItems(const QList<OdgItem*>& items);
+    QList<OdgItem*> items() const;
 
-	void setEllipse(const QRectF& ellipse);
-	QRectF ellipse() const;
+    bool hasFormat(const QString& mimeType) const override;
+    QStringList formats() const override;
 
-	virtual void setProperty(const QString &name, const QVariant &value) override;
-	virtual QVariant property(const QString &name) const override;
+private:
+    QVariant retrieveData(const QString& mimeType, QMetaType type) const override;
 
-    virtual QPainterPath shape() const override;
-
-    void paint(QPainter& painter) override;
+public:
+    static QString format();
 };
 
 #endif

@@ -26,17 +26,28 @@ private:
     QPainterPath mPath;
     QRectF mPathRect;
 
+	QPainterPath mTransformedPath;
+
 public:
     OdgPathItem();
 
-    void setPath(const QPainterPath& path, const QRectF& pathRect);
+	OdgItem* copy() const override;
+
+	void setRect(const QRectF& rect) override;
+
+	void setPath(const QPainterPath& path, const QRectF& pathRect);
     QPainterPath path() const;
-    QRectF pathRect() const;
+	QRectF pathRect() const;
 
     QPainterPath shape() const override;
     bool isValid() const override;
 
     void paint(QPainter& painter) override;
+
+	void placeCreateEvent(const QRectF& contentRect, double grid) override;
+
+private:
+	void updateTransformedPath();
 };
 
 #endif

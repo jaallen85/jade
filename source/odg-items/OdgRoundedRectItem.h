@@ -21,20 +21,25 @@
 
 class OdgRoundedRectItem : public OdgRectItem
 {
-private:
+protected:
     double mCornerRadius;
 
 public:
     OdgRoundedRectItem();
 
+	virtual OdgItem* copy() const override;
+
     void setCornerRadius(double radius);
     double cornerRadius() const;
 
-    QPainterPath shape() const override;
+	virtual void setProperty(const QString &name, const QVariant &value) override;
+	virtual QVariant property(const QString &name) const override;
 
-    void paint(QPainter& painter) override;
+	virtual QPainterPath shape() const override;
 
-    void scaleBy(double scale) override;
+	virtual void paint(QPainter& painter) override;
+
+	virtual void scaleBy(double scale) override;
 };
 
 #endif

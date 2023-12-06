@@ -1,4 +1,4 @@
-// File: OdgGluePoint.cpp
+// File: DrawingMimeData.cpp
 // Copyright (C) 2023  Jason Allen
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,42 +14,57 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "OdgGluePoint.h"
-#include "OdgControlPoint.h"
+#include "DrawingMimeData.h"
+#include "OdgItem.h"
 
-OdgGluePoint::OdgGluePoint(const QPointF& position) :
-    mItem(nullptr), mPosition(position), mConnections()
+DrawingMimeData::DrawingMimeData() : mItems()
 {
     // Nothing more to do here.
 }
 
-OdgGluePoint::~OdgGluePoint()
+DrawingMimeData::~DrawingMimeData()
 {
-    while (!mConnections.isEmpty()) mConnections.last()->disconnect();
+    qDeleteAll(mItems);
 }
 
 //======================================================================================================================
 
-OdgItem* OdgGluePoint::item() const
+void DrawingMimeData::setItems(const QList<OdgItem*>& items)
 {
-    return mItem;
+    qDeleteAll(mItems);
+    mItems = items;
+}
+
+QList<OdgItem*> DrawingMimeData::items() const
+{
+    return mItems;
 }
 
 //======================================================================================================================
 
-void OdgGluePoint::setPosition(const QPointF& position)
+bool DrawingMimeData::hasFormat(const QString& mimeType) const
 {
-    mPosition = position;
+    return (mimeType == format());
 }
 
-QPointF OdgGluePoint::position() const
+QStringList DrawingMimeData::formats() const
 {
-    return mPosition;
+    QStringList formats;
+    formats << format();
+    return formats;
 }
 
 //======================================================================================================================
 
-QList<OdgControlPoint*> OdgGluePoint::connections() const
+QVariant DrawingMimeData::retrieveData(const QString& mimeType, QMetaType type) const
 {
-    return mConnections;
+    if (hasFormat(mimeType)) return QVariant::fromValue< QList<OdgItem*> >(mItems);
+    return QVariant();
+}
+
+//======================================================================================================================
+
+QString DrawingMimeData::format()
+{
+    return "application/jade-items";
 }

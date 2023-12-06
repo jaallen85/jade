@@ -18,14 +18,21 @@
 #include "OdgGluePoint.h"
 
 OdgControlPoint::OdgControlPoint(const QPointF& position, bool connectable) :
-    mPosition(position), mConnectable(connectable), mGluePoint(nullptr)
+    mItem(nullptr), mPosition(position), mConnectable(connectable), mGluePoint(nullptr)
 {
     // Nothing more to do here.
 }
 
 OdgControlPoint::~OdgControlPoint()
 {
-    setGluePoint(nullptr);
+    mGluePoint = nullptr;
+}
+
+//======================================================================================================================
+
+OdgItem* OdgControlPoint::item() const
+{
+    return mItem;
 }
 
 //======================================================================================================================
@@ -54,11 +61,22 @@ bool OdgControlPoint::isConnectable() const
 
 //======================================================================================================================
 
-void OdgControlPoint::setGluePoint(OdgGluePoint* point)
+void OdgControlPoint::connect(OdgGluePoint* point)
 {
-    if (mGluePoint) mGluePoint->removeConnection(this);
-    mGluePoint = point;
-    if (mGluePoint) mGluePoint->addConnection(this);
+    if (point)
+    {
+        mGluePoint = point;
+        mGluePoint->mConnections.append(this);
+    }
+}
+
+void OdgControlPoint::disconnect()
+{
+    if (mGluePoint)
+    {
+        mGluePoint->mConnections.removeAll(this);
+        mGluePoint = nullptr;
+    }
 }
 
 OdgGluePoint* OdgControlPoint::gluePoint() const

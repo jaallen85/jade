@@ -36,6 +36,8 @@ private:
 public:
     OdgTextItem();
 
+	OdgItem* copy() const override;
+
     void setCaption(const QString& caption);
     QString caption() const;
 
@@ -48,6 +50,9 @@ public:
     QSizeF textPadding() const;
     QBrush textBrush() const;
 
+	void setProperty(const QString &name, const QVariant &value) override;
+	QVariant property(const QString &name) const override;
+
     QRectF boundingRect() const override;
     QPainterPath shape() const override;
     bool isValid() const override;
@@ -55,6 +60,8 @@ public:
     void paint(QPainter& painter) override;
 
     void scaleBy(double scale) override;
+
+	void placeCreateEvent(const QRectF& contentRect, double grid) override;
 };
 
 #endif

@@ -16,12 +16,29 @@
 
 #include "OdgTextItem.h"
 #include "OdgControlPoint.h"
+#include "OdgFontStyle.h"
 #include <QPainter>
 
 OdgTextItem::OdgTextItem() : OdgItem(),
     mCaption(), mFont(), mTextAlignment(Qt::AlignCenter), mTextPadding(0, 0), mTextBrush(QColor(0, 0, 0)), mTextRect()
 {
     addControlPoint(new OdgControlPoint(QPointF(0, 0), false));
+}
+
+//======================================================================================================================
+
+OdgItem* OdgTextItem::copy() const
+{
+	OdgTextItem* textItem = new OdgTextItem();
+	textItem->setPosition(mPosition);
+	textItem->setRotation(mRotation);
+	textItem->setFlipped(mFlipped);
+	textItem->setCaption(mCaption);
+	textItem->setFont(mFont);
+	textItem->setTextAlignment(mTextAlignment);
+	textItem->setTextPadding(mTextPadding);
+	textItem->setTextBrush(mTextBrush);
+	return textItem;
 }
 
 //======================================================================================================================
@@ -80,6 +97,77 @@ QBrush OdgTextItem::textBrush() const
 
 //======================================================================================================================
 
+void OdgTextItem::setProperty(const QString &name, const QVariant &value)
+{
+	if (name == "caption" && value.canConvert<QString>())
+	{
+		setCaption(value.toString());
+	}
+	else if (name == "font" && value.canConvert<QFont>())
+	{
+		setFont(value.value<QFont>());
+	}
+	else if (name == "fontFamily" && value.canConvert<QString>())
+	{
+		QFont font = mFont;
+		font.setFamily(value.toString());
+		setFont(font);
+	}
+	else if (name == "fontSize" && value.canConvert<double>())
+	{
+		QFont font = mFont;
+		font.setPointSizeF(value.toDouble());
+		setFont(font);
+	}
+	else if (name == "fontStyle" && value.canConvert<OdgFontStyle>())
+	{
+		QFont font = mFont;
+		OdgFontStyle fontStyle = value.value<OdgFontStyle>();
+		font.setBold(fontStyle.bold());
+		font.setItalic(fontStyle.italic());
+		font.setUnderline(fontStyle.underline());
+		font.setStrikeOut(fontStyle.strikeOut());
+		setFont(font);
+	}
+	else if (name == "textAlignment" && value.canConvert<int>())
+	{
+		setTextAlignment(static_cast<Qt::Alignment>(value.toInt()));
+	}
+	else if (name == "textPadding" && value.canConvert<QSizeF>())
+	{
+		setTextPadding(value.value<QSizeF>());
+	}
+	else if (name == "textBrush" && value.canConvert<QBrush>())
+	{
+		setTextBrush(value.value<QBrush>());
+	}
+	else if (name == "textColor" && value.canConvert<QColor>())
+	{
+		setTextBrush(QBrush(value.value<QColor>()));
+	}
+}
+
+QVariant OdgTextItem::property(const QString &name) const
+{
+	if (name == "position") return mPosition;
+	if (name == "caption") return mCaption;
+	if (name == "font") return mFont;
+	if (name == "fontFamily") return mFont.family();
+	if (name == "fontSize") return mFont.pointSizeF();
+	if (name == "fontStyle")
+	{
+		return QVariant::fromValue<OdgFontStyle>(
+			OdgFontStyle(mFont.bold(), mFont.italic(), mFont.underline(), mFont.strikeOut()));
+	}
+	if (name == "textAlignment") return static_cast<int>(mTextAlignment);
+	if (name == "textPadding") return mTextPadding;
+	if (name == "textBrush") return mTextBrush;
+	if (name == "textColor") return mTextBrush.color();
+	return QVariant();
+}
+
+//======================================================================================================================
+
 QRectF OdgTextItem::boundingRect() const
 {
     QRectF textRect = mTextRect;
@@ -122,4 +210,11 @@ void OdgTextItem::scaleBy(double scale)
     mFont.setPointSizeF(mFont.pointSizeF() * scale);
     mTextPadding.setWidth(mTextPadding.width() * scale);
     mTextPadding.setHeight(mTextPadding.height() * scale);
+}
+
+//======================================================================================================================
+
+void OdgTextItem::placeCreateEvent(const QRectF& contentRect, double grid)
+{
+	setCaption("Label");
 }

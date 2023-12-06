@@ -33,16 +33,21 @@ public:
     OdgGroupItem();
     ~OdgGroupItem();
 
+	OdgItem* copy() const override;
+
     void setItems(const QList<OdgItem*>& items);
     QList<OdgItem*> items() const;
 
+	void setProperty(const QString &name, const QVariant &value) override;
+	QVariant property(const QString &name) const override;
+
     QRectF boundingRect() const override;
     QPainterPath shape() const override;
-    bool isValid() const override;
+	bool isValid() const override;
 
-    virtual void paint(QPainter& painter) override;
+	void paint(QPainter& painter) override;
 
-    virtual void scaleBy(double scale) override;
+	void scaleBy(double scale) override;
 };
 
 #endif

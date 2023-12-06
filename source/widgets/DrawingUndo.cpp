@@ -16,6 +16,8 @@
 
 #include "DrawingUndo.h"
 #include "DrawingWidget.h"
+#include "OdgControlPoint.h"
+#include "OdgGroupItem.h"
 #include "OdgPage.h"
 
 DrawingUndoCommand::DrawingUndoCommand(const QString& text) : QUndoCommand(text), mPage(nullptr), mViewRect()
@@ -173,4 +175,523 @@ void DrawingSetPagePropertyCommand::redo()
 void DrawingSetPagePropertyCommand::undo()
 {
     mDrawing->setPageProperty(mPage, mName, mOldValue);
+}
+
+//======================================================================================================================
+//======================================================================================================================
+//======================================================================================================================
+
+DrawingAddItemsCommand::DrawingAddItemsCommand(DrawingWidget* drawing, OdgPage* page, const QList<OdgItem*>& items,
+                                               bool place) :
+    DrawingUndoCommand("Add Items"), mDrawing(drawing), mPage(page), mItems(items), mPlace(place), mUndone(true)
+{
+    Q_ASSERT(mDrawing != nullptr);
+    storeView(mDrawing);
+}
+
+DrawingAddItemsCommand::~DrawingAddItemsCommand()
+{
+    if (mUndone) qDeleteAll(mItems);
+}
+
+//======================================================================================================================
+
+void DrawingAddItemsCommand::redo()
+{
+    restoreView(mDrawing);
+    mDrawing->addItems(mPage, mItems, mPlace);
+    mUndone = false;
+}
+
+void DrawingAddItemsCommand::undo()
+{
+    restoreView(mDrawing);
+    mDrawing->removeItems(mPage, mItems);
+    mUndone = true;
+}
+
+//======================================================================================================================
+//======================================================================================================================
+//======================================================================================================================
+
+DrawingRemoveItemsCommand::DrawingRemoveItemsCommand(DrawingWidget* drawing, OdgPage* page,
+                                                     const QList<OdgItem*>& items) :
+    DrawingUndoCommand("Remove Items"), mDrawing(drawing), mPage(page), mItems(items), mIndices(), mUndone(true)
+{
+    Q_ASSERT(mDrawing != nullptr);
+    storeView(mDrawing);
+
+    // Determine index of each item within the page for when we want to undo this command
+    if (mPage)
+    {
+        QList<OdgItem*> pageItems = mPage->items();
+        int index = -1;
+        for(auto& item : mItems)
+        {
+            index = pageItems.indexOf(item);
+            if (index >= 0) mIndices[item] = index;
+        }
+    }
+}
+
+DrawingRemoveItemsCommand::~DrawingRemoveItemsCommand()
+{
+    if (!mUndone) qDeleteAll(mItems);
+}
+
+//======================================================================================================================
+
+void DrawingRemoveItemsCommand::redo()
+{
+    restoreView(mDrawing);
+    mDrawing->removeItems(mPage, mItems);
+    mUndone = false;
+}
+
+void DrawingRemoveItemsCommand::undo()
+{
+    restoreView(mDrawing);
+    mDrawing->insertItems(mPage, mItems, mIndices, true);
+    mUndone = true;
+}
+
+//======================================================================================================================
+//======================================================================================================================
+//======================================================================================================================
+
+DrawingReorderItemsCommand::DrawingReorderItemsCommand(DrawingWidget* drawing, OdgPage* page,
+                                                       const QList<OdgItem*>& items) :
+    DrawingUndoCommand("Reorder Items"), mDrawing(drawing), mPage(page), mItemsOrdered(items), mOriginalItemsOrdered()
+{
+    Q_ASSERT(mDrawing != nullptr);
+    storeView(mDrawing);
+
+    if (mPage) mOriginalItemsOrdered = mPage->items();
+}
+
+//======================================================================================================================
+
+void DrawingReorderItemsCommand::redo()
+{
+    restoreView(mDrawing);
+    mDrawing->reorderItems(mPage, mItemsOrdered);
+}
+
+void DrawingReorderItemsCommand::undo()
+{
+    restoreView(mDrawing);
+    mDrawing->reorderItems(mPage, mOriginalItemsOrdered);
+}
+
+//======================================================================================================================
+//======================================================================================================================
+//======================================================================================================================
+
+DrawingMoveItemsCommand::DrawingMoveItemsCommand(DrawingWidget* drawing, const QList<OdgItem*>& items,
+                                                 const QHash<OdgItem*,QPointF>& positions, bool place) :
+    DrawingUndoCommand("Move Items"),
+    mDrawing(drawing), mItems(items), mPositions(positions), mOriginalPositions(), mPlace(place)
+{
+    Q_ASSERT(mDrawing != nullptr);
+    storeView(mDrawing);
+
+    for(auto& item : items) mOriginalPositions.insert(item, item->position());
+}
+
+//======================================================================================================================
+
+int DrawingMoveItemsCommand::id() const
+{
+    return MoveCommandId;
+}
+
+bool DrawingMoveItemsCommand::mergeWith(const QUndoCommand* command)
+{
+    if (command && command->id() == MoveCommandId)
+    {
+        const DrawingMoveItemsCommand* moveCommand = dynamic_cast<const DrawingMoveItemsCommand*>(command);
+        if (moveCommand && mDrawing == moveCommand->mDrawing && mItems == moveCommand->mItems && !mPlace)
+        {
+            mPositions = moveCommand->mPositions;
+            mPlace = moveCommand->mPlace;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+//======================================================================================================================
+
+void DrawingMoveItemsCommand::redo()
+{
+    restoreView(mDrawing);
+    mDrawing->setSelectedItems(mItems);
+    mDrawing->moveItems(mItems, mPositions, mPlace);
+}
+
+void DrawingMoveItemsCommand::undo()
+{
+    restoreView(mDrawing);
+    mDrawing->setSelectedItems(mItems);
+    mDrawing->moveItems(mItems, mOriginalPositions, mPlace);
+}
+
+//======================================================================================================================
+//======================================================================================================================
+//======================================================================================================================
+
+DrawingResizeItemCommand::DrawingResizeItemCommand(DrawingWidget* drawing, OdgControlPoint* point,
+                                                   const QPointF& position, bool snapTo45Degrees, bool place) :
+    DrawingUndoCommand("Resize Item"),
+    mDrawing(drawing), mControlPoint(point), mPosition(position), mOriginalPosition(),
+    mSnapTo45Degrees(snapTo45Degrees), mPlace(place)
+{
+    Q_ASSERT(mDrawing != nullptr);
+    storeView(mDrawing);
+
+    if (point && point->item()) mOriginalPosition = point->item()->mapToScene(point->position());
+}
+
+//======================================================================================================================
+
+int DrawingResizeItemCommand::id() const
+{
+    return ResizeCommandId;
+}
+
+bool DrawingResizeItemCommand::mergeWith(const QUndoCommand* command)
+{
+    if (command && command->id() == ResizeCommandId)
+    {
+        const DrawingResizeItemCommand* resizeCommand = dynamic_cast<const DrawingResizeItemCommand*>(command);
+        if (resizeCommand && mDrawing == resizeCommand->mDrawing && mControlPoint == resizeCommand->mControlPoint &&
+            !mPlace)
+        {
+            mPosition = resizeCommand->mPosition;
+            mSnapTo45Degrees = resizeCommand->mSnapTo45Degrees;
+            mPlace = resizeCommand->mPlace;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+//======================================================================================================================
+
+void DrawingResizeItemCommand::redo()
+{
+    if (mControlPoint && mControlPoint->item())
+    {
+        restoreView(mDrawing);
+        mDrawing->setSelectedItems(QList<OdgItem*>(1, mControlPoint->item()));
+        mDrawing->resizeItem(mControlPoint, mPosition, mSnapTo45Degrees, mPlace);
+    }
+}
+
+void DrawingResizeItemCommand::undo()
+{
+    if (mControlPoint && mControlPoint->item())
+    {
+        restoreView(mDrawing);
+        mDrawing->setSelectedItems(QList<OdgItem*>(1, mControlPoint->item()));
+        mDrawing->resizeItem(mControlPoint, mOriginalPosition, mSnapTo45Degrees, mPlace);
+    }
+}
+
+//======================================================================================================================
+//======================================================================================================================
+//======================================================================================================================
+
+DrawingRotateItemsCommand::DrawingRotateItemsCommand(DrawingWidget* drawing, const QList<OdgItem*>& items,
+                                                     const QPointF& position) :
+    DrawingUndoCommand("Rotate Items"), mDrawing(drawing), mItems(items), mPosition(position)
+{
+    Q_ASSERT(mDrawing != nullptr);
+    storeView(mDrawing);
+}
+
+//======================================================================================================================
+
+void DrawingRotateItemsCommand::redo()
+{
+    restoreView(mDrawing);
+    mDrawing->setSelectedItems(mItems);
+    mDrawing->rotateItems(mItems, mPosition);
+}
+
+void DrawingRotateItemsCommand::undo()
+{
+    restoreView(mDrawing);
+    mDrawing->setSelectedItems(mItems);
+    mDrawing->rotateBackItems(mItems, mPosition);
+}
+
+//======================================================================================================================
+//======================================================================================================================
+//======================================================================================================================
+
+DrawingRotateBackItemsCommand::DrawingRotateBackItemsCommand(DrawingWidget* drawing, const QList<OdgItem*>& items,
+                                                             const QPointF& position) :
+    DrawingUndoCommand("Rotate Back Items"), mDrawing(drawing), mItems(items), mPosition(position)
+{
+    Q_ASSERT(mDrawing != nullptr);
+    storeView(mDrawing);
+}
+
+//======================================================================================================================
+
+void DrawingRotateBackItemsCommand::redo()
+{
+    restoreView(mDrawing);
+    mDrawing->setSelectedItems(mItems);
+    mDrawing->rotateBackItems(mItems, mPosition);
+}
+
+void DrawingRotateBackItemsCommand::undo()
+{
+    restoreView(mDrawing);
+    mDrawing->setSelectedItems(mItems);
+    mDrawing->rotateItems(mItems, mPosition);
+}
+
+//======================================================================================================================
+//======================================================================================================================
+//======================================================================================================================
+
+DrawingFlipItemsHorizontalCommand::DrawingFlipItemsHorizontalCommand(DrawingWidget* drawing, const QList<OdgItem*>& items,
+                                                     const QPointF& position) :
+    DrawingUndoCommand("Flip Items Horizontal"), mDrawing(drawing), mItems(items), mPosition(position)
+{
+    Q_ASSERT(mDrawing != nullptr);
+    storeView(mDrawing);
+}
+
+//======================================================================================================================
+
+void DrawingFlipItemsHorizontalCommand::redo()
+{
+    restoreView(mDrawing);
+    mDrawing->setSelectedItems(mItems);
+    mDrawing->flipItemsHorizontal(mItems, mPosition);
+}
+
+void DrawingFlipItemsHorizontalCommand::undo()
+{
+    restoreView(mDrawing);
+    mDrawing->setSelectedItems(mItems);
+    mDrawing->flipItemsHorizontal(mItems, mPosition);
+}
+
+//======================================================================================================================
+//======================================================================================================================
+//======================================================================================================================
+
+DrawingFlipItemsVerticalCommand::DrawingFlipItemsVerticalCommand(DrawingWidget* drawing, const QList<OdgItem*>& items,
+                                                     const QPointF& position) :
+    DrawingUndoCommand("Flip Items Vertical"), mDrawing(drawing), mItems(items), mPosition(position)
+{
+    Q_ASSERT(mDrawing != nullptr);
+    storeView(mDrawing);
+}
+
+//======================================================================================================================
+
+void DrawingFlipItemsVerticalCommand::redo()
+{
+    restoreView(mDrawing);
+    mDrawing->setSelectedItems(mItems);
+    mDrawing->flipItemsVertical(mItems, mPosition);
+}
+
+void DrawingFlipItemsVerticalCommand::undo()
+{
+    restoreView(mDrawing);
+    mDrawing->setSelectedItems(mItems);
+    mDrawing->flipItemsVertical(mItems, mPosition);
+}
+
+//======================================================================================================================
+//======================================================================================================================
+//======================================================================================================================
+
+DrawingGroupItemsCommand::DrawingGroupItemsCommand(DrawingWidget* drawing, OdgPage* page, const QList<OdgItem*>& items) :
+    DrawingUndoCommand("Group"), mDrawing(drawing), mPage(page), mItemsToRemove(items), mGroupItem(nullptr)
+{
+    // Create the group item and put its position equal to the position of the last item.  Then adjust each
+    // item's position accordingly
+    mGroupItem = new OdgGroupItem();
+    mGroupItem->setPosition(mItemsToRemove.last()->position());
+
+    const QList<OdgItem*> groupItems = OdgItem::copyItems(mItemsToRemove);
+    for(auto& item : groupItems)
+        item->setPosition(mGroupItem->mapFromScene(item->position()));
+    mGroupItem->setItems(groupItems);
+}
+
+//======================================================================================================================
+
+void DrawingGroupItemsCommand::redo()
+{
+    restoreView(mDrawing);
+    mDrawing->removeItems(mPage, mItemsToRemove);
+    mDrawing->addItems(mPage, QList<OdgItem*>(1, mGroupItem), false);
+}
+
+void DrawingGroupItemsCommand::undo()
+{
+    restoreView(mDrawing);
+    mDrawing->removeItems(mPage, QList<OdgItem*>(1, mGroupItem));
+    mDrawing->addItems(mPage, mItemsToRemove, false);
+}
+
+//======================================================================================================================
+//======================================================================================================================
+//======================================================================================================================
+
+DrawingUngroupItemsCommand::DrawingUngroupItemsCommand(DrawingWidget* drawing, OdgPage* page, OdgGroupItem* groupItem) :
+    DrawingUndoCommand("Ungroup"), mDrawing(drawing), mPage(page), mGroupItem(groupItem), mItemsToAdd()
+{
+    Q_ASSERT(mDrawing != nullptr);
+    Q_ASSERT(mPage != nullptr);
+    Q_ASSERT(mGroupItem != nullptr);
+    storeView(mDrawing);
+
+    mItemsToAdd = OdgItem::copyItems(groupItem->items());
+
+    for(auto& item : qAsConst(mItemsToAdd))
+    {
+        // Apply the group's position/transform to each item
+        item->setPosition(mGroupItem->mapToScene(item->position()));
+        item->setRotation(item->rotation() + mGroupItem->rotation());
+        if (mGroupItem->isFlipped()) item->setFlipped(!item->isFlipped());
+    }
+}
+
+//======================================================================================================================
+
+void DrawingUngroupItemsCommand::redo()
+{
+    restoreView(mDrawing);
+    mDrawing->removeItems(mPage, QList<OdgItem*>(1, mGroupItem));
+    mDrawing->addItems(mPage, mItemsToAdd, false);
+}
+
+void DrawingUngroupItemsCommand::undo()
+{
+    restoreView(mDrawing);
+    mDrawing->removeItems(mPage, mItemsToAdd);
+    mDrawing->addItems(mPage, QList<OdgItem*>(1, mGroupItem), false);
+}
+
+//======================================================================================================================
+//======================================================================================================================
+//======================================================================================================================
+
+DrawingInsertPointCommand::DrawingInsertPointCommand(DrawingWidget* drawing, OdgItem* item, const QPointF& position) :
+    DrawingUndoCommand("Insert Point"), mDrawing(drawing), mItem(item), mPosition(position)
+{
+    Q_ASSERT(mDrawing != nullptr);
+    storeView(mDrawing);
+}
+
+//======================================================================================================================
+
+void DrawingInsertPointCommand::redo()
+{
+    restoreView(mDrawing);
+    mDrawing->setSelectedItems(QList<OdgItem*>(1, mItem));
+    mDrawing->insertItemPoint(mItem, mPosition);
+}
+
+void DrawingInsertPointCommand::undo()
+{
+    restoreView(mDrawing);
+    mDrawing->setSelectedItems(QList<OdgItem*>(1, mItem));
+    mDrawing->removeItemPoint(mItem, mPosition);
+}
+
+//======================================================================================================================
+//======================================================================================================================
+//======================================================================================================================
+
+DrawingRemovePointCommand::DrawingRemovePointCommand(DrawingWidget* drawing, OdgItem* item, const QPointF& position) :
+    DrawingUndoCommand("Remove Point"), mDrawing(drawing), mItem(item), mPosition(position)
+{
+    Q_ASSERT(mDrawing != nullptr);
+    storeView(mDrawing);
+}
+
+//======================================================================================================================
+
+void DrawingRemovePointCommand::redo()
+{
+    restoreView(mDrawing);
+    mDrawing->setSelectedItems(QList<OdgItem*>(1, mItem));
+    mDrawing->removeItemPoint(mItem, mPosition);
+}
+
+void DrawingRemovePointCommand::undo()
+{
+    restoreView(mDrawing);
+    mDrawing->setSelectedItems(QList<OdgItem*>(1, mItem));
+    mDrawing->insertItemPoint(mItem, mPosition);
+}
+
+//======================================================================================================================
+//======================================================================================================================
+//======================================================================================================================
+
+DrawingSetItemsPropertyCommand::DrawingSetItemsPropertyCommand(DrawingWidget* drawing, const QList<OdgItem*>& items,
+                                                               const QString& name, const QVariant& value) :
+    DrawingUndoCommand("Set Items' Property"),
+    mDrawing(drawing), mItems(items), mName(name), mNewValue(value), mOldValues()
+{
+    Q_ASSERT(mDrawing != nullptr);
+    storeView(mDrawing);
+
+    for(auto& item : items) mOldValues.insert(item, item->property(name));
+}
+
+//======================================================================================================================
+
+int DrawingSetItemsPropertyCommand::id() const
+{
+    return SetItemsPropertyCommandId;
+}
+
+bool DrawingSetItemsPropertyCommand::mergeWith(const QUndoCommand* command)
+{
+    if (command && command->id() == SetItemsPropertyCommandId)
+    {
+        const DrawingSetItemsPropertyCommand* propertyCommand =
+            dynamic_cast<const DrawingSetItemsPropertyCommand*>(command);
+        if (propertyCommand && mDrawing == propertyCommand->mDrawing && mItems == propertyCommand->mItems)
+        {
+            if (mItems.size() == 1 && mName == "caption" && propertyCommand->mName == "caption")
+            {
+                mNewValue = propertyCommand->mNewValue;
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+//======================================================================================================================
+
+void DrawingSetItemsPropertyCommand::redo()
+{
+    restoreView(mDrawing);
+    mDrawing->setSelectedItems(mItems);
+    mDrawing->setItemsProperty(mItems, mName, mNewValue);
+}
+
+void DrawingSetItemsPropertyCommand::undo()
+{
+    restoreView(mDrawing);
+    mDrawing->setSelectedItems(mItems);
+    mDrawing->setItemsProperty(mItems, mName, mOldValues);
 }

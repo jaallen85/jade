@@ -25,6 +25,20 @@ OdgPolygonItem::OdgPolygonItem() : mPolygon(), mBrush(), mPen()
 
 //======================================================================================================================
 
+OdgItem* OdgPolygonItem::copy() const
+{
+	OdgPolygonItem* polygonItem = new OdgPolygonItem();
+	polygonItem->setPosition(mPosition);
+	polygonItem->setRotation(mRotation);
+	polygonItem->setFlipped(mFlipped);
+	polygonItem->setPolygon(mPolygon);
+	polygonItem->setBrush(mBrush);
+	polygonItem->setPen(mPen);
+	return polygonItem;
+}
+
+//======================================================================================================================
+
 void OdgPolygonItem::setPolygon(const QPolygonF& polygon)
 {
     if (polygon.size() >= 3)
@@ -87,6 +101,54 @@ QPen OdgPolygonItem::pen() const
 
 //======================================================================================================================
 
+void OdgPolygonItem::setProperty(const QString &name, const QVariant &value)
+{
+	if (name == "brush" && value.canConvert<QBrush>())
+	{
+		setBrush(value.value<QBrush>());
+	}
+	else if (name == "brushColor" && value.canConvert<QColor>())
+	{
+		setBrush(QBrush(value.value<QColor>()));
+	}
+	else if (name == "pen" && value.canConvert<QPen>())
+	{
+		setPen(value.value<QPen>());
+	}
+	else if (name == "penStyle" && value.canConvert<int>())
+	{
+		QPen pen = mPen;
+		pen.setStyle(static_cast<Qt::PenStyle>(value.toInt()));
+		setPen(pen);
+	}
+	else if (name == "penWidth" && value.canConvert<double>())
+	{
+		QPen pen = mPen;
+		pen.setWidthF(value.toDouble());
+		setPen(pen);
+	}
+	else if (name == "penColor" && value.canConvert<QColor>())
+	{
+		QPen pen = mPen;
+		pen.setBrush(QBrush(value.value<QColor>()));
+		setPen(pen);
+	}
+}
+
+QVariant OdgPolygonItem::property(const QString &name) const
+{
+	if (name == "polygon") return mPolygon;
+	if (name == "brush") return mBrush;
+	if (name == "brushColor") return mBrush.color();
+	if (name == "pen") return mPen;
+	if (name == "penStyle") return static_cast<int>(mPen.style());
+	if (name == "penWidth") return mPen.widthF();
+	if (name == "penColor") return mPen.brush().color();
+	return QVariant();
+}
+
+//======================================================================================================================
+
 QRectF OdgPolygonItem::boundingRect() const
 {
     QRectF rect = mPolygon.boundingRect();
@@ -139,6 +201,82 @@ void OdgPolygonItem::paint(QPainter& painter)
 
 //======================================================================================================================
 
+void OdgPolygonItem::resize(OdgControlPoint* point, const QPointF& position, bool snapTo45Degrees)
+{
+	if (point && mControlPoints.contains(point) && mControlPoints.size() >= 2)
+	{
+		// Determine final point position and convert to item coordinates
+		QPointF pointPosition = mapFromScene(position);
+
+		// Move corresponding polygon vertex
+		QPolygonF polygon = mPolygon;
+
+		const int pointIndex = mControlPoints.indexOf(point);
+		polygon.takeAt(pointIndex);
+		polygon.insert(pointIndex, pointPosition);
+
+		setPolygon(polygon);
+	}
+}
+
+//======================================================================================================================
+
+bool OdgPolygonItem::canInsertPoints() const
+{
+	return (mControlPoints.size() >= 3);
+}
+
+bool OdgPolygonItem::canRemovePoints() const
+{
+	return (mControlPoints.size() > 3);
+}
+
+void OdgPolygonItem::insertPoint(const QPointF& position)
+{
+	if (canInsertPoints())
+	{
+		const QPointF pointPosition = mapFromScene(position);
+
+		double minimumDistance = distanceFromPointToLineSegment(
+			pointPosition, QLineF(mControlPoints.last()->position(), mControlPoints.first()->position()));
+		double insertIndex = 0;
+		double distance = 0;
+
+		for(int index = 0; index < mControlPoints.size() - 1; index++)
+		{
+			distance = distanceFromPointToLineSegment(
+				pointPosition, QLineF(mControlPoints.at(index)->position(), mControlPoints.at(index + 1)->position()));
+			if (distance < minimumDistance)
+			{
+				insertIndex = index + 1;
+				minimumDistance = distance;
+			}
+		}
+
+		QPolygonF polygon = mPolygon;
+		polygon.insert(insertIndex, pointPosition);
+		setPolygon(polygon);
+	}
+}
+
+void OdgPolygonItem::removePoint(const QPointF& position)
+{
+	if (canRemovePoints())
+	{
+		OdgControlPoint* point = pointNearest(mapFromScene(position));
+		if (point)
+		{
+			int removeIndex = mControlPoints.indexOf(point);
+
+			QPolygonF polygon = mPolygon;
+			polygon.takeAt(removeIndex);
+			setPolygon(polygon);
+		}
+	}
+}
+
+//======================================================================================================================
+
 void OdgPolygonItem::scaleBy(double scale)
 {
     OdgItem::scaleBy(scale);
@@ -149,4 +287,16 @@ void OdgPolygonItem::scaleBy(double scale)
     setPolygon(scaledPolygon);
 
     mPen.setWidthF(mPen.widthF() * scale);
+}
+
+//======================================================================================================================
+
+void OdgPolygonItem::placeCreateEvent(const QRectF& contentRect, double grid)
+{
+	double size = 8 * grid;
+	if (size <= 0) size = contentRect.width() / 40;
+
+	QPolygonF polygon;
+	polygon << QPointF(-size, -size) << QPointF(size, 0) << QPointF(-size, size);
+	setPolygon(polygon);
 }

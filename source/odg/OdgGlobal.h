@@ -31,6 +31,8 @@ namespace Odg
     enum MarkerStyle { NoMarker, TriangleMarker, CircleMarker };
 
     enum GridStyle { GridHidden, GridLines };
+
+    enum DrawingMode { SelectMode, ScrollMode, ZoomMode, PlaceMode };
 }
 
 #endif

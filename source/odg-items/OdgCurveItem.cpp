@@ -28,6 +28,21 @@ OdgCurveItem::OdgCurveItem() : OdgItem(), mCurve(), mPen(), mStartMarker(), mEnd
 
 //======================================================================================================================
 
+OdgItem* OdgCurveItem::copy() const
+{
+	OdgCurveItem* curveItem = new OdgCurveItem();
+	curveItem->setPosition(mPosition);
+	curveItem->setRotation(mRotation);
+	curveItem->setFlipped(mFlipped);
+	curveItem->setCurve(mCurve);
+	curveItem->setPen(mPen);
+	curveItem->setStartMarker(mStartMarker);
+	curveItem->setEndMarker(mEndMarker);
+	return curveItem;
+}
+
+//======================================================================================================================
+
 void OdgCurveItem::setCurve(const OdgCurve& curve)
 {
     mCurve = curve;
@@ -91,6 +106,82 @@ OdgMarker OdgCurveItem::endMarker() const
 
 //======================================================================================================================
 
+void OdgCurveItem::setProperty(const QString &name, const QVariant &value)
+{
+	if (name == "pen" && value.canConvert<QPen>())
+	{
+		setPen(value.value<QPen>());
+	}
+	else if (name == "penStyle" && value.canConvert<int>())
+	{
+		QPen pen = mPen;
+		pen.setStyle(static_cast<Qt::PenStyle>(value.toInt()));
+		setPen(pen);
+	}
+	else if (name == "penWidth" && value.canConvert<double>())
+	{
+		QPen pen = mPen;
+		pen.setWidthF(value.toDouble());
+		setPen(pen);
+	}
+	else if (name == "penColor" && value.canConvert<QColor>())
+	{
+		QPen pen = mPen;
+		pen.setBrush(QBrush(value.value<QColor>()));
+		setPen(pen);
+	}
+	else if (name == "startMarker" && value.canConvert<OdgMarker>())
+	{
+		setStartMarker(value.value<OdgMarker>());
+	}
+	else if (name == "startMarkerStyle" && value.canConvert<int>())
+	{
+		OdgMarker marker = mStartMarker;
+		marker.setStyle(static_cast<Odg::MarkerStyle>(value.toInt()));
+		setStartMarker(marker);
+	}
+	else if (name == "startMarkerSize" && value.canConvert<double>())
+	{
+		OdgMarker marker = mStartMarker;
+		marker.setSize(value.toDouble());
+		setStartMarker(marker);
+	}
+	else if (name == "endMarker" && value.canConvert<OdgMarker>())
+	{
+		setEndMarker(value.value<OdgMarker>());
+	}
+	else if (name == "endMarkerStyle" && value.canConvert<int>())
+	{
+		OdgMarker marker = mEndMarker;
+		marker.setStyle(static_cast<Odg::MarkerStyle>(value.toInt()));
+		setEndMarker(marker);
+	}
+	else if (name == "endMarkerSize" && value.canConvert<double>())
+	{
+		OdgMarker marker = mEndMarker;
+		marker.setSize(value.toDouble());
+		setEndMarker(marker);
+	}
+}
+
+QVariant OdgCurveItem::property(const QString &name) const
+{
+	if (name == "curve") return QVariant::fromValue<OdgCurve>(mCurve);
+	if (name == "pen") return mPen;
+	if (name == "penStyle") return static_cast<int>(mPen.style());
+	if (name == "penWidth") return mPen.widthF();
+	if (name == "penColor") return mPen.brush().color();
+	if (name == "startMarker") return QVariant::fromValue<OdgMarker>(mStartMarker);
+	if (name == "startMarkerStyle") return static_cast<int>(mStartMarker.style());
+	if (name == "startMarkerSize") return mStartMarker.size();
+	if (name == "endMarker") return QVariant::fromValue<OdgMarker>(mEndMarker);
+	if (name == "endMarkerStyle") return static_cast<int>(mEndMarker.style());
+	if (name == "endMarkerSize") return mEndMarker.size();
+	return QVariant();
+}
+
+//======================================================================================================================
+
 QRectF OdgCurveItem::boundingRect() const
 {
     QRectF rect = mCurvePath.boundingRect();
@@ -140,6 +231,40 @@ void OdgCurveItem::paint(QPainter& painter)
 
 //======================================================================================================================
 
+void OdgCurveItem::resize(OdgControlPoint *point, const QPointF &position, bool snapTo45Degrees)
+{
+	if (point && mControlPoints.contains(point) && mControlPoints.size() >= NumberOfControlPoints)
+	{
+		// Determine final point position and convert to item coordinates
+		QPointF pointPosition = mapFromScene(position);
+
+		// Move corresponding curve vertex (and possibly its control point as well)
+		OdgCurve curve = mCurve;
+		const QPointF originalStartControlOffset = mCurve.cp1() - mCurve.p1();
+		const QPointF originalEndControlOffset = mCurve.cp2() - mCurve.p2();
+
+		const int pointIndex = mControlPoints.indexOf(point);
+		if (pointIndex == StartControlPoint)
+		{
+			curve.setP1(pointPosition);
+			curve.setCP1(pointPosition + originalStartControlOffset);
+		}
+		else if (pointIndex == StartControlBezierPoint)
+			curve.setCP1(pointPosition);
+		else if (pointIndex == EndControlBezierPoint)
+			curve.setCP2(pointPosition);
+		else if (pointIndex == EndControlPoint)
+		{
+			curve.setP2(pointPosition);
+            curve.setCP2(pointPosition + originalEndControlOffset);
+		}
+
+		setCurve(curve);
+	}
+}
+
+//======================================================================================================================
+
 void OdgCurveItem::scaleBy(double scale)
 {
     OdgItem::scaleBy(scale);
@@ -151,6 +276,15 @@ void OdgCurveItem::scaleBy(double scale)
     mPen.setWidthF(mPen.widthF() * scale);
     mStartMarker.setSize(mStartMarker.size() * scale);
     mEndMarker.setSize(mEndMarker.size() * scale);
+}
+
+//======================================================================================================================
+
+void OdgCurveItem::placeCreateEvent(const QRectF& contentRect, double grid)
+{
+	double size = 8 * grid;
+	if (size <= 0) size = contentRect.width() / 40;
+	setCurve(OdgCurve(QPointF(-size, -size), QPointF(0, -size), QPointF(0, size), QPointF(size, size)));
 }
 
 //======================================================================================================================

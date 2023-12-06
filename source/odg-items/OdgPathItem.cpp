@@ -24,10 +24,37 @@ OdgPathItem::OdgPathItem() : OdgRectItem(), mPath(), mPathRect()
 
 //======================================================================================================================
 
+OdgItem* OdgPathItem::copy() const
+{
+	OdgPathItem* pathItem = new OdgPathItem();
+	pathItem->setPosition(mPosition);
+	pathItem->setRotation(mRotation);
+	pathItem->setFlipped(mFlipped);
+	pathItem->setRect(mRect);
+	pathItem->setBrush(mBrush);
+	pathItem->setPen(mPen);
+	pathItem->setPath(mPath, mPathRect);
+	return pathItem;
+}
+
+//======================================================================================================================
+
+void OdgPathItem::setRect(const QRectF& rect)
+{
+	OdgRectItem::setRect(rect);
+	updateTransformedPath();
+}
+
+//======================================================================================================================
+
 void OdgPathItem::setPath(const QPainterPath& path, const QRectF& pathRect)
 {
-    mPath = path;
-    mPathRect = pathRect;
+	if (mPathRect.width() != 0 && mPathRect.height() != 0)
+	{
+		mPath = path;
+		mPathRect = pathRect;
+		updateTransformedPath();
+	}
 }
 
 QPainterPath OdgPathItem::path() const
@@ -51,7 +78,7 @@ QPainterPath OdgPathItem::shape() const
 
 bool OdgPathItem::isValid() const
 {
-    return (OdgRectItem::isValid() && !mPath.isEmpty() && (mPathRect.width() > 0 || mPathRect.height() > 0));
+	return (OdgRectItem::isValid() && !mPath.isEmpty() && mPathRect.width() != 0 && mPathRect.height() != 0);
 }
 
 //======================================================================================================================
@@ -60,12 +87,27 @@ void OdgPathItem::paint(QPainter& painter)
 {
     painter.setBrush(QBrush(Qt::transparent));
     painter.setPen(pen());
+	painter.drawPath(mTransformedPath);
+}
 
-    painter.translate(-rect().topLeft());
-    painter.scale(mPathRect.width() / rect().width(), mPathRect.height() / rect().height());
-    painter.translate(mPathRect.topLeft());
-    painter.drawPath(mPath);
-    painter.translate(-mPathRect.topLeft());
-    painter.scale(rect().width() / mPathRect.width(), rect().height() / mPathRect.height());
-    painter.translate(rect().topLeft());
+//======================================================================================================================
+
+void OdgPathItem::placeCreateEvent(const QRectF& contentRect, double grid)
+{
+	double size = 8 * grid;
+	if (size <= 0) size = contentRect.width() / 40;
+	setRect(QRectF(mPathRect.left() * size, mPathRect.top() * size,
+				   mPathRect.width() * size, mPathRect.height() * size));
+}
+
+//======================================================================================================================
+
+void OdgPathItem::updateTransformedPath()
+{
+	QTransform transform;
+	transform.translate(-mPathRect.left(), -mPathRect.top());
+	transform.scale(mRect.width() / mPathRect.width(), mRect.height() / mPathRect.height());
+	transform.translate(mRect.left(), mRect.top());
+
+	mTransformedPath = transform.map(mPath);
 }

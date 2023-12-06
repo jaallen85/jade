@@ -15,12 +15,32 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "OdgTextEllipseItem.h"
+#include "OdgFontStyle.h"
 #include <QPainter>
 
 OdgTextEllipseItem::OdgTextEllipseItem() : OdgEllipseItem(),
     mCaption(), mFont(), mTextAlignment(Qt::AlignCenter), mTextPadding(0, 0), mTextBrush(QColor(0, 0, 0)), mTextRect()
 {
     // Nothing more to do here.
+}
+
+//======================================================================================================================
+
+OdgItem* OdgTextEllipseItem::copy() const
+{
+	OdgTextEllipseItem* textEllipseItem = new OdgTextEllipseItem();
+	textEllipseItem->setPosition(mPosition);
+	textEllipseItem->setRotation(mRotation);
+	textEllipseItem->setFlipped(mFlipped);
+	textEllipseItem->setRect(mRect);
+	textEllipseItem->setBrush(mBrush);
+	textEllipseItem->setPen(mPen);
+	textEllipseItem->setCaption(mCaption);
+	textEllipseItem->setFont(mFont);
+	textEllipseItem->setTextAlignment(mTextAlignment);
+	textEllipseItem->setTextPadding(mTextPadding);
+	textEllipseItem->setTextBrush(mTextBrush);
+	return textEllipseItem;
 }
 
 //======================================================================================================================
@@ -79,6 +99,77 @@ QBrush OdgTextEllipseItem::textBrush() const
 
 //======================================================================================================================
 
+void OdgTextEllipseItem::setProperty(const QString &name, const QVariant &value)
+{
+	if (name == "caption" && value.canConvert<QString>())
+	{
+		setCaption(value.toString());
+	}
+	else if (name == "font" && value.canConvert<QFont>())
+	{
+		setFont(value.value<QFont>());
+	}
+	else if (name == "fontFamily" && value.canConvert<QString>())
+	{
+		QFont font = mFont;
+		font.setFamily(value.toString());
+		setFont(font);
+	}
+	else if (name == "fontSize" && value.canConvert<double>())
+	{
+		QFont font = mFont;
+		font.setPointSizeF(value.toDouble());
+		setFont(font);
+	}
+	else if (name == "fontStyle" && value.canConvert<OdgFontStyle>())
+	{
+		QFont font = mFont;
+		OdgFontStyle fontStyle = value.value<OdgFontStyle>();
+		font.setBold(fontStyle.bold());
+		font.setItalic(fontStyle.italic());
+		font.setUnderline(fontStyle.underline());
+		font.setStrikeOut(fontStyle.strikeOut());
+		setFont(font);
+	}
+	else if (name == "textAlignment" && value.canConvert<int>())
+	{
+		setTextAlignment(static_cast<Qt::Alignment>(value.toInt()));
+	}
+	else if (name == "textPadding" && value.canConvert<QSizeF>())
+	{
+		setTextPadding(value.value<QSizeF>());
+	}
+	else if (name == "textBrush" && value.canConvert<QBrush>())
+	{
+		setTextBrush(value.value<QBrush>());
+	}
+	else if (name == "textColor" && value.canConvert<QColor>())
+	{
+		setTextBrush(QBrush(value.value<QColor>()));
+	}
+	else OdgEllipseItem::setProperty(name, value);
+}
+
+QVariant OdgTextEllipseItem::property(const QString &name) const
+{
+	if (name == "caption") return mCaption;
+	if (name == "font") return mFont;
+	if (name == "fontFamily") return mFont.family();
+	if (name == "fontSize") return mFont.pointSizeF();
+	if (name == "fontStyle")
+	{
+		return QVariant::fromValue<OdgFontStyle>(
+			OdgFontStyle(mFont.bold(), mFont.italic(), mFont.underline(), mFont.strikeOut()));
+	}
+	if (name == "textAlignment") return static_cast<int>(mTextAlignment);
+	if (name == "textPadding") return mTextPadding;
+	if (name == "textBrush") return mTextBrush;
+	if (name == "textColor") return mTextBrush.color();
+	return OdgEllipseItem::property(name);
+}
+
+//======================================================================================================================
+
 QRectF OdgTextEllipseItem::boundingRect() const
 {
     QRectF textRect = mTextRect;
@@ -133,6 +224,14 @@ void OdgTextEllipseItem::scaleBy(double scale)
     mFont.setPointSizeF(mFont.pointSizeF() * scale);
     mTextPadding.setWidth(mTextPadding.width() * scale);
     mTextPadding.setHeight(mTextPadding.height() * scale);
+}
+
+//======================================================================================================================
+
+void OdgTextEllipseItem::placeCreateEvent(const QRectF& contentRect, double grid)
+{
+	OdgEllipseItem::placeCreateEvent(contentRect, grid);
+	setCaption("Label");
 }
 
 //======================================================================================================================

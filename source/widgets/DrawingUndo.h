@@ -24,11 +24,16 @@
 #include <QVariant>
 
 class DrawingWidget;
+class OdgControlPoint;
+class OdgGroupItem;
 class OdgItem;
 class OdgPage;
 
 class DrawingUndoCommand : public QUndoCommand
 {
+public:
+    enum CompressibleCommandIndex { MoveCommandId, ResizeCommandId, SetItemsPropertyCommandId };
+
 private:
     OdgPage* mPage;
     QRectF mViewRect;
@@ -127,6 +132,269 @@ private:
 
 public:
     DrawingSetPagePropertyCommand(DrawingWidget* drawing, OdgPage* page, const QString& name, const QVariant& value);
+
+    void redo() override;
+    void undo() override;
+};
+
+//======================================================================================================================
+//======================================================================================================================
+//======================================================================================================================
+
+class DrawingAddItemsCommand : public DrawingUndoCommand
+{
+private:
+    DrawingWidget* mDrawing;
+    OdgPage* mPage;
+    QList<OdgItem*> mItems;
+    bool mPlace;
+    bool mUndone;
+
+public:
+    DrawingAddItemsCommand(DrawingWidget* drawing, OdgPage* page, const QList<OdgItem*>& items, bool place);
+    ~DrawingAddItemsCommand();
+
+    void redo() override;
+    void undo() override;
+};
+
+//======================================================================================================================
+
+class DrawingRemoveItemsCommand : public DrawingUndoCommand
+{
+private:
+    DrawingWidget* mDrawing;
+    OdgPage* mPage;
+    QList<OdgItem*> mItems;
+    QHash<OdgItem*,int> mIndices;
+    bool mUndone;
+
+public:
+    DrawingRemoveItemsCommand(DrawingWidget* drawing, OdgPage* page, const QList<OdgItem*>& items);
+    ~DrawingRemoveItemsCommand();
+
+    void redo() override;
+    void undo() override;
+};
+
+//======================================================================================================================
+
+class DrawingReorderItemsCommand : public DrawingUndoCommand
+{
+private:
+    DrawingWidget* mDrawing;
+    OdgPage* mPage;
+    QList<OdgItem*> mItemsOrdered;
+    QList<OdgItem*> mOriginalItemsOrdered;
+
+public:
+    DrawingReorderItemsCommand(DrawingWidget* drawing, OdgPage* page, const QList<OdgItem*>& items);
+
+    void redo() override;
+    void undo() override;
+};
+//======================================================================================================================
+//======================================================================================================================
+//======================================================================================================================
+
+class DrawingMoveItemsCommand : public DrawingUndoCommand
+{
+private:
+    DrawingWidget* mDrawing;
+    QList<OdgItem*> mItems;
+    QHash<OdgItem*,QPointF> mPositions;
+    QHash<OdgItem*,QPointF> mOriginalPositions;
+    bool mPlace;
+
+public:
+    DrawingMoveItemsCommand(DrawingWidget* drawing, const QList<OdgItem*>& items,
+                            const QHash<OdgItem*,QPointF>& positions, bool place);
+
+    int id() const override;
+    bool mergeWith(const QUndoCommand* command) override;
+
+    void redo() override;
+    void undo() override;
+};
+
+//======================================================================================================================
+
+class DrawingResizeItemCommand : public DrawingUndoCommand
+{
+private:
+    DrawingWidget* mDrawing;
+    OdgControlPoint* mControlPoint;
+    QPointF mPosition;
+    QPointF mOriginalPosition;
+    bool mSnapTo45Degrees;
+    bool mPlace;
+
+public:
+    DrawingResizeItemCommand(DrawingWidget* drawing, OdgControlPoint* point, const QPointF& position,
+                             bool snapTo45Degrees, bool place);
+
+    int id() const override;
+    bool mergeWith(const QUndoCommand* command) override;
+
+    void redo() override;
+    void undo() override;
+};
+
+//======================================================================================================================
+//======================================================================================================================
+//======================================================================================================================
+
+class DrawingRotateItemsCommand : public DrawingUndoCommand
+{
+private:
+    DrawingWidget* mDrawing;
+    QList<OdgItem*> mItems;
+    QPointF mPosition;
+
+public:
+    DrawingRotateItemsCommand(DrawingWidget* drawing, const QList<OdgItem*>& items, const QPointF& position);
+
+    void redo() override;
+    void undo() override;
+};
+
+//======================================================================================================================
+
+class DrawingRotateBackItemsCommand : public DrawingUndoCommand
+{
+private:
+    DrawingWidget* mDrawing;
+    QList<OdgItem*> mItems;
+    QPointF mPosition;
+
+public:
+    DrawingRotateBackItemsCommand(DrawingWidget* drawing, const QList<OdgItem*>& items, const QPointF& position);
+
+    void redo() override;
+    void undo() override;
+};
+
+//======================================================================================================================
+
+class DrawingFlipItemsHorizontalCommand : public DrawingUndoCommand
+{
+private:
+    DrawingWidget* mDrawing;
+    QList<OdgItem*> mItems;
+    QPointF mPosition;
+
+public:
+    DrawingFlipItemsHorizontalCommand(DrawingWidget* drawing, const QList<OdgItem*>& items, const QPointF& position);
+
+    void redo() override;
+    void undo() override;
+};
+
+//======================================================================================================================
+
+class DrawingFlipItemsVerticalCommand : public DrawingUndoCommand
+{
+private:
+    DrawingWidget* mDrawing;
+    QList<OdgItem*> mItems;
+    QPointF mPosition;
+
+public:
+    DrawingFlipItemsVerticalCommand(DrawingWidget* drawing, const QList<OdgItem*>& items, const QPointF& position);
+
+    void redo() override;
+    void undo() override;
+};
+
+//======================================================================================================================
+//======================================================================================================================
+//======================================================================================================================
+
+class DrawingGroupItemsCommand : public DrawingUndoCommand
+{
+private:
+    DrawingWidget* mDrawing;
+    OdgPage* mPage;
+    QList<OdgItem*> mItemsToRemove;
+    OdgGroupItem* mGroupItem;
+
+public:
+    DrawingGroupItemsCommand(DrawingWidget* drawing, OdgPage* page, const QList<OdgItem*>& items);
+
+    void redo() override;
+    void undo() override;
+};
+
+//======================================================================================================================
+
+class DrawingUngroupItemsCommand : public DrawingUndoCommand
+{
+private:
+    DrawingWidget* mDrawing;
+    OdgPage* mPage;
+    OdgItem* mGroupItem;
+    QList<OdgItem*> mItemsToAdd;
+
+public:
+    DrawingUngroupItemsCommand(DrawingWidget* drawing, OdgPage* page, OdgGroupItem* groupItem);
+
+    void redo() override;
+    void undo() override;
+};
+
+//======================================================================================================================
+//======================================================================================================================
+//======================================================================================================================
+
+class DrawingInsertPointCommand : public DrawingUndoCommand
+{
+private:
+    DrawingWidget* mDrawing;
+    OdgItem* mItem;
+    QPointF mPosition;
+
+public:
+    DrawingInsertPointCommand(DrawingWidget* drawing, OdgItem* item, const QPointF& position);
+
+    void redo() override;
+    void undo() override;
+};
+
+//======================================================================================================================
+
+class DrawingRemovePointCommand : public DrawingUndoCommand
+{
+private:
+    DrawingWidget* mDrawing;
+    OdgItem* mItem;
+    QPointF mPosition;
+
+public:
+    DrawingRemovePointCommand(DrawingWidget* drawing, OdgItem* item, const QPointF& position);
+
+    void redo() override;
+    void undo() override;
+};
+
+//======================================================================================================================
+//======================================================================================================================
+//======================================================================================================================
+
+class DrawingSetItemsPropertyCommand : public DrawingUndoCommand
+{
+private:
+    DrawingWidget* mDrawing;
+    QList<OdgItem*> mItems;
+    QString mName;
+    QVariant mNewValue;
+    QHash<OdgItem*,QVariant> mOldValues;
+
+public:
+    DrawingSetItemsPropertyCommand(DrawingWidget* drawing, const QList<OdgItem*>& items, const QString& name,
+                                   const QVariant& value);
+
+    int id() const override;
+    bool mergeWith(const QUndoCommand* command) override;
 
     void redo() override;
     void undo() override;

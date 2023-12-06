@@ -19,17 +19,22 @@
 
 #include <QAbstractScrollArea>
 #include <QUndoStack>
+#include <QTimer>
 #include "OdgDrawing.h"
 #include "OdgMarker.h"
 
 class QActionGroup;
 class QMenu;
+class OdgControlPoint;
+class OdgGluePoint;
 class OdgItem;
 class OdgStyle;
 
 class DrawingWidget : public QAbstractScrollArea, public OdgDrawing
 {
     Q_OBJECT
+
+    friend class DrawingReorderItemsCommand;
 
 public:
     enum ActionIndex { UndoAction, RedoAction, CutAction, CopyAction, PasteAction, DeleteAction,
@@ -43,6 +48,12 @@ public:
                        ZoomInAction, ZoomOutAction, ZoomFitAction};
 
 private:
+    enum MouseState { MouseIdle, HandlingLeftButtonEvent, HandlingRightButtonEvent, HandlingMiddleButtonEvent };
+
+    enum SelectModeMouseState { SelectMouseIdle, SelectMouseSelectItem, SelectMouseMoveItems, SelectMouseResizeItem,
+                                SelectMouseRubberBand };
+
+private:
     OdgDrawing* mDrawingTemplate;
     OdgStyle* mDefaultStyle;
 
@@ -51,10 +62,46 @@ private:
 
     QTransform mTransform, mTransformInverse;
 
+    Odg::DrawingMode mMode;
+
     QUndoStack mUndoStack;
 
+    MouseState mMouseState;
+    QPoint mMouseButtonDownPosition;
+    QPointF mMouseButtonDownScenePosition;
+    bool mMouseDragged;
+
+    SelectModeMouseState mSelectMouseState;
+    QList<OdgItem*> mSelectedItems;
+    QPointF mSelectedItemsCenter;
+    OdgItem* mSelectMouseDownItem;
+    OdgControlPoint* mSelectMouseDownPoint;
+    OdgItem* mSelectFocusItem;
+	QHash<OdgItem*,QPointF> mSelectMoveItemsInitialPositions;
+	QPointF mSelectMoveItemsPreviousDeltaPosition;
+	QPointF mSelectResizeItemInitialPosition;
+	QPointF mSelectResizeItemPreviousPosition;
+    QRect mSelectRubberBandRect;
+
+    int mScrollInitialHorizontalValue;
+    int mScrollInitialVerticalValue;
+
+    QRect mZoomRubberBandRect;
+
+    QList<OdgItem*> mPlaceItems;
+    bool mPlaceByMousePressAndRelease;
+
+    Qt::CursorShape mPanOriginalCursor;
+    QPoint mPanStartPosition;
+    QPoint mPanCurrentPosition;
+    QTimer mPanTimer;
+
     QActionGroup* mModeActionGroup;
-    QMenu* mContextMenu;
+    QMenu* mNoItemContextMenu;
+    QMenu* mSingleItemContextMenu;
+    QMenu* mSinglePolyItemContextMenu;
+    QMenu* mSingleGroupItemContextMenu;
+    QMenu* mMultipleItemContextMenu;
 
 public:
     DrawingWidget();
@@ -97,6 +144,14 @@ public:
     QPoint mapFromScene(const QPointF& position) const;
     QRect mapFromScene(const QRectF& rect) const;
 
+    Odg::DrawingMode mode() const;
+    QList<OdgItem*> currentItems() const;
+    QList<OdgItem*> selectedItems() const;
+    OdgItem* mouseDownItem() const;
+    OdgControlPoint* mouseDownPoint() const;
+    OdgItem* focusItem() const;
+    QList<OdgItem*> placeItems() const;
+
     void paint(QPainter& painter, bool isExport = false);
 
     void createNew();
@@ -107,7 +162,34 @@ public:
 
     void insertPage(int index, OdgPage* page) override;
     void removePage(OdgPage* page) override;
+
     void setPageProperty(OdgPage* page, const QString& name, const QVariant& value);
+
+    void addItems(OdgPage* page, const QList<OdgItem*>& items, bool place);
+    void insertItems(OdgPage* page, const QList<OdgItem*>& items, const QHash<OdgItem*,int>& indices, bool place);
+    void removeItems(OdgPage* page, const QList<OdgItem*>& items);
+private:
+    void reorderItems(OdgPage* page, const QList<OdgItem*>& items);
+
+public:
+    void moveItems(const QList<OdgItem*>& items, const QHash<OdgItem*,QPointF>& positions, bool place);
+    void resizeItem(OdgControlPoint* point, const QPointF& position, bool snapTo45Degrees, bool place);
+    void rotateItems(const QList<OdgItem*>& items, const QPointF& position);
+    void rotateBackItems(const QList<OdgItem*>& items, const QPointF& position);
+    void flipItemsHorizontal(const QList<OdgItem*>& items, const QPointF& position);
+    void flipItemsVertical(const QList<OdgItem*>& items, const QPointF& position);
+
+    void insertItemPoint(OdgItem* item, const QPointF& position);
+    void removeItemPoint(OdgItem* item, const QPointF& position);
+
+    void placeItems(const QList<OdgItem*>& items);
+    void unplaceItems(const QList<OdgItem*>& items);
+    void maintainItemConnections(const QList<OdgItem*>& items);
+
+    void setItemsProperty(const QList<OdgItem*>& items, const QString& name, const QVariant& value);
+    void setItemsProperty(const QList<OdgItem*>& items, const QString& name, const QHash<OdgItem*,QVariant>& values);
+
+    void setSelectedItems(const QList<OdgItem*>& items);
 
 public slots:
     void setScale(double scale);
@@ -118,6 +200,11 @@ public slots:
     void ensureVisible(const QRectF& rect);
     void centerOn(const QPointF& position);
     void mouseCursorOn(const QPointF& position);
+
+    void setSelectMode();
+    void setScrollMode();
+    void setZoomMode();
+    void setPlaceMode(const QList<OdgItem*>& items, bool placeByMousePressAndRelease);
 
     void undo();
     void redo();
@@ -132,9 +219,9 @@ public slots:
     void setCurrentPage(OdgPage* page);
     void setCurrentPageIndex(int index);
 
+    void setPageProperty(const QString& name, const QVariant& value);
     void renamePage(const QString& name);
 
-    void setPageProperty(const QString& name, const QVariant& value);
     void removeItems();
 
     void cut();
@@ -160,8 +247,11 @@ public slots:
     void insertPoint();
     void removePoint();
 
+    void setItemsProperty(const QString& name, const QVariant& value);
+
 signals:
     void scaleChanged(double scale);
+    void modeChanged(int mode);
     void modeTextChanged(const QString& modeText);
     void cleanChanged(bool clean);
     void cleanTextChanged(const QString& modeText);
@@ -175,19 +265,90 @@ signals:
     void currentPageIndexChanged(int index);
     void currentPagePropertyChanged(const QString& name, const QVariant& value);
 
+    void itemsInserted(const QList<OdgItem*>& items);
+    void itemsRemoved(const QList<OdgItem*>& items);
+    void currentItemsChanged(const QList<OdgItem*>& items);
+    void currentItemsGeometryChanged(const QList<OdgItem*>& items);
+    void currentItemsPropertyChanged(const QList<OdgItem*>& items, const QString& name);
+
 private:
     void paintEvent(QPaintEvent* event) override;
     void drawBackground(QPainter& painter, bool drawBorder, bool drawGrid);
     void drawGridLines(QPainter& painter, const QColor& color, int spacing);
     void drawItems(QPainter& painter, const QList<OdgItem*>& items);
+    void drawItemPoints(QPainter& painter, const QList<OdgItem*>& items);
+    void drawHotpoints(QPainter& painter, const QList<OdgItem*>& items);
+    void drawRubberBand(QPainter& painter, const QRect& rect);
 
     void resizeEvent(QResizeEvent* event) override;
     void updateTransformAndScrollBars(double scale = 0.0);
 
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseDoubleClickEvent(QMouseEvent* event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
+    void mouseReleaseEvent(QMouseEvent* event) override;
     void wheelEvent(QWheelEvent* event) override;
-    void contextMenuEvent(QContextMenuEvent* event) override;
+
+    void selectModeNoButtonMouseMoveEvent(QMouseEvent* event);
+    void selectModeLeftMousePressEvent(QMouseEvent* event);
+    void selectModeLeftMouseDragEvent(QMouseEvent* event);
+    void selectModeLeftMouseReleaseEvent(QMouseEvent* event);
+    void selectModeRightMousePressEvent(QMouseEvent* event);
+    void selectModeRightMouseReleaseEvent(QMouseEvent* event);
+
+	void selectModeSingleSelectEvent(QMouseEvent* event);
+
+	void selectModeRubberBandStartEvent(QMouseEvent* event);
+	void selectModeRubberBandUpdateEvent(QMouseEvent* event);
+	void selectModeRubberBandEndEvent(QMouseEvent* event);
+
+    void selectModeMoveItemsStartEvent(QMouseEvent* event);
+    void selectModeMoveItemsUpdateEvent(QMouseEvent* event);
+    void selectModeMoveItemsEndEvent(QMouseEvent* event);
+    void selectModeMoveItems(const QPointF& mousePosition, bool finalMove, bool placeItems);
+
+    void selectModeResizeItemStartEvent(QMouseEvent* event);
+    void selectModeResizeItemUpdateEvent(QMouseEvent* event);
+    void selectModeResizeItemEndEvent(QMouseEvent* event);
+	void selectModeResizeItem(const QPointF& mousePosition, bool snapTo45Degrees, bool finalResize);
+
+    void scrollModeNoButtonMouseMoveEvent(QMouseEvent* event);
+    void scrollModeLeftMousePressEvent(QMouseEvent* event);
+    void scrollModeLeftMouseDragEvent(QMouseEvent* event);
+    void scrollModeLeftMouseReleaseEvent(QMouseEvent* event);
+
+    void zoomModeNoButtonMouseMoveEvent(QMouseEvent* event);
+    void zoomModeLeftMousePressEvent(QMouseEvent* event);
+    void zoomModeLeftMouseDragEvent(QMouseEvent* event);
+    void zoomModeLeftMouseReleaseEvent(QMouseEvent* event);
+
+    void placeModeNoButtonMouseMoveEvent(QMouseEvent* event);
+    void placeModeLeftMousePressEvent(QMouseEvent* event);
+    void placeModeLeftMouseDragEvent(QMouseEvent* event);
+    void placeModeLeftMouseReleaseEvent(QMouseEvent* event);
+
+    QString createMouseInfo(const QPointF& position) const;
+    QString createMouseInfo(const QPointF& p1, const QPointF& p2) const;
+
+	OdgItem* itemAt(const QPointF& position) const;
+	QList<OdgItem*> items(const QRectF& rect) const;
+
+    QRectF itemsRect(const QList<OdgItem*>& items) const;
+    QPointF itemsCenter(const QList<OdgItem*>& items) const;
+    bool isItemInRect(OdgItem* item, const QRectF& rect) const;
+    bool isPointInItem(OdgItem* item, const QPointF& position) const;
+    QPainterPath itemAdjustedShape(OdgItem* item) const;
+
+    bool shouldConnect(OdgControlPoint* controlPoint, OdgGluePoint* gluePoint) const;
+    QRectF pointRect(OdgControlPoint* point) const;
+    QRectF pointRect(OdgGluePoint* point) const;
+
+	void updateSelectionCenter();
+	void updateActions();
 
 private slots:
+    void mousePanEvent();
+
     void setModeFromAction(QAction* action);
     void emitCleanChanged(bool clean);
 };

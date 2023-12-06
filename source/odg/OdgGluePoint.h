@@ -21,10 +21,16 @@
 #include <QPointF>
 
 class OdgControlPoint;
+class OdgItem;
 
 class OdgGluePoint
 {
+    friend class OdgControlPoint;
+    friend class OdgItem;
+
 private:
+    OdgItem* mItem;
+
     QPointF mPosition;
 
     QList<OdgControlPoint*> mConnections;
@@ -33,12 +39,11 @@ public:
     OdgGluePoint(const QPointF& position = QPointF());
     ~OdgGluePoint();
 
+    OdgItem* item() const;
+
     void setPosition(const QPointF& position);
     QPointF position() const;
 
-    void addConnection(OdgControlPoint* point);
-    void removeConnection(OdgControlPoint* point);
-    void clearConnections();
     QList<OdgControlPoint*> connections() const;
 };
 

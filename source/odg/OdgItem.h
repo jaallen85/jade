@@ -20,6 +20,7 @@
 #include <QList>
 #include <QPainterPath>
 #include <QTransform>
+#include <QVariant>
 
 class QPainter;
 class OdgControlPoint;
@@ -41,6 +42,8 @@ protected:
 public:
     OdgItem();
     virtual ~OdgItem();
+
+    virtual OdgItem* copy() const = 0;
 
     void setPosition(const QPointF& position);
     void setFlipped(bool flipped);
@@ -74,16 +77,48 @@ public:
     void setSelected(bool selected);
     bool isSelected() const;
 
+    virtual void setProperty(const QString& name, const QVariant& value);
+    virtual QVariant property(const QString& name) const;
+
     virtual QRectF boundingRect() const = 0;
     virtual QPainterPath shape() const = 0;
     virtual bool isValid() const;
 
     virtual void paint(QPainter& painter) = 0;
 
+    virtual void resize(OdgControlPoint* point, const QPointF& position, bool snapTo45Degrees);
+
+    virtual void rotate(const QPointF& center);
+    virtual void rotateBack(const QPointF& center);
+    virtual void flipHorizontal(const QPointF& center);
+    virtual void flipVertical(const QPointF& center);
+
+    virtual bool canInsertPoints() const;
+    virtual bool canRemovePoints() const;
+    virtual void insertPoint(const QPointF& position);
+    virtual void removePoint(const QPointF& position);
+
     virtual void scaleBy(double scale);
 
+    virtual void placeCreateEvent(const QRectF& contentRect, double grid);
+    virtual OdgControlPoint* placeResizeStartPoint() const;
+    virtual OdgControlPoint* placeResizeEndPoint() const;
+
 protected:
+    void updateTransform();
+
     QPainterPath strokePath(const QPainterPath& path, const QPen& pen) const;
+
+    QPointF snapResizeTo45Degrees(OdgControlPoint* point, const QPointF& position, OdgControlPoint* startPoint,
+                                  OdgControlPoint* endPoint) const;
+
+    QPointF rotatePoint(const QPointF& point, const QPointF& center) const;
+    QPointF rotateBackPoint(const QPointF& point, const QPointF& center) const;
+    QPointF flipPointHorizontal(const QPointF& point, const QPointF& center) const;
+    QPointF flipPointVertical(const QPointF& point, const QPointF& center) const;
+
+    double distanceFromPointToLineSegment(const QPointF& point, const QLineF& line) const;
+    OdgControlPoint* pointNearest(const QPointF& position) const;
 
     QRectF drawText(QPainter& painter, const QPointF& anchorPoint, const QFont& font, Qt::Alignment alignment,
                     const QSizeF& padding, const QBrush& brush, const QString& caption);
@@ -92,7 +127,8 @@ protected:
                            QRectF& scaledTextRect, double& scaleFactor) const;
     double calculateTextScaleFactor(const QFont& font) const;
 
-    void updateTransform();
+public:
+    static QList<OdgItem*> copyItems(const QList<OdgItem*>& items);
 };
 
 #endif
