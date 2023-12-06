@@ -16,15 +16,20 @@
 
 #include "PropertiesWidget.h"
 #include "DrawingPropertiesWidget.h"
+#include "MultipleItemPropertiesWidget.h"
+#include "SingleItemPropertiesWidget.h"
 #include "DrawingWidget.h"
 #include <QScrollArea>
 #include <QVBoxLayout>
 
 PropertiesWidget::PropertiesWidget(DrawingWidget* drawing) : QStackedWidget(),
-    mDrawing(drawing), mDrawingPropertiesWidget(nullptr), mDrawingPropertiesScrollArea(nullptr)
+    mDrawing(drawing), mDrawingPropertiesWidget(nullptr), mDrawingPropertiesScrollArea(nullptr),
+    mMultipleItemPropertiesWidget(nullptr), mMultipleItemPropertiesScrollArea(nullptr),
+    mSingleItemPropertiesWidget(nullptr), mSingleItemPropertiesScrollArea(nullptr)
 {
     Q_ASSERT(mDrawing != nullptr);
 
+    // Add drawing properties widget
     mDrawingPropertiesWidget = new DrawingPropertiesWidget();
 
     QWidget* drawingPropertiesWidget = new QWidget();
@@ -39,11 +44,62 @@ PropertiesWidget::PropertiesWidget(DrawingWidget* drawing) : QStackedWidget(),
     mDrawingPropertiesScrollArea->setWidgetResizable(true);
     addWidget(mDrawingPropertiesScrollArea);
 
+    // Add multiple item properties widget
+    mMultipleItemPropertiesWidget = new MultipleItemPropertiesWidget();
+    mMultipleItemPropertiesWidget->setUnits(mDrawingPropertiesWidget->units());
+
+    QWidget* multipleItemPropertiesWidget = new QWidget();
+    QVBoxLayout* multipleItemPropertiesLayout = new QVBoxLayout();
+    multipleItemPropertiesLayout->addWidget(mMultipleItemPropertiesWidget);
+    multipleItemPropertiesLayout->addWidget(new QWidget(), 100);
+    multipleItemPropertiesLayout->setContentsMargins(0, 0, 0, 0);
+    multipleItemPropertiesWidget->setLayout(multipleItemPropertiesLayout);
+
+    mMultipleItemPropertiesScrollArea = new QScrollArea();
+    mMultipleItemPropertiesScrollArea->setWidget(multipleItemPropertiesWidget);
+    mMultipleItemPropertiesScrollArea->setWidgetResizable(true);
+    addWidget(mMultipleItemPropertiesScrollArea);
+
+    // Add single item properties widget
+    mSingleItemPropertiesWidget = new SingleItemPropertiesWidget();
+    mSingleItemPropertiesWidget->setUnits(mDrawingPropertiesWidget->units());
+
+    QWidget* singleItemPropertiesWidget = new QWidget();
+    QVBoxLayout* singleItemPropertiesLayout = new QVBoxLayout();
+    singleItemPropertiesLayout->addWidget(mSingleItemPropertiesWidget);
+    singleItemPropertiesLayout->addWidget(new QWidget(), 100);
+    singleItemPropertiesLayout->setContentsMargins(0, 0, 0, 0);
+    singleItemPropertiesWidget->setLayout(singleItemPropertiesLayout);
+
+    mSingleItemPropertiesScrollArea = new QScrollArea();
+    mSingleItemPropertiesScrollArea->setWidget(singleItemPropertiesWidget);
+    mSingleItemPropertiesScrollArea->setWidgetResizable(true);
+    addWidget(mSingleItemPropertiesScrollArea);
+
+    // Connect signals/slots between drawing widget and properties widgets
     connect(mDrawing, SIGNAL(propertyChanged(QString,QVariant)), this, SLOT(setDrawingProperty(QString,QVariant)));
     connect(mDrawing, SIGNAL(propertiesChanged()), this, SLOT(setAllDrawingProperties()));
+    connect(mDrawing, SIGNAL(currentItemsChanged(QList<OdgItem*>)), this, SLOT(setItems(QList<OdgItem*>)));
+    connect(mDrawing, SIGNAL(currentItemsGeometryChanged(QList<OdgItem*>)), this, SLOT(setItems(QList<OdgItem*>)));
+    connect(mDrawing, SIGNAL(currentItemsGeometryChanged(QList<OdgItem*>)), this, SLOT(setItems(QList<OdgItem*>)));
 
     connect(mDrawingPropertiesWidget, SIGNAL(propertyChanged(QString,QVariant)),
             mDrawing, SLOT(setDrawingProperty(QString,QVariant)));
+
+    connect(mMultipleItemPropertiesWidget, SIGNAL(itemsMovedDelta(QPointF)), mDrawing, SLOT(moveDelta(QPointF)));
+    connect(mMultipleItemPropertiesWidget, SIGNAL(itemsPropertyChanged(QString,QVariant)),
+            mDrawing, SLOT(setItemsProperty(QString,QVariant)));
+
+    connect(mSingleItemPropertiesWidget, SIGNAL(itemMoved(QPointF)), mDrawing, SLOT(move(QPointF)));
+    connect(mSingleItemPropertiesWidget, SIGNAL(itemResized(OdgControlPoint*,QPointF)), mDrawing,
+            SLOT(resize(OdgControlPoint*,QPointF)));
+    connect(mSingleItemPropertiesWidget, SIGNAL(itemResized2(OdgControlPoint*,QPointF,OdgControlPoint*,QPointF)),
+            mDrawing, SLOT(resize2(OdgControlPoint*,QPointF,OdgControlPoint*,QPointF)));
+    connect(mSingleItemPropertiesWidget, SIGNAL(itemPropertyChanged(QString,QVariant)),
+            mDrawing, SLOT(setItemsProperty(QString,QVariant)));
+
+    connect(mDrawingPropertiesWidget, SIGNAL(unitsChanged(int)), mMultipleItemPropertiesWidget, SLOT(setUnits(int)));
+    connect(mDrawingPropertiesWidget, SIGNAL(unitsChanged(int)), mSingleItemPropertiesWidget, SLOT(setUnits(int)));
 }
 
 //======================================================================================================================
@@ -68,4 +124,19 @@ void PropertiesWidget::setDrawingProperty(const QString& name, const QVariant& v
 {
     mDrawingPropertiesWidget->setProperty(name, value);
     setCurrentIndex(0);
+}
+
+void PropertiesWidget::setItems(const QList<OdgItem*>& items)
+{
+    if (items.size() > 1)
+    {
+        mMultipleItemPropertiesWidget->setItems(items);
+        setCurrentIndex(1);
+    }
+    else if (items.size() == 1)
+    {
+        mSingleItemPropertiesWidget->setItem(items.first());
+        setCurrentIndex(2);
+    }
+    else setCurrentIndex(0);
 }

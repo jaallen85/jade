@@ -1,4 +1,4 @@
-// File: PropertiesWidget.h
+// File: MultipleItemPropertiesWidget.h
 // Copyright (C) 2023  Jason Allen
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,41 +14,33 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef PROPERTIESWIDGET_H
-#define PROPERTIESWIDGET_H
+#ifndef MULTIPLEITEMPROPERTIESWIDGET_H
+#define MULTIPLEITEMPROPERTIESWIDGET_H
 
-#include <QStackedWidget>
+#include <QWidget>
+#include "OdgGlobal.h"
 
-class QScrollArea;
-class DrawingWidget;
-class DrawingPropertiesWidget;
-class MultipleItemPropertiesWidget;
 class OdgItem;
-class SingleItemPropertiesWidget;
 
-class PropertiesWidget : public QStackedWidget
+class MultipleItemPropertiesWidget : public QWidget
 {
     Q_OBJECT
 
 private:
-    DrawingWidget* mDrawing;
 
-    DrawingPropertiesWidget* mDrawingPropertiesWidget;
-    QScrollArea* mDrawingPropertiesScrollArea;
-
-    MultipleItemPropertiesWidget* mMultipleItemPropertiesWidget;
-    QScrollArea* mMultipleItemPropertiesScrollArea;
-
-    SingleItemPropertiesWidget* mSingleItemPropertiesWidget;
-    QScrollArea* mSingleItemPropertiesScrollArea;
 
 public:
-    PropertiesWidget(DrawingWidget* drawing);
+    MultipleItemPropertiesWidget();
+
 
 public slots:
-    void setAllDrawingProperties();
-    void setDrawingProperty(const QString& name, const QVariant& value);
     void setItems(const QList<OdgItem*>& items);
+    void setUnits(Odg::Units units);
+    void setUnits(int units);
+
+signals:
+    void itemsMovedDelta(const QPointF& delta);
+    void itemsPropertyChanged(const QString& name, const QVariant& value);
 };
 
 #endif

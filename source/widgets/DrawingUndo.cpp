@@ -404,6 +404,45 @@ void DrawingResizeItemCommand::undo()
 //======================================================================================================================
 //======================================================================================================================
 
+DrawingResizeItem2Command::DrawingResizeItem2Command(DrawingWidget* drawing, OdgControlPoint* point1, const QPointF& p1,
+                                                     OdgControlPoint* point2, const QPointF& p2, bool place) :
+    DrawingUndoCommand("Resize Item"),
+    mDrawing(drawing), mControlPoint1(point1), mPosition1(p1), mOriginalPosition1(),
+    mControlPoint2(point2), mPosition2(p2), mOriginalPosition2(), mPlace(place)
+{
+    Q_ASSERT(mDrawing != nullptr);
+    storeView(mDrawing);
+
+    if (point1 && point1->item()) mOriginalPosition1 = point1->item()->mapToScene(point1->position());
+    if (point2 && point2->item()) mOriginalPosition2 = point2->item()->mapToScene(point2->position());
+}
+
+//======================================================================================================================
+
+void DrawingResizeItem2Command::redo()
+{
+    if (mControlPoint1 && mControlPoint1->item() && mControlPoint2 && mControlPoint2->item())
+    {
+        restoreView(mDrawing);
+        mDrawing->setSelectedItems(QList<OdgItem*>(1, mControlPoint1->item()));
+        mDrawing->resizeItem2(mControlPoint1, mPosition1, mControlPoint2, mPosition2, mPlace);
+    }
+}
+
+void DrawingResizeItem2Command::undo()
+{
+    if (mControlPoint1 && mControlPoint1->item() && mControlPoint2 && mControlPoint2->item())
+    {
+        restoreView(mDrawing);
+        mDrawing->setSelectedItems(QList<OdgItem*>(1, mControlPoint1->item()));
+        mDrawing->resizeItem2(mControlPoint1, mOriginalPosition1, mControlPoint2, mOriginalPosition2, mPlace);
+    }
+}
+
+//======================================================================================================================
+//======================================================================================================================
+//======================================================================================================================
+
 DrawingRotateItemsCommand::DrawingRotateItemsCommand(DrawingWidget* drawing, const QList<OdgItem*>& items,
                                                      const QPointF& position) :
     DrawingUndoCommand("Rotate Items"), mDrawing(drawing), mItems(items), mPosition(position)

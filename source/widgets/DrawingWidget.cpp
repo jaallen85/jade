@@ -774,6 +774,44 @@ void DrawingWidget::resizeItem(OdgControlPoint* point, const QPointF& position, 
     }
 }
 
+void DrawingWidget::resizeItem2(OdgControlPoint* point1, const QPointF& p1, OdgControlPoint* point2, const QPointF& p2,
+                                bool place)
+{
+    OdgItem* item1 = (point1) ? point1->item() : nullptr;
+    OdgItem* item2 = (point2) ? point2->item() : nullptr;
+    if (item1 && item2 && item1 == item2)
+    {
+        QList<OdgItem*> items;
+        items.append(item1);
+
+        // Resize the item
+        item1->resize(point1, p1, false);
+        item2->resize(point2, p2, false);
+
+        // Disconnect this point from its glue point
+        point1->disconnect();
+        point2->disconnect();
+
+        // Maintain any connections after the resize (applies to other item control points only since we just
+        // disconnected this point)
+        maintainItemConnections(items);
+
+        // Connect control/glue points if necessary
+        if (place) placeItems(items);
+
+        // Signal any listeners that current items' geometry may have changed
+        if (items == currentItems())
+        {
+            if (mMode == Odg::SelectMode) updateSelectionCenter();
+            emit currentItemsGeometryChanged(items);
+        }
+
+        viewport()->update();
+    }
+}
+
+//======================================================================================================================
+
 void DrawingWidget::rotateItems(const QList<OdgItem*>& items, const QPointF& position)
 {
     // Rotate the items
@@ -1409,6 +1447,41 @@ void DrawingWidget::selectAll()
 void DrawingWidget::selectNone()
 {
     if (mMode == Odg::SelectMode) setSelectedItems(QList<OdgItem*>());
+}
+
+//======================================================================================================================
+
+void DrawingWidget::move(const QPointF& position)
+{
+    if (mMode == Odg::SelectMode && mSelectedItems.size() == 1)
+    {
+        QHash<OdgItem*,QPointF> newPositions;
+        newPositions.insert(mSelectedItems.first(), position);
+        mUndoStack.push(new DrawingMoveItemsCommand(this, mSelectedItems, newPositions, true));
+    }
+}
+
+void DrawingWidget::moveDelta(const QPointF& delta)
+{
+    if (mMode == Odg::SelectMode && !mSelectedItems.isEmpty())
+    {
+        QHash<OdgItem*,QPointF> newPositions;
+        for(auto& item : mSelectedItems)
+            newPositions.insert(item, item->position() + delta);
+        mUndoStack.push(new DrawingMoveItemsCommand(this, mSelectedItems, newPositions, true));
+    }
+}
+
+void DrawingWidget::resize(OdgControlPoint* point, const QPointF& position)
+{
+    if (point && mMode == Odg::SelectMode && mSelectedItems.size() == 1)
+        mUndoStack.push(new DrawingResizeItemCommand(this, point, position, false, true));
+}
+
+void DrawingWidget::resize2(OdgControlPoint* point1, const QPointF& p1, OdgControlPoint* point2, const QPointF& p2)
+{
+    if (point1 && point2 && mMode == Odg::SelectMode && mSelectedItems.size() == 1)
+        mUndoStack.push(new DrawingResizeItem2Command(this, point1, p1, point2, p2, true));
 }
 
 //======================================================================================================================

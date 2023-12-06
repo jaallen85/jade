@@ -174,6 +174,9 @@ private:
 public:
     void moveItems(const QList<OdgItem*>& items, const QHash<OdgItem*,QPointF>& positions, bool place);
     void resizeItem(OdgControlPoint* point, const QPointF& position, bool snapTo45Degrees, bool place);
+    void resizeItem2(OdgControlPoint* point1, const QPointF& p1, OdgControlPoint* point2, const QPointF& p2,
+                     bool place);
+
     void rotateItems(const QList<OdgItem*>& items, const QPointF& position);
     void rotateBackItems(const QList<OdgItem*>& items, const QPointF& position);
     void flipItemsHorizontal(const QList<OdgItem*>& items, const QPointF& position);
@@ -230,6 +233,11 @@ public slots:
 
     void selectAll();
     void selectNone();
+
+    void move(const QPointF& position);
+    void moveDelta(const QPointF& delta);
+    void resize(OdgControlPoint* point, const QPointF& position);
+    void resize2(OdgControlPoint* point1, const QPointF& p1, OdgControlPoint* point2, const QPointF& p2);
 
     void rotate();
     void rotateBack();

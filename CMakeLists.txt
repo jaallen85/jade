@@ -103,10 +103,14 @@ add_executable(${PROJECT_NAME} WIN32
     source/widgets/DrawingWidget.cpp
     source/widgets/HelperWidgets.h
     source/widgets/HelperWidgets.cpp
+    source/widgets/MultipleItemPropertiesWidget.h
+    source/widgets/MultipleItemPropertiesWidget.cpp
     source/widgets/PagesWidget.h
     source/widgets/PagesWidget.cpp
     source/widgets/PropertiesWidget.h
     source/widgets/PropertiesWidget.cpp
+    source/widgets/SingleItemPropertiesWidget.h
+    source/widgets/SingleItemPropertiesWidget.cpp
     source/JadeWindow.h
     source/JadeWindow.cpp
     source/main.cpp

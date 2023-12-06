@@ -241,6 +241,28 @@ public:
 };
 
 //======================================================================================================================
+
+class DrawingResizeItem2Command : public DrawingUndoCommand
+{
+private:
+    DrawingWidget* mDrawing;
+    OdgControlPoint* mControlPoint1;
+    QPointF mPosition1;
+    QPointF mOriginalPosition1;
+    OdgControlPoint* mControlPoint2;
+    QPointF mPosition2;
+    QPointF mOriginalPosition2;
+    bool mPlace;
+
+public:
+    DrawingResizeItem2Command(DrawingWidget* drawing, OdgControlPoint* point1, const QPointF& p1,
+                              OdgControlPoint* point2, const QPointF& p2, bool place);
+
+    void redo() override;
+    void undo() override;
+};
+
+//======================================================================================================================
 //======================================================================================================================
 //======================================================================================================================
 
