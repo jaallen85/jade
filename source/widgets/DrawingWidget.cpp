@@ -2042,7 +2042,7 @@ void DrawingWidget::mouseMoveEvent(QMouseEvent* event)
     {
         if ((event->buttons() & Qt::LeftButton) and mMouseState == HandlingLeftButtonEvent)
         {
-            const qreal dragDistance = (mMouseButtonDownPosition - event->pos()).manhattanLength();
+            const double dragDistance = (mMouseButtonDownPosition - event->pos()).manhattanLength();
             mMouseDragged = (mMouseDragged || dragDistance >= QApplication::startDragDistance());
             if (mMouseDragged)
             {

@@ -26,28 +26,28 @@ class LengthEdit : public QLineEdit
     Q_OBJECT
 
 private:
-    qreal mLength;
+    double mLength;
     Odg::Units mUnits;
     bool mLengthMustBeNonNegative;
 
     QString mCachedText;
 
 public:
-    LengthEdit(qreal length = 0, Odg::Units units = Odg::UnitsMillimeters, bool lengthMustBeNonNegative = false);
+    LengthEdit(double length = 0, Odg::Units units = Odg::UnitsMillimeters, bool lengthMustBeNonNegative = false);
 
-    void setLength(qreal length);
+    void setLength(double length);
     void setUnits(Odg::Units units);
-    qreal length() const;
+    double length() const;
     Odg::Units units() const;
 
 signals:
-    void lengthChanged(qreal length);
+    void lengthChanged(double length);
 
 private slots:
     void updateTextAfterEdit();
 
 private:
-    QString generateText(qreal length, Odg::Units units) const;
+    QString generateText(double length, Odg::Units units) const;
 };
 
 //======================================================================================================================

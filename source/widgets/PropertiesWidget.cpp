@@ -104,6 +104,13 @@ PropertiesWidget::PropertiesWidget(DrawingWidget* drawing) : QStackedWidget(),
 
 //======================================================================================================================
 
+QSize PropertiesWidget::sizeHint() const
+{
+    return QSize(332, -1);
+}
+
+//======================================================================================================================
+
 void PropertiesWidget::setAllDrawingProperties()
 {
     mDrawingPropertiesWidget->setUnits(mDrawing->units());

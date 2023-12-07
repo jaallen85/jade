@@ -23,7 +23,7 @@
 #include <QRegularExpression>
 #include <QWidgetAction>
 
-LengthEdit::LengthEdit(qreal length, Odg::Units units, bool lengthMustBeNonNegative) : QLineEdit(),
+LengthEdit::LengthEdit(double length, Odg::Units units, bool lengthMustBeNonNegative) : QLineEdit(),
     mLength(length), mUnits(units), mLengthMustBeNonNegative(lengthMustBeNonNegative), mCachedText()
 {
     if (mLengthMustBeNonNegative && mLength < 0) mLength = 0;
@@ -36,7 +36,7 @@ LengthEdit::LengthEdit(qreal length, Odg::Units units, bool lengthMustBeNonNegat
 
 //======================================================================================================================
 
-void LengthEdit::setLength(qreal length)
+void LengthEdit::setLength(double length)
 {
     if (length >= 0 || !mLengthMustBeNonNegative)
     {
@@ -65,7 +65,7 @@ void LengthEdit::setUnits(Odg::Units units)
     }
 }
 
-qreal LengthEdit::length() const
+double LengthEdit::length() const
 {
     return mLength;
 }
@@ -84,7 +84,7 @@ void LengthEdit::updateTextAfterEdit()
     if (validNumberMatch.hasMatch())
     {
         bool lengthOk = false;
-        const qreal length = validNumberMatch.captured(0).toDouble(&lengthOk);
+        const double length = validNumberMatch.captured(0).toDouble(&lengthOk);
 
         if (lengthOk)
         {
@@ -124,10 +124,10 @@ void LengthEdit::updateTextAfterEdit()
 
 //======================================================================================================================
 
-QString LengthEdit::generateText(qreal length, Odg::Units units) const
+QString LengthEdit::generateText(double length, Odg::Units units) const
 {
-    qreal iPart = 0;
-    const qreal fPart = std::modf(length, &iPart);
+    double iPart = 0;
+    const double fPart = std::modf(length, &iPart);
 
     // If length is really an integer, return a string without a decimal point
     if (fPart == 0)
@@ -153,8 +153,8 @@ PositionWidget::PositionWidget(const QPointF& position, Odg::Units units) : QWid
     layout->setSpacing(2);
     setLayout(layout);
 
-    connect(mXEdit, SIGNAL(lengthChanged(qreal)), this, SLOT(sendPositionChanged()));
-    connect(mYEdit, SIGNAL(lengthChanged(qreal)), this, SLOT(sendPositionChanged()));
+    connect(mXEdit, SIGNAL(lengthChanged(double)), this, SLOT(sendPositionChanged()));
+    connect(mYEdit, SIGNAL(lengthChanged(double)), this, SLOT(sendPositionChanged()));
 }
 
 //======================================================================================================================
@@ -205,8 +205,8 @@ SizeWidget::SizeWidget(const QSizeF& size, Odg::Units units, bool sizeMustBeNonN
     layout->setSpacing(2);
     setLayout(layout);
 
-    connect(mWidthEdit, SIGNAL(lengthChanged(qreal)), this, SLOT(sendSizeChanged()));
-    connect(mHeightEdit, SIGNAL(lengthChanged(qreal)), this, SLOT(sendSizeChanged()));
+    connect(mWidthEdit, SIGNAL(lengthChanged(double)), this, SLOT(sendSizeChanged()));
+    connect(mHeightEdit, SIGNAL(lengthChanged(double)), this, SLOT(sendSizeChanged()));
 }
 
 //======================================================================================================================
@@ -414,11 +414,11 @@ ColorSelectWidget::ColorSelectWidget() : QWidget(),
 
     // Determine widget size
     const int fontHeight = QFontMetrics(font()).height();
-    const int rectSize = qRound(fontHeight * (qreal)1.25);
+    const int rectSize = qRound(fontHeight * (double)1.25);
     const int numberOfColumns = 8;
     const int numberOfStandardRows = qCeil(sStandardColors.size() / numberOfColumns);
     const int numberOfCustomRows = qCeil(sCustomColors.size() / numberOfColumns);
-    const int padding = qRound(fontHeight / (qreal)3.0);
+    const int padding = qRound(fontHeight / (double)3.0);
 
     const int fixedWidth = padding + (rectSize + padding) * numberOfColumns;
     const int fixedHeight = (padding + fontHeight + padding + (rectSize + padding) * numberOfStandardRows +

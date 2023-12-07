@@ -45,6 +45,8 @@ private:
 public:
     PropertiesWidget(DrawingWidget* drawing);
 
+    QSize sizeHint() const override;
+
 public slots:
     void setAllDrawingProperties();
     void setDrawingProperty(const QString& name, const QVariant& value);
