@@ -18,6 +18,7 @@
 #define SINGLEITEMPROPERTIESWIDGET_H
 
 #include <QWidget>
+#include "OdgFontStyle.h"
 #include "OdgGlobal.h"
 
 class QComboBox;
@@ -128,6 +129,39 @@ private:
     void createFontStyleWidget();
     void createTextAlignmentWidget();
 
+
+public:
+    void setPenStyle(Qt::PenStyle style);
+    void setPenWidth(double width);
+    void setPenColor(const QColor& color);
+    void setBrushColor(const QColor& color);
+    Qt::PenStyle penStyle() const;
+    double penWidth() const;
+    QColor penColor() const;
+    QColor brushColor() const;
+
+    void setStartMarkerStyle(Odg::MarkerStyle style);
+    void setStartMarkerSize(double size);
+    void setEndMarkerStyle(Odg::MarkerStyle style);
+    void setEndMarkerSize(double size);
+    Odg::MarkerStyle startMarkerStyle() const;
+    double startMarkerSize() const;
+    Odg::MarkerStyle endMarkerStyle() const;
+    double endMarkerSize() const;
+
+    void setFontFamily(const QString& family);
+    void setFontSize(double size);
+    void setFontStyle(const OdgFontStyle& style);
+    void setTextAlignment(Qt::Alignment alignment);
+    void setTextPadding(const QSizeF& padding);
+    void setTextColor(const QColor& color);
+    QString fontFamily() const;
+    double fontSize() const;
+    OdgFontStyle fontStyle() const;
+    Qt::Alignment textAlignment() const;
+    QSizeF textPadding() const;
+    QColor textColor() const;
+
 public slots:
     void setItem(OdgItem* item);
     void setUnits(Odg::Units units);
@@ -138,6 +172,22 @@ signals:
     void itemResized(OdgControlPoint* point, const QPointF& position);
     void itemResized2(OdgControlPoint* point1, const QPointF& p1, OdgControlPoint* point2, const QPointF& p2);
     void itemPropertyChanged(const QString& name, const QVariant& value);
+
+private:
+    void updatePositionAndSizeGroup();
+    void updateLineGroup();
+    void updateCurveGroup();
+    void updateRectGroup();
+    void updateEllipseGroup();
+    void updatePolylineGroup();
+    void updatePolygonGroup();
+    void updatePenBrushGroup();
+    void updateMarkerGroup();
+    void updateTextGroup();
+
+    void updatePositionWidgets(const QPolygonF& polygon, QList<PositionWidget*>& positionWidgets, QFormLayout* layout,
+                               QObject* slotObject, const char* slotFunction);
+    void clearPositionWidgets(QList<PositionWidget*>& positionWidgets, QFormLayout* layout);
 
 private slots:
     void handlePositionChange(const QPointF& position);
@@ -157,6 +207,9 @@ private slots:
 
     void handleEllipsePositionChange(const QPointF& position);
     void handleEllipseSizeChange(const QSizeF& size);
+
+    void handlePolylineChange(const QPointF& position);
+    void handlePolygonChange(const QPointF& position);
 
     void handlePenStyleChange(int index);
     void handlePenWidthChange(double length);
