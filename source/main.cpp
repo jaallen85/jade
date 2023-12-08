@@ -23,10 +23,21 @@ int main(int argc, char* argv[])
 
     JadeWindow window;
     if (app.arguments().size() > 1)
-        window.openDrawing(app.arguments()[1]);
+        window.openDrawing(app.arguments().at(1));
     else
         window.newDrawing();
     window.show();
 
     return app.exec();
 }
+
+
+// Todo:
+// - Test, test test!  Especially file saving/loading and cut/copy/paste.
+// - Remove auto formating from OdgWriter output (to properly handle multi-line text captions)
+// - Export to PNG
+// - Export to SVG
+// - Setting item defaults
+// - Preferences dialog
+// - About dialog
+// - Save/load settings to config file

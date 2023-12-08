@@ -150,6 +150,25 @@ public:
 
     void clear();
 
+    void setPenStyleIfNeeded(Qt::PenStyle style);
+    void setPenWidthIfNeeded(double width);
+    void setPenColorIfNeeded(const QColor& color);
+    void setPenCapStyleIfNeeded(Qt::PenCapStyle style);
+    void setPenJoinStyleIfNeeded(Qt::PenJoinStyle style);
+    void setBrushColorIfNeeded(const QColor& color);
+
+    void setStartMarkerStyleIfNeeded(Odg::MarkerStyle style);
+    void setStartMarkerSizeIfNeeded(double size);
+    void setEndMarkerStyleIfNeeded(Odg::MarkerStyle style);
+    void setEndMarkerSizeIfNeeded(double size);
+
+    void setFontFamilyIfNeeded(const QString& family);
+    void setFontSizeIfNeeded(double size);
+    void setFontStyleIfNeeded(const OdgFontStyle& style);
+    void setTextAlignmentIfNeeded(Qt::Alignment alignment);
+    void setTextPaddingIfNeeded(const QSizeF& padding);
+    void setTextColorIfNeeded(const QColor& color);
+
     QPen lookupPen() const;
     QBrush lookupBrush() const;
     Qt::PenStyle lookupPenStyle() const;
@@ -174,6 +193,8 @@ public:
     Qt::Alignment lookupTextAlignment() const;
     QSizeF lookupTextPadding() const;
     QColor lookupTextColor() const;
+
+    bool isEquivalentTo(OdgStyle* other) const;
 };
 
 #endif

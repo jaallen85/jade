@@ -18,9 +18,9 @@
 #include "OdgControlPoint.h"
 #include <QPainter>
 
-OdgPolylineItem::OdgPolylineItem() : OdgItem(), mPolyline(), mPen(), mStartMarker(), mEndMarker()
+OdgPolylineItem::OdgPolylineItem() : OdgItem(), mPolyline(2, QPointF()), mPen(), mStartMarker(), mEndMarker()
 {
-    for(int i = 0; i < 2; i++) addControlPoint(new OdgControlPoint(QPointF(0, 0), true));
+    for(int i = 0; i < 2; i++) addControlPoint(new OdgControlPoint(QPointF(0, 0)));
 }
 
 //======================================================================================================================
@@ -210,7 +210,7 @@ QPainterPath OdgPolylineItem::shape() const
         QPainterPath polygonPath;
         polygonPath.moveTo(mPolyline.at(0));
         for(int i = 1; i < mPolyline.size(); i++)
-            polygonPath.moveTo(mPolyline.at(i));
+            polygonPath.lineTo(mPolyline.at(i));
         shape = strokePath(polygonPath, mPen);
 
         // Add shape for each marker, if necessary
@@ -286,15 +286,15 @@ bool OdgPolylineItem::canRemovePoints() const
 	return (mControlPoints.size() > 2);
 }
 
-void OdgPolylineItem::insertPoint(const QPointF& position)
+int OdgPolylineItem::insertPointIndex(const QPointF& position)
 {
 	if (canInsertPoints())
 	{
 		const QPointF pointPosition = mapFromScene(position);
 
-		double minimumDistance = distanceFromPointToLineSegment(
+        int insertIndex = 1;
+        double minimumDistance = distanceFromPointToLineSegment(
 			pointPosition, QLineF(mControlPoints.at(0)->position(), mControlPoints.at(1)->position()));
-		double insertIndex = 1;
 		double distance = 0;
 
 		for(int index = 1; index < mControlPoints.size() - 1; index++)
@@ -308,28 +308,34 @@ void OdgPolylineItem::insertPoint(const QPointF& position)
 			}
 		}
 
-		QPolygonF polyline = mPolyline;
-		polyline.insert(insertIndex, pointPosition);
-		setPolyline(polyline);
+        return insertIndex;
 	}
+
+    return -1;
 }
 
-void OdgPolylineItem::removePoint(const QPointF& position)
+int OdgPolylineItem::removePointIndex(const QPointF& position)
 {
 	if (canRemovePoints())
 	{
-		OdgControlPoint* point = pointNearest(mapFromScene(position));
-		if (point == mControlPoints.first() || point == mControlPoints.last()) point = nullptr;
-
-		if (point)
-		{
-			int removeIndex = mControlPoints.indexOf(point);
-
-			QPolygonF polyline = mPolyline;
-			polyline.takeAt(removeIndex);
-			setPolyline(polyline);
-		}
+        OdgControlPoint* point = pointNearest(mapFromScene(position));
+        if (point == mControlPoints.first() || point == mControlPoints.last()) point = nullptr;
+        return (point) ? mControlPoints.indexOf(point) : -1;
 	}
+
+    return -1;
+}
+
+void OdgPolylineItem::insertControlPoint(int index, OdgControlPoint* point)
+{
+    OdgItem::insertControlPoint(index, point);
+    updatePolylineFromPoints();
+}
+
+void OdgPolylineItem::removeControlPoint(OdgControlPoint* point)
+{
+    OdgItem::removeControlPoint(point);
+    updatePolylineFromPoints();
 }
 
 //======================================================================================================================
@@ -369,6 +375,15 @@ OdgControlPoint* OdgPolylineItem::placeResizeEndPoint() const
 
 //======================================================================================================================
 
+void OdgPolylineItem::updatePolylineFromPoints()
+{
+    QPolygonF polyline;
+    for(auto& controlPoint : qAsConst(mControlPoints)) polyline << controlPoint->position();
+    mPolyline = polyline;
+}
+
+//======================================================================================================================
+
 bool OdgPolylineItem::shouldShowStartMarker() const
 {
     const double length = QLineF(mPolyline.at(0), mPolyline.at(1)).length();
@@ -394,3 +409,4 @@ double OdgPolylineItem::endMarkerAngle() const
     const QPointF p2 = mPolyline.at(mPolyline.size() - 2);
     return qRadiansToDegrees(qAtan2(p1.y() - p2.y(), p1.x() - p2.x()));
 }
+

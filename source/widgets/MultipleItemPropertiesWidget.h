@@ -112,6 +112,17 @@ signals:
     void itemsMovedDelta(const QPointF& delta);
     void itemsPropertyChanged(const QString& name, const QVariant& value);
 
+private:
+    void updateRectGroup();
+    void updatePenBrushGroup();
+    void updateMarkerGroup();
+    void updateTextGroup();
+
+    int checkIntProperty(const QString& name, bool& anyItemHasProperty, bool& propertyValuesMatch) const;
+    double checkDoubleProperty(const QString& name, bool& anyItemHasProperty, bool& propertyValuesMatch) const;
+    QString checkStringProperty(const QString& name, bool& anyItemHasProperty, bool& propertyValuesMatch) const;
+    template<class T> T checkProperty(const QString& name, bool& anyItemHasProperty, bool& propertyValuesMatch) const;
+
 private slots:
     void handleCornerRadiusCheckClicked(bool checked);
     void handleCornerRadiusChange(double length);

@@ -16,6 +16,8 @@
 
 #include "MultipleItemPropertiesWidget.h"
 #include "HelperWidgets.h"
+#include "OdgFontStyle.h"
+#include "OdgItem.h"
 #include <QCheckBox>
 #include <QComboBox>
 #include <QFontComboBox>
@@ -322,7 +324,14 @@ void MultipleItemPropertiesWidget::createTextAlignmentWidget()
 
 void MultipleItemPropertiesWidget::setItems(const QList<OdgItem*>& items)
 {
+    mItems = items;
 
+    blockSignals(true);
+    updateRectGroup();
+    updatePenBrushGroup();
+    updateMarkerGroup();
+    updateTextGroup();
+    blockSignals(false);
 }
 
 void MultipleItemPropertiesWidget::setUnits(Odg::Units units)
@@ -345,158 +354,497 @@ void MultipleItemPropertiesWidget::setUnits(int units)
 
 //======================================================================================================================
 
+void MultipleItemPropertiesWidget::updateRectGroup()
+{
+    bool showCornerRadius = false;
+    bool cornerRadiusMatches = false;
+    const double cornerRadius = checkDoubleProperty("cornerRadius", showCornerRadius, cornerRadiusMatches);
+
+    if (showCornerRadius)
+    {
+        mRectCornerRadiusEdit->setLength(cornerRadius);
+        mRectCornerRadiusEdit->setEnabled(cornerRadiusMatches);
+        mRectCornerRadiusCheck->setChecked(cornerRadiusMatches);
+    }
+
+    mRectGroup->setVisible(showCornerRadius);
+}
+
+void MultipleItemPropertiesWidget::updatePenBrushGroup()
+{
+    bool showPenStyle = false, showPenWidth = false, showPenColor = false, showBrushColor = false;
+    bool penStyleMatches = false, penWidthMatches = false, penColorMatches = false, brushColorMatches = false;
+    const int penStyle = checkIntProperty("penStyle", showPenStyle, penStyleMatches);
+    const double penWidth = checkDoubleProperty("penWidth", showPenWidth, penWidthMatches);
+    const QColor penColor = checkProperty<QColor>("penColor", showPenColor, penColorMatches);
+    const QColor brushColor = checkProperty<QColor>("brushColor", showBrushColor, brushColorMatches);
+
+    if (showPenStyle)
+    {
+        mPenStyleCombo->setCurrentIndex(penStyle);
+        mPenStyleCombo->setEnabled(penStyleMatches);
+        mPenStyleCheck->setChecked(penStyleMatches);
+    }
+    if (showPenWidth)
+    {
+        mPenWidthEdit->setLength(penWidth);
+        mPenWidthEdit->setEnabled(penWidthMatches);
+        mPenWidthCheck->setChecked(penWidthMatches);
+    }
+    if (showPenColor)
+    {
+        mPenColorWidget->setColor(penColor);
+        mPenColorWidget->setEnabled(penColorMatches);
+        mPenColorCheck->setChecked(penColorMatches);
+    }
+    if (showBrushColor)
+    {
+        mBrushColorWidget->setColor(brushColor);
+        mBrushColorWidget->setEnabled(brushColorMatches);
+        mBrushColorCheck->setChecked(brushColorMatches);
+    }
+
+    mPenBrushLayout->setRowVisible(mPenStyleCombo, showPenStyle);
+    mPenBrushLayout->setRowVisible(mPenWidthEdit, showPenWidth);
+    mPenBrushLayout->setRowVisible(mPenColorWidget, showPenColor);
+    mPenBrushLayout->setRowVisible(mBrushColorWidget, showBrushColor);
+    mPenBrushGroup->setVisible(showPenStyle || showPenWidth || showPenColor || showBrushColor);
+}
+
+void MultipleItemPropertiesWidget::updateMarkerGroup()
+{
+    bool showStartMarkerStyle = false, showStartMarkerSize = false, showEndMarkerStyle = false, showEndMarkerSize = false;
+    bool startMarkerStyleMatches = false, startMarkerSizeMatches = false, endMarkerStyleMatches = false, endMarkerSizeMatches = false;
+    const int startMarkerStyle = checkIntProperty("startMarkerStyle", showStartMarkerStyle, startMarkerStyleMatches);
+    const double startMarkerSize = checkDoubleProperty("startMarkerSize", showStartMarkerSize, startMarkerSizeMatches);
+    const int endMarkerStyle = checkIntProperty("endMarkerStyle", showEndMarkerStyle, endMarkerStyleMatches);
+    const double endMarkerSize = checkDoubleProperty("endMarkerSize", showEndMarkerSize, endMarkerSizeMatches);
+
+    if (showStartMarkerStyle)
+    {
+        mStartMarkerStyleCombo->setCurrentIndex(startMarkerStyle);
+        mStartMarkerStyleCombo->setEnabled(startMarkerStyleMatches);
+        mStartMarkerStyleCheck->setChecked(startMarkerStyleMatches);
+    }
+    if (showStartMarkerSize)
+    {
+        mStartMarkerSizeEdit->setLength(startMarkerSize);
+        mStartMarkerSizeEdit->setEnabled(startMarkerSizeMatches);
+        mStartMarkerSizeCheck->setChecked(startMarkerSizeMatches);
+    }
+    if (showEndMarkerStyle)
+    {
+        mEndMarkerStyleCombo->setCurrentIndex(endMarkerStyle);
+        mEndMarkerStyleCombo->setEnabled(endMarkerStyleMatches);
+        mEndMarkerStyleCheck->setChecked(endMarkerStyleMatches);
+    }
+    if (showEndMarkerSize)
+    {
+        mEndMarkerSizeEdit->setLength(endMarkerSize);
+        mEndMarkerSizeEdit->setEnabled(endMarkerSizeMatches);
+        mEndMarkerSizeCheck->setChecked(endMarkerSizeMatches);
+    }
+
+    mMarkerLayout->setRowVisible(mStartMarkerStyleCombo, showStartMarkerStyle);
+    mMarkerLayout->setRowVisible(mStartMarkerSizeEdit, showStartMarkerSize);
+    mMarkerLayout->setRowVisible(mEndMarkerStyleCombo, showEndMarkerStyle);
+    mMarkerLayout->setRowVisible(mEndMarkerSizeEdit, showEndMarkerSize);
+    mMarkerGroup->setVisible(showStartMarkerStyle || showStartMarkerSize || showEndMarkerStyle || showEndMarkerSize);
+}
+
+void MultipleItemPropertiesWidget::updateTextGroup()
+{
+    bool showFontFamily = false, showFontSize = false, showFontStyle = false, showTextAlignment = false,
+        showTextPadding = false, showTextColor = false;
+    bool fontFamilyMatches = false, fontSizeMatches = false, fontStyleMatches = false, textAlignmentMatches = false,
+        textPaddingMatches = false, textColorMatches = false;
+    const QString fontFamily = checkStringProperty("fontFamily", showFontFamily, fontFamilyMatches);
+    const double fontSize = checkDoubleProperty("fontSize", showFontSize, fontSizeMatches);
+    const OdgFontStyle fontStyle = checkProperty<OdgFontStyle>("fontStyle", showFontStyle, fontStyleMatches);
+    const Qt::Alignment textAlignment = static_cast<Qt::Alignment>(checkIntProperty("textAlignment", showTextAlignment,
+                                                                                    textAlignmentMatches));
+    const QSizeF textPadding = checkProperty<QSizeF>("textPadding", showTextPadding, textPaddingMatches);
+    const QColor textColor = checkProperty<QColor>("textColor", showTextColor, textColorMatches);
+
+    if (showFontFamily)
+    {
+        QFont font;
+        font.setFamily(fontFamily);
+        mFontFamilyCombo->setCurrentFont(font);
+
+        mFontFamilyCombo->setEnabled(fontFamilyMatches);
+        mFontFamilyCheck->setChecked(fontFamilyMatches);
+    }
+    if (showFontSize)
+    {
+        mFontSizeEdit->setLength(fontSize);
+        mFontSizeEdit->setEnabled(fontSizeMatches);
+        mFontSizeCheck->setChecked(fontSizeMatches);
+    }
+    if (showFontStyle)
+    {
+        mFontBoldButton->setChecked(fontStyle.bold());
+        mFontItalicButton->setChecked(fontStyle.italic());
+        mFontUnderlineButton->setChecked(fontStyle.underline());
+        mFontStrikeOutButton->setChecked(fontStyle.strikeOut());
+
+        mFontStyleWidget->setEnabled(fontStyleMatches);
+        mFontStyleCheck->setChecked(fontStyleMatches);
+    }
+    if (showTextAlignment)
+    {
+        Qt::Alignment horizontal = (textAlignment & Qt::AlignHorizontal_Mask);
+        if (horizontal & Qt::AlignHCenter) mTextAlignmentHCenterButton->setChecked(true);
+        else if (horizontal & Qt::AlignRight) mTextAlignmentRightButton->setChecked(true);
+        if (horizontal & Qt::AlignLeft) mTextAlignmentLeftButton->setChecked(true);
+
+        Qt::Alignment vertical = (textAlignment & Qt::AlignVertical_Mask);
+        if (vertical & Qt::AlignVCenter) mTextAlignmentVCenterButton->setChecked(true);
+        else if (vertical & Qt::AlignBottom) mTextAlignmentBottomButton->setChecked(true);
+        if (vertical & Qt::AlignLeft) mTextAlignmentTopButton->setChecked(true);
+
+        mTextAlignmentWidget->setEnabled(textAlignmentMatches);
+        mTextAlignmentCheck->setChecked(textAlignmentMatches);
+    }
+    if (showTextPadding)
+    {
+        mTextPaddingWidget->setSize(textPadding);
+        mTextPaddingWidget->setEnabled(textPaddingMatches);
+        mTextPaddingCheck->setChecked(textPaddingMatches);
+    }
+    if (showTextColor)
+    {
+        mTextColorWidget->setColor(textColor);
+        mTextColorWidget->setEnabled(textColorMatches);
+        mTextColorCheck->setChecked(textColorMatches);
+    }
+
+    mTextLayout->setRowVisible(mFontFamilyCombo, showFontFamily);
+    mTextLayout->setRowVisible(mFontSizeEdit, showFontSize);
+    mTextLayout->setRowVisible(mFontStyleWidget, showFontStyle);
+    mTextLayout->setRowVisible(mTextAlignmentWidget, showTextAlignment);
+    mTextLayout->setRowVisible(mTextPaddingWidget, showTextPadding);
+    mTextLayout->setRowVisible(mTextColorWidget, showTextColor);
+    mTextGroup->setVisible(showFontFamily || showFontSize || showFontStyle || showTextAlignment ||
+                           showTextPadding || showTextColor);
+}
+
+//======================================================================================================================
+
+int MultipleItemPropertiesWidget::checkIntProperty(const QString& name, bool& anyItemHasProperty,
+                                                   bool& propertyValuesMatch) const
+{
+    int value = 0;
+    anyItemHasProperty = false;
+    propertyValuesMatch = false;
+
+    QVariant propertyValue;
+    bool propertyValid = false;
+    for(auto& item : mItems)
+    {
+        propertyValue = item->property(name);
+        propertyValid = (!propertyValue.isNull() && propertyValue.canConvert<int>());
+        if (propertyValid)
+        {
+            if (!anyItemHasProperty)
+            {
+                anyItemHasProperty = true;
+                value = propertyValue.toInt();
+                propertyValuesMatch = true;
+            }
+            else
+            {
+                propertyValuesMatch = (value == propertyValue.toInt());
+                if (!propertyValuesMatch) break;
+            }
+        }
+    }
+
+    return value;
+}
+
+double MultipleItemPropertiesWidget::checkDoubleProperty(const QString& name, bool& anyItemHasProperty,
+                                                         bool& propertyValuesMatch) const
+{
+    double value = 0;
+    anyItemHasProperty = false;
+    propertyValuesMatch = false;
+
+    QVariant propertyValue;
+    bool propertyValid = false;
+    for(auto& item : mItems)
+    {
+        propertyValue = item->property(name);
+        propertyValid = (!propertyValue.isNull() && propertyValue.canConvert<double>());
+        if (propertyValid)
+        {
+            if (!anyItemHasProperty)
+            {
+                anyItemHasProperty = true;
+                value = propertyValue.toDouble();
+                propertyValuesMatch = true;
+            }
+            else
+            {
+                propertyValuesMatch = (value == propertyValue.toDouble());
+                if (!propertyValuesMatch) break;
+            }
+        }
+    }
+
+    return value;
+}
+
+QString MultipleItemPropertiesWidget::checkStringProperty(const QString& name, bool& anyItemHasProperty,
+                                                          bool& propertyValuesMatch) const
+{
+    QString value = 0;
+    anyItemHasProperty = false;
+    propertyValuesMatch = false;
+
+    QVariant propertyValue;
+    bool propertyValid = false;
+    for(auto& item : mItems)
+    {
+        propertyValue = item->property(name);
+        propertyValid = (!propertyValue.isNull() && propertyValue.canConvert<QString>());
+        if (propertyValid)
+        {
+            if (!anyItemHasProperty)
+            {
+                anyItemHasProperty = true;
+                value = propertyValue.toString();
+                propertyValuesMatch = true;
+            }
+            else
+            {
+                propertyValuesMatch = (value == propertyValue.toString());
+                if (!propertyValuesMatch) break;
+            }
+        }
+    }
+
+    return value;
+}
+
+template<class T> T MultipleItemPropertiesWidget::checkProperty(const QString& name, bool& anyItemHasProperty,
+                                                                bool& propertyValuesMatch) const
+{
+    T value;
+    anyItemHasProperty = false;
+    propertyValuesMatch = false;
+
+    QVariant propertyValue;
+    bool propertyValid = false;
+    for(auto& item : mItems)
+    {
+        propertyValue = item->property(name);
+        propertyValid = (!propertyValue.isNull() && propertyValue.canConvert<T>());
+        if (propertyValid)
+        {
+            if (!anyItemHasProperty)
+            {
+                anyItemHasProperty = true;
+                value = propertyValue.value<T>();
+                propertyValuesMatch = true;
+            }
+            else
+            {
+                propertyValuesMatch = (value == propertyValue.value<T>());
+                if (!propertyValuesMatch) break;
+            }
+        }
+    }
+
+    return value;
+}
+
+//======================================================================================================================
+
 void MultipleItemPropertiesWidget::handleCornerRadiusCheckClicked(bool checked)
 {
-
+    mRectCornerRadiusEdit->setEnabled(checked);
+    if (checked) handleCornerRadiusChange(mRectCornerRadiusEdit->length());
 }
 
 void MultipleItemPropertiesWidget::handleCornerRadiusChange(double length)
 {
-
+    emit itemsPropertyChanged("cornerRadius", length);
 }
 
 //======================================================================================================================
 
 void MultipleItemPropertiesWidget::handlePenStyleCheckClicked(bool checked)
 {
-
+    mPenStyleCombo->setEnabled(checked);
+    if (checked) handlePenStyleChange(mPenStyleCombo->currentIndex());
 }
 
 void MultipleItemPropertiesWidget::handlePenWidthCheckClicked(bool checked)
 {
-
+    mPenWidthEdit->setEnabled(checked);
+    if (checked) handlePenWidthChange(mPenWidthEdit->length());
 }
 
 void MultipleItemPropertiesWidget::handlePenColorCheckClicked(bool checked)
 {
-
+    mPenColorWidget->setEnabled(checked);
+    if (checked) handlePenColorChange(mPenColorWidget->color());
 }
 
 void MultipleItemPropertiesWidget::handleBrushColorCheckClicked(bool checked)
 {
-
+    mBrushColorWidget->setEnabled(checked);
+    if (checked) handleBrushColorChange(mBrushColorWidget->color());
 }
 
 void MultipleItemPropertiesWidget::handlePenStyleChange(int index)
 {
-
+    emit itemsPropertyChanged("penStyle", index);
 }
 
 void MultipleItemPropertiesWidget::handlePenWidthChange(double length)
 {
-
+    emit itemsPropertyChanged("penWidth", length);
 }
 
 void MultipleItemPropertiesWidget::handlePenColorChange(const QColor& color)
 {
-
+    emit itemsPropertyChanged("penColor", color);
 }
 
 void MultipleItemPropertiesWidget::handleBrushColorChange(const QColor& color)
 {
-
+    emit itemsPropertyChanged("brushColor", color);
 }
 
 //======================================================================================================================
 
 void MultipleItemPropertiesWidget::handleStartMarkerStyleCheckClicked(bool checked)
 {
-
+    mStartMarkerStyleCombo->setEnabled(checked);
+    if (checked) handleStartMarkerStyleChange(mStartMarkerStyleCombo->currentIndex());
 }
 
 void MultipleItemPropertiesWidget::handleStartMarkerSizeCheckClicked(bool checked)
 {
-
+    mStartMarkerSizeEdit->setEnabled(checked);
+    if (checked) handleStartMarkerSizeChange(mStartMarkerSizeEdit->length());
 }
 
 void MultipleItemPropertiesWidget::handleEndMarkerStyleCheckClicked(bool checked)
 {
-
+    mEndMarkerStyleCombo->setEnabled(checked);
+    if (checked) handleEndMarkerStyleChange(mEndMarkerStyleCombo->currentIndex());
 }
 
 void MultipleItemPropertiesWidget::handleEndMarkerSizeCheckClicked(bool checked)
 {
-
+    mEndMarkerSizeEdit->setEnabled(checked);
+    if (checked) handleEndMarkerSizeChange(mEndMarkerSizeEdit->length());
 }
 
 void MultipleItemPropertiesWidget::handleStartMarkerStyleChange(int index)
 {
-
+    emit itemsPropertyChanged("startMarkerStyle", index);
 }
 
 void MultipleItemPropertiesWidget::handleStartMarkerSizeChange(double length)
 {
-
+    emit itemsPropertyChanged("startMarkerSize", length);
 }
 
 void MultipleItemPropertiesWidget::handleEndMarkerStyleChange(int index)
 {
-
+    emit itemsPropertyChanged("endMarkerStyle", index);
 }
 
 void MultipleItemPropertiesWidget::handleEndMarkerSizeChange(double length)
 {
-
+    emit itemsPropertyChanged("endMarkerSize", length);
 }
 
 //======================================================================================================================
 
 void MultipleItemPropertiesWidget::handleFontFamilyCheckClicked(bool checked)
 {
-
+    mFontFamilyCombo->setEnabled(checked);
+    if (checked) handleFontFamilyChange(mFontFamilyCombo->currentIndex());
 }
 
 void MultipleItemPropertiesWidget::handleFontSizeCheckClicked(bool checked)
 {
-
+    mFontSizeEdit->setEnabled(checked);
+    if (checked) handleFontSizeChange(mFontSizeEdit->length());
 }
 
 void MultipleItemPropertiesWidget::handleFontStyleCheckClicked(bool checked)
 {
-
+    mFontStyleWidget->setEnabled(checked);
+    if (checked) handleFontStyleChange();
 }
 
 void MultipleItemPropertiesWidget::handleTextAlignmentCheckClicked(bool checked)
 {
-
+    mTextAlignmentWidget->setEnabled(checked);
+    if (checked) handleTextAlignmentChange();
 }
 
 void MultipleItemPropertiesWidget::handleTextPaddingCheckClicked(bool checked)
 {
-
+    mTextPaddingWidget->setEnabled(checked);
+    if (checked) handleTextPaddingChange(mTextPaddingWidget->size());
 }
 
 void MultipleItemPropertiesWidget::handleTextColorCheckClicked(bool checked)
 {
-
+    mTextColorWidget->setEnabled(checked);
+    if (checked) handleTextColorChange(mTextColorWidget->color());
 }
 
 void MultipleItemPropertiesWidget::handleFontFamilyChange(int index)
 {
-
+    emit itemsPropertyChanged("fontFamily", mFontFamilyCombo->currentFont().family());
 }
 
 void MultipleItemPropertiesWidget::handleFontSizeChange(double length)
 {
-
+    emit itemsPropertyChanged("fontSize", length);
 }
 
 void MultipleItemPropertiesWidget::handleFontStyleChange()
 {
-
+    OdgFontStyle fontStyle;
+    fontStyle.setBold(mFontBoldButton->isChecked());
+    fontStyle.setItalic(mFontItalicButton->isChecked());
+    fontStyle.setUnderline(mFontUnderlineButton->isChecked());
+    fontStyle.setStrikeOut(mFontStrikeOutButton->isChecked());
+    emit itemsPropertyChanged("fontStyle", QVariant::fromValue<OdgFontStyle>(fontStyle));
 }
 
 void MultipleItemPropertiesWidget::handleTextAlignmentChange()
 {
+    Qt::Alignment horizontal = Qt::AlignLeft;
+    if (mTextAlignmentHCenterButton->isChecked())
+        horizontal = Qt::AlignHCenter;
+    else if (mTextAlignmentRightButton->isChecked())
+        horizontal = Qt::AlignRight;
 
+    Qt::Alignment vertical = Qt::AlignTop;
+    if (mTextAlignmentVCenterButton->isChecked())
+        vertical = Qt::AlignVCenter;
+    else if (mTextAlignmentBottomButton->isChecked())
+        vertical = Qt::AlignBottom;
+
+    emit itemsPropertyChanged("textAlignment", static_cast<int>(horizontal | vertical));
 }
 
 void MultipleItemPropertiesWidget::handleTextPaddingChange(const QSizeF& size)
 {
-
+    emit itemsPropertyChanged("textPadding", size);
 }
 
 void MultipleItemPropertiesWidget::handleTextColorChange(const QColor& color)
 {
-
+    emit itemsPropertyChanged("textColor", color);
 }

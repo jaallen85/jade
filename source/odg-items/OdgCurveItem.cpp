@@ -20,10 +20,10 @@
 
 OdgCurveItem::OdgCurveItem() : OdgItem(), mCurve(), mPen(), mStartMarker(), mEndMarker(), mCurvePath()
 {
-    addControlPoint(new OdgControlPoint(QPointF(0, 0), true));
-    addControlPoint(new OdgControlPoint(QPointF(0, 0), false));
-    addControlPoint(new OdgControlPoint(QPointF(0, 0), false));
-    addControlPoint(new OdgControlPoint(QPointF(0, 0), true));
+    addControlPoint(new OdgControlPoint(QPointF(0, 0)));
+    addControlPoint(new OdgControlPoint(QPointF(0, 0)));
+    addControlPoint(new OdgControlPoint(QPointF(0, 0)));
+    addControlPoint(new OdgControlPoint(QPointF(0, 0)));
 }
 
 //======================================================================================================================
@@ -282,8 +282,8 @@ void OdgCurveItem::scaleBy(double scale)
 
 void OdgCurveItem::placeCreateEvent(const QRectF& contentRect, double grid)
 {
-	double size = 8 * grid;
-	if (size <= 0) size = contentRect.width() / 40;
+    double size = 4 * grid;
+    if (size <= 0) size = contentRect.width() / 80;
 	setCurve(OdgCurve(QPointF(-size, -size), QPointF(0, -size), QPointF(0, size), QPointF(size, size)));
 }
 

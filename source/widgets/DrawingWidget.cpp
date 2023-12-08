@@ -658,10 +658,6 @@ void DrawingWidget::addItems(OdgPage* page, const QList<OdgItem*>& items, bool p
 
         // Signal any listeners that items were inserted
         emit itemsInserted(items);
-
-        // Select items if in SelectMode
-        if (mMode == Odg::SelectMode) setSelectedItems(items);
-
         viewport()->update();
     }
 }
@@ -680,9 +676,6 @@ void DrawingWidget::insertItems(OdgPage* page, const QList<OdgItem*>& items, con
         // Signal any listeners that items were inserted
         emit itemsInserted(items);
 
-        // Select items if necessary
-        if (mMode == Odg::SelectMode) setSelectedItems(items);
-
         viewport()->update();
     }
 }
@@ -692,7 +685,7 @@ void DrawingWidget::removeItems(OdgPage* page, const QList<OdgItem*>& items)
     if (page)
     {
         // Unselect items if necessary
-        if (items == mSelectedItems) setSelectedItems(QList<OdgItem*>());
+        setSelectedItems(QList<OdgItem*>());
 
         // Disonnect control/glue points
         unplaceItems(items);
@@ -742,7 +735,8 @@ void DrawingWidget::moveItems(const QList<OdgItem*>& items, const QHash<OdgItem*
     viewport()->update();
 }
 
-void DrawingWidget::resizeItem(OdgControlPoint* point, const QPointF& position, bool snapTo45Degrees, bool place)
+void DrawingWidget::resizeItem(OdgControlPoint* point, const QPointF& position, bool snapTo45Degrees, bool disconnect,
+                               bool place)
 {
     OdgItem* item = (point) ? point->item() : nullptr;
     if (item)
@@ -754,7 +748,7 @@ void DrawingWidget::resizeItem(OdgControlPoint* point, const QPointF& position, 
         item->resize(point, position, snapTo45Degrees);
 
         // Disconnect this point from its glue point
-        point->disconnect();
+        if (disconnect) point->disconnect();
 
         // Maintain any connections after the resize (applies to other item control points only since we just
         // disconnected this point)
@@ -870,7 +864,7 @@ void DrawingWidget::flipItemsVertical(const QList<OdgItem*>& items, const QPoint
 
 //======================================================================================================================
 
-void DrawingWidget::insertItemPoint(OdgItem* item, const QPointF& position)
+void DrawingWidget::insertItemPoint(OdgItem* item, int index, OdgControlPoint* point)
 {
     if (item)
     {
@@ -878,7 +872,7 @@ void DrawingWidget::insertItemPoint(OdgItem* item, const QPointF& position)
         items.append(item);
 
         // Insert the new point
-        item->insertPoint(position);
+        item->insertControlPoint(index, point);
 
         // Signal any listeners that current items' geometry may have changed
         if (items == currentItems())
@@ -887,11 +881,12 @@ void DrawingWidget::insertItemPoint(OdgItem* item, const QPointF& position)
             emit currentItemsGeometryChanged(items);
         }
 
+        updateActions();
         viewport()->update();
     }
 }
 
-void DrawingWidget::removeItemPoint(OdgItem* item, const QPointF& position)
+void DrawingWidget::removeItemPoint(OdgItem* item, OdgControlPoint* point)
 {
     if (item)
     {
@@ -899,7 +894,7 @@ void DrawingWidget::removeItemPoint(OdgItem* item, const QPointF& position)
         items.append(item);
 
         // Remove the current point
-        item->removePoint(position);
+        item->removeControlPoint(point);
 
         // Signal any listeners that current items' geometry may have changed
         if (items == currentItems())
@@ -908,6 +903,7 @@ void DrawingWidget::removeItemPoint(OdgItem* item, const QPointF& position)
             emit currentItemsGeometryChanged(items);
         }
 
+        updateActions();
         viewport()->update();
     }
 }
@@ -997,7 +993,7 @@ void DrawingWidget::maintainItemConnections(const QList<OdgItem*>& items)
             {
                 targetItem = controlPoint->item();
                 if (targetItem && targetItem->mapToScene(controlPoint->position()) != gluePointScenePosition)
-                    resizeItem(controlPoint, gluePointScenePosition, false, false);
+                    resizeItem(controlPoint, gluePointScenePosition, false, false, false);
             }
         }
     }
@@ -1014,7 +1010,7 @@ void DrawingWidget::setItemsProperty(const QList<OdgItem*>& items, const QString
     if (items == currentItems())
     {
         if (mMode == Odg::SelectMode) updateSelectionCenter();
-        emit currentItemsPropertyChanged(items, name);
+        emit currentItemsPropertyChanged(items);
     }
 
     viewport()->update();
@@ -1030,7 +1026,7 @@ void DrawingWidget::setItemsProperty(const QList<OdgItem*>& items, const QString
     if (items == currentItems())
     {
         if (mMode == Odg::SelectMode) updateSelectionCenter();
-        emit currentItemsPropertyChanged(items, name);
+        emit currentItemsPropertyChanged(items);
     }
 
     viewport()->update();
@@ -1676,7 +1672,11 @@ void DrawingWidget::insertPoint()
     {
         OdgItem* item = mSelectedItems.first();
         if (item->canInsertPoints())
-            mUndoStack.push(new DrawingInsertPointCommand(this, item, mMouseButtonDownScenePosition));
+        {
+            int insertIndex = item->insertPointIndex(mMouseButtonDownScenePosition);
+            if (insertIndex >= 0)
+                mUndoStack.push(new DrawingInsertPointCommand(this, item, insertIndex, new OdgControlPoint()));
+        }
     }
 }
 
@@ -1686,7 +1686,11 @@ void DrawingWidget::removePoint()
     {
         OdgItem* item = mSelectedItems.first();
         if (item->canRemovePoints())
-            mUndoStack.push(new DrawingRemovePointCommand(this, item, mMouseButtonDownScenePosition));
+        {
+            int removeIndex = item->removePointIndex(mMouseButtonDownScenePosition);
+            if (0 <= removeIndex && removeIndex < item->controlPoints().size())
+                mUndoStack.push(new DrawingRemovePointCommand(this, item, item->controlPoints().at(removeIndex)));
+        }
     }
 }
 
@@ -2186,7 +2190,7 @@ void DrawingWidget::selectModeLeftMousePressEvent(QMouseEvent* event)
 	}
 
 	// Update focus item
-	mSelectFocusItem = mSelectMouseDownItem;
+    mSelectFocusItem = mSelectMouseDownItem;
 
 	viewport()->update();
 }
@@ -2317,7 +2321,7 @@ void DrawingWidget::selectModeSingleSelectEvent(QMouseEvent* event)
 			newSelection.append(mSelectMouseDownItem);
 	}
 
-	setSelectedItems(mSelectedItems);
+    setSelectedItems(newSelection);
 
 	emit mouseInfoChanged("");
 	viewport()->update();
@@ -2572,7 +2576,7 @@ void DrawingWidget::placeModeLeftMouseDragEvent(QMouseEvent* event)
 			const QPointF endPosition = roundToGrid(mapToScene(event->pos()));
 			const bool shiftDown = ((event->modifiers() & Qt::ShiftModifier) == Qt::ShiftModifier);
 
-			resizeItem(placeItemResizeEndPoint, endPosition, shiftDown, false);
+            resizeItem(placeItemResizeEndPoint, endPosition, shiftDown, false, false);
 
 			emit mouseInfoChanged(createMouseInfo(startPosition, endPosition));
 		}

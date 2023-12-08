@@ -25,7 +25,7 @@ OdgStyle::OdgStyle(Odg::Units units, bool defaultStyle) :
     mStartMarkerStyle(Odg::NoMarker), mStartMarkerSize(0.0), mEndMarkerStyle(Odg::NoMarker), mEndMarkerSize(0.0),
     mStartMarkerStyleValid(defaultStyle), mStartMarkerSizeValid(defaultStyle),
     mEndMarkerStyleValid(defaultStyle), mEndMarkerSizeValid(defaultStyle),
-    mFontFamily(), mFontSize(0.0), mFontStyle(),
+    mFontFamily("Aptos"), mFontSize(0.0), mFontStyle(),
     mTextAlignment(Qt::AlignCenter), mTextPadding(0.0, 0.0), mTextColor(0, 0, 0),
     mFontFamilyValid(defaultStyle), mFontSizeValid(defaultStyle), mFontStyleValid(defaultStyle),
     mTextAlignmentValid(defaultStyle), mTextPaddingValid(defaultStyle), mTextColorValid(defaultStyle)
@@ -452,6 +452,124 @@ void OdgStyle::clear()
 
 //======================================================================================================================
 
+void OdgStyle::setPenStyleIfNeeded(Qt::PenStyle style)
+{
+    if (mParent == nullptr) setPenStyle(style);
+    else if (mParent->lookupPenStyle() == style) unsetPenStyle();
+    else setPenStyle(style);
+}
+
+void OdgStyle::setPenWidthIfNeeded(double width)
+{
+    if (mParent == nullptr) setPenWidth(width);
+    else if (mParent->lookupPenWidth() == width) unsetPenWidth();
+    else setPenWidth(width);
+}
+
+void OdgStyle::setPenColorIfNeeded(const QColor& color)
+{
+    if (mParent == nullptr) setPenColor(color);
+    else if (mParent->lookupPenColor() == color) unsetPenColor();
+    else setPenColor(color);
+}
+
+void OdgStyle::setPenCapStyleIfNeeded(Qt::PenCapStyle style)
+{
+    if (mParent == nullptr) setPenCapStyle(style);
+    else if (mParent->lookupPenCapStyle() == style) unsetPenCapStyle();
+    else setPenCapStyle(style);
+}
+
+void OdgStyle::setPenJoinStyleIfNeeded(Qt::PenJoinStyle style)
+{
+    if (mParent == nullptr) setPenJoinStyle(style);
+    else if (mParent->lookupPenJoinStyle() == style) unsetPenJoinStyle();
+    else setPenJoinStyle(style);
+}
+
+void OdgStyle::setBrushColorIfNeeded(const QColor& color)
+{
+    if (mParent == nullptr) setBrushColor(color);
+    else if (mParent->lookupBrushColor() == color) unsetBrushColor();
+    else setBrushColor(color);
+}
+
+//======================================================================================================================
+
+void OdgStyle::setStartMarkerStyleIfNeeded(Odg::MarkerStyle style)
+{
+    if (mParent == nullptr) setStartMarkerStyle(style);
+    else if (mParent->lookupStartMarkerStyle() == style) unsetStartMarkerStyle();
+    else setStartMarkerStyle(style);
+}
+
+void OdgStyle::setStartMarkerSizeIfNeeded(double size)
+{
+    if (mParent == nullptr) setStartMarkerSize(size);
+    else if (mParent->lookupStartMarkerSize() == size) unsetStartMarkerSize();
+    else setStartMarkerSize(size);
+}
+
+void OdgStyle::setEndMarkerStyleIfNeeded(Odg::MarkerStyle style)
+{
+    if (mParent == nullptr) setEndMarkerStyle(style);
+    else if (mParent->lookupEndMarkerStyle() == style) unsetEndMarkerStyle();
+    else setEndMarkerStyle(style);
+}
+
+void OdgStyle::setEndMarkerSizeIfNeeded(double size)
+{
+    if (mParent == nullptr) setEndMarkerSize(size);
+    else if (mParent->lookupEndMarkerSize() == size) unsetEndMarkerSize();
+    else setEndMarkerSize(size);
+}
+
+//======================================================================================================================
+
+void OdgStyle::setFontFamilyIfNeeded(const QString& family)
+{
+    if (mParent == nullptr) setFontFamily(family);
+    else if (mParent->lookupFontFamily() == family) unsetFontFamily();
+    else setFontFamily(family);
+}
+
+void OdgStyle::setFontSizeIfNeeded(double size)
+{
+    if (mParent == nullptr) setFontSize(size);
+    else if (mParent->lookupFontSize() == size) unsetFontSize();
+    else setFontSize(size);
+}
+
+void OdgStyle::setFontStyleIfNeeded(const OdgFontStyle& style)
+{
+    if (mParent == nullptr) setFontStyle(style);
+    else if (mParent->lookupFontStyle() == style) unsetFontStyle();
+    else setFontStyle(style);
+}
+
+void OdgStyle::setTextAlignmentIfNeeded(Qt::Alignment alignment)
+{
+    if (mParent == nullptr) setTextAlignment(alignment);
+    else if (mParent->lookupTextAlignment() == alignment) unsetTextAlignment();
+    else setTextAlignment(alignment);
+}
+
+void OdgStyle::setTextPaddingIfNeeded(const QSizeF& padding)
+{
+    if (mParent == nullptr) setTextPadding(padding);
+    else if (mParent->lookupTextPadding() == padding) unsetTextPadding();
+    else setTextPadding(padding);
+}
+
+void OdgStyle::setTextColorIfNeeded(const QColor& color)
+{
+    if (mParent == nullptr) setTextColor(color);
+    else if (mParent->lookupTextColor() == color) unsetTextColor();
+    else setTextColor(color);
+}
+
+//======================================================================================================================
+
 QPen OdgStyle::lookupPen() const
 {
     return QPen(QBrush(lookupPenColor()), lookupPenWidth(), lookupPenStyle(), lookupPenCapStyle(), lookupPenJoinStyle());
@@ -637,4 +755,48 @@ QColor OdgStyle::lookupTextColor() const
     if (mParent)
         return mParent->lookupTextColor();
     return mTextColor;
+}
+
+//======================================================================================================================
+
+bool OdgStyle::isEquivalentTo(OdgStyle* other) const
+{
+    if (other)
+    {
+        return (mParent == other->mParent &&
+                mPenStyleValid == other->mPenStyleValid &&
+                mPenWidthValid == other->mPenWidthValid &&
+                mPenColorValid == other->mPenColorValid &&
+                mPenCapStyleValid == other->mPenCapStyleValid &&
+                mPenJoinStyleValid == other->mPenJoinStyleValid &&
+                mBrushColorValid == other->mBrushColorValid &&
+                mStartMarkerStyleValid == other->mStartMarkerStyleValid &&
+                mStartMarkerSizeValid == other->mStartMarkerSizeValid &&
+                mEndMarkerStyleValid == other->mEndMarkerStyleValid &&
+                mEndMarkerSizeValid == other->mEndMarkerSizeValid &&
+                mPenStyleValid == other->mPenStyleValid &&
+                mPenStyleValid == other->mPenStyleValid &&
+                mPenStyleValid == other->mPenStyleValid &&
+                mPenStyleValid == other->mPenStyleValid &&
+                mPenStyleValid == other->mPenStyleValid &&
+                mPenStyleValid == other->mPenStyleValid &&
+                (!mPenStyleValid || mPenStyle == other->mPenStyle) &&
+                (!mPenWidthValid || mPenWidth == other->mPenWidth) &&
+                (!mPenColorValid || mPenColor == other->mPenColor) &&
+                (!mPenCapStyleValid || mPenCapStyle == other->mPenCapStyle) &&
+                (!mPenJoinStyleValid || mPenJoinStyle == other->mPenJoinStyle) &&
+                (!mBrushColorValid || mBrushColor == other->mBrushColor) &&
+                (!mStartMarkerStyleValid || mStartMarkerStyle == other->mStartMarkerStyle) &&
+                (!mStartMarkerSizeValid || mStartMarkerSize == other->mStartMarkerSize) &&
+                (!mEndMarkerStyleValid || mEndMarkerStyle == other->mEndMarkerStyle) &&
+                (!mEndMarkerSizeValid || mEndMarkerSize == other->mEndMarkerSize) &&
+                (!mFontFamilyValid || mFontFamily == other->mFontFamily) &&
+                (!mFontSizeValid || mFontSize == other->mFontSize) &&
+                (!mFontStyleValid || mFontStyle == other->mFontStyle) &&
+                (!mTextAlignmentValid || mTextAlignment == other->mTextAlignment) &&
+                (!mTextPaddingValid || mTextPadding == other->mTextPadding) &&
+                (!mTextColorValid || mTextColor == other->mTextColor));
+    }
+
+    return false;
 }

@@ -18,7 +18,7 @@
 #include "OdgControlPoint.h"
 #include <QPainter>
 
-OdgPolygonItem::OdgPolygonItem() : mPolygon(), mBrush(), mPen()
+OdgPolygonItem::OdgPolygonItem() : mPolygon(3, QPointF()), mBrush(), mPen()
 {
     for(int i = 0; i < 3; i++) addControlPoint(new OdgControlPoint(QPointF(0, 0)));
 }
@@ -231,15 +231,15 @@ bool OdgPolygonItem::canRemovePoints() const
 	return (mControlPoints.size() > 3);
 }
 
-void OdgPolygonItem::insertPoint(const QPointF& position)
+int OdgPolygonItem::insertPointIndex(const QPointF& position)
 {
 	if (canInsertPoints())
 	{
 		const QPointF pointPosition = mapFromScene(position);
 
-		double minimumDistance = distanceFromPointToLineSegment(
+        int insertIndex = 0;
+        double minimumDistance = distanceFromPointToLineSegment(
 			pointPosition, QLineF(mControlPoints.last()->position(), mControlPoints.first()->position()));
-		double insertIndex = 0;
 		double distance = 0;
 
 		for(int index = 0; index < mControlPoints.size() - 1; index++)
@@ -253,26 +253,33 @@ void OdgPolygonItem::insertPoint(const QPointF& position)
 			}
 		}
 
-		QPolygonF polygon = mPolygon;
-		polygon.insert(insertIndex, pointPosition);
-		setPolygon(polygon);
+        return insertIndex;
 	}
+
+    return -1;
 }
 
-void OdgPolygonItem::removePoint(const QPointF& position)
+int OdgPolygonItem::removePointIndex(const QPointF& position)
 {
 	if (canRemovePoints())
 	{
 		OdgControlPoint* point = pointNearest(mapFromScene(position));
-		if (point)
-		{
-			int removeIndex = mControlPoints.indexOf(point);
-
-			QPolygonF polygon = mPolygon;
-			polygon.takeAt(removeIndex);
-			setPolygon(polygon);
-		}
+        return (point) ? mControlPoints.indexOf(point) : -1;
 	}
+
+    return -1;
+}
+
+void OdgPolygonItem::insertControlPoint(int index, OdgControlPoint* point)
+{
+    OdgItem::insertControlPoint(index, point);
+    updatePolygonFromPoints();
+}
+
+void OdgPolygonItem::removeControlPoint(OdgControlPoint* point)
+{
+    OdgItem::removeControlPoint(point);
+    updatePolygonFromPoints();
 }
 
 //======================================================================================================================
@@ -293,10 +300,19 @@ void OdgPolygonItem::scaleBy(double scale)
 
 void OdgPolygonItem::placeCreateEvent(const QRectF& contentRect, double grid)
 {
-	double size = 8 * grid;
-	if (size <= 0) size = contentRect.width() / 40;
+    double size = 4 * grid;
+    if (size <= 0) size = contentRect.width() / 80;
 
 	QPolygonF polygon;
 	polygon << QPointF(-size, -size) << QPointF(size, 0) << QPointF(-size, size);
 	setPolygon(polygon);
+}
+
+//======================================================================================================================
+
+void OdgPolygonItem::updatePolygonFromPoints()
+{
+    QPolygonF polygon;
+    for(auto& controlPoint : qAsConst(mControlPoints)) polygon << controlPoint->position();
+    mPolygon = polygon;
 }

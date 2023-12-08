@@ -185,6 +185,11 @@ private:
     void updateMarkerGroup();
     void updateTextGroup();
 
+    int checkIntProperty(const QString& name, bool& hasProperty) const;
+    double checkDoubleProperty(const QString& name, bool& hasProperty) const;
+    QString checkStringProperty(const QString& name, bool& hasProperty) const;
+    template<class T> T checkProperty(const QString& name, bool& hasProperty) const;
+
     void updatePositionWidgets(const QPolygonF& polygon, QList<PositionWidget*>& positionWidgets, QFormLayout* layout,
                                QObject* slotObject, const char* slotFunction);
     void clearPositionWidgets(QList<PositionWidget*>& positionWidgets, QFormLayout* layout);

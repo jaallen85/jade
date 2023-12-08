@@ -173,7 +173,7 @@ private:
 
 public:
     void moveItems(const QList<OdgItem*>& items, const QHash<OdgItem*,QPointF>& positions, bool place);
-    void resizeItem(OdgControlPoint* point, const QPointF& position, bool snapTo45Degrees, bool place);
+    void resizeItem(OdgControlPoint* point, const QPointF& position, bool snapTo45Degrees, bool disconnect, bool place);
     void resizeItem2(OdgControlPoint* point1, const QPointF& p1, OdgControlPoint* point2, const QPointF& p2,
                      bool place);
 
@@ -182,8 +182,8 @@ public:
     void flipItemsHorizontal(const QList<OdgItem*>& items, const QPointF& position);
     void flipItemsVertical(const QList<OdgItem*>& items, const QPointF& position);
 
-    void insertItemPoint(OdgItem* item, const QPointF& position);
-    void removeItemPoint(OdgItem* item, const QPointF& position);
+    void insertItemPoint(OdgItem* item, int index, OdgControlPoint* point);
+    void removeItemPoint(OdgItem* item, OdgControlPoint* point);
 
     void placeItems(const QList<OdgItem*>& items);
     void unplaceItems(const QList<OdgItem*>& items);
@@ -277,7 +277,7 @@ signals:
     void itemsRemoved(const QList<OdgItem*>& items);
     void currentItemsChanged(const QList<OdgItem*>& items);
     void currentItemsGeometryChanged(const QList<OdgItem*>& items);
-    void currentItemsPropertyChanged(const QList<OdgItem*>& items, const QString& name);
+    void currentItemsPropertyChanged(const QList<OdgItem*>& items);
 
 private:
     void paintEvent(QPaintEvent* event) override;

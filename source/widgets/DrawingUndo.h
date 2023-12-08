@@ -186,6 +186,7 @@ private:
     OdgPage* mPage;
     QList<OdgItem*> mItemsOrdered;
     QList<OdgItem*> mOriginalItemsOrdered;
+    QList<OdgItem*> mSelectedItems;
 
 public:
     DrawingReorderItemsCommand(DrawingWidget* drawing, OdgPage* page, const QList<OdgItem*>& items);
@@ -193,6 +194,7 @@ public:
     void redo() override;
     void undo() override;
 };
+
 //======================================================================================================================
 //======================================================================================================================
 //======================================================================================================================
@@ -338,10 +340,12 @@ private:
     DrawingWidget* mDrawing;
     OdgPage* mPage;
     QList<OdgItem*> mItemsToRemove;
-    OdgGroupItem* mGroupItem;
+    QList<OdgItem*> mItemsToAdd;
+    bool mUndone;
 
 public:
     DrawingGroupItemsCommand(DrawingWidget* drawing, OdgPage* page, const QList<OdgItem*>& items);
+    ~DrawingGroupItemsCommand();
 
     void redo() override;
     void undo() override;
@@ -354,11 +358,13 @@ class DrawingUngroupItemsCommand : public DrawingUndoCommand
 private:
     DrawingWidget* mDrawing;
     OdgPage* mPage;
-    OdgItem* mGroupItem;
+    QList<OdgItem*> mItemsToRemove;
     QList<OdgItem*> mItemsToAdd;
+    bool mUndone;
 
 public:
     DrawingUngroupItemsCommand(DrawingWidget* drawing, OdgPage* page, OdgGroupItem* groupItem);
+    ~DrawingUngroupItemsCommand();
 
     void redo() override;
     void undo() override;
@@ -373,10 +379,13 @@ class DrawingInsertPointCommand : public DrawingUndoCommand
 private:
     DrawingWidget* mDrawing;
     OdgItem* mItem;
-    QPointF mPosition;
+    int mIndex;
+    OdgControlPoint* mPoint;
+    bool mUndone;
 
 public:
-    DrawingInsertPointCommand(DrawingWidget* drawing, OdgItem* item, const QPointF& position);
+    DrawingInsertPointCommand(DrawingWidget* drawing, OdgItem* item, int index, OdgControlPoint* point);
+    ~DrawingInsertPointCommand();
 
     void redo() override;
     void undo() override;
@@ -389,10 +398,13 @@ class DrawingRemovePointCommand : public DrawingUndoCommand
 private:
     DrawingWidget* mDrawing;
     OdgItem* mItem;
-    QPointF mPosition;
+    int mIndex;
+    OdgControlPoint* mPoint;
+    bool mUndone;
 
 public:
-    DrawingRemovePointCommand(DrawingWidget* drawing, OdgItem* item, const QPointF& position);
+    DrawingRemovePointCommand(DrawingWidget* drawing, OdgItem* item, OdgControlPoint* point);
+    ~DrawingRemovePointCommand();
 
     void redo() override;
     void undo() override;

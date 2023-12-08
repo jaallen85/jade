@@ -53,13 +53,18 @@ public:
 	void resize(OdgControlPoint *point, const QPointF &position, bool snapTo45Degrees) override;
 
 	bool canInsertPoints() const override;
-	bool canRemovePoints() const override;
-	void insertPoint(const QPointF& position) override;
-	void removePoint(const QPointF& position) override;
+    bool canRemovePoints() const override;
+    int insertPointIndex(const QPointF& position) override;
+    int removePointIndex(const QPointF& position) override;
+    void insertControlPoint(int index, OdgControlPoint* point) override;
+    void removeControlPoint(OdgControlPoint* point) override;
 
 	void scaleBy(double scale) override;
 
 	void placeCreateEvent(const QRectF& contentRect, double grid) override;
+
+private:
+    void updatePolygonFromPoints();
 };
 
 #endif

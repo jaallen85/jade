@@ -540,12 +540,12 @@ void SingleItemPropertiesWidget::setTextAlignment(Qt::Alignment alignment)
     Qt::Alignment horizontal = (alignment & Qt::AlignHorizontal_Mask);
     if (horizontal & Qt::AlignHCenter) mTextAlignmentHCenterButton->setChecked(true);
     else if (horizontal & Qt::AlignRight) mTextAlignmentRightButton->setChecked(true);
-    if (horizontal & Qt::AlignLeft) mTextAlignmentLeftButton->setChecked(true);
+    else mTextAlignmentLeftButton->setChecked(true);
 
     Qt::Alignment vertical = (alignment & Qt::AlignVertical_Mask);
     if (vertical & Qt::AlignVCenter) mTextAlignmentVCenterButton->setChecked(true);
     else if (vertical & Qt::AlignBottom) mTextAlignmentBottomButton->setChecked(true);
-    if (vertical & Qt::AlignLeft) mTextAlignmentTopButton->setChecked(true);
+    else mTextAlignmentTopButton->setChecked(true);
 }
 
 void SingleItemPropertiesWidget::setTextPadding(const QSizeF& padding)
@@ -671,14 +671,12 @@ void SingleItemPropertiesWidget::updatePositionAndSizeGroup()
 {
     if (mItem)
     {
-        const QVariant position = mItem->property("position");
-        const QVariant size = mItem->property("size");
+        bool showPosition = false, showSize = false;
+        const QPointF position = checkProperty<QPointF>("position", showPosition);
+        const QSizeF size = checkProperty<QSizeF>("size", showSize);
 
-        const bool showPosition = (!position.isNull() && position.canConvert<QPointF>());
-        const bool showSize = (!size.isNull() && size.canConvert<QSizeF>());
-
-        if (showPosition) mPositionWidget->setPosition(position.value<QPointF>());
-        if (showSize) mSizeWidget->setSize(size.value<QSizeF>());
+        if (showPosition) mPositionWidget->setPosition(position);
+        if (showSize) mSizeWidget->setSize(size);
 
         mPositionAndSizeLayout->setRowVisible(mPositionWidget, showPosition);
         mPositionAndSizeLayout->setRowVisible(mSizeWidget, showSize);
@@ -691,15 +689,13 @@ void SingleItemPropertiesWidget::updateLineGroup()
 {
     if (mItem)
     {
-        const QVariant line = mItem->property("line");
-
-        const bool showLine = (!line.isNull() && line.canConvert<QLineF>());
+        bool showLine = false;
+        const QLineF line = checkProperty<QLineF>("line", showLine);
 
         if (showLine)
         {
-            QLineF lineValue = line.value<QLineF>();
-            mLineP1Widget->setPosition(lineValue.p1());
-            mLineP2Widget->setPosition(lineValue.p2());
+            mLineP1Widget->setPosition(mItem->mapToScene(line.p1()));
+            mLineP2Widget->setPosition(mItem->mapToScene(line.p2()));
         }
 
         mLineGroup->setVisible(showLine);
@@ -711,17 +707,15 @@ void SingleItemPropertiesWidget::updateCurveGroup()
 {
     if (mItem)
     {
-        const QVariant curve = mItem->property("curve");
-
-        const bool showCurve = (!curve.isNull() && curve.canConvert<OdgCurve>());
+        bool showCurve = false;
+        const OdgCurve curve = checkProperty<OdgCurve>("curve", showCurve);
 
         if (showCurve)
         {
-            OdgCurve curveValue = curve.value<OdgCurve>();
-            mCurveP1Widget->setPosition(curveValue.p1());
-            mCurveCP1Widget->setPosition(curveValue.cp1());
-            mCurveCP2Widget->setPosition(curveValue.cp2());
-            mCurveP2Widget->setPosition(curveValue.p2());
+            mCurveP1Widget->setPosition(mItem->mapToScene(curve.p1()));
+            mCurveCP1Widget->setPosition(mItem->mapToScene(curve.cp1()));
+            mCurveCP2Widget->setPosition(mItem->mapToScene(curve.cp2()));
+            mCurveP2Widget->setPosition(mItem->mapToScene(curve.p2()));
         }
 
         mCurveGroup->setVisible(showCurve);
@@ -733,23 +727,20 @@ void SingleItemPropertiesWidget::updateRectGroup()
 {
     if (mItem)
     {
-        const QVariant rect = mItem->property("rect");
-        const QVariant cornerRadius = mItem->property("cornerRadius");
-
-        const bool showRect = (!rect.isNull() && rect.canConvert<QRectF>());
-        const bool showCornerRadius = (!cornerRadius.isNull() && cornerRadius.canConvert<double>());
+        bool showRect = false, showCornerRadius = false;
+        const QRectF rect = checkProperty<QRectF>("rect", showRect);
+        const double cornerRadius = checkDoubleProperty("cornerRadius", showCornerRadius);
 
         if (showRect)
         {
-            QRectF rectValue = rect.value<QRectF>();
-            mRectPositionWidget->setPosition(rectValue.center());
+            mRectPositionWidget->setPosition(mItem->mapToScene(rect.center()));
 
             if (mItem->rotation() % 2 == 1)
-                mRectSizeWidget->setSize(QSizeF(rectValue.height(), rectValue.width()));
+                mRectSizeWidget->setSize(QSizeF(rect.height(), rect.width()));
             else
-                mRectSizeWidget->setSize(rectValue.size());
+                mRectSizeWidget->setSize(rect.size());
         }
-        if (showCornerRadius) mRectCornerRadiusEdit->setLength(cornerRadius.toDouble());
+        if (showCornerRadius) mRectCornerRadiusEdit->setLength(cornerRadius);
 
         mRectLayout->setRowVisible(mRectPositionWidget, showRect);
         mRectLayout->setRowVisible(mRectSizeWidget, showRect);
@@ -763,22 +754,21 @@ void SingleItemPropertiesWidget::updateEllipseGroup()
 {
     if (mItem)
     {
-        const QVariant ellipse = mItem->property("ellipse");
-
-        const bool showEllipse = (!ellipse.isNull() && ellipse.canConvert<QRectF>());
+        bool showEllipse = false;
+        const QRectF ellipse = checkProperty<QRectF>("ellipse", showEllipse);
 
         if (showEllipse)
         {
-            QRectF ellipseValue = ellipse.value<QRectF>();
-            mEllipsePositionWidget->setPosition(ellipseValue.center());
+            mEllipsePositionWidget->setPosition(mItem->mapToScene(ellipse.center()));
 
             if (mItem->rotation() % 2 == 1)
-                mEllipseSizeWidget->setSize(QSizeF(ellipseValue.height(), ellipseValue.width()));
+                mEllipseSizeWidget->setSize(QSizeF(ellipse.height(), ellipse.width()));
             else
-                mEllipseSizeWidget->setSize(ellipseValue.size());
+                mEllipseSizeWidget->setSize(ellipse.size());
         }
 
         mEllipseGroup->setVisible(showEllipse);
+        if (showEllipse) mRectGroup->setVisible(false);
     }
     else mEllipseGroup->setVisible(false);
 }
@@ -787,28 +777,19 @@ void SingleItemPropertiesWidget::updatePolylineGroup()
 {
     if (mItem)
     {
-        const QVariant polyline = mItem->property("polyline");
-
-        const bool showPolyline = (!polyline.isNull() && polyline.canConvert<QPolygonF>());
+        bool showPolyline = false;
+        const QPolygonF polyline = checkProperty<QPolygonF>("polyline", showPolyline);
 
         if (showPolyline)
-        {
-            QPolygonF polylineValue = polyline.value<QPolygonF>();
-            updatePositionWidgets(polylineValue, mPolylineWidgets, mPolylineLayout,
-                                  this, SLOT(handlePolylineChange(QPointF)));
-        }
+            updatePositionWidgets(polyline, mPolylineWidgets, mPolylineLayout, this, SLOT(handlePolylineChange(QPointF)));
         else
-        {
-            updatePositionWidgets(QPolygonF(), mPolylineWidgets, mPolylineLayout,
-                                  this, SLOT(handlePolylineChange(QPointF)));
-        }
+            clearPositionWidgets(mPolylineWidgets, mPolylineLayout);
 
         mPolylineGroup->setVisible(showPolyline);
     }
     else
     {
-        updatePositionWidgets(QPolygonF(), mPolylineWidgets, mPolylineLayout,
-                              this, SLOT(handlePolylineChange(QPointF)));
+        clearPositionWidgets(mPolylineWidgets, mPolylineLayout);
         mPolylineGroup->setVisible(false);
     }
 }
@@ -817,17 +798,13 @@ void SingleItemPropertiesWidget::updatePolygonGroup()
 {
     if (mItem)
     {
-        const QVariant polygon = mItem->property("polygon");
-
-        const bool showPolygon = (!polygon.isNull() && polygon.canConvert<QPolygonF>());
+        bool showPolygon = false;
+        const QPolygonF polygon = checkProperty<QPolygonF>("polygon", showPolygon);
 
         if (showPolygon)
-        {
-            QPolygonF polygonValue = polygon.value<QPolygonF>();
-            updatePositionWidgets(polygonValue, mPolygonWidgets, mPolygonLayout,
-                                  this, SLOT(handlePolygonChange(QPointF)));
-        }
-        else clearPositionWidgets(mPolygonWidgets, mPolygonLayout);
+            updatePositionWidgets(polygon, mPolygonWidgets, mPolygonLayout, this, SLOT(handlePolygonChange(QPointF)));
+        else
+            clearPositionWidgets(mPolygonWidgets, mPolygonLayout);
 
         mPolygonGroup->setVisible(showPolygon);
     }
@@ -842,20 +819,16 @@ void SingleItemPropertiesWidget::updatePenBrushGroup()
 {
     if (mItem)
     {
-        const QVariant penStyle = mItem->property("penStyle");
-        const QVariant penWidth = mItem->property("penWidth");
-        const QVariant penColor = mItem->property("penColor");
-        const QVariant brushColor = mItem->property("brushColor");
+        bool showPenStyle = false, showPenWidth = false, showPenColor = false, showBrushColor = false;
+        const Qt::PenStyle penStyle = static_cast<Qt::PenStyle>(checkIntProperty("penStyle", showPenStyle));
+        const double penWidth = checkDoubleProperty("penWidth", showPenWidth);
+        const QColor penColor = checkProperty<QColor>("penColor", showPenColor);
+        const QColor brushColor = checkProperty<QColor>("brushColor", showBrushColor);
 
-        const bool showPenStyle = (!penStyle.isNull() && penStyle.canConvert<int>());
-        const bool showPenWidth = (!penWidth.isNull() && penWidth.canConvert<double>());
-        const bool showPenColor = (!penColor.isNull() && penColor.canConvert<QColor>());
-        const bool showBrushColor = (!brushColor.isNull() && brushColor.canConvert<QColor>());
-
-        if (showPenStyle) setPenStyle(static_cast<Qt::PenStyle>(penStyle.toInt()));
-        if (showPenWidth) setPenWidth(penStyle.toDouble());
-        if (showPenColor) setPenColor(penStyle.value<QColor>());
-        if (showBrushColor) setBrushColor(penStyle.value<QColor>());
+        if (showPenStyle) setPenStyle(penStyle);
+        if (showPenWidth) setPenWidth(penWidth);
+        if (showPenColor) setPenColor(penColor);
+        if (showBrushColor) setBrushColor(brushColor);
 
         mPenBrushLayout->setRowVisible(mPenStyleCombo, showPenStyle);
         mPenBrushLayout->setRowVisible(mPenWidthEdit, showPenWidth);
@@ -877,20 +850,19 @@ void SingleItemPropertiesWidget::updateMarkerGroup()
 {
     if (mItem)
     {
-        const QVariant startMarkerStyle = mItem->property("startMarkerStyle");
-        const QVariant startMarkerSize = mItem->property("startMarkerSize");
-        const QVariant endMarkerStyle = mItem->property("endMarkerStyle");
-        const QVariant endMarkerSize = mItem->property("endMarkerSize");
+        bool showStartMarkerStyle = false, showStartMarkerSize = false, showEndMarkerStyle = false,
+            showEndMarkerSize = false;
+        const Odg::MarkerStyle startMarkerStyle = static_cast<Odg::MarkerStyle>(checkIntProperty("startMarkerStyle",
+                                                                                                 showStartMarkerStyle));
+        const double startMarkerSize = checkDoubleProperty("startMarkerSize", showStartMarkerSize);
+        const Odg::MarkerStyle endMarkerStyle = static_cast<Odg::MarkerStyle>(checkIntProperty("endMarkerStyle",
+                                                                                               showEndMarkerStyle));
+        const double endMarkerSize = checkDoubleProperty("endMarkerSize", showEndMarkerSize);
 
-        const bool showStartMarkerStyle = (!startMarkerStyle.isNull() && startMarkerStyle.canConvert<int>());
-        const bool showStartMarkerSize = (!startMarkerSize.isNull() && startMarkerSize.canConvert<double>());
-        const bool showEndMarkerStyle = (!endMarkerStyle.isNull() && endMarkerStyle.canConvert<int>());
-        const bool showEndMarkerSize = (!endMarkerSize.isNull() && endMarkerSize.canConvert<double>());
-
-        if (showStartMarkerStyle) setStartMarkerStyle(static_cast<Odg::MarkerStyle>(startMarkerStyle.toInt()));
-        if (showStartMarkerSize) setStartMarkerSize(startMarkerSize.toDouble());
-        if (showEndMarkerStyle) setEndMarkerStyle(static_cast<Odg::MarkerStyle>(endMarkerStyle.toInt()));
-        if (showEndMarkerSize) setEndMarkerSize(endMarkerSize.toDouble());
+        if (showStartMarkerStyle) setStartMarkerStyle(startMarkerStyle);
+        if (showStartMarkerSize) setStartMarkerSize(startMarkerSize);
+        if (showEndMarkerStyle) setEndMarkerStyle(endMarkerStyle);
+        if (showEndMarkerSize) setEndMarkerSize(endMarkerSize);
 
         mMarkerLayout->setRowVisible(mStartMarkerStyleCombo, showStartMarkerStyle);
         mMarkerLayout->setRowVisible(mStartMarkerSizeEdit, showStartMarkerSize);
@@ -912,29 +884,24 @@ void SingleItemPropertiesWidget::updateTextGroup()
 {
     if (mItem)
     {
-        const QVariant fontFamily = mItem->property("fontFamily");
-        const QVariant fontSize = mItem->property("fontSize");
-        const QVariant fontStyle = mItem->property("fontStyle");
-        const QVariant textAlignment = mItem->property("textAlignment");
-        const QVariant textPadding = mItem->property("textPadding");
-        const QVariant textColor = mItem->property("textColor");
-        const QVariant caption = mItem->property("caption");
+        bool showFontFamily = false, showFontSize = false, showFontStyle = false, showTextAlignment = false,
+            showTextPadding = false, showTextColor = false, showCaption = false;
+        const QString fontFamily = checkStringProperty("fontFamily", showFontFamily);
+        const double fontSize = checkDoubleProperty("fontSize", showFontSize);
+        const OdgFontStyle fontStyle = checkProperty<OdgFontStyle>("fontStyle", showFontStyle);
+        const Qt::Alignment textAlignment = static_cast<Qt::Alignment>(checkIntProperty("textAlignment",
+                                                                                        showTextAlignment));
+        const QSizeF textPadding = checkProperty<QSizeF>("textPadding", showTextPadding);
+        const QColor textColor = checkProperty<QColor>("textColor", showTextColor);
+        const QString caption = checkStringProperty("caption", showCaption);
 
-        const bool showFontFamily = (!fontFamily.isNull() && fontFamily.canConvert<QString>());
-        const bool showFontSize = (!fontSize.isNull() && fontSize.canConvert<double>());
-        const bool showFontStyle = (!fontStyle.isNull() && fontStyle.canConvert<OdgFontStyle>());
-        const bool showTextAlignment = (!textAlignment.isNull() && textAlignment.canConvert<int>());
-        const bool showTextPadding = (!textPadding.isNull() && textPadding.canConvert<QSizeF>());
-        const bool showTextColor = (!textColor.isNull() && textColor.canConvert<QColor>());
-        const bool showCaption = (!caption.isNull() && caption.canConvert<QString>());
-
-        if (showFontFamily) setFontFamily(fontFamily.toString());
-        if (showFontSize) setFontSize(fontSize.toDouble());
-        if (showFontStyle) setFontStyle(fontStyle.value<OdgFontStyle>());
-        if (showTextAlignment) setTextAlignment(static_cast<Qt::Alignment>(textAlignment.toInt()));
-        if (showTextPadding) setTextPadding(textPadding.value<QSizeF>());
-        if (showTextColor) setTextColor(textColor.value<QColor>());
-        if (showCaption) mCaptionEdit->setPlainText(caption.toString());
+        if (showFontFamily) setFontFamily(fontFamily);
+        if (showFontSize) setFontSize(fontSize);
+        if (showFontStyle) setFontStyle(fontStyle);
+        if (showTextAlignment) setTextAlignment(textAlignment);
+        if (showTextPadding) setTextPadding(textPadding);
+        if (showTextColor) setTextColor(textColor);
+        if (showCaption) mCaptionEdit->setPlainText(caption);
 
         mTextLayout->setRowVisible(mFontFamilyCombo, showFontFamily);
         mTextLayout->setRowVisible(mFontSizeEdit, showFontSize);
@@ -957,6 +924,60 @@ void SingleItemPropertiesWidget::updateTextGroup()
         mTextLayout->setRowVisible(mCaptionEdit, false);
         mTextGroup->setVisible(true);
     }
+}
+
+//======================================================================================================================
+
+int SingleItemPropertiesWidget::checkIntProperty(const QString& name, bool& hasProperty) const
+{
+    if (mItem)
+    {
+        const QVariant propertyValue = mItem->property(name);
+        hasProperty = (!propertyValue.isNull() && propertyValue.canConvert<int>());
+        if (hasProperty) return propertyValue.toInt();
+    }
+
+    hasProperty = false;
+    return 0;
+}
+
+double SingleItemPropertiesWidget::checkDoubleProperty(const QString& name, bool& hasProperty) const
+{
+    if (mItem)
+    {
+        const QVariant propertyValue = mItem->property(name);
+        hasProperty = (!propertyValue.isNull() && propertyValue.canConvert<double>());
+        if (hasProperty) return propertyValue.toDouble();
+    }
+
+    hasProperty = false;
+    return 0;
+}
+
+QString SingleItemPropertiesWidget::checkStringProperty(const QString& name, bool& hasProperty) const
+{
+    if (mItem)
+    {
+        const QVariant propertyValue = mItem->property(name);
+        hasProperty = (!propertyValue.isNull() && propertyValue.canConvert<QString>());
+        if (hasProperty) return propertyValue.toString();
+    }
+
+    hasProperty = false;
+    return QString();
+}
+
+template<class T> T SingleItemPropertiesWidget::checkProperty(const QString& name, bool& hasProperty) const
+{
+    if (mItem)
+    {
+        const QVariant propertyValue = mItem->property(name);
+        hasProperty = (!propertyValue.isNull() && propertyValue.canConvert<T>());
+        if (hasProperty) return propertyValue.value<T>();
+    }
+
+    hasProperty = false;
+    return T();
 }
 
 //======================================================================================================================
@@ -995,7 +1016,7 @@ void SingleItemPropertiesWidget::updatePositionWidgets(const QPolygonF& polygon,
 
     // Set position widget values
     const int size = qMin(polygon.size(), positionWidgets.size());
-    for(int i = 0; i < size; i++) positionWidgets.at(i)->setPosition(polygon.at(i));
+    for(int i = 0; i < size; i++) positionWidgets.at(i)->setPosition(mItem->mapToScene(polygon.at(i)));
 }
 
 void SingleItemPropertiesWidget::clearPositionWidgets(QList<PositionWidget*>& positionWidgets, QFormLayout* layout)

@@ -274,14 +274,14 @@ bool OdgItem::canRemovePoints() const
     return false;
 }
 
-void OdgItem::insertPoint(const QPointF& position)
+int OdgItem::insertPointIndex(const QPointF& position)
 {
-    // Nothing to do here.
+    return -1;
 }
 
-void OdgItem::removePoint(const QPointF& position)
+int OdgItem::removePointIndex(const QPointF& position)
 {
-    // Nothing to do here.
+    return -1;
 }
 
 //======================================================================================================================

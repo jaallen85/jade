@@ -81,7 +81,7 @@ PropertiesWidget::PropertiesWidget(DrawingWidget* drawing) : QStackedWidget(),
     connect(mDrawing, SIGNAL(propertiesChanged()), this, SLOT(setAllDrawingProperties()));
     connect(mDrawing, SIGNAL(currentItemsChanged(QList<OdgItem*>)), this, SLOT(setItems(QList<OdgItem*>)));
     connect(mDrawing, SIGNAL(currentItemsGeometryChanged(QList<OdgItem*>)), this, SLOT(setItems(QList<OdgItem*>)));
-    connect(mDrawing, SIGNAL(currentItemsGeometryChanged(QList<OdgItem*>)), this, SLOT(setItems(QList<OdgItem*>)));
+    connect(mDrawing, SIGNAL(currentItemsPropertyChanged(QList<OdgItem*>)), this, SLOT(setItems(QList<OdgItem*>)));
 
     connect(mDrawingPropertiesWidget, SIGNAL(propertyChanged(QString,QVariant)),
             mDrawing, SLOT(setDrawingProperty(QString,QVariant)));

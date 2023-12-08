@@ -63,8 +63,8 @@ public:
     QPainterPath mapFromScene(const QPainterPath& path) const;
 
     void addControlPoint(OdgControlPoint* point);
-    void insertControlPoint(int index, OdgControlPoint* point);
-    void removeControlPoint(OdgControlPoint* point);
+    virtual void insertControlPoint(int index, OdgControlPoint* point);
+    virtual void removeControlPoint(OdgControlPoint* point);
     void clearControlPoints();
     QList<OdgControlPoint*> controlPoints() const;
 
@@ -95,8 +95,8 @@ public:
 
     virtual bool canInsertPoints() const;
     virtual bool canRemovePoints() const;
-    virtual void insertPoint(const QPointF& position);
-    virtual void removePoint(const QPointF& position);
+    virtual int insertPointIndex(const QPointF& position);
+    virtual int removePointIndex(const QPointF& position);
 
     virtual void scaleBy(double scale);
 

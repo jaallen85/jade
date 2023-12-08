@@ -1643,6 +1643,10 @@ void OdgReader::transformFromString(const QStringView& str, QPointF& position, b
     const QList<QStringView> tokens = str.split(QStringLiteral(")"));
     QStringView trimmedToken;
     int startParenIndex = 0;
+
+    position.setX(0);
+    position.setY(0);
+
     for(auto& token : tokens)
     {
         trimmedToken = token.trimmed();

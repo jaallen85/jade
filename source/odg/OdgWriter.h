@@ -19,6 +19,7 @@
 
 #include <QColor>
 #include <QFile>
+#include <QHash>
 #include <QList>
 #include <QMarginsF>
 #include <QPainterPath>
@@ -26,9 +27,21 @@
 #include "OdgGlobal.h"
 
 class QXmlStreamWriter;
+class OdgCurveItem;
+class OdgEllipseItem;
+class OdgGroupItem;
 class OdgItem;
+class OdgLineItem;
+class OdgPathItem;
 class OdgPage;
+class OdgPolygonItem;
+class OdgPolylineItem;
+class OdgRectItem;
+class OdgRoundedRectItem;
 class OdgStyle;
+class OdgTextEllipseItem;
+class OdgTextItem;
+class OdgTextRoundedRectItem;
 
 class OdgWriter
 {
@@ -48,7 +61,9 @@ private:
     QList<OdgPage*> mPages;
 
     QFile mFile;
-    QStringList mContentFontFaces;
+    QList<OdgStyle*> mStyles;
+    QHash<OdgStyle*,bool> mTextStyleNeeded;
+    QHash<OdgItem*,OdgStyle*> mItemStyles;
 
 public:
     OdgWriter(const QString& fileName);
@@ -74,6 +89,13 @@ public:
     bool write();
 
 private:
+    void analyzeDrawingForStyles();
+    OdgStyle* findOrCreateStyle(OdgItem* item);
+    int checkIntProperty(OdgItem* item, const QString& name, bool& hasProperty) const;
+    double checkDoubleProperty(OdgItem* item, const QString& name, bool& hasProperty) const;
+    QString checkStringProperty(OdgItem* item, const QString& name, bool& hasProperty) const;
+    template<class T> T checkProperty(OdgItem* item, const QString& name, bool& hasProperty) const;
+
     void writeManifest(QXmlStreamWriter& xml);
     void writeManifestFileEntry(QXmlStreamWriter& xml, const QString& fullPath, const QString& mediaType);
 
@@ -87,9 +109,13 @@ private:
     void writeDocumentStyles(QXmlStreamWriter& xml);
     void writeStyleFontFaces(QXmlStreamWriter& xml);
     void writeStyles(QXmlStreamWriter& xml);
+    void writeDashStyle(QXmlStreamWriter& xml, const QString& name, const QString& displayName, const QString& dots1,
+                        const QString& dots1Length, const QString& dots2, const QString& dots2Length,
+                        const QString& distance);
+    void writeMarkerStyle(QXmlStreamWriter& xml, const QString& name, const QString& viewBox, const QString& path);
     void writeAutomaticPageStyles(QXmlStreamWriter& xml);
     void writeMasterPageStyles(QXmlStreamWriter& xml);
-    void writeFontFace(QXmlStreamWriter& xml, const QString fontFamily, bool style = false);
+    void writeFontFace(QXmlStreamWriter& xml, const QString fontFamily);
     void writePageLayout(QXmlStreamWriter& xml);
     void writePageLayoutProperties(QXmlStreamWriter& xml);
     void writePageStyle(QXmlStreamWriter& xml, const QString& name);
@@ -103,9 +129,25 @@ private:
     void writeDrawing(QXmlStreamWriter& xml);
     void writePage(QXmlStreamWriter& xml, OdgPage* page);
 
-    void writeItemFontFaces(QXmlStreamWriter& xml, const QList<OdgItem*>& items);
-    void writeItemStyles(QXmlStreamWriter& xml, const QList<OdgItem*>& items);
+    void writeStyle(QXmlStreamWriter& xml, OdgStyle* style, bool writeParagraphAndTextStyle);
+    void writeStyleGraphicProperties(QXmlStreamWriter& xml, OdgStyle* style);
+    void writeStyleParagraphProperties(QXmlStreamWriter& xml, OdgStyle* style);
+    void writeStyleTextProperties(QXmlStreamWriter& xml, OdgStyle* style);
+
     void writeItems(QXmlStreamWriter& xml, const QList<OdgItem*>& items);
+    void writeLineItem(QXmlStreamWriter& xml, OdgLineItem* item, const QString& styleName);
+    void writeCurveItem(QXmlStreamWriter& xml, OdgCurveItem* item, const QString& styleName);
+    void writeRectItem(QXmlStreamWriter& xml, OdgRectItem* item, const QString& styleName);
+    void writeRoundedRectItem(QXmlStreamWriter& xml, OdgRoundedRectItem* item, const QString& styleName);
+    void writeEllipseItem(QXmlStreamWriter& xml, OdgEllipseItem* item, const QString& styleName);
+    void writeTextItem(QXmlStreamWriter& xml, OdgTextItem* item, const QString& styleName);
+    void writeTextRoundedRectItem(QXmlStreamWriter& xml, OdgTextRoundedRectItem* item, const QString& styleName);
+    void writeTextEllipseItem(QXmlStreamWriter& xml, OdgTextEllipseItem* item, const QString& styleName);
+    void writePolylineItem(QXmlStreamWriter& xml, OdgPolylineItem* item, const QString& styleName);
+    void writePolygonItem(QXmlStreamWriter& xml, OdgPolygonItem* item, const QString& styleName);
+    void writePathItem(QXmlStreamWriter& xml, OdgPathItem* item, const QString& styleName);
+    void writeGroupItem(QXmlStreamWriter& xml, OdgGroupItem* item, const QString& styleName);
+    void writeCaption(QXmlStreamWriter& xml, const QString& caption, const QString& styleName);
 
     QString lengthToString(double length) const;
     QString xCoordinateToString(double x) const;
