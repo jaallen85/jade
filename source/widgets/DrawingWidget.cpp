@@ -288,7 +288,12 @@ void DrawingWidget::setUnits(Odg::Units units)
 {
     if (mUnits != units)
     {
+        double scaleFactor = Odg::convertUnits(1, mUnits, units);
+
         OdgDrawing::setUnits(units);
+
+        if (scaleFactor != 0) setScale(scale() / scaleFactor);
+
         emit propertyChanged("units", static_cast<int>(mUnits));
     }
 }
@@ -1149,6 +1154,7 @@ void DrawingWidget::setSelectMode()
         // Assume select mode state already clear
 
         // Clear place mode state
+        if (!mPlaceItems.isEmpty()) emit currentItemsChanged(QList<OdgItem*>());
         qDeleteAll(mPlaceItems);
         mPlaceItems.clear();
 
@@ -1179,6 +1185,7 @@ void DrawingWidget::setScrollMode()
 		mSelectMoveItemsInitialPositions.clear();
 
         // Clear place mode state
+        if (!mPlaceItems.isEmpty()) emit currentItemsChanged(QList<OdgItem*>());
         qDeleteAll(mPlaceItems);
         mPlaceItems.clear();
 
@@ -1205,6 +1212,7 @@ void DrawingWidget::setZoomMode()
 		mSelectMoveItemsInitialPositions.clear();
 
         // Clear place mode state
+        if (!mPlaceItems.isEmpty()) emit currentItemsChanged(QList<OdgItem*>());
         qDeleteAll(mPlaceItems);
         mPlaceItems.clear();
 
@@ -1232,6 +1240,7 @@ void DrawingWidget::setPlaceMode(const QList<OdgItem*>& items, bool placeByMouse
 		mSelectMoveItemsInitialPositions.clear();
 
         // Clear place mode state
+        if (!mPlaceItems.isEmpty()) emit currentItemsChanged(QList<OdgItem*>());
         qDeleteAll(mPlaceItems);
         mPlaceItems.clear();
 

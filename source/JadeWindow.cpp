@@ -16,6 +16,8 @@
 
 #include "JadeWindow.h"
 #include "DrawingWidget.h"
+#include "OdgItem.h"
+#include "OdgPage.h"
 #include "PagesWidget.h"
 #include "PropertiesWidget.h"
 #include <QApplication>
@@ -27,6 +29,7 @@
 #include <QLabel>
 #include <QMenuBar>
 #include <QMessageBox>
+#include <QPainter>
 #include <QShowEvent>
 #include <QStatusBar>
 #include <QToolBar>
@@ -420,7 +423,39 @@ void JadeWindow::closeDrawing()
 
 void JadeWindow::exportPng()
 {
+    OdgPage* currentPage = mDrawingWidget->currentPage();
+    if (mDrawingWidget->isVisible() && currentPage)
+    {
+        // Determine export path
+        QString exportPath;
+        if (mFilePath.startsWith("Untitled"))
+            exportPath = QDir(mWorkingDir).absoluteFilePath(currentPage->name() + ".png");
+        else
+            exportPath = mFilePath.left(mFilePath.size() - 4) + ".png";
 
+        // Export the PNG image
+        //QRectF exportRect = mDrawingWidget->pageRect();
+        QRectF exportRect;
+        const QList<OdgItem*> items = currentPage->items();
+        for(auto& item : items)
+            exportRect = exportRect.united(item->mapToScene(item->boundingRect()));
+
+        const double pixelsPerInch = 600;
+        const double exportScale = Odg::convertUnits(pixelsPerInch, mDrawingWidget->units(), Odg::UnitsInches);
+        const int exportWidth = qRound(exportRect.width() * exportScale);
+        const int exportHeight = qRound(exportRect.height() * exportScale);
+
+        QImage pngImage(exportWidth, exportHeight, QImage::Format_ARGB32);
+
+        QPainter painter(&pngImage);
+        painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing, true);
+        painter.scale(exportScale, exportScale);
+        painter.translate(-exportRect.left(), -exportRect.top());
+        mDrawingWidget->paint(painter, true);
+        painter.end();
+
+        pngImage.save(exportPath);
+    }
 }
 
 void JadeWindow::exportSvg()
