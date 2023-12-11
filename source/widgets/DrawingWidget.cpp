@@ -15,7 +15,6 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "DrawingWidget.h"
-#include "DrawingMimeData.h"
 #include "DrawingUndo.h"
 #include "OdgControlPoint.h"
 #include "OdgGluePoint.h"
@@ -36,7 +35,6 @@
 #include "OdgTextRoundedRectItem.h"
 #include <QActionGroup>
 #include <QApplication>
-#include <QClipboard>
 #include <QContextMenuEvent>
 #include <QMenu>
 #include <QMessageBox>
@@ -1410,9 +1408,25 @@ void DrawingWidget::copy()
 {
     if (mCurrentPage && mMode == Odg::SelectMode && !mSelectedItems.isEmpty())
     {
-        DrawingMimeData* mimeData = new DrawingMimeData();
-        mimeData->setItems(mSelectedItems);
-        QApplication::clipboard()->setMimeData(mimeData);
+        OdgWriter writer;
+        writer.setUnits(mUnits);
+        writer.setPageSize(mPageSize);
+        writer.setPageMargins(mPageMargins);
+        writer.setBackgroundColor(mBackgroundColor);
+        writer.setGrid(mGrid);
+        writer.setGridStyle(mGridStyle);
+        writer.setGridColor(mGridColor);
+        writer.setGridSpacingMajor(mGridSpacingMajor);
+        writer.setGridSpacingMinor(mGridSpacingMinor);
+
+        writer.setDefaultStyle(mDefaultStyle);
+
+        OdgPage* page = new OdgPage(mCurrentPage->name());
+        for(auto& item : qAsConst(mSelectedItems))
+            page->addItem(item);
+        writer.setPages(QList<OdgPage*>(1, page));
+
+        writer.writeToClipboard();
     }
 }
 
@@ -1420,16 +1434,30 @@ void DrawingWidget::paste()
 {
     if (mCurrentPage && mMode == Odg::SelectMode)
     {
-        const QMimeData* mimeData = QApplication::clipboard()->mimeData();
-        if (mimeData && mimeData->hasFormat(DrawingMimeData::format()))
+        OdgReader reader;
+        reader.readFromClipboard();
+
+        const QList<OdgPage*> pages = reader.takePages();
+        if (!pages.isEmpty())
         {
-            QVariant data = mimeData->data(DrawingMimeData::format());
-            if (!data.isNull() && data.canConvert< QList<OdgItem*> >())
+            OdgPage* page = pages.first();
+
+            const QList<OdgItem*> items = page->items();
+            for(auto& item : qAsConst(items))
+                page->removeItem(item);
+
+            if (mUnits != reader.units())
             {
-                QList<OdgItem*> items = data.value< QList<OdgItem*> >();
-                if (!items.isEmpty()) setPlaceMode(OdgItem::copyItems(items), false);
+                double scaleFactor = Odg::convertUnits(1.0, reader.units(), mUnits);
+                for(auto& item : qAsConst(items))
+                    item->scaleBy(scaleFactor);
             }
+
+            if (!items.isEmpty())
+                setPlaceMode(items, false);
         }
+
+        qDeleteAll(pages);
     }
 }
 

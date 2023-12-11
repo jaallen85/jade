@@ -15,6 +15,9 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "OdgReader.h"
+#include <QApplication>
+#include <QClipboard>
+#include <QRegularExpression>
 #include <QRegularExpression>
 #include <QXmlStreamReader>
 #include <quazip.h>
@@ -46,6 +49,19 @@ OdgReader::~OdgReader()
     close();
     qDeleteAll(mPages);
     qDeleteAll(mStyles);
+}
+
+//======================================================================================================================
+
+void OdgReader::setFileName(const QString& fileName)
+{
+    mFile.setFileName(fileName);
+
+}
+
+QString OdgReader::fileName() const
+{
+    return mFile.fileName();
 }
 
 //======================================================================================================================
@@ -161,6 +177,37 @@ bool OdgReader::read()
     xmlFile.close();
 
     return true;
+}
+
+void OdgReader::readFromClipboard()
+{
+    QString clipboardText = QApplication::clipboard()->text();
+
+    if (!clipboardText.isEmpty())
+    {
+        QXmlStreamReader xml(clipboardText);
+        if (!xml.readNextStartElement() || xml.qualifiedName() == QStringLiteral("office:document"))
+        {
+            // No attributes for <office:document> element
+
+            // Read <office:document> sub-elements
+            while (xml.readNextStartElement())
+            {
+                if (xml.qualifiedName() == QStringLiteral("office:settings"))
+                    readSettings(xml);
+                else if (xml.qualifiedName() == QStringLiteral("office:styles"))
+                    readStyles(xml);
+                else if (xml.qualifiedName() == QStringLiteral("office:automatic-styles"))
+                    readStyles(xml);
+                else if (xml.qualifiedName() == QStringLiteral("office:body"))
+                    readBody(xml);
+                else
+                    xml.skipCurrentElement();
+            }
+
+            xml.skipCurrentElement();
+        }
+    }
 }
 
 //======================================================================================================================

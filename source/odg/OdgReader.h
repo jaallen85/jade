@@ -53,8 +53,11 @@ private:
     QFile mFile;
 
 public:
-    OdgReader(const QString& fileName);
+    OdgReader(const QString& fileName = QString());
     ~OdgReader();
+
+    void setFileName(const QString& fileName);
+    QString fileName() const;
 
     Odg::Units units() const;
     QSizeF pageSize() const;
@@ -74,6 +77,7 @@ public:
     void close();
 
     bool read();
+    void readFromClipboard();
 
 private:
     void readDocumentSettings(QXmlStreamReader& xml);

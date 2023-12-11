@@ -28,6 +28,8 @@
 #include "OdgTextItem.h"
 #include "OdgTextEllipseItem.h"
 #include "OdgTextRoundedRectItem.h"
+#include <QApplication>
+#include <QClipboard>
 #include <QXmlStreamWriter>
 #include <quazip.h>
 #include <quazipfile.h>
@@ -44,6 +46,19 @@ OdgWriter::~OdgWriter()
 {
     close();
     qDeleteAll(mStyles);
+}
+
+//======================================================================================================================
+
+void OdgWriter::setFileName(const QString& fileName)
+{
+    mFile.setFileName(fileName);
+
+}
+
+QString OdgWriter::fileName() const
+{
+    return mFile.fileName();
 }
 
 //======================================================================================================================
@@ -132,8 +147,8 @@ bool OdgWriter::write()
 
     QuaZipFile odgFile(&odgArchive);
     QXmlStreamWriter xml;
-    xml.setAutoFormatting(true);
-    xml.setAutoFormattingIndent(2);
+    //xml.setAutoFormatting(true);
+    //xml.setAutoFormattingIndent(2);
 
     // Mimetype file
     if (!odgFile.open(QFile::WriteOnly, QuaZipNewInfo("mimetype"))) return false;
@@ -171,6 +186,45 @@ bool OdgWriter::write()
     odgFile.close();
 
     return true;
+}
+
+void OdgWriter::writeToClipboard()
+{
+    QString clipboardText;
+
+    analyzeDrawingForStyles();
+
+    QXmlStreamWriter xml(&clipboardText);
+    //xml.setAutoFormatting(true);
+    //xml.setAutoFormattingIndent(2);
+
+    xml.writeStartDocument();
+    xml.writeStartElement("office:document");
+
+    // Write <office:document> attributes
+    xml.writeAttribute("xmlns:office", "urn:oasis:names:tc:opendocument:xmlns:office:1.0");
+    xml.writeAttribute("xmlns:config", "urn:oasis:names:tc:opendocument:xmlns:config:1.0");
+    xml.writeAttribute("xmlns:draw", "urn:oasis:names:tc:opendocument:xmlns:drawing:1.0");
+    xml.writeAttribute("xmlns:fo", "urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0");
+    xml.writeAttribute("xmlns:loext", "urn:org:documentfoundation:names:experimental:office:xmlns:loext:1.0");
+    xml.writeAttribute("xmlns:office", "urn:oasis:names:tc:opendocument:xmlns:office:1.0");
+    xml.writeAttribute("xmlns:style", "urn:oasis:names:tc:opendocument:xmlns:style:1.0");
+    xml.writeAttribute("xmlns:svg", "urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0");
+    xml.writeAttribute("xmlns:text", "urn:oasis:names:tc:opendocument:xmlns:text:1.0");
+    xml.writeAttribute("xmlns:jade", "https://github.com/jaallen85/jade");
+    xml.writeAttribute("office:version", "1.3");
+
+    // Write <office:document> sub-elements
+    writeSettings(xml);
+    writeContentFontFaces(xml);
+    writeStyles(xml);
+    writeContentAutomaticStyles(xml);
+    writeBody(xml);
+
+    xml.writeEndElement();
+    xml.writeEndDocument();
+
+    QApplication::clipboard()->setText(clipboardText);
 }
 
 //======================================================================================================================
@@ -674,6 +728,14 @@ void OdgWriter::writeContentFontFaces(QXmlStreamWriter& xml)
     // No <office:font-face-decls> sub-elements
     QStringList fontFaces;
     QString fontFamily;
+
+    if (mDefaultStyle)
+    {
+        fontFamily = mDefaultStyle->lookupFontFamily();
+        fontFaces.append(fontFamily);
+        writeFontFace(xml, fontFamily);
+    }
+
     for(auto& style : qAsConst(mStyles))
     {
         if (style->isFontFamilyValid())

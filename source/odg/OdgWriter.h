@@ -66,8 +66,11 @@ private:
     QHash<OdgItem*,OdgStyle*> mItemStyles;
 
 public:
-    OdgWriter(const QString& fileName);
+    OdgWriter(const QString& fileName = QString());
     ~OdgWriter();
+
+    void setFileName(const QString& fileName);
+    QString fileName() const;
 
     void setUnits(Odg::Units units);
     void setPageSize(const QSizeF& size);
@@ -87,6 +90,7 @@ public:
     void close();
 
     bool write();
+    void writeToClipboard();
 
 private:
     void analyzeDrawingForStyles();
