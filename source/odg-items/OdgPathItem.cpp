@@ -118,9 +118,9 @@ void OdgPathItem::updateTransformedPath()
     const double xScale = mRect.width() / mPathRect.width(), yScale = mRect.height() / mPathRect.height();
 
     QTransform transform;
-    transform.scale(xScale, yScale);
     transform.translate(-mPathRect.left() * xScale, -mPathRect.top() * yScale);
     transform.translate(mRect.left(), mRect.top());
+    transform.scale(xScale, yScale);
 
-	mTransformedPath = transform.map(mPath);
+    mTransformedPath = transform.map(mPath);
 }

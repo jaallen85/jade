@@ -1606,6 +1606,7 @@ QString OdgWriter::pathToString(const QPainterPath& path) const
             pathStr += "C " + QString::number(element.x, 'g', 8) + " " + QString::number(element.y, 'g', 8) + " ";
             break;
         case QPainterPath::CurveToDataElement:
+            pathStr += QString::number(element.x, 'g', 8) + " " + QString::number(element.y, 'g', 8) + " ";
             break;
         default:
             pathStr += QString::number(element.x, 'g', 8) + " " + QString::number(element.y, 'g', 8) + " ";

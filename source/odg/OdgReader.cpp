@@ -338,22 +338,17 @@ void OdgReader::readStyles(QXmlStreamReader& xml)
     // Read <office:styles> sub-elements
     while (xml.readNextStartElement())
     {
-        if (xml.qualifiedName() == QStringLiteral("style:default-style"))
-        {
-            OdgStyle* defaultStyle = new OdgStyle(mUnits, true);
-            readStyle(xml, defaultStyle);
-            mStyles.prepend(defaultStyle);
-        }
-        else if (xml.qualifiedName() == QStringLiteral("style:style"))
+        if (xml.qualifiedName() == QStringLiteral("style:style"))
         {
             if (xml.attributes().value("style:family") == QStringLiteral("drawing-page"))
                 readPageStyle(xml);
-            else
+            else if (mStyles.isEmpty())
             {
                 OdgStyle* defaultStyle = new OdgStyle(mUnits, false);
                 readStyle(xml, defaultStyle);
-                mStyles.prepend(defaultStyle);
+                mStyles.append(defaultStyle);
             }
+            else xml.skipCurrentElement();
         }
         else xml.skipCurrentElement();
     }
@@ -1112,9 +1107,9 @@ OdgItem* OdgReader::readPolyline(QXmlStreamReader& xml)
 
     const double xScale = width / viewBox.width(), yScale = height / viewBox.height();
     QTransform transform;
-    transform.scale(xScale, yScale);
     transform.translate(-viewBox.left() * xScale, -viewBox.top() * yScale);
     transform.translate(left, top);
+    transform.scale(xScale, yScale);
 
     const QPolygonF mappedPoints = transform.map(points);
 
@@ -1171,10 +1166,12 @@ OdgItem* OdgReader::readPolygon(QXmlStreamReader& xml)
     // Map polygon from viewBox coordinates to item coordinates
     if (viewBox.width() == 0 || viewBox.height() == 0) return nullptr;
 
+    const double xScale = width / viewBox.width(), yScale = height / viewBox.height();
     QTransform transform;
-    transform.translate(-viewBox.left(), -viewBox.top());
-    transform.scale(width / viewBox.width(), height / viewBox.height());
+    transform.translate(-viewBox.left() * xScale, -viewBox.top() * yScale);
     transform.translate(left, top);
+    transform.scale(xScale, yScale);
+
     const QPolygonF mappedPoints = transform.map(points);
 
     // Create OdgPolylineItem
@@ -1231,10 +1228,11 @@ OdgItem* OdgReader::readPath(QXmlStreamReader& xml)
         // Create curve object
         if (viewBox.width() == 0 || viewBox.height() == 0) return nullptr;
 
+        const double xScale = width / viewBox.width(), yScale = height / viewBox.height();
         QTransform transform;
-        transform.translate(-viewBox.left(), -viewBox.top());
-        transform.scale(width / viewBox.width(), height / viewBox.height());
+        transform.translate(-viewBox.left() * xScale, -viewBox.top() * yScale);
         transform.translate(left, top);
+        transform.scale(xScale, yScale);
 
         OdgCurve curve;
         curve.setP1(transform.map(QPointF(path.elementAt(0).x, path.elementAt(0).y)));
@@ -1265,6 +1263,7 @@ OdgItem* OdgReader::readPath(QXmlStreamReader& xml)
     pathItem->setPath(path, viewBox);
     pathItem->setBrush(style->lookupBrush());
     pathItem->setPen(style->lookupPen());
+    pathItem->setRect(QRectF(left, top, width, height));
     if (pathItem->isValid()) return pathItem;
 
     delete pathItem;
@@ -1893,10 +1892,10 @@ QPainterPath OdgReader::pathFromString(const QStringView& str) const
         {
             if (tokenIndex + 6 < tokenSize)
             {
-                cx1 = tokens.at(tokenIndex + 1).trimmed().toDouble(&x2Ok);
-                cy1 = tokens.at(tokenIndex + 2).trimmed().toDouble(&y2Ok);
-                cx2 = tokens.at(tokenIndex + 3).trimmed().toDouble(&x2Ok);
-                cy2 = tokens.at(tokenIndex + 4).trimmed().toDouble(&y2Ok);
+                cx1 = tokens.at(tokenIndex + 1).trimmed().toDouble(&cx1Ok);
+                cy1 = tokens.at(tokenIndex + 2).trimmed().toDouble(&cy1Ok);
+                cx2 = tokens.at(tokenIndex + 3).trimmed().toDouble(&cx2Ok);
+                cy2 = tokens.at(tokenIndex + 4).trimmed().toDouble(&cy2Ok);
                 x2 = tokens.at(tokenIndex + 5).trimmed().toDouble(&x2Ok);
                 y2 = tokens.at(tokenIndex + 6).trimmed().toDouble(&y2Ok);
             }

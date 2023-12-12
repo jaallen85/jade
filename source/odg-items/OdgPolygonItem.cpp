@@ -55,13 +55,13 @@ void OdgPolygonItem::setPolygon(const QPolygonF& polygon)
         const int numberOfPointsToRemove = mControlPoints.size() - mPolygon.size();
 
         for(int i = 0; i < numberOfPointsToAdd; i++)
-            insertControlPoint(i + 1, new OdgControlPoint(QPointF()));
+            OdgItem::insertControlPoint(i + 1, new OdgControlPoint(QPointF()));
 
         OdgControlPoint* pointToRemove = nullptr;
         for(int i = 0; i < numberOfPointsToRemove; i++)
         {
             pointToRemove = mControlPoints.at(mControlPoints.size() - i - 2);
-            removeControlPoint(pointToRemove);
+            OdgItem::removeControlPoint(pointToRemove);
             delete pointToRemove;
         }
 

@@ -34,14 +34,14 @@ OdgStyle::OdgStyle(Odg::Units units, bool defaultStyle) :
     {
     case Odg::UnitsInches:
         mPenWidth = 0.01;
-        mStartMarkerSize = 0.1;
-        mEndMarkerSize = 0.1;
+        mStartMarkerSize = 0.04;
+        mEndMarkerSize = 0.04;
         mFontSize = 0.1;
         break;
     default:    // Odg::UnitsMillimeters
         mPenWidth = 0.2;
-        mStartMarkerSize = 2.0;
-        mEndMarkerSize = 2.0;
+        mStartMarkerSize = 0.8;
+        mEndMarkerSize = 0.8;
         mFontSize = 2.0;
         break;
     }
@@ -702,6 +702,8 @@ QBrush OdgStyle::lookupTextBrush() const
 {
     return QBrush(lookupTextColor());
 }
+
+#include <QDebug>
 
 QString OdgStyle::lookupFontFamily() const
 {

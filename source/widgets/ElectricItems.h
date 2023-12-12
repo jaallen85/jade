@@ -29,7 +29,32 @@ public:
     static QStringList icons();
 
 private:
-    static OdgPathItem* createNmosFetItem();
+    static OdgPathItem* createResistor1();
+    static OdgPathItem* createResistor2();
+    static OdgPathItem* createCapacitor1();
+    static OdgPathItem* createCapacitor2();
+    static OdgPathItem* createInductor();
+
+    static OdgPathItem* createDiode();
+    static OdgPathItem* createZenerDiode();
+    static OdgPathItem* createSchottkyDiode();
+
+    static OdgPathItem* createNpnBjt();
+    static OdgPathItem* createPnpBjt();
+    static OdgPathItem* createNmosFet();
+    static OdgPathItem* createPmosFet();
+
+    static OdgPathItem* createGround1();
+    static OdgPathItem* createGround2();
+
+    static OdgPathItem* createOpAmp();
+
+    static OdgPathItem* createLed();
+
+    static OdgPathItem* createVdc();
+    static OdgPathItem* createVac();
+    static OdgPathItem* createIdc();
+    static OdgPathItem* createIac();
 };
 
 #endif

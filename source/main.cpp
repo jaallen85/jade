@@ -33,10 +33,9 @@ int main(int argc, char* argv[])
 
 
 // Todo:
-// - Test, test test!  Especially file saving/loading and cut/copy/paste.
+// - Test, test test!  Especially file saving/loading and cut/copy/paste
 // - Export to PNG
 // - Export to SVG
 // - Preferences dialog
 // - About dialog
 // - Save/load settings to config file
-// - Electric/logic items

@@ -30,7 +30,19 @@ public:
 
 private:
     static OdgPathItem* createAndGate();
-};
+    static OdgPathItem* createOrGate();
+    static OdgPathItem* createXorGate();
+    static OdgPathItem* createXnorGate();
+    static OdgPathItem* createNandGate();
+    static OdgPathItem* createNorGate();
 
+    static OdgPathItem* createBuffer();
+    static OdgPathItem* createNotGate();
+
+    static OdgPathItem* createMultiplexer();
+    static OdgPathItem* createDemultiplexer();
+
+    static OdgPathItem* createFlipFlop();
+};
 
 #endif
