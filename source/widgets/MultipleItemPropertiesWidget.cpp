@@ -94,7 +94,7 @@ QGroupBox* MultipleItemPropertiesWidget::createPenBrushGroup(int labelWidth)
     connect(mPenColorWidget, SIGNAL(colorChanged(QColor)), this, SLOT(handlePenColorChange(QColor)));
 
     mBrushColorCheck = new QCheckBox("Brush Color:");
-    connect(mPenStyleCheck, SIGNAL(clicked(bool)), this, SLOT(handleBrushColorCheckClicked(bool)));
+    connect(mBrushColorCheck, SIGNAL(clicked(bool)), this, SLOT(handleBrushColorCheckClicked(bool)));
     mBrushColorWidget = new ColorWidget();
     connect(mBrushColorWidget, SIGNAL(colorChanged(QColor)), this, SLOT(handleBrushColorChange(QColor)));
 

@@ -16,6 +16,8 @@
 
 #include "DrawingWidget.h"
 #include "DrawingUndo.h"
+#include "ElectricItems.h"
+#include "LogicItems.h"
 #include "OdgControlPoint.h"
 #include "OdgGluePoint.h"
 #include "OdgItem.h"
@@ -27,6 +29,7 @@
 #include "OdgEllipseItem.h"
 #include "OdgGroupItem.h"
 #include "OdgLineItem.h"
+#include "OdgPathItem.h"
 #include "OdgPolygonItem.h"
 #include "OdgPolylineItem.h"
 #include "OdgRoundedRectItem.h"
@@ -83,6 +86,8 @@ DrawingWidget::~DrawingWidget()
     setCurrentPage(nullptr);
     setDefaultStyle(nullptr);
     setDrawingTemplate(nullptr);
+
+    qDeleteAll(mPathItems);
 }
 
 //======================================================================================================================
@@ -113,6 +118,8 @@ void DrawingWidget::createActions()
     addModeAction("Place Text", ":/icons/draw-text.png");
     addModeAction("Place Text Rectangle", ":/icons/text-rectangle.png");
     addModeAction("Place Text Ellipse", ":/icons/text-ellipse.png");
+    addPathItems("Electric Items", ElectricItems::items(), ElectricItems::icons());
+    addPathItems("Logic Items", LogicItems::items(), LogicItems::icons());
 
     addNormalAction("Rotate", this, SLOT(rotate()), ":/icons/object-rotate-right.png", "R");
     addNormalAction("Rotate Back", this, SLOT(rotateBack()), ":/icons/object-rotate-left.png", "Shift+R");
@@ -256,6 +263,25 @@ void DrawingWidget::addModeAction(const QString& text, const QString& iconPath, 
     action->setCheckable(true);
     if (mModeActionGroup->actions().size() == 1)
         action->setChecked(true);
+}
+
+void DrawingWidget::addPathItems(const QString& name, const QList<OdgPathItem*>& items, const QStringList& icons)
+{
+    QMenu* menu = new QMenu(name);
+    QAction* menuAction;
+
+    mPathItems.append(items);
+    for(int i = 0; i < items.size() && i < icons.size(); i++)
+    {
+        QAction* menuAction = new QAction("Place " + items[i]->pathName(), mModeActionGroup);
+        menuAction->setIcon(QIcon(icons[i]));
+        menuAction->setCheckable(true);
+        menu->addAction(menuAction);
+    }
+
+    QAction* action = new QAction(QIcon(icons.first()), name, this);
+    action->setMenu(menu);
+    QWidget::addAction(action);
 }
 
 //======================================================================================================================
@@ -3048,7 +3074,30 @@ void DrawingWidget::setModeFromAction(QAction* action)
     }
     else
     {
-        setSelectMode();
+        OdgPathItem* foundItem = nullptr;
+        QString actionText;
+
+        for(auto& pathItem : qAsConst(mPathItems))
+        {
+            actionText = action->text();
+            if (actionText.mid(6, -1) == pathItem->pathName())
+            {
+                foundItem = pathItem;
+                break;
+            }
+        }
+
+        if (foundItem)
+        {
+            OdgPathItem* newItem = new OdgPathItem();
+            newItem->setPathName(foundItem->pathName());
+            newItem->setPath(foundItem->path(), foundItem->pathRect());
+            newItem->setBrush(mDefaultStyle->lookupBrush());
+            newItem->setPen(mDefaultStyle->lookupPen());
+            newItem->placeCreateEvent(contentRect(), mGrid);
+            setPlaceMode(QList<OdgItem*>(1, newItem), false);
+        }
+        else setSelectMode();
     }
 }
 

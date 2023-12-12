@@ -1110,10 +1110,12 @@ OdgItem* OdgReader::readPolyline(QXmlStreamReader& xml)
     // Map polyline from viewBox coordinates to item coordinates
     if (viewBox.width() == 0 || viewBox.height() == 0) return nullptr;
 
+    const double xScale = width / viewBox.width(), yScale = height / viewBox.height();
     QTransform transform;
-    transform.translate(-viewBox.left(), -viewBox.top());
-    transform.scale(width / viewBox.width(), height / viewBox.height());
+    transform.scale(xScale, yScale);
+    transform.translate(-viewBox.left() * xScale, -viewBox.top() * yScale);
     transform.translate(left, top);
+
     const QPolygonF mappedPoints = transform.map(points);
 
     // Create OdgPolylineItem

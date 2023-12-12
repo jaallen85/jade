@@ -163,6 +163,9 @@ void JadeWindow::createMenus()
     placeMenu->addAction(drawingActions.at(DrawingWidget::PlaceTextAction));
     placeMenu->addAction(drawingActions.at(DrawingWidget::PlaceTextRectangleAction));
     placeMenu->addAction(drawingActions.at(DrawingWidget::PlaceTextEllipseAction));
+    placeMenu->addSeparator();
+    placeMenu->addAction(drawingActions.at(DrawingWidget::ElectricItemsMenuAction));
+    placeMenu->addAction(drawingActions.at(DrawingWidget::LogicItemsMenuAction));
 
     QMenu* objectMenu = menuBar()->addMenu("Object");
     objectMenu->addAction(drawingActions.at(DrawingWidget::RotateAction));

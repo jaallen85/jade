@@ -28,6 +28,7 @@ class QMenu;
 class OdgControlPoint;
 class OdgGluePoint;
 class OdgItem;
+class OdgPathItem;
 class OdgStyle;
 
 class DrawingWidget : public QAbstractScrollArea, public OdgDrawing
@@ -41,6 +42,7 @@ public:
                        SelectAllAction, SelectNoneAction, SelectModeAction, ScrollModeAction, ZoomModeAction,
                        PlaceLineAction, PlaceCurveAction, PlacePolylineAction, PlaceRectangleAction, PlaceEllipseAction,
                        PlacePolygonAction, PlaceTextAction, PlaceTextRectangleAction, PlaceTextEllipseAction,
+                       ElectricItemsMenuAction, LogicItemsMenuAction,
                        RotateAction, RotateBackAction, FlipHorizontalAction, FlipVerticalAction,
                        BringForwardAction, SendBackwardAction, BringToFrontAction, SendToBackAction,
                        GroupAction, UngroupAction, InsertPointAction, RemovePointAction,
@@ -103,6 +105,8 @@ private:
     QMenu* mSingleGroupItemContextMenu;
     QMenu* mMultipleItemContextMenu;
 
+    QList<OdgPathItem*> mPathItems;
+
 public:
     DrawingWidget();
     ~DrawingWidget();
@@ -114,7 +118,7 @@ private:
                          const QString& iconPath = QString(), const QString& keySequence = QString());
     void addModeAction(const QString& text, const QString& iconPath = QString(),
                        const QString& keySequence = QString());
-
+    void addPathItems(const QString& name, const QList<OdgPathItem*>& items, const QStringList& icons);
 public:
     void setDrawingTemplate(OdgDrawing* temp);
     void setDefaultStyle(OdgStyle* style);

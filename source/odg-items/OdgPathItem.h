@@ -23,6 +23,7 @@
 class OdgPathItem : public OdgRectItem
 {
 private:
+    QString mPathName;
     QPainterPath mPath;
     QRectF mPathRect;
 
@@ -35,7 +36,9 @@ public:
 
 	void setRect(const QRectF& rect) override;
 
+    void setPathName(const QString& name);
 	void setPath(const QPainterPath& path, const QRectF& pathRect);
+    QString pathName() const;
     QPainterPath path() const;
 	QRectF pathRect() const;
 
