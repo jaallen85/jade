@@ -1747,6 +1747,41 @@ void DrawingWidget::setItemsProperty(const QString& name, const QVariant& value)
     }
 }
 
+void DrawingWidget::setDefaultStyleProperty(const QString& name, const QVariant& value)
+{
+    if (mDefaultStyle)
+    {
+        if (name == "penStyle" && value.canConvert<int>())
+            mDefaultStyle->setPenStyle(static_cast<Qt::PenStyle>(value.toInt()));
+        else if (name == "penWidth" && value.canConvert<double>())
+            mDefaultStyle->setPenWidth(value.toDouble());
+        else if (name == "penColor" && value.canConvert<QColor>())
+            mDefaultStyle->setPenColor(value.value<QColor>());
+        else if (name == "brushColor" && value.canConvert<QColor>())
+            mDefaultStyle->setBrushColor(value.value<QColor>());
+        else if (name == "startMarkerStyle" && value.canConvert<int>())
+            mDefaultStyle->setStartMarkerStyle(static_cast<Odg::MarkerStyle>(value.toInt()));
+        else if (name == "startMarkerSize" && value.canConvert<double>())
+            mDefaultStyle->setStartMarkerSize(value.toDouble());
+        else if (name == "endMarkerStyle" && value.canConvert<int>())
+            mDefaultStyle->setEndMarkerStyle(static_cast<Odg::MarkerStyle>(value.toInt()));
+        else if (name == "endMarkerSize" && value.canConvert<double>())
+            mDefaultStyle->setEndMarkerSize(value.toDouble());
+        else if (name == "fontFamily" && value.canConvert<QString>())
+            mDefaultStyle->setFontFamily(value.toString());
+        else if (name == "fontSize" && value.canConvert<double>())
+            mDefaultStyle->setFontSize(value.toDouble());
+        else if (name == "fontStyle" && value.canConvert<OdgFontStyle>())
+            mDefaultStyle->setFontStyle(value.value<OdgFontStyle>());
+        else if (name == "textAlignment" && value.canConvert<int>())
+            mDefaultStyle->setTextAlignment(static_cast<Qt::Alignment>(value.toInt()));
+        else if (name == "textPadding" && value.canConvert<QSizeF>())
+            mDefaultStyle->setTextPadding(value.value<QSizeF>());
+        else if (name == "textColor" && value.canConvert<QColor>())
+            mDefaultStyle->setTextColor(value.value<QColor>());
+    }
+}
+
 //======================================================================================================================
 
 void DrawingWidget::paintEvent(QPaintEvent* event)

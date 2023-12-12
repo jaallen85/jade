@@ -63,6 +63,8 @@ SingleItemPropertiesWidget::SingleItemPropertiesWidget() : QWidget(), mItem(null
     layout->addWidget(createTextGroup(labelWidth));
     layout->addWidget(new QWidget(), 100);
     setLayout(layout);
+
+    setItem(nullptr);
 }
 
 //======================================================================================================================

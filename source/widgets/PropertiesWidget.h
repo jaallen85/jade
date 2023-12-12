@@ -20,6 +20,7 @@
 #include <QStackedWidget>
 
 class QScrollArea;
+class QTabWidget;
 class DrawingWidget;
 class DrawingPropertiesWidget;
 class MultipleItemPropertiesWidget;
@@ -33,8 +34,11 @@ class PropertiesWidget : public QStackedWidget
 private:
     DrawingWidget* mDrawing;
 
+    QTabWidget* mTabWidget;
     DrawingPropertiesWidget* mDrawingPropertiesWidget;
     QScrollArea* mDrawingPropertiesScrollArea;
+    SingleItemPropertiesWidget* mDefaultItemPropertiesWidget;
+    QScrollArea* mDefaultItemPropertiesScrollArea;
 
     MultipleItemPropertiesWidget* mMultipleItemPropertiesWidget;
     QScrollArea* mMultipleItemPropertiesScrollArea;

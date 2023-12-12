@@ -256,6 +256,7 @@ public slots:
     void removePoint();
 
     void setItemsProperty(const QString& name, const QVariant& value);
+    void setDefaultStyleProperty(const QString& name, const QVariant& value);
 
 signals:
     void scaleChanged(double scale);

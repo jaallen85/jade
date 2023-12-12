@@ -17,13 +17,16 @@
 #include "PropertiesWidget.h"
 #include "DrawingPropertiesWidget.h"
 #include "MultipleItemPropertiesWidget.h"
+#include "OdgStyle.h"
 #include "SingleItemPropertiesWidget.h"
 #include "DrawingWidget.h"
 #include <QScrollArea>
+#include <QTabWidget>
 #include <QVBoxLayout>
 
 PropertiesWidget::PropertiesWidget(DrawingWidget* drawing) : QStackedWidget(),
-    mDrawing(drawing), mDrawingPropertiesWidget(nullptr), mDrawingPropertiesScrollArea(nullptr),
+    mDrawing(drawing), mTabWidget(nullptr), mDrawingPropertiesWidget(nullptr), mDrawingPropertiesScrollArea(nullptr),
+    mDefaultItemPropertiesWidget(nullptr), mDefaultItemPropertiesScrollArea(nullptr),
     mMultipleItemPropertiesWidget(nullptr), mMultipleItemPropertiesScrollArea(nullptr),
     mSingleItemPropertiesWidget(nullptr), mSingleItemPropertiesScrollArea(nullptr)
 {
@@ -42,7 +45,31 @@ PropertiesWidget::PropertiesWidget(DrawingWidget* drawing) : QStackedWidget(),
     mDrawingPropertiesScrollArea = new QScrollArea();
     mDrawingPropertiesScrollArea->setWidget(drawingPropertiesWidget);
     mDrawingPropertiesScrollArea->setWidgetResizable(true);
-    addWidget(mDrawingPropertiesScrollArea);
+
+    // Add default item properties widget
+    mDefaultItemPropertiesWidget = new SingleItemPropertiesWidget();
+    mDefaultItemPropertiesWidget->setUnits(mDrawingPropertiesWidget->units());
+
+    QWidget* defaultItemPropertiesWidget = new QWidget();
+    QVBoxLayout* defaultItemPropertiesLayout = new QVBoxLayout();
+    defaultItemPropertiesLayout->addWidget(mDefaultItemPropertiesWidget);
+    defaultItemPropertiesLayout->addWidget(new QWidget(), 100);
+    defaultItemPropertiesLayout->setContentsMargins(0, 0, 0, 0);
+    defaultItemPropertiesWidget->setLayout(defaultItemPropertiesLayout);
+
+    mDefaultItemPropertiesScrollArea = new QScrollArea();
+    mDefaultItemPropertiesScrollArea->setWidget(defaultItemPropertiesWidget);
+    mDefaultItemPropertiesScrollArea->setWidgetResizable(true);
+
+    // Add tab widget
+    mTabWidget = new QTabWidget();
+    mTabWidget->setTabPosition(QTabWidget::South);
+    mTabWidget->addTab(mDrawingPropertiesScrollArea, "Drawing");
+    mTabWidget->addTab(mDefaultItemPropertiesScrollArea, "Item Defaults");
+    addWidget(mTabWidget);
+    mTabWidget->setStyleSheet("QTabWidget::pane { "
+                              "margin: 0px,0px,0px,0px; "
+                              "border: 0px solid #020202; }");
 
     // Add multiple item properties widget
     mMultipleItemPropertiesWidget = new MultipleItemPropertiesWidget();
@@ -85,6 +112,8 @@ PropertiesWidget::PropertiesWidget(DrawingWidget* drawing) : QStackedWidget(),
 
     connect(mDrawingPropertiesWidget, SIGNAL(propertyChanged(QString,QVariant)),
             mDrawing, SLOT(setDrawingProperty(QString,QVariant)));
+    connect(mDefaultItemPropertiesWidget, SIGNAL(itemPropertyChanged(QString,QVariant)),
+            mDrawing, SLOT(setDefaultStyleProperty(QString,QVariant)));
 
     connect(mMultipleItemPropertiesWidget, SIGNAL(itemsMovedDelta(QPointF)), mDrawing, SLOT(moveDelta(QPointF)));
     connect(mMultipleItemPropertiesWidget, SIGNAL(itemsPropertyChanged(QString,QVariant)),
@@ -123,6 +152,24 @@ void PropertiesWidget::setAllDrawingProperties()
     mDrawingPropertiesWidget->setGridColor(mDrawing->gridColor());
     mDrawingPropertiesWidget->setGridSpacingMajor(mDrawing->gridSpacingMajor());
     mDrawingPropertiesWidget->setGridSpacingMinor(mDrawing->gridSpacingMinor());
+
+    OdgStyle* style = mDrawing->defaultStyle();
+    mDefaultItemPropertiesWidget->setPenStyle(style->penStyle());
+    mDefaultItemPropertiesWidget->setPenWidth(style->penWidth());
+    mDefaultItemPropertiesWidget->setPenColor(style->penColor());
+    mDefaultItemPropertiesWidget->setBrushColor(style->brushColor());
+
+    mDefaultItemPropertiesWidget->setStartMarkerStyle(style->startMarkerStyle());
+    mDefaultItemPropertiesWidget->setStartMarkerSize(style->startMarkerSize());
+    mDefaultItemPropertiesWidget->setEndMarkerStyle(style->endMarkerStyle());
+    mDefaultItemPropertiesWidget->setEndMarkerSize(style->endMarkerSize());
+
+    mDefaultItemPropertiesWidget->setFontFamily(style->fontFamily());
+    mDefaultItemPropertiesWidget->setFontSize(style->fontSize());
+    mDefaultItemPropertiesWidget->setFontStyle(style->fontStyle());
+    mDefaultItemPropertiesWidget->setTextAlignment(style->textAlignment());
+    mDefaultItemPropertiesWidget->setTextPadding(style->textPadding());
+    mDefaultItemPropertiesWidget->setTextColor(style->textColor());
 
     setCurrentIndex(0);
 }
