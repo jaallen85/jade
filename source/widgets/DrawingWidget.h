@@ -57,7 +57,7 @@ private:
 
 private:
     OdgDrawing* mDrawingTemplate;
-    OdgStyle* mDrawingTemplateStyle;
+    OdgStyle* mStyleTemplate;
 
     OdgStyle* mDefaultStyle;
 
@@ -123,9 +123,9 @@ private:
     void addPathItems(const QString& name, const QList<OdgPathItem*>& items, const QStringList& icons);
 public:
     void setDrawingTemplate(OdgDrawing* temp);
-    void setDrawingTemplateStyle(OdgStyle* style);
+    void setStyleTemplate(OdgStyle* style);
     OdgDrawing* drawingTemplate() const;
-    OdgStyle* drawingTemplateStyle() const;
+    OdgStyle* styleTemplate() const;
 
     void setDefaultStyle(OdgStyle* style);
     OdgStyle* defaultStyle() const;

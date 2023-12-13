@@ -541,7 +541,7 @@ void JadeWindow::exportSvg()
             const int exportHeight = qRound(exportRect.height() * exportScale);
 
             SvgWriter svg(exportRect, exportScale);
-            if (!svg.write(dialog.path()))
+            if (!svg.write(dialog.path(), currentPage->items()))
                 QMessageBox::critical(this, "Export SVG Error", "Error exporting drawing to SVG file.  File not exported!");
         }
     }
@@ -553,12 +553,12 @@ void JadeWindow::preferences()
 {
     PreferencesDialog dialog(this);
     dialog.setPrompts(mPromptOverwrite, mPromptCloseUnsaved);
-    dialog.setDrawingTemplate(mDrawingWidget->drawingTemplate(), mDrawingWidget->drawingTemplateStyle());
+    dialog.setDrawingTemplate(mDrawingWidget->drawingTemplate(), mDrawingWidget->styleTemplate());
 
     if (dialog.exec() == QDialog::Accepted)
     {
         dialog.updatePrompts(mPromptOverwrite, mPromptCloseUnsaved);
-        dialog.updateDrawingTemplate(mDrawingWidget->drawingTemplate(), mDrawingWidget->drawingTemplateStyle());
+        dialog.updateDrawingTemplate(mDrawingWidget->drawingTemplate(), mDrawingWidget->styleTemplate());
     }
 }
 
@@ -707,8 +707,8 @@ void JadeWindow::saveSettings()
     settings.endGroup();
 
     OdgDrawing* drawingTemplate = mDrawingWidget->drawingTemplate();
-    OdgStyle* drawingTemplateStyle = mDrawingWidget->drawingTemplateStyle();
-    if (drawingTemplate || drawingTemplateStyle)
+    OdgStyle* styleTemplate = mDrawingWidget->styleTemplate();
+    if (drawingTemplate || styleTemplate)
     {
         settings.beginGroup("Template");
 
@@ -730,28 +730,28 @@ void JadeWindow::saveSettings()
             settings.setValue("gridSpacingMinor", drawingTemplate->gridSpacingMinor());
         }
 
-        if (drawingTemplateStyle)
+        if (styleTemplate)
         {
-            settings.setValue("penStyle", static_cast<int>(drawingTemplateStyle->penStyle()));
-            settings.setValue("penWidth", drawingTemplateStyle->penWidth());
-            settings.setValue("penColor", drawingTemplateStyle->penColor().name());
-            settings.setValue("brushColor", drawingTemplateStyle->brushColor().name());
+            settings.setValue("penStyle", static_cast<int>(styleTemplate->penStyle()));
+            settings.setValue("penWidth", styleTemplate->penWidth());
+            settings.setValue("penColor", styleTemplate->penColor().name());
+            settings.setValue("brushColor", styleTemplate->brushColor().name());
 
-            settings.setValue("startMarkerStyle", static_cast<int>(drawingTemplateStyle->startMarkerStyle()));
-            settings.setValue("startMarkerSize", drawingTemplateStyle->startMarkerSize());
-            settings.setValue("endMarkerStyle", static_cast<int>(drawingTemplateStyle->endMarkerStyle()));
-            settings.setValue("endMarkerSize", drawingTemplateStyle->endMarkerSize());
+            settings.setValue("startMarkerStyle", static_cast<int>(styleTemplate->startMarkerStyle()));
+            settings.setValue("startMarkerSize", styleTemplate->startMarkerSize());
+            settings.setValue("endMarkerStyle", static_cast<int>(styleTemplate->endMarkerStyle()));
+            settings.setValue("endMarkerSize", styleTemplate->endMarkerSize());
 
-            settings.setValue("fontFamily", drawingTemplateStyle->fontFamily());
-            settings.setValue("fontSize", drawingTemplateStyle->fontSize());
-            settings.setValue("fontBold", drawingTemplateStyle->fontStyle().bold());
-            settings.setValue("fontItalic", drawingTemplateStyle->fontStyle().italic());
-            settings.setValue("fontUnderline", drawingTemplateStyle->fontStyle().underline());
-            settings.setValue("fontStrikeThrough", drawingTemplateStyle->fontStyle().strikeOut());
-            settings.setValue("textAlignment", static_cast<int>(drawingTemplateStyle->textAlignment()));
-            settings.setValue("textPaddingX", drawingTemplateStyle->textPadding().width());
-            settings.setValue("textPaddingY", drawingTemplateStyle->textPadding().height());
-            settings.setValue("textColor", drawingTemplateStyle->textColor().name());
+            settings.setValue("fontFamily", styleTemplate->fontFamily());
+            settings.setValue("fontSize", styleTemplate->fontSize());
+            settings.setValue("fontBold", styleTemplate->fontStyle().bold());
+            settings.setValue("fontItalic", styleTemplate->fontStyle().italic());
+            settings.setValue("fontUnderline", styleTemplate->fontStyle().underline());
+            settings.setValue("fontStrikeThrough", styleTemplate->fontStyle().strikeOut());
+            settings.setValue("textAlignment", static_cast<int>(styleTemplate->textAlignment()));
+            settings.setValue("textPaddingX", styleTemplate->textPadding().width());
+            settings.setValue("textPaddingY", styleTemplate->textPadding().height());
+            settings.setValue("textColor", styleTemplate->textColor().name());
         }
 
         settings.endGroup();
@@ -786,8 +786,8 @@ void JadeWindow::loadSettings()
     settings.endGroup();
 
     OdgDrawing* drawingTemplate = mDrawingWidget->drawingTemplate();
-    OdgStyle* drawingTemplateStyle = mDrawingWidget->drawingTemplateStyle();
-    if (drawingTemplate || drawingTemplateStyle)
+    OdgStyle* styleTemplate = mDrawingWidget->styleTemplate();
+    if (drawingTemplate || styleTemplate)
     {
         settings.beginGroup("Template");
 
@@ -822,46 +822,46 @@ void JadeWindow::loadSettings()
                 settings.value("gridSpacingMinor", drawingTemplate->gridSpacingMinor()).toDouble());
         }
 
-        if (drawingTemplateStyle)
+        if (styleTemplate)
         {
-            drawingTemplateStyle->setPenStyle(static_cast<Qt::PenStyle>(
-                settings.value("penStyle", static_cast<int>(drawingTemplateStyle->penStyle())).toInt()));
-            drawingTemplateStyle->setPenWidth(settings.value("penWidth", drawingTemplateStyle->penWidth()).toDouble());
-            drawingTemplateStyle->setPenColor(
-                QColor(settings.value("penColor", drawingTemplateStyle->penColor().name()).toString()));
-            drawingTemplateStyle->setBrushColor(
-                QColor(settings.value("brushColor", drawingTemplateStyle->brushColor().name()).toString()));
+            styleTemplate->setPenStyle(static_cast<Qt::PenStyle>(
+                settings.value("penStyle", static_cast<int>(styleTemplate->penStyle())).toInt()));
+            styleTemplate->setPenWidth(settings.value("penWidth", styleTemplate->penWidth()).toDouble());
+            styleTemplate->setPenColor(
+                QColor(settings.value("penColor", styleTemplate->penColor().name()).toString()));
+            styleTemplate->setBrushColor(
+                QColor(settings.value("brushColor", styleTemplate->brushColor().name()).toString()));
 
-            drawingTemplateStyle->setStartMarkerStyle(static_cast<Odg::MarkerStyle>(
-                settings.value("startMarkerStyle", static_cast<int>(drawingTemplateStyle->startMarkerStyle())).toInt()));
-            drawingTemplateStyle->setStartMarkerSize(
-                settings.value("startMarkerSize", drawingTemplateStyle->startMarkerSize()).toDouble());
-            drawingTemplateStyle->setEndMarkerStyle(static_cast<Odg::MarkerStyle>(
-                settings.value("endMarkerStyle", static_cast<int>(drawingTemplateStyle->endMarkerStyle())).toInt()));
-            drawingTemplateStyle->setEndMarkerSize(
-                settings.value("endMarkerSize", drawingTemplateStyle->endMarkerSize()).toDouble());
+            styleTemplate->setStartMarkerStyle(static_cast<Odg::MarkerStyle>(
+                settings.value("startMarkerStyle", static_cast<int>(styleTemplate->startMarkerStyle())).toInt()));
+            styleTemplate->setStartMarkerSize(
+                settings.value("startMarkerSize", styleTemplate->startMarkerSize()).toDouble());
+            styleTemplate->setEndMarkerStyle(static_cast<Odg::MarkerStyle>(
+                settings.value("endMarkerStyle", static_cast<int>(styleTemplate->endMarkerStyle())).toInt()));
+            styleTemplate->setEndMarkerSize(
+                settings.value("endMarkerSize", styleTemplate->endMarkerSize()).toDouble());
 
-            drawingTemplateStyle->setFontFamily(
-                settings.value("fontFamily", drawingTemplateStyle->fontFamily()).toString());
-            drawingTemplateStyle->setFontSize(settings.value("fontSize", drawingTemplateStyle->fontSize()).toDouble());
+            styleTemplate->setFontFamily(
+                settings.value("fontFamily", styleTemplate->fontFamily()).toString());
+            styleTemplate->setFontSize(settings.value("fontSize", styleTemplate->fontSize()).toDouble());
 
-            OdgFontStyle fontStyle = drawingTemplateStyle->fontStyle();
+            OdgFontStyle fontStyle = styleTemplate->fontStyle();
             fontStyle.setBold(settings.value("fontBold", fontStyle.bold()).toBool());
             fontStyle.setItalic(settings.value("fontItalic", fontStyle.italic()).toBool());
             fontStyle.setUnderline(settings.value("fontUnderline", fontStyle.underline()).toBool());
             fontStyle.setStrikeOut(settings.value("fontStrikeThrough", fontStyle.strikeOut()).toBool());
-            drawingTemplateStyle->setFontStyle(fontStyle);
+            styleTemplate->setFontStyle(fontStyle);
 
-            drawingTemplateStyle->setTextAlignment(static_cast<Qt::Alignment>(
-                settings.value("textAlignment", static_cast<int>(drawingTemplateStyle->textAlignment())).toInt()));
+            styleTemplate->setTextAlignment(static_cast<Qt::Alignment>(
+                settings.value("textAlignment", static_cast<int>(styleTemplate->textAlignment())).toInt()));
 
-            QSizeF textPadding = drawingTemplateStyle->textPadding();
+            QSizeF textPadding = styleTemplate->textPadding();
             textPadding.setWidth(settings.value("textPaddingX", textPadding.width()).toDouble());
             textPadding.setHeight(settings.value("textPaddingY", textPadding.height()).toDouble());
-            drawingTemplateStyle->setTextPadding(textPadding);
+            styleTemplate->setTextPadding(textPadding);
 
-            drawingTemplateStyle->setTextColor(
-                QColor(settings.value("textColor", drawingTemplateStyle->textColor().name()).toString()));
+            styleTemplate->setTextColor(
+                QColor(settings.value("textColor", styleTemplate->textColor().name()).toString()));
         }
 
         settings.endGroup();

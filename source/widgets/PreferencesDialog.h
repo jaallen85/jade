@@ -19,21 +19,40 @@
 
 #include <QDialog>
 
+class QCheckBox;
+class QListWidget;
+class QPushButton;
+class QStackedWidget;
+class DrawingPropertiesWidget;
 class OdgDrawing;
 class OdgStyle;
+class SingleItemPropertiesWidget;
 
 class PreferencesDialog : public QDialog
 {
     Q_OBJECT
 
+private:
+    QListWidget* mListWidget;
+    QStackedWidget* mStackedWidget;
+
+    QCheckBox* mPromptOverwriteCheck;
+    QCheckBox* mPromptCloseUnsavedCheck;
+
+    DrawingPropertiesWidget* mDrawingPropertiesWidget;
+    SingleItemPropertiesWidget* mStylePropertiesWidget;
+
+    QPushButton* mOkButton;
+    QPushButton* mCancelButton;
+
 public:
     PreferencesDialog(QWidget* parent = nullptr);
 
     void setPrompts(bool overwrite, bool closeUnsaved);
-    void updatePrompts(bool overwrite, bool closeUnsaved);
+    void updatePrompts(bool& overwrite, bool& closeUnsaved);
 
-    void setDrawingTemplate(OdgDrawing* drawingTemplate, OdgStyle* drawingTemplateStyle);
-    void updateDrawingTemplate(OdgDrawing* drawingTemplate, OdgStyle* drawingTemplateStyle);
+    void setDrawingTemplate(OdgDrawing* drawingTemplate, OdgStyle* styleTemplate);
+    void updateDrawingTemplate(OdgDrawing* drawingTemplate, OdgStyle* styleTemplate);
 };
 
 #endif

@@ -17,7 +17,9 @@
 #ifndef SVGWRITER_H
 #define SVGWRITER_H
 
-#include <QRectF>
+#include <QPainterPath>
+
+class OdgItem;
 
 class SvgWriter
 {
@@ -28,7 +30,17 @@ private:
 public:
     SvgWriter(const QRectF& rect, double scale);
 
-    bool write(const QString& path);
+    bool write(const QString& path, const QList<OdgItem*>& items);
+
+private:
+    QString lengthToString(double length) const;
+    QString colorToString(const QColor& color) const;
+
+    QString transformToString(const QPointF& position, bool flipped, int rotation) const;
+    QString viewBoxToString(const QRectF& viewBox) const;
+    QString pointsToString(const QPolygonF& points) const;
+    QString pathToString(const QPainterPath& path) const;
+
 };
 
 #endif

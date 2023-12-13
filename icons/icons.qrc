@@ -104,5 +104,6 @@
         <file>items/xnor_gate.png</file>
         <file>items/xor_gate.png</file>
         <file>items/zener_diode.png</file>
+        <file>document-properties.png</file>
     </qresource>
 </RCC>

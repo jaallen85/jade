@@ -49,7 +49,7 @@
 #include <QWheelEvent>
 
 DrawingWidget::DrawingWidget() : QAbstractScrollArea(), OdgDrawing(),
-    mDrawingTemplate(nullptr), mDrawingTemplateStyle(nullptr), mDefaultStyle(nullptr),
+    mDrawingTemplate(nullptr), mStyleTemplate(nullptr), mDefaultStyle(nullptr),
     mCurrentPage(nullptr), mNewPageCount(0),
     mTransform(), mTransformInverse(), mMode(Odg::SelectMode), mUndoStack(),
     mMouseState(MouseIdle), mMouseButtonDownPosition(), mMouseButtonDownScenePosition(),
@@ -68,7 +68,7 @@ DrawingWidget::DrawingWidget() : QAbstractScrollArea(), OdgDrawing(),
     setMouseTracking(true);
 
     mDrawingTemplate = new OdgDrawing();
-    mDrawingTemplateStyle = new OdgStyle(mUnits, true);
+    mStyleTemplate = new OdgStyle(mUnits, true);
 
     mDefaultStyle = new OdgStyle(mUnits, true);
 
@@ -88,7 +88,7 @@ DrawingWidget::~DrawingWidget()
     setSelectMode();
     setCurrentPage(nullptr);
     setDefaultStyle(nullptr);
-    setDrawingTemplateStyle(nullptr);
+    setStyleTemplate(nullptr);
     setDrawingTemplate(nullptr);
 
     qDeleteAll(mPathItems);
@@ -296,10 +296,10 @@ void DrawingWidget::setDrawingTemplate(OdgDrawing* temp)
     mDrawingTemplate = temp;
 }
 
-void DrawingWidget::setDrawingTemplateStyle(OdgStyle* style)
+void DrawingWidget::setStyleTemplate(OdgStyle* style)
 {
-    delete mDrawingTemplateStyle;
-    mDrawingTemplateStyle = style;
+    delete mStyleTemplate;
+    mStyleTemplate = style;
 }
 
 OdgDrawing* DrawingWidget::drawingTemplate() const
@@ -307,9 +307,9 @@ OdgDrawing* DrawingWidget::drawingTemplate() const
     return mDrawingTemplate;
 }
 
-OdgStyle* DrawingWidget::drawingTemplateStyle() const
+OdgStyle* DrawingWidget::styleTemplate() const
 {
-    return mDrawingTemplateStyle;
+    return mStyleTemplate;
 }
 
 //======================================================================================================================
@@ -541,24 +541,24 @@ void DrawingWidget::createNew()
         setGridSpacingMajor(mDrawingTemplate->gridSpacingMajor());
         setGridSpacingMinor(mDrawingTemplate->gridSpacingMinor());
 
-        if (mDrawingTemplateStyle && mDefaultStyle)
+        if (mStyleTemplate && mDefaultStyle)
         {
-            mDefaultStyle->setPenStyle(mDrawingTemplateStyle->penStyle());
-            mDefaultStyle->setPenWidth(mDrawingTemplateStyle->penWidth());
-            mDefaultStyle->setPenColor(mDrawingTemplateStyle->penColor());
-            mDefaultStyle->setBrushColor(mDrawingTemplateStyle->brushColor());
+            mDefaultStyle->setPenStyle(mStyleTemplate->penStyle());
+            mDefaultStyle->setPenWidth(mStyleTemplate->penWidth());
+            mDefaultStyle->setPenColor(mStyleTemplate->penColor());
+            mDefaultStyle->setBrushColor(mStyleTemplate->brushColor());
 
-            mDefaultStyle->setStartMarkerStyle(mDrawingTemplateStyle->startMarkerStyle());
-            mDefaultStyle->setStartMarkerSize(mDrawingTemplateStyle->startMarkerSize());
-            mDefaultStyle->setEndMarkerStyle(mDrawingTemplateStyle->endMarkerStyle());
-            mDefaultStyle->setEndMarkerSize(mDrawingTemplateStyle->endMarkerSize());
+            mDefaultStyle->setStartMarkerStyle(mStyleTemplate->startMarkerStyle());
+            mDefaultStyle->setStartMarkerSize(mStyleTemplate->startMarkerSize());
+            mDefaultStyle->setEndMarkerStyle(mStyleTemplate->endMarkerStyle());
+            mDefaultStyle->setEndMarkerSize(mStyleTemplate->endMarkerSize());
 
-            mDefaultStyle->setFontFamily(mDrawingTemplateStyle->fontFamily());
-            mDefaultStyle->setFontSize(mDrawingTemplateStyle->fontSize());
-            mDefaultStyle->setFontStyle(mDrawingTemplateStyle->fontStyle());
-            mDefaultStyle->setTextAlignment(mDrawingTemplateStyle->textAlignment());
-            mDefaultStyle->setTextPadding(mDrawingTemplateStyle->textPadding());
-            mDefaultStyle->setTextColor(mDrawingTemplateStyle->textColor());
+            mDefaultStyle->setFontFamily(mStyleTemplate->fontFamily());
+            mDefaultStyle->setFontSize(mStyleTemplate->fontSize());
+            mDefaultStyle->setFontStyle(mStyleTemplate->fontStyle());
+            mDefaultStyle->setTextAlignment(mStyleTemplate->textAlignment());
+            mDefaultStyle->setTextPadding(mStyleTemplate->textPadding());
+            mDefaultStyle->setTextColor(mStyleTemplate->textColor());
         }
 
         blockSignals(false);
