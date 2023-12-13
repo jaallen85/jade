@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "JadeWindow.h"
+#include "AboutDialog.h"
 #include "DrawingWidget.h"
 #include "ExportDialog.h"
 #include "OdgItem.h"
@@ -493,12 +494,16 @@ void JadeWindow::exportSvg()
 
 void JadeWindow::preferences()
 {
-
+    //bool mPromptOverwrite;
+    //bool mPromptCloseUnsaved;
+    //OdgDrawing* mDrawingTemplate;
+    //OdgStyle* mDrawingTemplateStyle;
 }
 
 void JadeWindow::about()
 {
-
+    AboutDialog dialog(this);
+    dialog.exec();
 }
 
 //======================================================================================================================
@@ -615,7 +620,16 @@ void JadeWindow::setZoomComboText(double scale)
 
 void JadeWindow::saveSettings()
 {
+    //window state, geometry
 
+    //OdgDrawing* mDrawingTemplate;
+    //OdgStyle* mDrawingTemplateStyle;
+
+    //QString mWorkingDir;
+    //bool mPromptOverwrite;
+    //bool mPromptCloseUnsaved;
+    //double mExportPixelsPerInch;
+    //bool mExportItemsOnly;
 }
 
 void JadeWindow::loadSettings()

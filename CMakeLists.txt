@@ -43,6 +43,7 @@ find_package(QuaZip-Qt6)
 
 add_executable(${PROJECT_NAME} WIN32
     icons/icons.qrc
+    license.qrc
     source/odg/OdgControlPoint.h
     source/odg/OdgControlPoint.cpp
     source/odg/OdgCurve.h
@@ -93,6 +94,8 @@ add_executable(${PROJECT_NAME} WIN32
     source/odg-items/OdgTextItem.cpp
     source/odg-items/OdgTextRoundedRectItem.h
     source/odg-items/OdgTextRoundedRectItem.cpp
+    source/widgets/AboutDialog.h
+    source/widgets/AboutDialog.cpp
     source/widgets/DrawingPropertiesWidget.h
     source/widgets/DrawingPropertiesWidget.cpp
     source/widgets/DrawingUndo.h

@@ -49,7 +49,8 @@
 #include <QWheelEvent>
 
 DrawingWidget::DrawingWidget() : QAbstractScrollArea(), OdgDrawing(),
-    mDrawingTemplate(nullptr), mDefaultStyle(nullptr), mCurrentPage(nullptr), mNewPageCount(0),
+    mDrawingTemplate(nullptr), mDrawingTemplateStyle(nullptr), mDefaultStyle(nullptr),
+    mCurrentPage(nullptr), mNewPageCount(0),
     mTransform(), mTransformInverse(), mMode(Odg::SelectMode), mUndoStack(),
     mMouseState(MouseIdle), mMouseButtonDownPosition(), mMouseButtonDownScenePosition(),
     mMouseDragged(false), mSelectMouseState(SelectMouseIdle), mSelectedItems(), mSelectedItemsCenter(),
@@ -67,6 +68,8 @@ DrawingWidget::DrawingWidget() : QAbstractScrollArea(), OdgDrawing(),
     setMouseTracking(true);
 
     mDrawingTemplate = new OdgDrawing();
+    mDrawingTemplateStyle = new OdgStyle(mUnits, true);
+
     mDefaultStyle = new OdgStyle(mUnits, true);
 
     mUndoStack.setUndoLimit(256);
@@ -85,6 +88,7 @@ DrawingWidget::~DrawingWidget()
     setSelectMode();
     setCurrentPage(nullptr);
     setDefaultStyle(nullptr);
+    setDrawingTemplateStyle(nullptr);
     setDrawingTemplate(nullptr);
 
     qDeleteAll(mPathItems);
@@ -292,15 +296,28 @@ void DrawingWidget::setDrawingTemplate(OdgDrawing* temp)
     mDrawingTemplate = temp;
 }
 
-void DrawingWidget::setDefaultStyle(OdgStyle* style)
+void DrawingWidget::setDrawingTemplateStyle(OdgStyle* style)
 {
-    delete mDefaultStyle;
-    mDefaultStyle = style;
+    delete mDrawingTemplateStyle;
+    mDrawingTemplateStyle = style;
 }
 
 OdgDrawing* DrawingWidget::drawingTemplate() const
 {
     return mDrawingTemplate;
+}
+
+OdgStyle* DrawingWidget::drawingTemplateStyle() const
+{
+    return mDrawingTemplateStyle;
+}
+
+//======================================================================================================================
+
+void DrawingWidget::setDefaultStyle(OdgStyle* style)
+{
+    delete mDefaultStyle;
+    mDefaultStyle = style;
 }
 
 OdgStyle* DrawingWidget::defaultStyle() const
@@ -513,6 +530,7 @@ void DrawingWidget::createNew()
     if (mDrawingTemplate)
     {
         blockSignals(true);
+
         setUnits(mDrawingTemplate->units());
         setPageSize(mDrawingTemplate->pageSize());
         setPageMargins(mDrawingTemplate->pageMargins());
@@ -522,6 +540,27 @@ void DrawingWidget::createNew()
         setGridColor(mDrawingTemplate->gridColor());
         setGridSpacingMajor(mDrawingTemplate->gridSpacingMajor());
         setGridSpacingMinor(mDrawingTemplate->gridSpacingMinor());
+
+        if (mDrawingTemplateStyle && mDefaultStyle)
+        {
+            mDefaultStyle->setPenStyle(mDrawingTemplateStyle->penStyle());
+            mDefaultStyle->setPenWidth(mDrawingTemplateStyle->penWidth());
+            mDefaultStyle->setPenColor(mDrawingTemplateStyle->penColor());
+            mDefaultStyle->setBrushColor(mDrawingTemplateStyle->brushColor());
+
+            mDefaultStyle->setStartMarkerStyle(mDrawingTemplateStyle->startMarkerStyle());
+            mDefaultStyle->setStartMarkerSize(mDrawingTemplateStyle->startMarkerSize());
+            mDefaultStyle->setEndMarkerStyle(mDrawingTemplateStyle->endMarkerStyle());
+            mDefaultStyle->setEndMarkerSize(mDrawingTemplateStyle->endMarkerSize());
+
+            mDefaultStyle->setFontFamily(mDrawingTemplateStyle->fontFamily());
+            mDefaultStyle->setFontSize(mDrawingTemplateStyle->fontSize());
+            mDefaultStyle->setFontStyle(mDrawingTemplateStyle->fontStyle());
+            mDefaultStyle->setTextAlignment(mDrawingTemplateStyle->textAlignment());
+            mDefaultStyle->setTextPadding(mDrawingTemplateStyle->textPadding());
+            mDefaultStyle->setTextColor(mDrawingTemplateStyle->textColor());
+        }
+
         blockSignals(false);
         emit propertiesChanged();
     }
