@@ -114,10 +114,14 @@ add_executable(${PROJECT_NAME} WIN32
     source/widgets/MultipleItemPropertiesWidget.cpp
     source/widgets/PagesWidget.h
     source/widgets/PagesWidget.cpp
+    source/widgets/PreferencesDialog.h
+    source/widgets/PreferencesDialog.cpp
     source/widgets/PropertiesWidget.h
     source/widgets/PropertiesWidget.cpp
     source/widgets/SingleItemPropertiesWidget.h
     source/widgets/SingleItemPropertiesWidget.cpp
+    source/widgets/SvgWriter.h
+    source/widgets/SvgWriter.cpp
     source/JadeWindow.h
     source/JadeWindow.cpp
     source/main.cpp

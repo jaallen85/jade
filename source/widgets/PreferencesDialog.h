@@ -1,4 +1,4 @@
-// File: AboutDialog.h
+// File: PreferencesDialog.h
 // Copyright (C) 2023  Jason Allen
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,23 +14,26 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef ABOUTDIALOG_H
-#define ABOUTDIALOG_H
+#ifndef PREFERENCESDIALOG_H
+#define PREFERENCESDIALOG_H
 
 #include <QDialog>
 
-class QFrame;
+class OdgDrawing;
+class OdgStyle;
 
-class AboutDialog : public QDialog
+class PreferencesDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    AboutDialog(QWidget* parent = nullptr);
+    PreferencesDialog(QWidget* parent = nullptr);
 
-private:
-    QFrame* createAboutTab();
-    QFrame* createLicenseTab();
+    void setPrompts(bool overwrite, bool closeUnsaved);
+    void updatePrompts(bool overwrite, bool closeUnsaved);
+
+    void setDrawingTemplate(OdgDrawing* drawingTemplate, OdgStyle* drawingTemplateStyle);
+    void updateDrawingTemplate(OdgDrawing* drawingTemplate, OdgStyle* drawingTemplateStyle);
 };
 
 #endif

@@ -60,8 +60,6 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
     resize(500, 300);
 }
 
-AboutDialog::~AboutDialog() { }
-
 //==================================================================================================
 
 QFrame* AboutDialog::createAboutTab()

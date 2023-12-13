@@ -1,4 +1,4 @@
-// File: AboutDialog.h
+// File: SvgWriter.cpp
 // Copyright (C) 2023  Jason Allen
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,23 +14,21 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef ABOUTDIALOG_H
-#define ABOUTDIALOG_H
+#include "SvgWriter.h"
 
-#include <QDialog>
-
-class QFrame;
-
-class AboutDialog : public QDialog
+SvgWriter::SvgWriter(const QRectF& rect, double scale) : mRect(rect), mScale(scale)
 {
-    Q_OBJECT
+    // Nothing more to do here.
+}
 
-public:
-    AboutDialog(QWidget* parent = nullptr);
+//======================================================================================================================
 
-private:
-    QFrame* createAboutTab();
-    QFrame* createLicenseTab();
-};
+bool SvgWriter::write(const QString& path)
+{
+    if (mRect.width() <= 0 || mRect.height() <= 0 || mScale <= 0) return false;
 
-#endif
+    //const int exportWidth = qRound(mRect.width() * mScale);
+    //const int exportHeight = qRound(mRect.height() * mScale);
+
+    return true;
+}

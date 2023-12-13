@@ -22,7 +22,9 @@
 #include "OdgPage.h"
 #include "OdgStyle.h"
 #include "PagesWidget.h"
+#include "PreferencesDialog.h"
 #include "PropertiesWidget.h"
+#include "SvgWriter.h"
 #include <QApplication>
 #include <QCloseEvent>
 #include <QComboBox>
@@ -487,24 +489,77 @@ void JadeWindow::exportPng()
             mDrawingWidget->paint(painter, true);
             painter.end();
 
-            pngImage.save(dialog.path());
+            if (!pngImage.save(dialog.path()))
+                QMessageBox::critical(this, "Export PNG Error", "Error exporting drawing to PNG file.  File not exported!");
         }
     }
 }
 
 void JadeWindow::exportSvg()
 {
+    OdgPage* currentPage = mDrawingWidget->currentPage();
+    if (mDrawingWidget->isVisible() && currentPage)
+    {
+        // Determine export path
+        QString exportPath;
+        if (mFilePath.startsWith("Untitled"))
+            exportPath = QDir(mWorkingDir).absoluteFilePath(currentPage->name() + ".svg");
+        else
+            exportPath = mFilePath.left(mFilePath.size() - 4) + ".svg";
 
+        // Calculate the page and items' rects
+        const QRectF pageRect = mDrawingWidget->pageRect();
+
+        QRectF itemsRect;
+        const QList<OdgItem*> items = currentPage->items();
+        for(auto& item : items)
+            itemsRect = itemsRect.united(item->mapToScene(item->boundingRect()));
+
+        if (itemsRect.width() == 0 || itemsRect.height() == 0) itemsRect = pageRect;
+
+        // Run export dialog
+        ExportDialog dialog(this);
+        dialog.setWindowTitle("Export SVG");
+        dialog.setPath(exportPath);
+        dialog.setPromptOverwrite(mPromptOverwrite);
+        dialog.setPageRect(pageRect);
+        dialog.setItemsRect(itemsRect);
+        dialog.setPixelsPerInch(mExportPixelsPerInch);
+        dialog.setExportItemsOnly(mExportItemsOnly);
+
+        if (dialog.exec() == QDialog::Accepted)
+        {
+            // Save export settings for next time
+            mExportPixelsPerInch = dialog.pixelsPerInch();
+            mExportItemsOnly = dialog.shouldExportItemsOnly();
+
+            // Export the SVG image
+            const double exportScale = (mDrawingWidget->units() == Odg::UnitsInches) ? mExportPixelsPerInch :
+                                           mExportPixelsPerInch * 25;
+            const QRectF exportRect = (mExportItemsOnly) ? itemsRect : pageRect;
+            const int exportWidth = qRound(exportRect.width() * exportScale);
+            const int exportHeight = qRound(exportRect.height() * exportScale);
+
+            SvgWriter svg(exportRect, exportScale);
+            if (!svg.write(dialog.path()))
+                QMessageBox::critical(this, "Export SVG Error", "Error exporting drawing to SVG file.  File not exported!");
+        }
+    }
 }
 
 //======================================================================================================================
 
 void JadeWindow::preferences()
 {
-    //bool mPromptOverwrite;
-    //bool mPromptCloseUnsaved;
-    //OdgDrawing* mDrawingTemplate;
-    //OdgStyle* mDrawingTemplateStyle;
+    PreferencesDialog dialog(this);
+    dialog.setPrompts(mPromptOverwrite, mPromptCloseUnsaved);
+    dialog.setDrawingTemplate(mDrawingWidget->drawingTemplate(), mDrawingWidget->drawingTemplateStyle());
+
+    if (dialog.exec() == QDialog::Accepted)
+    {
+        dialog.updatePrompts(mPromptOverwrite, mPromptCloseUnsaved);
+        dialog.updateDrawingTemplate(mDrawingWidget->drawingTemplate(), mDrawingWidget->drawingTemplateStyle());
+    }
 }
 
 void JadeWindow::about()
@@ -627,15 +682,6 @@ void JadeWindow::setZoomComboText(double scale)
 
 void JadeWindow::saveSettings()
 {
-    //OdgDrawing* mDrawingTemplate;
-    //OdgStyle* mDrawingTemplateStyle;
-
-    //QString mWorkingDir;
-    //bool mPromptOverwrite;
-    //bool mPromptCloseUnsaved;
-    //double mExportPixelsPerInch;
-    //bool mExportItemsOnly;
-
 #ifdef WIN32
     QString configPath("config.ini");
 #else
