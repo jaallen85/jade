@@ -101,6 +101,8 @@ add_executable(${PROJECT_NAME} WIN32
     source/widgets/DrawingWidget.cpp
     source/widgets/ElectricItems.h
     source/widgets/ElectricItems.cpp
+    source/widgets/ExportDialog.h
+    source/widgets/ExportDialog.cpp
     source/widgets/HelperWidgets.h
     source/widgets/HelperWidgets.cpp
     source/widgets/LogicItems.h

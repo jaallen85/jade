@@ -57,6 +57,8 @@ private:
     bool mPromptCloseUnsaved;
     bool mPagesDockVisibleOnClose;
     bool mPropertiesDockVisibleOnClose;
+    double mExportPixelsPerInch;
+    bool mExportItemsOnly;
 
 public:
     JadeWindow();

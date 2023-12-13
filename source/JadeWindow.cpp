@@ -16,6 +16,7 @@
 
 #include "JadeWindow.h"
 #include "DrawingWidget.h"
+#include "ExportDialog.h"
 #include "OdgItem.h"
 #include "OdgPage.h"
 #include "PagesWidget.h"
@@ -38,7 +39,7 @@ JadeWindow::JadeWindow() : QMainWindow(), mDrawingWidget(nullptr),
     mPagesWidget(nullptr), mPagesDock(nullptr), mPropertiesWidget(nullptr), mPropertiesDock(nullptr),
     mModeLabel(nullptr), mModifiedLabel(nullptr), mMouseInfoLabel(nullptr), mZoomCombo(nullptr),
     mFilePath(), mNewDrawingCount(0), mWorkingDir(), mPromptOverwrite(true), mPromptCloseUnsaved(true),
-    mPagesDockVisibleOnClose(true), mPropertiesDockVisibleOnClose(true)
+    mPagesDockVisibleOnClose(true), mPropertiesDockVisibleOnClose(true), mExportPixelsPerInch(600), mExportItemsOnly(true)
 {
     mDrawingWidget = new DrawingWidget();
     setCentralWidget(mDrawingWidget);
@@ -436,28 +437,50 @@ void JadeWindow::exportPng()
         else
             exportPath = mFilePath.left(mFilePath.size() - 4) + ".png";
 
-        // Export the PNG image
-        //QRectF exportRect = mDrawingWidget->pageRect();
-        QRectF exportRect;
+        // Calculate the page and items' rects
+        const QRectF pageRect = mDrawingWidget->pageRect();
+
+        QRectF itemsRect;
         const QList<OdgItem*> items = currentPage->items();
         for(auto& item : items)
-            exportRect = exportRect.united(item->mapToScene(item->boundingRect()));
+            itemsRect = itemsRect.united(item->mapToScene(item->boundingRect()));
 
-        const double pixelsPerInch = 600;
-        const double exportScale = Odg::convertUnits(pixelsPerInch, mDrawingWidget->units(), Odg::UnitsInches);
-        const int exportWidth = qRound(exportRect.width() * exportScale);
-        const int exportHeight = qRound(exportRect.height() * exportScale);
+        if (itemsRect.width() == 0 || itemsRect.height() == 0) itemsRect = pageRect;
 
-        QImage pngImage(exportWidth, exportHeight, QImage::Format_ARGB32);
+        // Run export dialog
+        ExportDialog dialog(this);
+        dialog.setWindowTitle("Export PNG");
+        dialog.setPath(exportPath);
+        dialog.setPromptOverwrite(mPromptOverwrite);
+        dialog.setPageRect(pageRect);
+        dialog.setItemsRect(itemsRect);
+        dialog.setPixelsPerInch(mExportPixelsPerInch);
+        dialog.setExportItemsOnly(mExportItemsOnly);
 
-        QPainter painter(&pngImage);
-        painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing, true);
-        painter.scale(exportScale, exportScale);
-        painter.translate(-exportRect.left(), -exportRect.top());
-        mDrawingWidget->paint(painter, true);
-        painter.end();
+        if (dialog.exec() == QDialog::Accepted)
+        {
+            // Save export settings for next time
+            mExportPixelsPerInch = dialog.pixelsPerInch();
+            mExportItemsOnly = dialog.shouldExportItemsOnly();
 
-        pngImage.save(exportPath);
+            // Export the PNG image
+            const double exportScale = (mDrawingWidget->units() == Odg::UnitsInches) ? mExportPixelsPerInch :
+                                           mExportPixelsPerInch * 25;
+            const QRectF exportRect = (mExportItemsOnly) ? itemsRect : pageRect;
+            const int exportWidth = qRound(exportRect.width() * exportScale);
+            const int exportHeight = qRound(exportRect.height() * exportScale);
+
+            QImage pngImage(exportWidth, exportHeight, QImage::Format_ARGB32);
+
+            QPainter painter(&pngImage);
+            painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing, true);
+            painter.scale(exportScale, exportScale);
+            painter.translate(-exportRect.left(), -exportRect.top());
+            mDrawingWidget->paint(painter, true);
+            painter.end();
+
+            pngImage.save(dialog.path());
+        }
     }
 }
 
