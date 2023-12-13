@@ -20,6 +20,7 @@
 #include "ExportDialog.h"
 #include "OdgItem.h"
 #include "OdgPage.h"
+#include "OdgStyle.h"
 #include "PagesWidget.h"
 #include "PropertiesWidget.h"
 #include <QApplication>
@@ -32,6 +33,7 @@
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QPainter>
+#include <QSettings>
 #include <QShowEvent>
 #include <QStatusBar>
 #include <QToolBar>
@@ -71,6 +73,7 @@ JadeWindow::JadeWindow() : QMainWindow(), mDrawingWidget(nullptr),
 QDockWidget* JadeWindow::addDockWidget(const QString& title, QWidget* widget, Qt::DockWidgetArea area)
 {
     QDockWidget* dockWidget = new QDockWidget(title);
+    dockWidget->setObjectName(title);
     dockWidget->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
     dockWidget->setFeatures(QDockWidget::DockWidgetClosable);
     dockWidget->setWidget(widget);
@@ -227,6 +230,7 @@ void JadeWindow::createToolBars()
     const QList<QAction*> drawingActions = mDrawingWidget->actions();
 
     QToolBar* fileToolBar = addToolBar("File");
+    fileToolBar->setObjectName(fileToolBar->windowTitle());
     fileToolBar->setMovable(false);
     fileToolBar->setContextMenuPolicy(Qt::PreventContextMenu);
     fileToolBar->addAction(windowActions.at(JadeWindow::NewAction));
@@ -235,6 +239,7 @@ void JadeWindow::createToolBars()
     fileToolBar->addAction(windowActions.at(JadeWindow::CloseAction));
 
     QToolBar* placeToolBar = addToolBar("Place");
+    placeToolBar->setObjectName(placeToolBar->windowTitle());
     placeToolBar->setMovable(false);
     placeToolBar->setContextMenuPolicy(Qt::PreventContextMenu);
     placeToolBar->addAction(drawingActions.at(DrawingWidget::SelectModeAction));
@@ -252,6 +257,7 @@ void JadeWindow::createToolBars()
     placeToolBar->addAction(drawingActions.at(DrawingWidget::PlaceTextEllipseAction));
 
     QToolBar* objectToolBar = addToolBar("Object");
+    objectToolBar->setObjectName(objectToolBar->windowTitle());
     objectToolBar->setMovable(false);
     objectToolBar->setContextMenuPolicy(Qt::PreventContextMenu);
     objectToolBar->addAction(drawingActions.at(DrawingWidget::RotateAction));
@@ -268,6 +274,7 @@ void JadeWindow::createToolBars()
     objectToolBar->addAction(drawingActions.at(DrawingWidget::UngroupAction));
 
     QToolBar* viewToolBar = addToolBar("View");
+    viewToolBar->setObjectName(viewToolBar->windowTitle());
     viewToolBar->setMovable(false);
     viewToolBar->setContextMenuPolicy(Qt::PreventContextMenu);
     viewToolBar->addAction(drawingActions.at(DrawingWidget::ZoomInAction));
@@ -620,8 +627,6 @@ void JadeWindow::setZoomComboText(double scale)
 
 void JadeWindow::saveSettings()
 {
-    //window state, geometry
-
     //OdgDrawing* mDrawingTemplate;
     //OdgStyle* mDrawingTemplateStyle;
 
@@ -630,9 +635,189 @@ void JadeWindow::saveSettings()
     //bool mPromptCloseUnsaved;
     //double mExportPixelsPerInch;
     //bool mExportItemsOnly;
+
+#ifdef WIN32
+    QString configPath("config.ini");
+#else
+    QString configPath(QDir::home().absoluteFilePath(".jade/config.ini"));
+#endif
+
+    QSettings settings(configPath, QSettings::IniFormat);
+
+    settings.beginGroup("Window");
+    settings.setValue("geometry", saveGeometry());
+    settings.setValue("state", saveState());
+    settings.endGroup();
+
+    settings.beginGroup("Recent");
+    settings.setValue("workingDir", mWorkingDir);
+    settings.setValue("exportPixelsPerInch", mExportPixelsPerInch);
+    settings.setValue("exportItemsOnly", mExportItemsOnly);
+    settings.endGroup();
+
+    settings.beginGroup("Prompts");
+    settings.setValue("promptOnClosingUnsaved", mPromptCloseUnsaved);
+    settings.setValue("promptOnOverwrite", mPromptOverwrite);
+    settings.endGroup();
+
+    OdgDrawing* drawingTemplate = mDrawingWidget->drawingTemplate();
+    OdgStyle* drawingTemplateStyle = mDrawingWidget->drawingTemplateStyle();
+    if (drawingTemplate || drawingTemplateStyle)
+    {
+        settings.beginGroup("Template");
+
+        if (drawingTemplate)
+        {
+            settings.setValue("units", static_cast<int>(drawingTemplate->units()));
+            settings.setValue("pageWidth", drawingTemplate->pageSize().width());
+            settings.setValue("pageHeight", drawingTemplate->pageSize().height());
+            settings.setValue("pageMarginsLeft", drawingTemplate->pageMargins().left());
+            settings.setValue("pageMarginsTop", drawingTemplate->pageMargins().top());
+            settings.setValue("pageMarginsRight", drawingTemplate->pageMargins().right());
+            settings.setValue("pageMarginsBottom", drawingTemplate->pageMargins().bottom());
+            settings.setValue("backgroundColor", drawingTemplate->backgroundColor().name());
+
+            settings.setValue("grid", drawingTemplate->grid());
+            settings.setValue("gridStyle", static_cast<int>(drawingTemplate->gridStyle()));
+            settings.setValue("gridColor", drawingTemplate->gridColor().name());
+            settings.setValue("gridSpacingMajor", drawingTemplate->gridSpacingMajor());
+            settings.setValue("gridSpacingMinor", drawingTemplate->gridSpacingMinor());
+        }
+
+        if (drawingTemplateStyle)
+        {
+            settings.setValue("penStyle", static_cast<int>(drawingTemplateStyle->penStyle()));
+            settings.setValue("penWidth", drawingTemplateStyle->penWidth());
+            settings.setValue("penColor", drawingTemplateStyle->penColor().name());
+            settings.setValue("brushColor", drawingTemplateStyle->brushColor().name());
+
+            settings.setValue("startMarkerStyle", static_cast<int>(drawingTemplateStyle->startMarkerStyle()));
+            settings.setValue("startMarkerSize", drawingTemplateStyle->startMarkerSize());
+            settings.setValue("endMarkerStyle", static_cast<int>(drawingTemplateStyle->endMarkerStyle()));
+            settings.setValue("endMarkerSize", drawingTemplateStyle->endMarkerSize());
+
+            settings.setValue("fontFamily", drawingTemplateStyle->fontFamily());
+            settings.setValue("fontSize", drawingTemplateStyle->fontSize());
+            settings.setValue("fontBold", drawingTemplateStyle->fontStyle().bold());
+            settings.setValue("fontItalic", drawingTemplateStyle->fontStyle().italic());
+            settings.setValue("fontUnderline", drawingTemplateStyle->fontStyle().underline());
+            settings.setValue("fontStrikeThrough", drawingTemplateStyle->fontStyle().strikeOut());
+            settings.setValue("textAlignment", static_cast<int>(drawingTemplateStyle->textAlignment()));
+            settings.setValue("textPaddingX", drawingTemplateStyle->textPadding().width());
+            settings.setValue("textPaddingY", drawingTemplateStyle->textPadding().height());
+            settings.setValue("textColor", drawingTemplateStyle->textColor().name());
+        }
+
+        settings.endGroup();
+    }
 }
 
 void JadeWindow::loadSettings()
 {
+#ifdef WIN32
+    QString configPath("config.ini");
+#else
+    QString configPath(QDir::home().absoluteFilePath(".jade/config.ini"));
+#endif
 
+    QSettings settings(configPath, QSettings::IniFormat);
+
+    settings.beginGroup("Window");
+    if (settings.contains("geometry")) restoreGeometry(settings.value("geometry", QVariant()).toByteArray());
+    if (settings.contains("state")) restoreState(settings.value("state", QVariant()).toByteArray());
+    settings.endGroup();
+
+    settings.beginGroup("Prompts");
+    mPromptCloseUnsaved = settings.value("promptOnClosingUnsaved", mPromptCloseUnsaved).toBool();
+    mPromptOverwrite = settings.value("promptOnOverwrite", mPromptOverwrite).toBool();
+    settings.endGroup();
+
+    settings.beginGroup("Recent");
+    const QDir newDir(settings.value("workingDir", mWorkingDir).toString());
+    if (newDir.exists()) mWorkingDir = newDir.path();
+    mExportPixelsPerInch = settings.value("exportPixelsPerInch", mExportPixelsPerInch).toDouble();
+    mExportItemsOnly = settings.value("exportItemsOnly", mExportItemsOnly).toBool();
+    settings.endGroup();
+
+    OdgDrawing* drawingTemplate = mDrawingWidget->drawingTemplate();
+    OdgStyle* drawingTemplateStyle = mDrawingWidget->drawingTemplateStyle();
+    if (drawingTemplate || drawingTemplateStyle)
+    {
+        settings.beginGroup("Template");
+
+        if (drawingTemplate)
+        {
+            drawingTemplate->setUnits(static_cast<Odg::Units>(
+                settings.value("units", static_cast<int>(drawingTemplate->units())).toInt()));
+
+            QSizeF pageSize = drawingTemplate->pageSize();
+            pageSize.setWidth(settings.value("pageWidth", pageSize.width()).toDouble());
+            pageSize.setHeight(settings.value("pageHeight", pageSize.height()).toDouble());
+            drawingTemplate->setPageSize(pageSize);
+
+            QMarginsF pageMargins = drawingTemplate->pageMargins();
+            pageMargins.setLeft(settings.value("pageMarginsLeft", pageMargins.left()).toDouble());
+            pageMargins.setTop(settings.value("pageMarginsTop", pageMargins.top()).toDouble());
+            pageMargins.setRight(settings.value("pageMarginsRight", pageMargins.right()).toDouble());
+            pageMargins.setBottom(settings.value("pageMarginsBottom", pageMargins.bottom()).toDouble());
+            drawingTemplate->setPageMargins(pageMargins);
+
+            drawingTemplate->setBackgroundColor(
+                QColor(settings.value("backgroundColor", drawingTemplate->backgroundColor().name()).toString()));
+
+            drawingTemplate->setGrid(settings.value("grid", drawingTemplate->grid()).toDouble());
+            drawingTemplate->setGridStyle(static_cast<Odg::GridStyle>(
+                settings.value("gridStyle", static_cast<int>(drawingTemplate->gridStyle())).toInt()));
+            drawingTemplate->setGridColor(
+                QColor(settings.value("gridColor", drawingTemplate->gridColor().name()).toString()));
+            drawingTemplate->setGridSpacingMajor(
+                settings.value("gridSpacingMajor", drawingTemplate->gridSpacingMajor()).toDouble());
+            drawingTemplate->setGridSpacingMinor(
+                settings.value("gridSpacingMinor", drawingTemplate->gridSpacingMinor()).toDouble());
+        }
+
+        if (drawingTemplateStyle)
+        {
+            drawingTemplateStyle->setPenStyle(static_cast<Qt::PenStyle>(
+                settings.value("penStyle", static_cast<int>(drawingTemplateStyle->penStyle())).toInt()));
+            drawingTemplateStyle->setPenWidth(settings.value("penWidth", drawingTemplateStyle->penWidth()).toDouble());
+            drawingTemplateStyle->setPenColor(
+                QColor(settings.value("penColor", drawingTemplateStyle->penColor().name()).toString()));
+            drawingTemplateStyle->setBrushColor(
+                QColor(settings.value("brushColor", drawingTemplateStyle->brushColor().name()).toString()));
+
+            drawingTemplateStyle->setStartMarkerStyle(static_cast<Odg::MarkerStyle>(
+                settings.value("startMarkerStyle", static_cast<int>(drawingTemplateStyle->startMarkerStyle())).toInt()));
+            drawingTemplateStyle->setStartMarkerSize(
+                settings.value("startMarkerSize", drawingTemplateStyle->startMarkerSize()).toDouble());
+            drawingTemplateStyle->setEndMarkerStyle(static_cast<Odg::MarkerStyle>(
+                settings.value("endMarkerStyle", static_cast<int>(drawingTemplateStyle->endMarkerStyle())).toInt()));
+            drawingTemplateStyle->setEndMarkerSize(
+                settings.value("endMarkerSize", drawingTemplateStyle->endMarkerSize()).toDouble());
+
+            drawingTemplateStyle->setFontFamily(
+                settings.value("fontFamily", drawingTemplateStyle->fontFamily()).toString());
+            drawingTemplateStyle->setFontSize(settings.value("fontSize", drawingTemplateStyle->fontSize()).toDouble());
+
+            OdgFontStyle fontStyle = drawingTemplateStyle->fontStyle();
+            fontStyle.setBold(settings.value("fontBold", fontStyle.bold()).toBool());
+            fontStyle.setItalic(settings.value("fontItalic", fontStyle.italic()).toBool());
+            fontStyle.setUnderline(settings.value("fontUnderline", fontStyle.underline()).toBool());
+            fontStyle.setStrikeOut(settings.value("fontStrikeThrough", fontStyle.strikeOut()).toBool());
+            drawingTemplateStyle->setFontStyle(fontStyle);
+
+            drawingTemplateStyle->setTextAlignment(static_cast<Qt::Alignment>(
+                settings.value("textAlignment", static_cast<int>(drawingTemplateStyle->textAlignment())).toInt()));
+
+            QSizeF textPadding = drawingTemplateStyle->textPadding();
+            textPadding.setWidth(settings.value("textPaddingX", textPadding.width()).toDouble());
+            textPadding.setHeight(settings.value("textPaddingY", textPadding.height()).toDouble());
+            drawingTemplateStyle->setTextPadding(textPadding);
+
+            drawingTemplateStyle->setTextColor(
+                QColor(settings.value("textColor", drawingTemplateStyle->textColor().name()).toString()));
+        }
+
+        settings.endGroup();
+    }
 }

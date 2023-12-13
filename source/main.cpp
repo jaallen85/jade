@@ -36,4 +36,3 @@ int main(int argc, char* argv[])
 // - Test, test test!  Especially file saving/loading and cut/copy/paste
 // - Export to SVG
 // - Preferences dialog
-// - Save/load settings to config file
