@@ -1912,7 +1912,7 @@ void DrawingWidget::drawBackground(QPainter& painter, bool drawBorder, bool draw
     {
         const QColor gridColor = this->gridColor();
         const QColor minorGridColor = QColor::fromHslF(gridColor.hslHueF(), gridColor.hslSaturationF(),
-                                                       gridColor.lightnessF() + (1 - gridColor.lightnessF()) * 0.7);
+                                                       (gridColor.lightnessF() < 0.55) ? 0.8 : 0.9);
 
         switch (gridStyle())
         {
