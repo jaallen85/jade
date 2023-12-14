@@ -292,6 +292,14 @@ OdgStyle* OdgWriter::findOrCreateStyle(OdgItem* item)
     if (hasTextPadding) newStyle->setTextPaddingIfNeeded(textPadding);
     if (hasTextColor) newStyle->setTextColorIfNeeded(textColor);
 
+    OdgTextItem* textItem = dynamic_cast<OdgTextItem*>(item);
+    if (textItem)
+    {
+        newStyle->setPenStyleIfNeeded(Qt::NoPen);
+        newStyle->setBrushColorIfNeeded(QColor(mBackgroundColor.red(), mBackgroundColor.green(),
+                                               mBackgroundColor.blue(), 0));
+    }
+
     // If new style already matches an existing style, then use that one instead
     OdgStyle* matchingStyle = nullptr;
     for(auto& style : qAsConst(mStyles))
@@ -893,7 +901,8 @@ void OdgWriter::writeStyleGraphicProperties(QXmlStreamWriter& xml, OdgStyle* sty
     {
         QColor penColor = style->penColor();
         xml.writeAttribute("svg:stroke-color", colorToString(penColor));
-        xml.writeAttribute("svg:stroke-opacity", percentToString(penColor.alphaF()));
+        if (penColor.alpha() != 255)
+            xml.writeAttribute("svg:stroke-opacity", percentToString(penColor.alphaF()));
     }
 
     if (style->isPenCapStyleValid())
@@ -940,7 +949,8 @@ void OdgWriter::writeStyleGraphicProperties(QXmlStreamWriter& xml, OdgStyle* sty
         {
             xml.writeAttribute("draw:fill", "solid");
             xml.writeAttribute("draw:fill-color", colorToString(brushColor));
-            xml.writeAttribute("draw:opacity", percentToString(brushColor.alphaF()));
+            if (brushColor.alpha() != 255)
+                xml.writeAttribute("draw:opacity", percentToString(brushColor.alphaF()));
         }
     }
 
@@ -989,14 +999,20 @@ void OdgWriter::writeStyleGraphicProperties(QXmlStreamWriter& xml, OdgStyle* sty
     if (style->isTextAlignmentValid())
     {
         Qt::Alignment horizontal = (style->textAlignment() & Qt::AlignHorizontal_Mask);
-        if (horizontal & Qt::AlignHCenter) xml.writeAttribute("draw:textarea-horizontal-align", "center");
-        else if (horizontal & Qt::AlignRight) xml.writeAttribute("draw:textarea-horizontal-align", "right");
-        else xml.writeAttribute("draw:textarea-horizontal-align", "left");
+        if (horizontal & Qt::AlignHCenter)
+            xml.writeAttribute("draw:textarea-horizontal-align", "center");
+        else if (horizontal & Qt::AlignRight)
+            xml.writeAttribute("draw:textarea-horizontal-align", "right");
+        else
+            xml.writeAttribute("draw:textarea-horizontal-align", "left");
 
         Qt::Alignment vertical = (style->textAlignment() & Qt::AlignVertical_Mask);
-        if (vertical & Qt::AlignVCenter) xml.writeAttribute("draw:textarea-vertical-align", "middle");
-        else if (vertical & Qt::AlignBottom) xml.writeAttribute("draw:textarea-vertical-align", "bottom");
-        else xml.writeAttribute("draw:textarea-vertical-align", "top");
+        if (vertical & Qt::AlignVCenter)
+            xml.writeAttribute("draw:textarea-vertical-align", "middle");
+        else if (vertical & Qt::AlignBottom)
+            xml.writeAttribute("draw:textarea-vertical-align", "bottom");
+        else
+            xml.writeAttribute("draw:textarea-vertical-align", "top");
     }
 
     if (style->isTextPaddingValid())
@@ -1068,7 +1084,8 @@ void OdgWriter::writeStyleTextProperties(QXmlStreamWriter& xml, OdgStyle* style)
     {
         QColor textColor = style->textColor();
         xml.writeAttribute("fo:color", colorToString(textColor));
-        xml.writeAttribute("loext:opacity", percentToString(textColor.alphaF()));
+        if (textColor.alpha() != 255)
+            xml.writeAttribute("loext:opacity", percentToString(textColor.alphaF()));
     }
 
     // No <style:text-properties> sub-elements

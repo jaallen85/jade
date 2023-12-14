@@ -453,9 +453,14 @@ void JadeWindow::exportPng()
         QRectF itemsRect;
         const QList<OdgItem*> items = currentPage->items();
         for(auto& item : items)
-            itemsRect = itemsRect.united(item->mapToScene(item->boundingRect()));
+            itemsRect = itemsRect.united(item->mapToScene(item->shape().boundingRect()));
 
-        if (itemsRect.width() == 0 || itemsRect.height() == 0) itemsRect = pageRect;
+        if (itemsRect.width() != 0 && itemsRect.height() != 0)
+        {
+            const QMarginsF pageMargins = mDrawingWidget->pageMargins();
+            itemsRect.adjust(-pageMargins.left(), -pageMargins.top(), pageMargins.right(), pageMargins.bottom());
+        }
+        else itemsRect = pageRect;
 
         // Run export dialog
         ExportDialog dialog(this);
@@ -513,9 +518,14 @@ void JadeWindow::exportSvg()
         QRectF itemsRect;
         const QList<OdgItem*> items = currentPage->items();
         for(auto& item : items)
-            itemsRect = itemsRect.united(item->mapToScene(item->boundingRect()));
+            itemsRect = itemsRect.united(item->mapToScene(item->shape().boundingRect()));
 
-        if (itemsRect.width() == 0 || itemsRect.height() == 0) itemsRect = pageRect;
+        if (itemsRect.width() != 0 && itemsRect.height() != 0)
+        {
+            const QMarginsF pageMargins = mDrawingWidget->pageMargins();
+            itemsRect.adjust(-pageMargins.left(), -pageMargins.top(), pageMargins.right(), pageMargins.bottom());
+        }
+        else itemsRect = pageRect;
 
         // Run export dialog
         ExportDialog dialog(this);
@@ -537,11 +547,9 @@ void JadeWindow::exportSvg()
             const double exportScale = (mDrawingWidget->units() == Odg::UnitsInches) ? mExportPixelsPerInch :
                                            mExportPixelsPerInch * 25;
             const QRectF exportRect = (mExportItemsOnly) ? itemsRect : pageRect;
-            const int exportWidth = qRound(exportRect.width() * exportScale);
-            const int exportHeight = qRound(exportRect.height() * exportScale);
 
             SvgWriter svg(exportRect, exportScale);
-            if (!svg.write(dialog.path(), currentPage->items()))
+            if (!svg.write(dialog.path(), mDrawingWidget->backgroundColor(), currentPage->items()))
                 QMessageBox::critical(this, "Export SVG Error", "Error exporting drawing to SVG file.  File not exported!");
         }
     }

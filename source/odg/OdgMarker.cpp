@@ -121,7 +121,7 @@ void OdgMarker::updatePath()
         {
             case Odg::CircleMarker:
             {
-                mPath.addEllipse(QPointF(0, 0), mSize, mSize);
+                mPath.addEllipse(QPointF(0, 0), mSize / 2, mSize / 2);
                 break;
             }
             case Odg::TriangleMarker:

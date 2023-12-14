@@ -903,7 +903,7 @@ void SingleItemPropertiesWidget::updateTextGroup()
         if (showTextAlignment) setTextAlignment(textAlignment);
         if (showTextPadding) setTextPadding(textPadding);
         if (showTextColor) setTextColor(textColor);
-        if (showCaption) mCaptionEdit->setPlainText(caption);
+        if (showCaption && mCaptionEdit->toPlainText() != caption) mCaptionEdit->setPlainText(caption);
 
         mTextLayout->setRowVisible(mFontFamilyCombo, showFontFamily);
         mTextLayout->setRowVisible(mFontSizeEdit, showFontSize);

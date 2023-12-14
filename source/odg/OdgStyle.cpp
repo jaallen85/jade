@@ -703,8 +703,6 @@ QBrush OdgStyle::lookupTextBrush() const
     return QBrush(lookupTextColor());
 }
 
-#include <QDebug>
-
 QString OdgStyle::lookupFontFamily() const
 {
     if (mFontFamilyValid)
@@ -776,12 +774,12 @@ bool OdgStyle::isEquivalentTo(OdgStyle* other) const
                 mStartMarkerSizeValid == other->mStartMarkerSizeValid &&
                 mEndMarkerStyleValid == other->mEndMarkerStyleValid &&
                 mEndMarkerSizeValid == other->mEndMarkerSizeValid &&
-                mPenStyleValid == other->mPenStyleValid &&
-                mPenStyleValid == other->mPenStyleValid &&
-                mPenStyleValid == other->mPenStyleValid &&
-                mPenStyleValid == other->mPenStyleValid &&
-                mPenStyleValid == other->mPenStyleValid &&
-                mPenStyleValid == other->mPenStyleValid &&
+                mFontFamilyValid == other->mFontFamilyValid &&
+                mFontSizeValid == other->mFontSizeValid &&
+                mFontStyleValid == other->mFontStyleValid &&
+                mTextAlignmentValid == other->mTextAlignmentValid &&
+                mTextPaddingValid == other->mTextPaddingValid &&
+                mTextColorValid == other->mTextColorValid &&
                 (!mPenStyleValid || mPenStyle == other->mPenStyle) &&
                 (!mPenWidthValid || mPenWidth == other->mPenWidth) &&
                 (!mPenColorValid || mPenColor == other->mPenColor) &&

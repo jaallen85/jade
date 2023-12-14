@@ -344,11 +344,16 @@ void OdgReader::readStyles(QXmlStreamReader& xml)
                 readPageStyle(xml);
             else if (mStyles.isEmpty())
             {
-                OdgStyle* defaultStyle = new OdgStyle(mUnits, false);
+                OdgStyle* defaultStyle = new OdgStyle(mUnits, true);
                 readStyle(xml, defaultStyle);
                 mStyles.append(defaultStyle);
             }
-            else xml.skipCurrentElement();
+            else
+            {
+                OdgStyle* newStyle = new OdgStyle(mUnits, false);
+                readStyle(xml, newStyle);
+                mStyles.append(newStyle);
+            }
         }
         else xml.skipCurrentElement();
     }

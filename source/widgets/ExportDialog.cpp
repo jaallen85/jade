@@ -215,13 +215,13 @@ void ExportDialog::updateWidthAndHeightFromScale()
         blockSignals(true);
         if (shouldExportItemsOnly())
         {
-            mWidthEdit->setText(QString::number(mItemsRect.width() * scale, 'g', 8));
-            mHeightEdit->setText(QString::number(mItemsRect.height() * scale, 'g', 8));
+            mWidthEdit->setText(QString::number(qRound(mItemsRect.width() * scale)));
+            mHeightEdit->setText(QString::number(qRound(mItemsRect.height() * scale)));
         }
         else
         {
-            mWidthEdit->setText(QString::number(mPageRect.width() * scale, 'g', 8));
-            mHeightEdit->setText(QString::number(mPageRect.height() * scale, 'g', 8));
+            mWidthEdit->setText(QString::number(qRound(mPageRect.width() * scale)));
+            mHeightEdit->setText(QString::number(qRound(mPageRect.height() * scale)));
         }
         blockSignals(false);
     }
@@ -238,13 +238,13 @@ void ExportDialog::updateScaleAndHeightFromWidth()
         {
             const double scale = width / mItemsRect.width();
             mScaleEdit->setText(QString::number(scale, 'g', 8));
-            mHeightEdit->setText(QString::number(mItemsRect.height() * scale, 'g', 8));
+            mHeightEdit->setText(QString::number(qRound(mItemsRect.height() * scale)));
         }
         else
         {
             const double scale = width / mPageRect.width();
             mScaleEdit->setText(QString::number(scale, 'g', 8));
-            mHeightEdit->setText(QString::number(mPageRect.height() * scale, 'g', 8));
+            mHeightEdit->setText(QString::number(qRound(mPageRect.height() * scale)));
         }
         blockSignals(false);
     }
@@ -261,13 +261,13 @@ void ExportDialog::updateScaleAndWidthFromHeight()
         {
             const double scale = height / mItemsRect.height();
             mScaleEdit->setText(QString::number(scale, 'g', 8));
-            mWidthEdit->setText(QString::number(mItemsRect.width() * scale, 'g', 8));
+            mWidthEdit->setText(QString::number(qRound(mItemsRect.width() * scale)));
         }
         else
         {
             const double scale = height / mPageRect.height();
             mScaleEdit->setText(QString::number(scale, 'g', 8));
-            mWidthEdit->setText(QString::number(mPageRect.width() * scale, 'g', 8));
+            mWidthEdit->setText(QString::number(qRound(mPageRect.width() * scale)));
         }
         blockSignals(false);
     }

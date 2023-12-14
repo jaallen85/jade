@@ -1911,8 +1911,7 @@ void DrawingWidget::drawBackground(QPainter& painter, bool drawBorder, bool draw
     if (drawGrid && grid() > 0)
     {
         const QColor gridColor = this->gridColor();
-        const QColor minorGridColor = QColor::fromHslF(gridColor.hslHueF(), gridColor.hslSaturationF(),
-                                                       (gridColor.lightnessF() < 0.55) ? 0.8 : 0.9);
+        const QColor minorGridColor(gridColor.red(), gridColor.green(), gridColor.blue(), gridColor.alpha() / 3);
 
         switch (gridStyle())
         {

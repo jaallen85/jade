@@ -159,9 +159,9 @@ QRectF OdgRectItem::boundingRect() const
 {
     QRectF rect = mRect.normalized();
 
-    // Adjust for pen width and antialiasing
-    const double penWidth = mPen.widthF();
-    rect.adjust(-penWidth, -penWidth, penWidth, penWidth);
+    // Adjust for pen width
+    const double halfPenWidth = mPen.widthF() / 2;
+    rect.adjust(-halfPenWidth, -halfPenWidth, halfPenWidth, halfPenWidth);
 
     return rect;
 }

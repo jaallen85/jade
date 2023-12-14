@@ -30,9 +30,3 @@ int main(int argc, char* argv[])
 
     return app.exec();
 }
-
-
-// Todo:
-// - Test, test test!  Especially file saving/loading and cut/copy/paste
-// - Export to SVG
-// - Preferences dialog

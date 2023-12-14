@@ -62,7 +62,6 @@ public:
 
 	void placeCreateEvent(const QRectF& contentRect, double grid) override;
 
-private:
     QPointF calculateAnchorPoint(Qt::Alignment alignment) const;
 };
 
