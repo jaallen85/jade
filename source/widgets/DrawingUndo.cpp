@@ -566,10 +566,14 @@ DrawingGroupItemsCommand::DrawingGroupItemsCommand(DrawingWidget* drawing, OdgPa
     Q_ASSERT(mPage != nullptr);
     storeView(mDrawing);
 
-    // Create the group item and put its position equal to the position of the last item.  Then adjust each
+    // Create the group item and put its position equal to the center of all the items.  Then adjust each
     // item's position accordingly
     OdgGroupItem* groupItem = new OdgGroupItem();
-    groupItem->setPosition(mItemsToRemove.last()->position());
+
+    QRectF itemsRect;
+    for(auto& item : items)
+        itemsRect = itemsRect.united(item->mapToScene(item->boundingRect()).normalized());
+    groupItem->setPosition(itemsRect.center());
 
     const QList<OdgItem*> groupChildItems = OdgItem::copyItems(mItemsToRemove);
     for(auto& item : groupChildItems)

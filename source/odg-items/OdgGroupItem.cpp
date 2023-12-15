@@ -88,7 +88,7 @@ QRectF OdgGroupItem::boundingRect() const
 {
     QRectF rect;
     for(auto& item : mItems)
-        rect = rect.united(item->mapToScene(item->boundingRect()));
+        rect = rect.united(item->mapToScene(item->boundingRect()).normalized());
     return rect;
 }
 

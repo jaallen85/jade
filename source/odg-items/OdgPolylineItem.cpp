@@ -190,7 +190,7 @@ QVariant OdgPolylineItem::property(const QString &name) const
 
 QRectF OdgPolylineItem::boundingRect() const
 {
-    QRectF rect = mPolyline.boundingRect();
+    QRectF rect = mPolyline.boundingRect().normalized();
 
     // Adjust for pen width
     const double halfPenWidth = mPen.widthF() / 2;

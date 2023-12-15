@@ -453,7 +453,7 @@ void JadeWindow::exportPng()
         QRectF itemsRect;
         const QList<OdgItem*> items = currentPage->items();
         for(auto& item : items)
-            itemsRect = itemsRect.united(item->mapToScene(item->shape().boundingRect()));
+            itemsRect = itemsRect.united(item->mapToScene(item->boundingRect()).normalized());
 
         if (itemsRect.width() != 0 && itemsRect.height() != 0)
         {
@@ -518,7 +518,7 @@ void JadeWindow::exportSvg()
         QRectF itemsRect;
         const QList<OdgItem*> items = currentPage->items();
         for(auto& item : items)
-            itemsRect = itemsRect.united(item->mapToScene(item->shape().boundingRect()));
+            itemsRect = itemsRect.united(item->mapToScene(item->boundingRect()).normalized());
 
         if (itemsRect.width() != 0 && itemsRect.height() != 0)
         {

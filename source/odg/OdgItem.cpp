@@ -48,7 +48,7 @@ void OdgItem::setFlipped(bool flipped)
 
 void OdgItem::setRotation(int rotation)
 {
-    mRotation = rotation;
+    mRotation = (rotation % 4);
     updateTransform();
 }
 

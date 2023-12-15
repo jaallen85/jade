@@ -2803,7 +2803,7 @@ QRectF DrawingWidget::itemsRect(const QList<OdgItem*>& items) const
 {
     QRectF rect;
     for(auto& item : items)
-        rect = rect.united(item->mapToScene(item->boundingRect()));
+        rect = rect.united(item->mapToScene(item->boundingRect()).normalized());
     return rect;
 }
 
@@ -2818,7 +2818,7 @@ QPointF DrawingWidget::itemsCenter(const QList<OdgItem*>& items) const
 
 bool DrawingWidget::isItemInRect(OdgItem* item, const QRectF& rect) const
 {
-    return rect.contains(item->mapToScene(item->boundingRect()));
+    return rect.contains(item->mapToScene(item->boundingRect()).normalized());
 }
 
 bool DrawingWidget::isPointInItem(OdgItem* item, const QPointF& position) const

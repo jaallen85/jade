@@ -151,7 +151,7 @@ QVariant OdgPolygonItem::property(const QString &name) const
 
 QRectF OdgPolygonItem::boundingRect() const
 {
-    QRectF rect = mPolygon.boundingRect();
+    QRectF rect = mPolygon.boundingRect().normalized();
 
     // Adjust for pen width
     const double halfPenWidth = mPen.widthF() / 2;

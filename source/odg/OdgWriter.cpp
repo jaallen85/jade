@@ -1211,7 +1211,7 @@ void OdgWriter::writeLineItem(QXmlStreamWriter& xml, OdgLineItem* item, const QS
     // Write <draw:line> attributes
     xml.writeAttribute("draw:style-name", styleName);
 
-    const QString transform = transformToString(item->position(), item->rotation(), item->isFlipped());
+    const QString transform = transformToString(item->position(), item->isFlipped(), item->rotation());
     if (!transform.isEmpty()) xml.writeAttribute("draw:transform", transform);
 
     QLineF line = item->line();
@@ -1232,7 +1232,7 @@ void OdgWriter::writeCurveItem(QXmlStreamWriter& xml, OdgCurveItem* item, const 
     // Write <draw:path> attributes
     xml.writeAttribute("draw:style-name", styleName);
 
-    const QString transform = transformToString(item->position(), item->rotation(), item->isFlipped());
+    const QString transform = transformToString(item->position(), item->isFlipped(), item->rotation());
     if (!transform.isEmpty()) xml.writeAttribute("draw:transform", transform);
 
     const OdgCurve curve = item->curve();
@@ -1260,7 +1260,7 @@ void OdgWriter::writeRectItem(QXmlStreamWriter& xml, OdgRectItem* item, const QS
     // Write <draw:rect> attributes
     xml.writeAttribute("draw:style-name", styleName);
 
-    const QString transform = transformToString(item->position(), item->rotation(), item->isFlipped());
+    const QString transform = transformToString(item->position(), item->isFlipped(), item->rotation());
     if (!transform.isEmpty()) xml.writeAttribute("draw:transform", transform);
 
     QRectF rect = item->rect();
@@ -1281,7 +1281,7 @@ void OdgWriter::writeRoundedRectItem(QXmlStreamWriter& xml, OdgRoundedRectItem* 
     // Write <draw:rect> attributes
     xml.writeAttribute("draw:style-name", styleName);
 
-    const QString transform = transformToString(item->position(), item->rotation(), item->isFlipped());
+    const QString transform = transformToString(item->position(), item->isFlipped(), item->rotation());
     if (!transform.isEmpty()) xml.writeAttribute("draw:transform", transform);
 
     QRectF rect = item->rect();
@@ -1303,7 +1303,7 @@ void OdgWriter::writeEllipseItem(QXmlStreamWriter& xml, OdgEllipseItem* item, co
     // Write <draw:ellipse> attributes
     xml.writeAttribute("draw:style-name", styleName);
 
-    const QString transform = transformToString(item->position(), item->rotation(), item->isFlipped());
+    const QString transform = transformToString(item->position(), item->isFlipped(), item->rotation());
     if (!transform.isEmpty()) xml.writeAttribute("draw:transform", transform);
 
     QRectF ellipse = item->ellipse();
@@ -1325,7 +1325,7 @@ void OdgWriter::writeTextItem(QXmlStreamWriter& xml, OdgTextItem* item, const QS
     xml.writeAttribute("draw:style-name", styleName);
     xml.writeAttribute("draw:text-style-name", styleName + "_p");
 
-    const QString transform = transformToString(item->position(), item->rotation(), item->isFlipped());
+    const QString transform = transformToString(item->position(), item->isFlipped(), item->rotation());
     if (!transform.isEmpty()) xml.writeAttribute("draw:transform", transform);
 
     QRectF rect = item->boundingRect();
@@ -1359,7 +1359,7 @@ void OdgWriter::writeTextRoundedRectItem(QXmlStreamWriter& xml, OdgTextRoundedRe
     xml.writeAttribute("draw:style-name", styleName);
     xml.writeAttribute("draw:text-style-name", styleName + "_p");
 
-    const QString transform = transformToString(item->position(), item->rotation(), item->isFlipped());
+    const QString transform = transformToString(item->position(), item->isFlipped(), item->rotation());
     if (!transform.isEmpty()) xml.writeAttribute("draw:transform", transform);
 
     QRectF rect = item->rect();
@@ -1384,7 +1384,7 @@ void OdgWriter::writeTextEllipseItem(QXmlStreamWriter& xml, OdgTextEllipseItem* 
     xml.writeAttribute("draw:style-name", styleName);
     xml.writeAttribute("draw:text-style-name", styleName + "_p");
 
-    const QString transform = transformToString(item->position(), item->rotation(), item->isFlipped());
+    const QString transform = transformToString(item->position(), item->isFlipped(), item->rotation());
     if (!transform.isEmpty()) xml.writeAttribute("draw:transform", transform);
 
     QRectF ellipse = item->ellipse();
@@ -1407,7 +1407,7 @@ void OdgWriter::writePolylineItem(QXmlStreamWriter& xml, OdgPolylineItem* item, 
     // Write <draw:polyline> attributes
     xml.writeAttribute("draw:style-name", styleName);
 
-    const QString transform = transformToString(item->position(), item->rotation(), item->isFlipped());
+    const QString transform = transformToString(item->position(), item->isFlipped(), item->rotation());
     if (!transform.isEmpty()) xml.writeAttribute("draw:transform", transform);
 
     const QPolygonF polyline = item->polyline();
@@ -1431,7 +1431,7 @@ void OdgWriter::writePolygonItem(QXmlStreamWriter& xml, OdgPolygonItem* item, co
     // Write <draw:polygon> attributes
     xml.writeAttribute("draw:style-name", styleName);
 
-    const QString transform = transformToString(item->position(), item->rotation(), item->isFlipped());
+    const QString transform = transformToString(item->position(), item->isFlipped(), item->rotation());
     if (!transform.isEmpty()) xml.writeAttribute("draw:transform", transform);
 
     const QPolygonF polygon = item->polygon();
@@ -1455,7 +1455,7 @@ void OdgWriter::writePathItem(QXmlStreamWriter& xml, OdgPathItem* item, const QS
     // Write <draw:path> attributes
     xml.writeAttribute("draw:style-name", styleName);
 
-    const QString transform = transformToString(item->position(), item->rotation(), item->isFlipped());
+    const QString transform = transformToString(item->position(), item->isFlipped(), item->rotation());
     if (!transform.isEmpty()) xml.writeAttribute("draw:transform", transform);
 
     QRectF rect = item->rect();

@@ -366,7 +366,7 @@ void SvgWriter::writeLineItem(QXmlStreamWriter& xml, OdgLineItem* item)
 {
     xml.writeStartElement("line");
 
-    const QString transform = transformToString(item->position(), item->rotation(), item->isFlipped());
+    const QString transform = transformToString(item->position(), item->isFlipped(), item->rotation());
     if (!transform.isEmpty()) xml.writeAttribute("transform", transform);
 
     const QLineF line = item->line();
@@ -387,7 +387,7 @@ void SvgWriter::writeCurveItem(QXmlStreamWriter& xml, OdgCurveItem* item)
 {
     xml.writeStartElement("path");
 
-    const QString transform = transformToString(item->position(), item->rotation(), item->isFlipped());
+    const QString transform = transformToString(item->position(), item->isFlipped(), item->rotation());
     if (!transform.isEmpty()) xml.writeAttribute("transform", transform);
 
     OdgCurve curve = item->curve();
@@ -408,7 +408,7 @@ void SvgWriter::writeRectItem(QXmlStreamWriter& xml, OdgRectItem* item)
 {
     xml.writeStartElement("rect");
 
-    const QString transform = transformToString(item->position(), item->rotation(), item->isFlipped());
+    const QString transform = transformToString(item->position(), item->isFlipped(), item->rotation());
     if (!transform.isEmpty()) xml.writeAttribute("transform", transform);
 
     const QRectF rect = item->rect();
@@ -427,7 +427,7 @@ void SvgWriter::writeRoundedRectItem(QXmlStreamWriter& xml, OdgRoundedRectItem* 
 {
     xml.writeStartElement("rect");
 
-    const QString transform = transformToString(item->position(), item->rotation(), item->isFlipped());
+    const QString transform = transformToString(item->position(), item->isFlipped(), item->rotation());
     if (!transform.isEmpty()) xml.writeAttribute("transform", transform);
 
     const QRectF rect = item->rect();
@@ -453,7 +453,7 @@ void SvgWriter::writeEllipseItem(QXmlStreamWriter& xml, OdgEllipseItem* item)
 {
     xml.writeStartElement("ellipse");
 
-    const QString transform = transformToString(item->position(), item->rotation(), item->isFlipped());
+    const QString transform = transformToString(item->position(), item->isFlipped(), item->rotation());
     if (!transform.isEmpty()) xml.writeAttribute("transform", transform);
 
     const QRectF ellipse = item->ellipse();
@@ -472,7 +472,7 @@ void SvgWriter::writeTextItem(QXmlStreamWriter& xml, OdgTextItem* item)
 {
     xml.writeStartElement("text");
 
-    const QString transform = transformToString(item->position(), item->rotation(), item->isFlipped());
+    const QString transform = transformToString(item->position(), item->isFlipped(), item->rotation());
     if (!transform.isEmpty()) xml.writeAttribute("transform", transform);
 
     writeFont(xml, item->font());
@@ -488,7 +488,7 @@ void SvgWriter::writeTextRoundedRectItem(QXmlStreamWriter& xml, OdgTextRoundedRe
 {
     xml.writeStartElement("g");
 
-    const QString transform = transformToString(item->position(), item->rotation(), item->isFlipped());
+    const QString transform = transformToString(item->position(), item->isFlipped(), item->rotation());
     if (!transform.isEmpty()) xml.writeAttribute("transform", transform);
 
     // rect sub-element
@@ -531,7 +531,7 @@ void SvgWriter::writeTextEllipseItem(QXmlStreamWriter& xml, OdgTextEllipseItem* 
 {
     xml.writeStartElement("ellipse");
 
-    const QString transform = transformToString(item->position(), item->rotation(), item->isFlipped());
+    const QString transform = transformToString(item->position(), item->isFlipped(), item->rotation());
     if (!transform.isEmpty()) xml.writeAttribute("transform", transform);
 
     const QRectF ellipse = item->ellipse();
@@ -561,7 +561,7 @@ void SvgWriter::writePolylineItem(QXmlStreamWriter& xml, OdgPolylineItem* item)
 {
     xml.writeStartElement("polyline");
 
-    const QString transform = transformToString(item->position(), item->rotation(), item->isFlipped());
+    const QString transform = transformToString(item->position(), item->isFlipped(), item->rotation());
     if (!transform.isEmpty()) xml.writeAttribute("transform", transform);
 
     xml.writeAttribute("points", pointsToString(item->polyline()));
@@ -578,7 +578,7 @@ void SvgWriter::writePolygonItem(QXmlStreamWriter& xml, OdgPolygonItem* item)
 {
     xml.writeStartElement("polygon");
 
-    const QString transform = transformToString(item->position(), item->rotation(), item->isFlipped());
+    const QString transform = transformToString(item->position(), item->isFlipped(), item->rotation());
     if (!transform.isEmpty()) xml.writeAttribute("transform", transform);
 
     xml.writeAttribute("points", pointsToString(item->polygon()));
@@ -597,7 +597,7 @@ void SvgWriter::writePathItem(QXmlStreamWriter& xml, OdgPathItem* item)
     {
         xml.writeStartElement("path");
 
-        const QString transform = transformToString(item->position(), item->rotation(), item->isFlipped());
+        const QString transform = transformToString(item->position(), item->isFlipped(), item->rotation());
         if (!transform.isEmpty()) xml.writeAttribute("transform", transform);
 
         const QRectF rect = item->rect();
@@ -619,7 +619,7 @@ void SvgWriter::writeGroupItem(QXmlStreamWriter& xml, OdgGroupItem* item)
 {
     xml.writeStartElement("g");
 
-    const QString transform = transformToString(item->position(), item->rotation(), item->isFlipped());
+    const QString transform = transformToString(item->position(), item->isFlipped(), item->rotation());
     if (!transform.isEmpty()) xml.writeAttribute("transform", transform);
 
     writeItems(xml, item->items());
@@ -852,12 +852,12 @@ QString SvgWriter::colorToString(const QColor& color) const
 QString SvgWriter::transformToString(const QPointF& position, bool flipped, int rotation) const
 {
     QString transformStr;
-    if (rotation != 0)
-        transformStr += "rotate(" + QString::number(qDegreesToRadians(rotation * -90), 'f', 6) + ") ";
-    if (flipped)
-        transformStr += "scale(-1, 1) ";
     if (position.x() != 0 || position.y() != 0)
         transformStr += "translate(" + lengthToString(position.x()) + ", " + lengthToString(position.y()) + ") ";
+    if (flipped)
+        transformStr += "scale(-1, 1) ";
+    if (rotation != 0)
+        transformStr += "rotate(" + QString::number(rotation * 90) + ") ";
     return transformStr.trimmed();
 }
 

@@ -184,7 +184,7 @@ QVariant OdgCurveItem::property(const QString &name) const
 
 QRectF OdgCurveItem::boundingRect() const
 {
-    QRectF rect = mCurvePath.boundingRect();
+    QRectF rect = mCurvePath.boundingRect().normalized();
 
     // Adjust for pen width
     const double halfPenWidth = mPen.widthF() / 2;
