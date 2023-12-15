@@ -40,6 +40,7 @@ QList<OdgPathItem*> ElectricItems::items()
     items.append(createVac());
     items.append(createIdc());
     items.append(createIac());
+    items.append(createTransmissionLine());
     return items;
 }
 
@@ -66,6 +67,7 @@ QStringList ElectricItems::icons()
     icons.append(":/icons/items/vac.png");
     icons.append(":/icons/items/idc.png");
     icons.append(":/icons/items/iac.png");
+    icons.append("");
     return icons;
 }
 
@@ -495,6 +497,31 @@ OdgPathItem* ElectricItems::createIac()
     OdgPathItem* item = new OdgPathItem();
     item->setPathName("AC Current Source");
     item->setPath(path, QRectF(-3.0, -6.0, 6.0, 12.0));
+    item->setRect(item->pathRect());
+
+    return item;
+}
+
+//======================================================================================================================
+
+OdgPathItem* ElectricItems::createTransmissionLine()
+{
+    QPainterPath path;
+
+    path.moveTo(-4.0, -2.0);
+    path.lineTo(4.0, -2.0);
+    path.cubicTo(5.4, -2.0, 5.4, 2.0, 4.0, 2.0);
+    path.lineTo(-4.0, 2.0);
+    path.cubicTo(-2.6, 2.0, -2.6, -2.0, -4.0, -2.0);
+    path.closeSubpath();
+
+    path.cubicTo(-5.4, -2.0, -5.4, 2.0, -4.0, 2.0);
+    path.cubicTo(-2.6, 2.0, -2.6, -2.0, -4.0, -2.0);
+    path.closeSubpath();
+
+    OdgPathItem* item = new OdgPathItem();
+    item->setPathName("Transmission Line");
+    item->setPath(path, QRectF(-5.0, -2.0, 10.0, 4.0));
     item->setRect(item->pathRect());
 
     return item;

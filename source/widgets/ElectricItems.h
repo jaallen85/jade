@@ -55,6 +55,8 @@ private:
     static OdgPathItem* createVac();
     static OdgPathItem* createIdc();
     static OdgPathItem* createIac();
+
+    static OdgPathItem* createTransmissionLine();
 };
 
 #endif
