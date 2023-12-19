@@ -450,7 +450,7 @@ QRectF OdgItem::drawText(QPainter& painter, const QPointF& anchorPoint, const QF
         calculateTextRect(anchorPoint, font, alignment, padding, caption, textRect, scaledTextRect, scaleFactor);
 
         QFont scaledFont = font;
-        scaledFont.setPointSizeF(scaledFont.pointSizeF() * scaleFactor * 72 / 96);
+        scaledFont.setPointSizeF(scaledFont.pointSizeF() * scaleFactor * 72 / 96 * 0.8);
 
         painter.scale(1 / scaleFactor, 1 / scaleFactor);
         painter.setBrush(QBrush(Qt::transparent));
@@ -472,7 +472,7 @@ void OdgItem::calculateTextRect(const QPointF& anchorPoint, const QFont& font, Q
         scaleFactor = calculateTextScaleFactor(font);
 
         QFont scaledFont = font;
-        scaledFont.setPointSizeF(scaledFont.pointSizeF() * scaleFactor * 72 / 96);
+        scaledFont.setPointSizeF(scaledFont.pointSizeF() * scaleFactor * 72 / 96 * 0.8);
 
         // Determine text width and height
         QFontMetricsF scaledFontMetrics(scaledFont);
@@ -480,7 +480,7 @@ void OdgItem::calculateTextRect(const QPointF& anchorPoint, const QFont& font, Q
         const QStringList lines = caption.split("\n");
         for(auto& line : lines)
         {
-            scaledTextWidth = qMax(scaledTextWidth, scaledFontMetrics.boundingRect(line).width());
+            scaledTextWidth = qMax(scaledTextWidth, scaledFontMetrics.boundingRect(line + "  ").width());
             scaledTextHeight += scaledFontMetrics.lineSpacing();
         }
         scaledTextHeight -= scaledFontMetrics.leading();
@@ -608,5 +608,5 @@ QList<OdgItem*> OdgItem::copyItems(const QList<OdgItem*>& items)
         }
     }
 
-	return copiedItems;
+    return copiedItems;
 }

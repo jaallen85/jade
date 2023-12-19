@@ -54,9 +54,9 @@ DrawingWidget::DrawingWidget() : QAbstractScrollArea(), OdgDrawing(),
     mTransform(), mTransformInverse(), mMode(Odg::SelectMode), mUndoStack(),
     mMouseState(MouseIdle), mMouseButtonDownPosition(), mMouseButtonDownScenePosition(),
     mMouseDragged(false), mSelectMouseState(SelectMouseIdle), mSelectedItems(), mSelectedItemsCenter(),
-	mSelectMouseDownItem(nullptr), mSelectMouseDownPoint(nullptr), mSelectFocusItem(nullptr),
-	mSelectMoveItemsInitialPositions(), mSelectMoveItemsPreviousDeltaPosition(),
-	mSelectResizeItemInitialPosition(), mSelectResizeItemPreviousPosition(), mSelectRubberBandRect(),
+    mSelectMouseDownItem(nullptr), mSelectMouseDownPoint(nullptr), mSelectFocusItem(nullptr),
+    mSelectMoveItemsInitialPositions(), mSelectMoveItemsPreviousDeltaPosition(),
+    mSelectResizeItemInitialPosition(), mSelectResizeItemPreviousPosition(), mSelectRubberBandRect(),
     mScrollInitialHorizontalValue(0), mScrollInitialVerticalValue(0), mZoomRubberBandRect(),
     mPlaceItems(), mPlaceByMousePressAndRelease(false),
     mPanOriginalCursor(Qt::ArrowCursor), mPanStartPosition(), mPanCurrentPosition(), mPanTimer(),
@@ -1113,7 +1113,7 @@ void DrawingWidget::setSelectedItems(const QList<OdgItem*>& items)
         mSelectedItems = items;
         for(auto& item : qAsConst(mSelectedItems)) item->setSelected(true);
         updateSelectionCenter();
-		updateActions();
+        updateActions();
 
         // Signal any listeners that the current items changed
         if (mMode == Odg::SelectMode) emit currentItemsChanged(mSelectedItems);
@@ -1247,7 +1247,7 @@ void DrawingWidget::setScrollMode()
         mSelectMouseDownItem = nullptr;
         mSelectMouseDownPoint = nullptr;
         mSelectFocusItem = nullptr;
-		mSelectMoveItemsInitialPositions.clear();
+        mSelectMoveItemsInitialPositions.clear();
 
         // Clear place mode state
         if (!mPlaceItems.isEmpty()) emit currentItemsChanged(QList<OdgItem*>());
@@ -1274,7 +1274,7 @@ void DrawingWidget::setZoomMode()
         mSelectMouseDownItem = nullptr;
         mSelectMouseDownPoint = nullptr;
         mSelectFocusItem = nullptr;
-		mSelectMoveItemsInitialPositions.clear();
+        mSelectMoveItemsInitialPositions.clear();
 
         // Clear place mode state
         if (!mPlaceItems.isEmpty()) emit currentItemsChanged(QList<OdgItem*>());
@@ -1302,7 +1302,7 @@ void DrawingWidget::setPlaceMode(const QList<OdgItem*>& items, bool placeByMouse
         mSelectMouseDownItem = nullptr;
         mSelectMouseDownPoint = nullptr;
         mSelectFocusItem = nullptr;
-		mSelectMoveItemsInitialPositions.clear();
+        mSelectMoveItemsInitialPositions.clear();
 
         // Clear place mode state
         if (!mPlaceItems.isEmpty()) emit currentItemsChanged(QList<OdgItem*>());
@@ -1894,9 +1894,9 @@ void DrawingWidget::drawBackground(QPainter& painter, bool drawBorder, bool draw
     painter.setBackground(QBrush(backgroundColor));
     painter.setBrush(QBrush(backgroundColor));
     if (drawBorder)
-        painter.setPen(QPen(Qt::NoPen));
-    else
         painter.setPen(QPen(QBrush(pageBorderColor), 0));
+    else
+        painter.setPen(QPen(Qt::NoPen));
     painter.drawRect(pageRect());
 
     // Draw content border
@@ -2300,111 +2300,111 @@ void DrawingWidget::wheelEvent(QWheelEvent* event)
 
 void DrawingWidget::selectModeNoButtonMouseMoveEvent(QMouseEvent* event)
 {
-	emit mouseInfoChanged(createMouseInfo(mapToScene(event->pos())));
+    emit mouseInfoChanged(createMouseInfo(mapToScene(event->pos())));
 }
 
 void DrawingWidget::selectModeLeftMousePressEvent(QMouseEvent* event)
 {
-	mSelectMouseState = SelectMouseSelectItem;
+    mSelectMouseState = SelectMouseSelectItem;
 
-	// Update mouse down item
-	mSelectMouseDownItem = itemAt(mMouseButtonDownScenePosition);
+    // Update mouse down item
+    mSelectMouseDownItem = itemAt(mMouseButtonDownScenePosition);
 
-	// Determine if the user clicked on one of the mouse down item's control points
-	mSelectMouseDownPoint = nullptr;
-	if (mSelectMouseDownItem && mSelectMouseDownItem->isSelected() && mSelectedItems.size() == 1)
-	{
-		const QList<OdgControlPoint*> controlPoints = mSelectMouseDownItem->controlPoints();
-		for(auto& controlPoint : controlPoints)
-		{
-			if (pointRect(controlPoint).contains(mMouseButtonDownScenePosition))
-			{
-				mSelectMouseDownPoint = controlPoint;
-				break;
-			}
-		}
-	}
+    // Determine if the user clicked on one of the mouse down item's control points
+    mSelectMouseDownPoint = nullptr;
+    if (mSelectMouseDownItem && mSelectMouseDownItem->isSelected() && mSelectedItems.size() == 1)
+    {
+        const QList<OdgControlPoint*> controlPoints = mSelectMouseDownItem->controlPoints();
+        for(auto& controlPoint : controlPoints)
+        {
+            if (pointRect(controlPoint).contains(mMouseButtonDownScenePosition))
+            {
+                mSelectMouseDownPoint = controlPoint;
+                break;
+            }
+        }
+    }
 
-	// Update focus item
+    // Update focus item
     mSelectFocusItem = mSelectMouseDownItem;
 
-	viewport()->update();
+    viewport()->update();
 }
 
 void DrawingWidget::selectModeLeftMouseDragEvent(QMouseEvent* event)
 {
-	switch (mSelectMouseState)
-	{
-	case SelectMouseSelectItem:
-		// If we clicked on a control point within a selected item and the item can be resized, then resize the item.
-		// Otherwise, if we clicked on a selected item, move the item.  Otherwise we didn't click on a
-		// selected item, so start drawing a rubber band for item selection.
-		if (mSelectMouseDownItem && mSelectMouseDownItem->isSelected())
-		{
-			bool canResize = (mSelectMouseDownPoint && mSelectedItems.size() == 1 &&
-							  mSelectMouseDownItem->controlPoints().size() > 1);
-			if (canResize)
-			{
-				mSelectMouseState = SelectMouseResizeItem;
-				selectModeResizeItemStartEvent(event);
-			}
-			else
-			{
-				mSelectMouseState = SelectMouseMoveItems;
-				selectModeMoveItemsStartEvent(event);
-			}
-		}
-		else
-		{
-			mSelectMouseState = SelectMouseRubberBand;
-			selectModeRubberBandStartEvent(event);
-		}
-		break;
-	case SelectMouseMoveItems:
-		selectModeMoveItemsUpdateEvent(event);		// Move the selected items within the scene
-		break;
-	case SelectMouseResizeItem:
-		selectModeResizeItemUpdateEvent(event);		// Resize the selected item within the scene
-		break;
-	case SelectMouseRubberBand:
-		selectModeRubberBandUpdateEvent(event);		// Update the rubber band rect to be used for item selection
-		break;
-	default:	// SelectMouseIdle
-		// Do nothing.
-		break;
-	}
+    switch (mSelectMouseState)
+    {
+    case SelectMouseSelectItem:
+        // If we clicked on a control point within a selected item and the item can be resized, then resize the item.
+        // Otherwise, if we clicked on a selected item, move the item.  Otherwise we didn't click on a
+        // selected item, so start drawing a rubber band for item selection.
+        if (mSelectMouseDownItem && mSelectMouseDownItem->isSelected())
+        {
+            bool canResize = (mSelectMouseDownPoint && mSelectedItems.size() == 1 &&
+                              mSelectMouseDownItem->controlPoints().size() > 1);
+            if (canResize)
+            {
+                mSelectMouseState = SelectMouseResizeItem;
+                selectModeResizeItemStartEvent(event);
+            }
+            else
+            {
+                mSelectMouseState = SelectMouseMoveItems;
+                selectModeMoveItemsStartEvent(event);
+            }
+        }
+        else
+        {
+            mSelectMouseState = SelectMouseRubberBand;
+            selectModeRubberBandStartEvent(event);
+        }
+        break;
+    case SelectMouseMoveItems:
+        selectModeMoveItemsUpdateEvent(event);		// Move the selected items within the scene
+        break;
+    case SelectMouseResizeItem:
+        selectModeResizeItemUpdateEvent(event);		// Resize the selected item within the scene
+        break;
+    case SelectMouseRubberBand:
+        selectModeRubberBandUpdateEvent(event);		// Update the rubber band rect to be used for item selection
+        break;
+    default:	// SelectMouseIdle
+        // Do nothing.
+        break;
+    }
 }
 
 void DrawingWidget::selectModeLeftMouseReleaseEvent(QMouseEvent* event)
 {
-	switch (mSelectMouseState)
-	{
-	case SelectMouseSelectItem:
-		selectModeSingleSelectEvent(event);			// Select or deselect single item as needed
-		break;
-	case SelectMouseMoveItems:
-		selectModeMoveItemsEndEvent(event);			// Finish moving the selected items within the scene
-		break;
-	case SelectMouseResizeItem:
-		selectModeResizeItemEndEvent(event);		// Finish resizing the selected item within the scene
-		break;
-	case SelectMouseRubberBand:
-		selectModeRubberBandEndEvent(event);		// Select all the items under the rubber band rect
-		break;
-	default:	// SelectMouseIdle
-		// Do nothing.
-		break;
-	}
+    switch (mSelectMouseState)
+    {
+    case SelectMouseSelectItem:
+        selectModeSingleSelectEvent(event);			// Select or deselect single item as needed
+        break;
+    case SelectMouseMoveItems:
+        selectModeMoveItemsEndEvent(event);			// Finish moving the selected items within the scene
+        break;
+    case SelectMouseResizeItem:
+        selectModeResizeItemEndEvent(event);		// Finish resizing the selected item within the scene
+        break;
+    case SelectMouseRubberBand:
+        selectModeRubberBandEndEvent(event);		// Select all the items under the rubber band rect
+        break;
+    default:	// SelectMouseIdle
+        // Do nothing.
+        break;
+    }
 
-	mSelectMouseState = SelectMouseIdle;
-	mSelectMouseDownItem = nullptr;
-	mSelectMouseDownPoint = nullptr;
+    mSelectMouseState = SelectMouseIdle;
+    mSelectMouseDownItem = nullptr;
+    mSelectMouseDownPoint = nullptr;
 }
 
 void DrawingWidget::selectModeRightMousePressEvent(QMouseEvent* event)
 {
-	// Update mouse down item
-	mSelectMouseDownItem = itemAt(mMouseButtonDownScenePosition);
+    // Update mouse down item
+    mSelectMouseDownItem = itemAt(mMouseButtonDownScenePosition);
 }
 
 void DrawingWidget::selectModeRightMouseReleaseEvent(QMouseEvent* event)
@@ -2436,168 +2436,168 @@ void DrawingWidget::selectModeRightMouseReleaseEvent(QMouseEvent* event)
     }
 
     // Clear the mouse down item
-	mSelectMouseDownItem = nullptr;
+    mSelectMouseDownItem = nullptr;
 }
 
 //======================================================================================================================
 
 void DrawingWidget::selectModeSingleSelectEvent(QMouseEvent* event)
 {
-	// Add or remove the selectMouseDownItem from the current selection as appropriate
-	const bool controlDown = ((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier);
+    // Add or remove the selectMouseDownItem from the current selection as appropriate
+    const bool controlDown = ((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier);
 
-	QList<OdgItem*> newSelection;
-	if (controlDown) newSelection = mSelectedItems;
+    QList<OdgItem*> newSelection;
+    if (controlDown) newSelection = mSelectedItems;
 
-	if (mSelectMouseDownItem)
-	{
-		if (controlDown && newSelection.contains(mSelectMouseDownItem))
-			newSelection.removeAll(mSelectMouseDownItem);
-		else
-			newSelection.append(mSelectMouseDownItem);
-	}
+    if (mSelectMouseDownItem)
+    {
+        if (controlDown && newSelection.contains(mSelectMouseDownItem))
+            newSelection.removeAll(mSelectMouseDownItem);
+        else
+            newSelection.append(mSelectMouseDownItem);
+    }
 
     setSelectedItems(newSelection);
 
-	emit mouseInfoChanged("");
-	viewport()->update();
+    emit mouseInfoChanged("");
+    viewport()->update();
 }
 
 //======================================================================================================================
 
 void DrawingWidget::selectModeRubberBandStartEvent(QMouseEvent* event)
 {
-	mSelectRubberBandRect = QRect();
+    mSelectRubberBandRect = QRect();
 }
 
 void DrawingWidget::selectModeRubberBandUpdateEvent(QMouseEvent* event)
 {
-	// Update the mSelectRubberBandRect based on the mouse event
-	mSelectRubberBandRect = QRect(event->pos(), mMouseButtonDownPosition).normalized();
+    // Update the mSelectRubberBandRect based on the mouse event
+    mSelectRubberBandRect = QRect(event->pos(), mMouseButtonDownPosition).normalized();
 
-	emit mouseInfoChanged(createMouseInfo(mMouseButtonDownScenePosition, mapToScene(event->pos())));
-	viewport()->update();
+    emit mouseInfoChanged(createMouseInfo(mMouseButtonDownScenePosition, mapToScene(event->pos())));
+    viewport()->update();
 }
 
 void DrawingWidget::selectModeRubberBandEndEvent(QMouseEvent* event)
 {
-	// Select the items in the mSelectRubberBandRect if the rect's width/height are sufficiently large
-	if (qAbs(mSelectRubberBandRect.width()) > QApplication::startDragDistance() &&
-		qAbs(mSelectRubberBandRect.height()) > QApplication::startDragDistance())
-	{
-		const QList<OdgItem*> itemsInRubberBand = items(mapToScene(mSelectRubberBandRect).normalized());
+    // Select the items in the mSelectRubberBandRect if the rect's width/height are sufficiently large
+    if (qAbs(mSelectRubberBandRect.width()) > QApplication::startDragDistance() &&
+        qAbs(mSelectRubberBandRect.height()) > QApplication::startDragDistance())
+    {
+        const QList<OdgItem*> itemsInRubberBand = items(mapToScene(mSelectRubberBandRect).normalized());
 
-		const bool controlDown = ((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier);
-		if (controlDown)
-		{
-			QList<OdgItem*> itemsToSelect = mSelectedItems;
-			for(auto& item : itemsInRubberBand)
-			{
-				if (!itemsToSelect.contains(item))
-					itemsToSelect.append(item);
-			}
-			setSelectedItems(itemsToSelect);
-		}
-		else setSelectedItems(itemsInRubberBand);
-	}
+        const bool controlDown = ((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier);
+        if (controlDown)
+        {
+            QList<OdgItem*> itemsToSelect = mSelectedItems;
+            for(auto& item : itemsInRubberBand)
+            {
+                if (!itemsToSelect.contains(item))
+                    itemsToSelect.append(item);
+            }
+            setSelectedItems(itemsToSelect);
+        }
+        else setSelectedItems(itemsInRubberBand);
+    }
 
-	// Reset the select rubber band event variables
-	mSelectRubberBandRect = QRect();
+    // Reset the select rubber band event variables
+    mSelectRubberBandRect = QRect();
 
-	emit mouseInfoChanged(createMouseInfo(mMouseButtonDownScenePosition, mapToScene(event->pos())));
-	viewport()->update();
+    emit mouseInfoChanged(createMouseInfo(mMouseButtonDownScenePosition, mapToScene(event->pos())));
+    viewport()->update();
 }
 
 //======================================================================================================================
 
 void DrawingWidget::selectModeMoveItemsStartEvent(QMouseEvent* event)
 {
-	for(auto& item : qAsConst(mSelectedItems))
-		mSelectMoveItemsInitialPositions.insert(item, item->position());
-	mSelectMoveItemsPreviousDeltaPosition = QPointF();
+    for(auto& item : qAsConst(mSelectedItems))
+        mSelectMoveItemsInitialPositions.insert(item, item->position());
+    mSelectMoveItemsPreviousDeltaPosition = QPointF();
 }
 
 void DrawingWidget::selectModeMoveItemsUpdateEvent(QMouseEvent* event)
 {
-	selectModeMoveItems(mapToScene(event->pos()), false, false);
+    selectModeMoveItems(mapToScene(event->pos()), false, false);
 }
 
 void DrawingWidget::selectModeMoveItemsEndEvent(QMouseEvent* event)
 {
-	selectModeMoveItems(mapToScene(event->pos()), true, mSelectedItems.size() == 1);
+    selectModeMoveItems(mapToScene(event->pos()), true, mSelectedItems.size() == 1);
 
-	mSelectMoveItemsInitialPositions.clear();
-	mSelectMoveItemsPreviousDeltaPosition = QPointF();
+    mSelectMoveItemsInitialPositions.clear();
+    mSelectMoveItemsPreviousDeltaPosition = QPointF();
 }
 
 void DrawingWidget::selectModeMoveItems(const QPointF& mousePosition, bool finalMove, bool placeItems)
 {
-	if (!mSelectedItems.isEmpty())
-	{
-		const QPointF deltaPosition = roundToGrid(mousePosition - mMouseButtonDownScenePosition);
-		if (finalMove || deltaPosition != mSelectMoveItemsPreviousDeltaPosition)
-		{
-			QHash<OdgItem*,QPointF> newPositions;
-			for(auto& item : qAsConst(mSelectedItems))
-				newPositions.insert(item, mSelectMoveItemsInitialPositions.value(item) + deltaPosition);
+    if (!mSelectedItems.isEmpty())
+    {
+        const QPointF deltaPosition = roundToGrid(mousePosition - mMouseButtonDownScenePosition);
+        if (finalMove || deltaPosition != mSelectMoveItemsPreviousDeltaPosition)
+        {
+            QHash<OdgItem*,QPointF> newPositions;
+            for(auto& item : qAsConst(mSelectedItems))
+                newPositions.insert(item, mSelectMoveItemsInitialPositions.value(item) + deltaPosition);
 
-			mUndoStack.push(new DrawingMoveItemsCommand(this, mSelectedItems, newPositions, placeItems));
+            mUndoStack.push(new DrawingMoveItemsCommand(this, mSelectedItems, newPositions, placeItems));
 
-			if (!finalMove)
-			{
-				const QPointF position2 = newPositions.value(mSelectedItems.first());
-				const QPointF position1 = position2 - deltaPosition;
-				emit mouseInfoChanged(createMouseInfo(position1, position2));
-			}
-			else emit mouseInfoChanged("");
+            if (!finalMove)
+            {
+                const QPointF position2 = newPositions.value(mSelectedItems.first());
+                const QPointF position1 = position2 - deltaPosition;
+                emit mouseInfoChanged(createMouseInfo(position1, position2));
+            }
+            else emit mouseInfoChanged("");
 
-			mSelectMoveItemsPreviousDeltaPosition = deltaPosition;
-		}
-	}
+            mSelectMoveItemsPreviousDeltaPosition = deltaPosition;
+        }
+    }
 }
 
 //======================================================================================================================
 
 void DrawingWidget::selectModeResizeItemStartEvent(QMouseEvent* event)
 {
-	if (mSelectMouseDownItem && mSelectMouseDownPoint)
-		mSelectResizeItemInitialPosition = mSelectMouseDownItem->mapToScene(mSelectMouseDownPoint->position());
-	mSelectResizeItemPreviousPosition = QPointF();
+    if (mSelectMouseDownItem && mSelectMouseDownPoint)
+        mSelectResizeItemInitialPosition = mSelectMouseDownItem->mapToScene(mSelectMouseDownPoint->position());
+    mSelectResizeItemPreviousPosition = QPointF();
 }
 
 void DrawingWidget::selectModeResizeItemUpdateEvent(QMouseEvent* event)
 {
-	const bool shiftDown = ((event->modifiers() & Qt::ShiftModifier) == Qt::ShiftModifier);
-	selectModeResizeItem(mapToScene(event->pos()), shiftDown, false);
+    const bool shiftDown = ((event->modifiers() & Qt::ShiftModifier) == Qt::ShiftModifier);
+    selectModeResizeItem(mapToScene(event->pos()), shiftDown, false);
 }
 
 void DrawingWidget::selectModeResizeItemEndEvent(QMouseEvent* event)
 {
-	const bool shiftDown = ((event->modifiers() & Qt::ShiftModifier) == Qt::ShiftModifier);
-	selectModeResizeItem(mapToScene(event->pos()), shiftDown, true);
+    const bool shiftDown = ((event->modifiers() & Qt::ShiftModifier) == Qt::ShiftModifier);
+    selectModeResizeItem(mapToScene(event->pos()), shiftDown, true);
 
-	mSelectResizeItemInitialPosition = QPointF();
-	mSelectResizeItemPreviousPosition = QPointF();
+    mSelectResizeItemInitialPosition = QPointF();
+    mSelectResizeItemPreviousPosition = QPointF();
 }
 
 void DrawingWidget::selectModeResizeItem(const QPointF& mousePosition, bool snapTo45Degrees, bool finalResize)
 {
-	if (mSelectMouseDownItem && mSelectMouseDownPoint)
-	{
-		const QPointF newPosition = roundToGrid(mousePosition);
-		if (finalResize || newPosition != mSelectResizeItemPreviousPosition)
-		{
-			mUndoStack.push(new DrawingResizeItemCommand(this, mSelectMouseDownPoint, newPosition, snapTo45Degrees,
-														 finalResize));
+    if (mSelectMouseDownItem && mSelectMouseDownPoint)
+    {
+        const QPointF newPosition = roundToGrid(mousePosition);
+        if (finalResize || newPosition != mSelectResizeItemPreviousPosition)
+        {
+            mUndoStack.push(new DrawingResizeItemCommand(this, mSelectMouseDownPoint, newPosition, snapTo45Degrees,
+                                                         finalResize));
 
-			if (!finalResize)
-				emit mouseInfoChanged(createMouseInfo(mSelectResizeItemInitialPosition, newPosition));
-			else
-				emit mouseInfoChanged("");
+            if (!finalResize)
+                emit mouseInfoChanged(createMouseInfo(mSelectResizeItemInitialPosition, newPosition));
+            else
+                emit mouseInfoChanged("");
 
-			mSelectResizeItemPreviousPosition = newPosition;
-		}
-	}
+            mSelectResizeItemPreviousPosition = newPosition;
+        }
+    }
 }
 
 //======================================================================================================================
@@ -2677,68 +2677,68 @@ void DrawingWidget::zoomModeLeftMouseReleaseEvent(QMouseEvent* event)
 
 void DrawingWidget::placeModeNoButtonMouseMoveEvent(QMouseEvent* event)
 {
-	// Move the place items within the scene relative to the center of those items.
-	const QPointF center = roundToGrid(itemsCenter(mPlaceItems));
-	const QPointF delta = roundToGrid(mapToScene(event->pos())) - center;
-	if (delta.x() != 0 || delta.y() != 0)
-	{
-		QHash<OdgItem*,QPointF> newPositions;
-		for(auto& item : mPlaceItems)
-			newPositions.insert(item, item->position() + delta);
+    // Move the place items within the scene relative to the center of those items.
+    const QPointF center = roundToGrid(itemsCenter(mPlaceItems));
+    const QPointF delta = roundToGrid(mapToScene(event->pos())) - center;
+    if (delta.x() != 0 || delta.y() != 0)
+    {
+        QHash<OdgItem*,QPointF> newPositions;
+        for(auto& item : mPlaceItems)
+            newPositions.insert(item, item->position() + delta);
 
-		moveItems(mPlaceItems, newPositions, false);
+        moveItems(mPlaceItems, newPositions, false);
 
-		emit mouseInfoChanged(createMouseInfo(roundToGrid(mapToScene(event->pos()))));
-	}
+        emit mouseInfoChanged(createMouseInfo(roundToGrid(mapToScene(event->pos()))));
+    }
 }
 
 void DrawingWidget::placeModeLeftMousePressEvent(QMouseEvent* event)
 {
-	// Nothing to do here.
+    // Nothing to do here.
 }
 
 void DrawingWidget::placeModeLeftMouseDragEvent(QMouseEvent* event)
 {
-	if (mPlaceByMousePressAndRelease && mPlaceItems.size() == 1)
-	{
-		// Resize item's end point to the current mouse position
-		OdgItem* placeItem = mPlaceItems.first();
-		OdgControlPoint* placeItemResizeStartPoint = placeItem->placeResizeStartPoint();
-		OdgControlPoint* placeItemResizeEndPoint = placeItem->placeResizeEndPoint();
+    if (mPlaceByMousePressAndRelease && mPlaceItems.size() == 1)
+    {
+        // Resize item's end point to the current mouse position
+        OdgItem* placeItem = mPlaceItems.first();
+        OdgControlPoint* placeItemResizeStartPoint = placeItem->placeResizeStartPoint();
+        OdgControlPoint* placeItemResizeEndPoint = placeItem->placeResizeEndPoint();
 
-		if (placeItemResizeStartPoint && placeItemResizeEndPoint)
-		{
-			const QPointF startPosition = placeItem->mapToScene(placeItemResizeStartPoint->position());
-			const QPointF endPosition = roundToGrid(mapToScene(event->pos()));
-			const bool shiftDown = ((event->modifiers() & Qt::ShiftModifier) == Qt::ShiftModifier);
+        if (placeItemResizeStartPoint && placeItemResizeEndPoint)
+        {
+            const QPointF startPosition = placeItem->mapToScene(placeItemResizeStartPoint->position());
+            const QPointF endPosition = roundToGrid(mapToScene(event->pos()));
+            const bool shiftDown = ((event->modifiers() & Qt::ShiftModifier) == Qt::ShiftModifier);
 
             resizeItem(placeItemResizeEndPoint, endPosition, shiftDown, false, false);
 
-			emit mouseInfoChanged(createMouseInfo(startPosition, endPosition));
-		}
-		else placeModeNoButtonMouseMoveEvent(event);
-	}
-	else placeModeNoButtonMouseMoveEvent(event);
+            emit mouseInfoChanged(createMouseInfo(startPosition, endPosition));
+        }
+        else placeModeNoButtonMouseMoveEvent(event);
+    }
+    else placeModeNoButtonMouseMoveEvent(event);
 }
 
 void DrawingWidget::placeModeLeftMouseReleaseEvent(QMouseEvent* event)
 {
-	if (mCurrentPage && (mPlaceItems.size() > 2 || (mPlaceItems.size() == 1 && mPlaceItems.first()->isValid())))
-	{
-		// Add the items to the scene
-		mUndoStack.push(new DrawingAddItemsCommand(this, mCurrentPage, mPlaceItems, true));
+    if (mCurrentPage && (mPlaceItems.size() > 1 || (mPlaceItems.size() == 1 && mPlaceItems.first()->isValid())))
+    {
+        // Add the items to the scene
+        mUndoStack.push(new DrawingAddItemsCommand(this, mCurrentPage, mPlaceItems, true));
 
-		// Create a new set of place items
-		QList<OdgItem*> newPlaceItems = OdgItem::copyItems(mPlaceItems);
-		if (mPlaceByMousePressAndRelease)
-		{
-			for(auto& item : qAsConst(newPlaceItems))
-				item->placeCreateEvent(contentRect(), mGrid);
-		}
+        // Create a new set of place items
+        QList<OdgItem*> newPlaceItems = OdgItem::copyItems(mPlaceItems);
+        if (mPlaceByMousePressAndRelease)
+        {
+            for(auto& item : qAsConst(newPlaceItems))
+                item->placeCreateEvent(contentRect(), mGrid);
+        }
 
-		mPlaceItems.clear();
-		setPlaceMode(newPlaceItems, mPlaceByMousePressAndRelease);
-	}
+        mPlaceItems.clear();
+        setPlaceMode(newPlaceItems, mPlaceByMousePressAndRelease);
+    }
 }
 
 //======================================================================================================================
