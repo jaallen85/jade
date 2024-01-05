@@ -84,8 +84,6 @@ DrawingWidget::DrawingWidget() : QAbstractScrollArea(), OdgDrawing(),
 
 DrawingWidget::~DrawingWidget()
 {
-    selectNone();
-    setSelectMode();
     setCurrentPage(nullptr);
     setDefaultStyle(nullptr);
     setStyleTemplate(nullptr);
@@ -1434,6 +1432,9 @@ void DrawingWidget::setCurrentPage(OdgPage* page)
 {
     if (page != mCurrentPage)
     {
+        selectNone();
+        setSelectMode();
+
         mCurrentPage = page;
         emit currentPageChanged(mCurrentPage);
         emit currentPageIndexChanged(currentPageIndex());

@@ -41,6 +41,11 @@ set(ZLIB_INCLUDE_DIR ${ZLIB_PATH}/include)
 set(ZLIB_LIBRARY ${ZLIB_PATH}/lib/zlib.lib)
 find_package(QuaZip-Qt6)
 
+if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    enable_language("RC")
+    set (WIN32_RESOURCES ${CMAKE_CURRENT_SOURCE_DIR}/icons/icons.rc)
+endif()
+
 add_executable(${PROJECT_NAME} WIN32
     icons/icons.qrc
     license.qrc
@@ -125,6 +130,7 @@ add_executable(${PROJECT_NAME} WIN32
     source/JadeWindow.h
     source/JadeWindow.cpp
     source/main.cpp
+    ${WIN32_RESOURCES}
 )
 
 include_directories(source)
