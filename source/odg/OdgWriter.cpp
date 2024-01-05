@@ -848,14 +848,17 @@ void OdgWriter::writeStyle(QXmlStreamWriter& xml, OdgStyle* style, bool writePar
         xml.writeStartElement("style:style");
         xml.writeAttribute("style:name", style->name() + "_p");
         xml.writeAttribute("style:family", "paragraph");
-        xml.writeAttribute("style:parent-style-name", style->name());
+        if (style->parent()) xml.writeAttribute("style:parent-style-name", style->parent()->name());
+        if (shouldWriteParagraphProperties) writeStyleParagraphProperties(xml, style);
+        if (shouldWriteTextProperties) writeStyleTextProperties(xml, style);
         xml.writeEndElement();
 
         // Related text style
         xml.writeStartElement("style:style");
         xml.writeAttribute("style:name", style->name() + "_t");
         xml.writeAttribute("style:family", "text");
-        xml.writeAttribute("style:parent-style-name", style->name());
+        if (style->parent()) xml.writeAttribute("style:parent-style-name", style->parent()->name());
+        if (shouldWriteTextProperties) writeStyleTextProperties(xml, style);
         xml.writeEndElement();
     }
 }
@@ -1056,7 +1059,7 @@ void OdgWriter::writeStyleTextProperties(QXmlStreamWriter& xml, OdgStyle* style)
         xml.writeAttribute("style:font-name", style->fontFamily());
 
     if (style->isFontSizeValid())
-        xml.writeAttribute("fo:font-size", lengthToString(style->fontSize()));
+        xml.writeAttribute("fo:font-size", lengthToString(style->fontSize() * 72 / 96));
 
     if (style->isFontStyleValid())
     {
@@ -1097,7 +1100,7 @@ void OdgWriter::writeStyleTextProperties(QXmlStreamWriter& xml, OdgStyle* style)
 
 void OdgWriter::writeItems(QXmlStreamWriter& xml, const QList<OdgItem*>& items)
 {
-    OdgStyle* style = nullptr;;
+    OdgStyle* style = nullptr;
     QString styleName;
 
     OdgCurveItem* curveItem = nullptr;

@@ -17,6 +17,7 @@
 #include "OdgItem.h"
 #include "OdgControlPoint.h"
 #include "OdgGluePoint.h"
+#include <QApplication>
 #include <QPainter>
 
 OdgItem::OdgItem() :
@@ -450,7 +451,7 @@ QRectF OdgItem::drawText(QPainter& painter, const QPointF& anchorPoint, const QF
         calculateTextRect(anchorPoint, font, alignment, padding, caption, textRect, scaledTextRect, scaleFactor);
 
         QFont scaledFont = font;
-        scaledFont.setPointSizeF(scaledFont.pointSizeF() * scaleFactor * 72 / 96 * 0.8);
+        scaledFont.setPointSizeF(scaledFont.pointSizeF() * scaleFactor * 72 / 96 / qApp->devicePixelRatio());
 
         painter.scale(1 / scaleFactor, 1 / scaleFactor);
         painter.setBrush(QBrush(Qt::transparent));
@@ -472,7 +473,7 @@ void OdgItem::calculateTextRect(const QPointF& anchorPoint, const QFont& font, Q
         scaleFactor = calculateTextScaleFactor(font);
 
         QFont scaledFont = font;
-        scaledFont.setPointSizeF(scaledFont.pointSizeF() * scaleFactor * 72 / 96 * 0.8);
+        scaledFont.setPointSizeF(scaledFont.pointSizeF() * scaleFactor * 72 / 96 / qApp->devicePixelRatio());
 
         // Determine text width and height
         QFontMetricsF scaledFontMetrics(scaledFont);

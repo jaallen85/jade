@@ -127,6 +127,7 @@ PropertiesWidget::PropertiesWidget(DrawingWidget* drawing) : QStackedWidget(),
     connect(mSingleItemPropertiesWidget, SIGNAL(itemPropertyChanged(QString,QVariant)),
             mDrawing, SLOT(setItemsProperty(QString,QVariant)));
 
+    connect(mDrawingPropertiesWidget, SIGNAL(unitsChanged(int)), mDefaultItemPropertiesWidget, SLOT(setUnits(int)));
     connect(mDrawingPropertiesWidget, SIGNAL(unitsChanged(int)), mMultipleItemPropertiesWidget, SLOT(setUnits(int)));
     connect(mDrawingPropertiesWidget, SIGNAL(unitsChanged(int)), mSingleItemPropertiesWidget, SLOT(setUnits(int)));
 }

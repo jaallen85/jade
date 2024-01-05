@@ -441,11 +441,7 @@ void JadeWindow::exportPng()
     if (mDrawingWidget->isVisible() && currentPage)
     {
         // Determine export path
-        QString exportPath;
-        if (mFilePath.startsWith("Untitled"))
-            exportPath = QDir(mWorkingDir).absoluteFilePath(currentPage->name() + ".png");
-        else
-            exportPath = mFilePath.left(mFilePath.size() - 4) + ".png";
+        QString exportPath = QDir(mWorkingDir).absoluteFilePath(currentPage->name() + ".png");
 
         // Calculate the page and items' rects
         const QRectF pageRect = mDrawingWidget->pageRect();
@@ -506,11 +502,7 @@ void JadeWindow::exportSvg()
     if (mDrawingWidget->isVisible() && currentPage)
     {
         // Determine export path
-        QString exportPath;
-        if (mFilePath.startsWith("Untitled"))
-            exportPath = QDir(mWorkingDir).absoluteFilePath(currentPage->name() + ".svg");
-        else
-            exportPath = mFilePath.left(mFilePath.size() - 4) + ".svg";
+        QString exportPath = QDir(mWorkingDir).absoluteFilePath(currentPage->name() + ".svg");
 
         // Calculate the page and items' rects
         const QRectF pageRect = mDrawingWidget->pageRect();

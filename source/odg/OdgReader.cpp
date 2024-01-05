@@ -735,7 +735,7 @@ void OdgReader::readStyleTextProperties(QXmlStreamReader& xml, OdgStyle* style)
         }
         else if (attribute.qualifiedName() == QStringLiteral("fo:font-size"))
         {
-            style->setFontSize(lengthFromString(attribute.value()));
+            style->setFontSize(lengthFromString(attribute.value()) * 96 / 72);
         }
         else if (attribute.qualifiedName() == QStringLiteral("fo:font-weight"))
         {

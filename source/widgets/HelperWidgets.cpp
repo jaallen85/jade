@@ -363,14 +363,14 @@ const QList<QColor> ColorSelectWidget::sStandardColors = {
     QColor(255, 221, 0),    // Yellow           #ffdd00
     QColor(204, 177, 0),    // Dark-Yellow      #ccb100
     QColor(153, 133, 0),    // Darker-Yellow    #998500
-    QColor(224, 224, 224),  // Lighter-Gray     #e0e0e0
+    QColor(240, 240, 240),  // Lighter-Gray     #f0f0f0
 
     QColor(179, 230, 185),  // Lighter-Green    #b3e6b9
     QColor(121, 210, 133),  // Light-Green      #79d285
     QColor(64, 191, 81),    // Green            #40bf51
     QColor(51, 153, 65),    // Dark-Green       #339941
     QColor(38, 115, 48),    // Darker-Green     #267330
-    QColor(176, 176, 176),  // Light-Gray       #b0b0b0
+    QColor(192, 192, 192),  // Light-Gray       #c0c0c0
 
     QColor(159, 233, 249),  // Lighter-Cyan     #9fe9f9
     QColor(86, 216, 245),   // Light-Cyan       #56d8f5
