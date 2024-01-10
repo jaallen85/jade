@@ -249,7 +249,19 @@ void OdgWriter::analyzeDrawingForStyles()
     for(auto& page : qAsConst(mPages))
     {
         const QList<OdgItem*> items = page->items();
-        for(auto& item : items) mItemStyles.insert(item, findOrCreateStyle(item));
+        for(auto& item : items) analyzeItemForStyles(item);
+    }
+}
+
+void OdgWriter::analyzeItemForStyles(OdgItem* item)
+{
+    mItemStyles.insert(item, findOrCreateStyle(item));
+
+    OdgGroupItem* groupItem = dynamic_cast<OdgGroupItem*>(item);
+    if (groupItem)
+    {
+        const QList<OdgItem*> items = groupItem->items();
+        for(auto& item : items) analyzeItemForStyles(item);
     }
 }
 

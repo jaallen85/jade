@@ -94,6 +94,7 @@ public:
 
 private:
     void analyzeDrawingForStyles();
+    void analyzeItemForStyles(OdgItem* item);
     OdgStyle* findOrCreateStyle(OdgItem* item);
     int checkIntProperty(OdgItem* item, const QString& name, bool& hasProperty) const;
     double checkDoubleProperty(OdgItem* item, const QString& name, bool& hasProperty) const;

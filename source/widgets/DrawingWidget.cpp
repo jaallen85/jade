@@ -1779,7 +1779,10 @@ void DrawingWidget::insertPoint()
         {
             int insertIndex = item->insertPointIndex(mMouseButtonDownScenePosition);
             if (insertIndex >= 0)
-                mUndoStack.push(new DrawingInsertPointCommand(this, item, insertIndex, new OdgControlPoint()));
+            {
+                const QPointF position = item->mapFromScene(roundToGrid(mMouseButtonDownScenePosition));
+                mUndoStack.push(new DrawingInsertPointCommand(this, item, insertIndex, new OdgControlPoint(position)));
+            }
         }
     }
 }
