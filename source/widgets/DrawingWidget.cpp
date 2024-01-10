@@ -603,6 +603,7 @@ bool DrawingWidget::load(const QString& fileName)
     const QList<OdgPage*> pages = reader.takePages();
     for(auto& page : pages)
         addPage(page);
+    mNewPageCount = mPages.size();
 
     setCurrentPageIndex(0);
     zoomFit();

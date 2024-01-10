@@ -103,6 +103,8 @@ private:
     void writeManifest(QXmlStreamWriter& xml);
     void writeManifestFileEntry(QXmlStreamWriter& xml, const QString& fullPath, const QString& mediaType);
 
+    QImage createThumbnail(OdgPage* page);
+
     void writeDocumentMeta(QXmlStreamWriter& xml);
 
     void writeDocumentSettings(QXmlStreamWriter& xml);

@@ -30,6 +30,7 @@
 #include "OdgTextRoundedRectItem.h"
 #include <QApplication>
 #include <QClipboard>
+#include <QPainter>
 #include <QXmlStreamWriter>
 #include <quazip.h>
 #include <quazipfile.h>
@@ -184,6 +185,15 @@ bool OdgWriter::write()
     xml.setDevice(&odgFile);
     writeDocumentContent(xml);
     odgFile.close();
+
+    // Write thumbnail
+    if (!mPages.isEmpty())
+    {
+        if (!odgFile.open(QFile::WriteOnly, QuaZipNewInfo("Thumbnails/thumbnail.png"))) return false;
+        QImage thumbnail = createThumbnail(mPages.first());
+        thumbnail.save(&odgFile, "PNG");
+        odgFile.close();
+    }
 
     return true;
 }
@@ -369,6 +379,7 @@ void OdgWriter::writeManifest(QXmlStreamWriter& xml)
     writeManifestFileEntry(xml, "meta.xml", "text/xml");
     writeManifestFileEntry(xml, "settings.xml", "text/xml");
     writeManifestFileEntry(xml, "styles.xml", "text/xml");
+    if (!mPages.isEmpty()) writeManifestFileEntry(xml, "Thumbnails/thumbnail.png", "image/png");
 
     xml.writeEndElement();
 
@@ -387,6 +398,40 @@ void OdgWriter::writeManifestFileEntry(QXmlStreamWriter& xml, const QString& ful
     // No <manifest:file-entry> sub-elements
 
     xml.writeEndElement();
+}
+
+//======================================================================================================================
+
+QImage OdgWriter::createThumbnail(OdgPage* page)
+{
+    Q_ASSERT(page != nullptr);
+
+    QImage thumbnail(256, 256, QImage::Format_RGB888);
+    thumbnail.fill(mBackgroundColor.toRgb());
+
+    const QRectF pageRect(-mPageMargins.left(), -mPageMargins.top(), mPageSize.width(), mPageSize.height());
+    const qreal scale = qMin(thumbnail.width() / pageRect.width(), thumbnail.height() / pageRect.height());
+    const qreal xOffset = (thumbnail.width() - pageRect.width() * scale) / 2;
+    const qreal yOffset = (thumbnail.height() - pageRect.height() * scale) / 2;
+
+    QPainter painter(&thumbnail);
+    painter.translate(xOffset, yOffset);
+    painter.scale(scale, scale);
+    painter.translate(-pageRect.left(), -pageRect.top());
+
+    // Draw items
+    const QList<OdgItem*> items = page->items();
+    painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing, true);
+    for(auto& item : items)
+    {
+        painter.setTransform(item->transform(), true);
+        item->paint(painter);
+        painter.setTransform(item->transformInverse(), true);
+    }
+
+    painter.end();
+
+    return thumbnail;
 }
 
 //======================================================================================================================
