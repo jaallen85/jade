@@ -470,28 +470,41 @@ void JadeWindow::exportPng()
 
         if (dialog.exec() == QDialog::Accepted)
         {
-            // Save export settings for next time
-            mExportPixelsPerInch = dialog.pixelsPerInch();
-            mExportItemsOnly = dialog.shouldExportItemsOnly();
+            QFileInfo targetFileInfo(dialog.path());
+            bool proceedToExport = true;
+            if (targetFileInfo.exists() && mPromptOverwrite)
+            {
+                proceedToExport = (QMessageBox::warning(
+                                       this, "Confirm Export",
+                                       targetFileInfo.fileName() + " already exists.\nDo you want to replace it?",
+                                       QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::Yes);
+            }
 
-            // Export the PNG image
-            const double exportScale = (mDrawingWidget->units() == Odg::UnitsInches) ? mExportPixelsPerInch :
-                                           mExportPixelsPerInch * 25;
-            const QRectF exportRect = (mExportItemsOnly) ? itemsRect : pageRect;
-            const int exportWidth = qRound(exportRect.width() * exportScale);
-            const int exportHeight = qRound(exportRect.height() * exportScale);
+            if (proceedToExport)
+            {
+                // Save export settings for next time
+                mExportPixelsPerInch = dialog.pixelsPerInch();
+                mExportItemsOnly = dialog.shouldExportItemsOnly();
 
-            QImage pngImage(exportWidth, exportHeight, QImage::Format_ARGB32);
+                // Export the PNG image
+                const double exportScale = (mDrawingWidget->units() == Odg::UnitsInches) ? mExportPixelsPerInch :
+                                               mExportPixelsPerInch * 25;
+                const QRectF exportRect = (mExportItemsOnly) ? itemsRect : pageRect;
+                const int exportWidth = qRound(exportRect.width() * exportScale);
+                const int exportHeight = qRound(exportRect.height() * exportScale);
 
-            QPainter painter(&pngImage);
-            painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing, true);
-            painter.scale(exportScale, exportScale);
-            painter.translate(-exportRect.left(), -exportRect.top());
-            mDrawingWidget->paint(painter, true);
-            painter.end();
+                QImage pngImage(exportWidth, exportHeight, QImage::Format_ARGB32);
 
-            if (!pngImage.save(dialog.path()))
-                QMessageBox::critical(this, "Export PNG Error", "Error exporting drawing to PNG file.  File not exported!");
+                QPainter painter(&pngImage);
+                painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing, true);
+                painter.scale(exportScale, exportScale);
+                painter.translate(-exportRect.left(), -exportRect.top());
+                mDrawingWidget->paint(painter, true);
+                painter.end();
+
+                if (!pngImage.save(dialog.path()))
+                    QMessageBox::critical(this, "Export PNG Error", "Error exporting drawing to PNG file.  File not exported!");
+            }
         }
     }
 }
@@ -531,18 +544,31 @@ void JadeWindow::exportSvg()
 
         if (dialog.exec() == QDialog::Accepted)
         {
-            // Save export settings for next time
-            mExportPixelsPerInch = dialog.pixelsPerInch();
-            mExportItemsOnly = dialog.shouldExportItemsOnly();
+            QFileInfo targetFileInfo(dialog.path());
+            bool proceedToExport = true;
+            if (targetFileInfo.exists() && mPromptOverwrite)
+            {
+                proceedToExport = (QMessageBox::warning(
+                                       this, "Confirm Export",
+                                       targetFileInfo.fileName() + " already exists.\nDo you want to replace it?",
+                                       QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::Yes);
+            }
 
-            // Export the SVG image
-            const double exportScale = (mDrawingWidget->units() == Odg::UnitsInches) ? mExportPixelsPerInch :
-                                           mExportPixelsPerInch * 25;
-            const QRectF exportRect = (mExportItemsOnly) ? itemsRect : pageRect;
+            if (proceedToExport)
+            {
+                // Save export settings for next time
+                mExportPixelsPerInch = dialog.pixelsPerInch();
+                mExportItemsOnly = dialog.shouldExportItemsOnly();
 
-            SvgWriter svg(exportRect, exportScale);
-            if (!svg.write(dialog.path(), mDrawingWidget->backgroundColor(), currentPage->items()))
-                QMessageBox::critical(this, "Export SVG Error", "Error exporting drawing to SVG file.  File not exported!");
+                // Export the SVG image
+                const double exportScale = (mDrawingWidget->units() == Odg::UnitsInches) ? mExportPixelsPerInch :
+                                               mExportPixelsPerInch * 25;
+                const QRectF exportRect = (mExportItemsOnly) ? itemsRect : pageRect;
+
+                SvgWriter svg(exportRect, exportScale);
+                if (!svg.write(dialog.path(), mDrawingWidget->backgroundColor(), currentPage->items()))
+                    QMessageBox::critical(this, "Export SVG Error", "Error exporting drawing to SVG file.  File not exported!");
+            }
         }
     }
 }
