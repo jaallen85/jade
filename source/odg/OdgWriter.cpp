@@ -1388,21 +1388,34 @@ void OdgWriter::writeTextItem(QXmlStreamWriter& xml, OdgTextItem* item, const QS
     const QString transform = transformToString(item->position(), item->isFlipped(), item->rotation());
     if (!transform.isEmpty()) xml.writeAttribute("draw:transform", transform);
 
-    QRectF rect = item->boundingRect();
+    const QRectF boundingRect = item->boundingRect();
+    double width = boundingRect.width() + item->textPadding().width();
+    double height = boundingRect.height() + item->textPadding().height();
     if (mGrid > 0)
     {
-        // Snap the edges of the rect to the grid
-        const double left = mGrid * qFloor(rect.left() / mGrid);
-        const double top = mGrid * qFloor(rect.top() / mGrid);
-        const double right = mGrid * qCeil(rect.right() / mGrid);
-        const double bottom = mGrid * qCeil(rect.bottom() / mGrid);
-        rect = QRectF(left, top, right - left, bottom - top);
+        width = mGrid * qCeil(width / mGrid);
+        height = mGrid * qCeil(height / mGrid);
     }
 
-    xml.writeAttribute("svg:x", lengthToString(rect.left()));
-    xml.writeAttribute("svg:y", lengthToString(rect.top()));
-    xml.writeAttribute("svg:width", lengthToString(rect.width()));
-    xml.writeAttribute("svg:height", lengthToString(rect.height()));
+    double left = 0, top = 0;
+
+    const Qt::Alignment alignment = item->textAlignment();
+    const Qt::Alignment horizontalAlignment = (alignment & Qt::AlignHorizontal_Mask);
+    if (horizontalAlignment == Qt::AlignHCenter)
+        left -= width / 2;
+    else if (horizontalAlignment == Qt::AlignRight)
+        left -= width;
+
+    const Qt::Alignment verticalAlignment = (alignment & Qt::AlignVertical_Mask);
+    if (verticalAlignment == Qt::AlignVCenter)
+        top -= height / 2;
+    else if (verticalAlignment == Qt::AlignBottom)
+        top -= height;
+
+    xml.writeAttribute("svg:x", lengthToString(left));
+    xml.writeAttribute("svg:y", lengthToString(top));
+    xml.writeAttribute("svg:width", lengthToString(width));
+    xml.writeAttribute("svg:height", lengthToString(height));
     xml.writeAttribute("jade:text-item-hint", "text");
 
     // Write <draw:rect> sub-elements
