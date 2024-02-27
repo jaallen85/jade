@@ -344,57 +344,57 @@ void ColorWidget::runColorDialog()
 //======================================================================================================================
 
 const QList<QColor> ColorSelectWidget::sStandardColors = {
-    QColor(245, 163, 163),  // Lighter-Red      #f5a3a3
-    QColor(237, 94, 94),    // Light-Red        #ed5e5e
+    QColor(250, 209, 209),  // Lighter-Red      #fad1d1
+    QColor(240, 117, 117),  // Light-Red        #f07575
     QColor(230, 25, 25),    // Red              #e61919
     QColor(184, 20, 20),    // Dark-Red         #b81414
     QColor(138, 15, 15),    // Darker-Red       #8a0f0f
     QColor(0, 0, 0, 0),     // Transparent
 
-    QColor(250, 196, 158),  // Lighter-Orange   #fac49e
-    QColor(247, 152, 85),   // Light-Orange     #f79855
+    QColor(253, 226, 206),  // Lighter-Orange   #fde2ce
+    QColor(248, 167, 109),  // Light-Orange     #f8a76d
     QColor(244, 108, 11),   // Orange           #f46c0b
     QColor(195, 87, 9),     // Dark-Orange      #c35709
     QColor(146, 65, 7),     // Darker-Orange    #924107
     QColor(255, 255, 255),  // White            #ffffff
 
-    QColor(255, 241, 153),  // Lighter-Yellow   #fff199
-    QColor(255, 231, 77),   // Light-Yellow     #ffe74d
+    QColor(255, 248, 204),  // Lighter-Yellow   #fff8cc
+    QColor(255, 235, 102),  // Light-Yellow     #ffeb66
     QColor(255, 221, 0),    // Yellow           #ffdd00
     QColor(204, 177, 0),    // Dark-Yellow      #ccb100
     QColor(153, 133, 0),    // Darker-Yellow    #998500
     QColor(240, 240, 240),  // Lighter-Gray     #f0f0f0
 
-    QColor(179, 230, 185),  // Lighter-Green    #b3e6b9
-    QColor(121, 210, 133),  // Light-Green      #79d285
+    QColor(217, 242, 220),  // Lighter-Green    #d9f2dc
+    QColor(140, 217, 150),  // Light-Green      #8cd996
     QColor(64, 191, 81),    // Green            #40bf51
     QColor(51, 153, 65),    // Dark-Green       #339941
     QColor(38, 115, 48),    // Darker-Green     #267330
     QColor(192, 192, 192),  // Light-Gray       #c0c0c0
 
-    QColor(159, 233, 249),  // Lighter-Cyan     #9fe9f9
-    QColor(86, 216, 245),   // Light-Cyan       #56d8f5
+    QColor(207, 244, 252),  // Lighter-Cyan     #cff4fc
+    QColor(110, 222, 247),  // Light-Cyan       #6edef7
     QColor(14, 199, 241),   // Cyan             #0ec7f1
     QColor(11, 159, 193),   // Dark-Cyan        #0b9fc1
     QColor(8, 120, 145),    // Darker-Cyan      #087891
     QColor(128, 128, 128),  // Gray             #808080
 
-    QColor(170, 187, 238),  // Lighter-Blue     #aabbee
-    QColor(107, 136, 225),  // Light-Blue       #6b88e1
-    QColor(43, 85, 212),    // Blue             #2b55d4
-    QColor(35, 68, 169),    // Dark-Blue        #2344a9
-    QColor(26, 51, 127),    // Darker-Blue      #1a337f
+    QColor(212, 225, 247),  // Lighter-Blue     #d4e1f7
+    QColor(127, 165, 230),  // Light-Blue       #7fa5e6
+    QColor(43, 106, 213),    // Blue            #2b6ad5
+    QColor(34, 84, 170),    // Dark-Blue        #2254aa
+    QColor(25, 63, 128),    // Darker-Blue      #193f80
     QColor(96, 96, 96),     // Dark-Gray        #606060
 
-    QColor(223, 168, 240),  // Lighter-Purple   #dfa8f0
-    QColor(200, 102, 229),  // Light-Purple     #c866e5
+    QColor(239, 211, 248),  // Lighter-Purple   #efd3f8
+    QColor(207, 124, 233),  // Light-Purple     #cf7ce9
     QColor(176, 37, 218),   // Purple           #b025da
     QColor(141, 30, 174),   // Dark-Purple      #8d1eae
     QColor(105, 22, 131),   // Darker-Purple    #691683
     QColor(64, 64, 64),     // Darker-Gray      #404040
 
-    QColor(248, 160, 243),  // Lighter-Magenta  #f8a0f3
-    QColor(243, 89, 235),   // Light-Magenta    #f359eb
+    QColor(251, 208, 249),  // Lighter-Magenta  #fbd0f9
+    QColor(244, 113, 238),  // Light-Magenta    #f471ee
     QColor(237, 18, 226),   // Magenta          #ed12e2
     QColor(190, 14, 181),   // Dark-Magenta     #be0eb5
     QColor(142, 11, 136),   // Darker-Magenta   #8e0b88
