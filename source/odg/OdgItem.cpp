@@ -451,7 +451,7 @@ QRectF OdgItem::drawText(QPainter& painter, const QPointF& anchorPoint, const QF
         calculateTextRect(anchorPoint, font, alignment, padding, caption, textRect, scaledTextRect, scaleFactor);
 
         QFont scaledFont = font;
-        scaledFont.setPointSizeF(scaledFont.pointSizeF() * scaleFactor * 72 / 96 / qApp->devicePixelRatio());
+        scaledFont.setPointSizeF(scaledFont.pointSizeF() * scaleFactor * 72 / 96);
 
         painter.scale(1 / scaleFactor, 1 / scaleFactor);
         painter.setBrush(QBrush(Qt::transparent));
@@ -473,7 +473,7 @@ void OdgItem::calculateTextRect(const QPointF& anchorPoint, const QFont& font, Q
         scaleFactor = calculateTextScaleFactor(font);
 
         QFont scaledFont = font;
-        scaledFont.setPointSizeF(scaledFont.pointSizeF() * scaleFactor * 72 / 96 / qApp->devicePixelRatio());
+        scaledFont.setPointSizeF(scaledFont.pointSizeF() * scaleFactor * 72 / 96);
 
         // Determine text width and height
         QFontMetricsF scaledFontMetrics(scaledFont);
