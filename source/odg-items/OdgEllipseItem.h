@@ -1,4 +1,4 @@
-// File: main.cpp
+// File: OdgEllipseItem.h
 // Copyright (C) 2023  Jason Allen
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,19 +14,27 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include <QApplication>
-#include "JadeWindow.h"
+#ifndef ODGELLIPSEITEM_H
+#define ODGELLIPSEITEM_H
 
-int main(int argc, char* argv[])
+#include "OdgRectItem.h"
+
+class OdgEllipseItem : public OdgRectItem
 {
-    QApplication app(argc, argv);
+public:
+    OdgEllipseItem();
 
-    JadeWindow window;
-    if (app.arguments().size() > 1)
-        window.openDrawing(app.arguments().at(1));
-    else
-        window.newDrawing();
-    window.show();
+	virtual OdgItem* copy() const override;
 
-    return app.exec();
-}
+	void setEllipse(const QRectF& ellipse);
+	QRectF ellipse() const;
+
+	virtual void setProperty(const QString &name, const QVariant &value) override;
+	virtual QVariant property(const QString &name) const override;
+
+    virtual QPainterPath shape() const override;
+
+    void paint(QPainter& painter) override;
+};
+
+#endif

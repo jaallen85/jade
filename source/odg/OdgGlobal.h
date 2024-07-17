@@ -1,4 +1,4 @@
-// File: main.cpp
+// File: OdgGlobal.h
 // Copyright (C) 2023  Jason Allen
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,19 +14,25 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include <QApplication>
-#include "JadeWindow.h"
+#ifndef ODGGLOBAL_H
+#define ODGGLOBAL_H
 
-int main(int argc, char* argv[])
+#include <QString>
+
+namespace Odg
 {
-    QApplication app(argc, argv);
+    enum Units { UnitsMillimeters, UnitsInches };
 
-    JadeWindow window;
-    if (app.arguments().size() > 1)
-        window.openDrawing(app.arguments().at(1));
-    else
-        window.newDrawing();
-    window.show();
+    double convertUnits(double value, Units units, Units newUnits);
+    QString unitsToString(Units units);
+    Units unitsFromString(const QStringView& str, bool* ok = nullptr);
+    Units unitsFromString(const QString& str, bool* ok = nullptr);
 
-    return app.exec();
+    enum MarkerStyle { NoMarker, TriangleMarker, CircleMarker };
+
+    enum GridStyle { GridHidden, GridLines };
+
+    enum DrawingMode { SelectMode, ScrollMode, ZoomMode, PlaceMode };
 }
+
+#endif

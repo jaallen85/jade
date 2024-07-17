@@ -1,4 +1,4 @@
-// File: main.cpp
+// File: AboutDialog.h
 // Copyright (C) 2023  Jason Allen
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,19 +14,23 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include <QApplication>
-#include "JadeWindow.h"
+#ifndef ABOUTDIALOG_H
+#define ABOUTDIALOG_H
 
-int main(int argc, char* argv[])
+#include <QDialog>
+
+class QFrame;
+
+class AboutDialog : public QDialog
 {
-    QApplication app(argc, argv);
+    Q_OBJECT
 
-    JadeWindow window;
-    if (app.arguments().size() > 1)
-        window.openDrawing(app.arguments().at(1));
-    else
-        window.newDrawing();
-    window.show();
+public:
+    AboutDialog(QWidget* parent = nullptr);
 
-    return app.exec();
-}
+private:
+    QFrame* createAboutTab();
+    QFrame* createLicenseTab();
+};
+
+#endif

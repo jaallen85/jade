@@ -1,4 +1,4 @@
-// File: main.cpp
+// File: OdgMarker.h
 // Copyright (C) 2023  Jason Allen
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,19 +14,37 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include <QApplication>
-#include "JadeWindow.h"
+#ifndef ODGMARKER_H
+#define ODGMARKER_H
 
-int main(int argc, char* argv[])
+#include <QPainterPath>
+#include <QPen>
+#include "OdgGlobal.h"
+
+class QPainter;
+
+class OdgMarker
 {
-    QApplication app(argc, argv);
+private:
+    Odg::MarkerStyle mStyle;
+    double mSize;
 
-    JadeWindow window;
-    if (app.arguments().size() > 1)
-        window.openDrawing(app.arguments().at(1));
-    else
-        window.newDrawing();
-    window.show();
+    QPainterPath mPath;
 
-    return app.exec();
-}
+public:
+    OdgMarker(Odg::MarkerStyle style = Odg::NoMarker, double size = 0);
+
+    void setStyle(Odg::MarkerStyle style);
+    void setSize(double size);
+    Odg::MarkerStyle style() const;
+    double size() const;
+
+    QPainterPath shape(const QPen& pen, const QPointF& position, double angle) const;
+
+    void paint(QPainter& painter, const QPen& pen, const QPointF& position, double angle);
+
+private:
+    void updatePath();
+};
+
+#endif

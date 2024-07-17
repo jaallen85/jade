@@ -1,63 +1,75 @@
 <RCC>
     <qresource prefix="/icons">
-        <file>jade/diagram.png</file>
-        <file>jade/diagram_document.png</file>
-        <file>oxygen/align-horizontal-center.png</file>
-        <file>oxygen/align-horizontal-left.png</file>
-        <file>oxygen/align-horizontal-right.png</file>
-        <file>oxygen/align-vertical-bottom.png</file>
-        <file>oxygen/align-vertical-center.png</file>
-        <file>oxygen/align-vertical-top.png</file>
-        <file>oxygen/application-exit.png</file>
-        <file>oxygen/application-pdf.png</file>
-        <file>oxygen/application-vnd.oasis.opendocument.graphics.png</file>
-        <file>oxygen/configure.png</file>
-        <file>oxygen/document-close.png</file>
-        <file>oxygen/document-new.png</file>
-        <file>oxygen/document-open.png</file>
-        <file>oxygen/document-preview.png</file>
-        <file>oxygen/document-print.png</file>
-        <file>oxygen/document-save.png</file>
-        <file>oxygen/document-save-as.png</file>
-        <file>oxygen/draw-arc.png</file>
-        <file>oxygen/draw-curve.png</file>
-        <file>oxygen/draw-ellipse.png</file>
-        <file>oxygen/draw-image.png</file>
-        <file>oxygen/draw-line.png</file>
-        <file>oxygen/draw-polygon.png</file>
-        <file>oxygen/draw-polyline.png</file>
-        <file>oxygen/draw-rectangle.png</file>
-        <file>oxygen/draw-text.png</file>
-        <file>oxygen/edit-copy.png</file>
-        <file>oxygen/edit-cut.png</file>
-        <file>oxygen/edit-delete.png</file>
-        <file>oxygen/edit-paste.png</file>
-        <file>oxygen/edit-redo.png</file>
-        <file>oxygen/edit-select.png</file>
-        <file>oxygen/edit-select-all.png</file>
-        <file>oxygen/edit-undo.png</file>
-        <file>oxygen/format-text-bold.png</file>
-        <file>oxygen/format-text-italic.png</file>
-        <file>oxygen/format-text-strikethrough.png</file>
-        <file>oxygen/format-text-underline.png</file>
-        <file>oxygen/games-config-board.png</file>
-        <file>oxygen/help-about.png</file>
-        <file>oxygen/image-svg+xml.png</file>
-        <file>oxygen/image-x-generic.png</file>
-        <file>oxygen/merge.png</file>
-        <file>oxygen/object-bring-forward.png</file>
-        <file>oxygen/object-bring-to-front.png</file>
-        <file>oxygen/object-flip-horizontal.png</file>
-        <file>oxygen/object-rotate-left.png</file>
-        <file>oxygen/object-rotate-right.png</file>
-        <file>oxygen/object-send-backward.png</file>
-        <file>oxygen/object-send-to-back.png</file>
-        <file>oxygen/page-zoom.png</file>
-        <file>oxygen/split.png</file>
-        <file>oxygen/transform-move.png</file>
-        <file>oxygen/zoom-fit-best.png</file>
-        <file>oxygen/zoom-in.png</file>
-        <file>oxygen/zoom-out.png</file>
+        <file>align-horizontal-center.png</file>
+        <file>align-horizontal-left.png</file>
+        <file>align-horizontal-right.png</file>
+        <file>align-vertical-bottom.png</file>
+        <file>align-vertical-center.png</file>
+        <file>align-vertical-top.png</file>
+        <file>application-exit.png</file>
+        <file>archive-insert.png</file>
+        <file>archive-remove.png</file>
+        <file>configure.png</file>
+        <file>document-close.png</file>
+        <file>document-edit.png</file>
+        <file>document-new.png</file>
+        <file>document-open.png</file>
+        <file>document-save.png</file>
+        <file>document-save-as.png</file>
+        <file>draw-curve.png</file>
+        <file>draw-ellipse.png</file>
+        <file>draw-line.png</file>
+        <file>draw-polygon.png</file>
+        <file>draw-polyline.png</file>
+        <file>draw-rectangle.png</file>
+        <file>draw-text.png</file>
+        <file>edit-copy.png</file>
+        <file>edit-cut.png</file>
+        <file>edit-delete.png</file>
+        <file>edit-paste.png</file>
+        <file>edit-redo.png</file>
+        <file>edit-select.png</file>
+        <file>edit-select-all.png</file>
+        <file>edit-undo.png</file>
+        <file>format-add-node.png</file>
+        <file>format-remove-node.png</file>
+        <file>format-text-bold.png</file>
+        <file>format-text-italic.png</file>
+        <file>format-text-strikethrough.png</file>
+        <file>format-text-underline.png</file>
+        <file>games-config-board.png</file>
+        <file>help-about.png</file>
+        <file>image-svg+xml.png</file>
+        <file>image-x-generic.png</file>
+        <file>jade.png</file>
+        <file>list-add.png</file>
+        <file>list-remove.png</file>
+        <file>merge.png</file>
+        <file>object-bring-forward.png</file>
+        <file>object-bring-to-front.png</file>
+        <file>object-flip-horizontal.png</file>
+        <file>object-flip-vertical.png</file>
+        <file>object-rotate-left.png</file>
+        <file>object-rotate-right.png</file>
+        <file>object-send-backward.png</file>
+        <file>object-send-to-back.png</file>
+        <file>page-zoom.png</file>
+        <file>split.png</file>
+        <file>text-ellipse.png</file>
+        <file>text-rectangle.png</file>
+        <file>transform-move.png</file>
+        <file>view-choose.png</file>
+        <file>view-form.png</file>
+        <file>view-list-text.png</file>
+        <file>view-list-tree.png</file>
+        <file>zoom-fit-best.png</file>
+        <file>zoom-in.png</file>
+        <file>zoom-out.png</file>
+        <file>marker/marker-circle-end.png</file>
+        <file>marker/marker-circle-start.png</file>
+        <file>marker/marker-none.png</file>
+        <file>marker/marker-triangle-end.png</file>
+        <file>marker/marker-triangle-start.png</file>
         <file>items/and_gate.png</file>
         <file>items/buffer.png</file>
         <file>items/capacitor1.png</file>
@@ -85,9 +97,6 @@
         <file>items/resistor1.png</file>
         <file>items/resistor2.png</file>
         <file>items/schottky_diode.png</file>
-        <file>items/textellipse.png</file>
-        <file>items/textpolygon.png</file>
-        <file>items/textrect.png</file>
         <file>items/tristate_buffer.png</file>
         <file>items/tristate_buffer2.png</file>
         <file>items/vac.png</file>
@@ -95,20 +104,6 @@
         <file>items/xnor_gate.png</file>
         <file>items/xor_gate.png</file>
         <file>items/zener_diode.png</file>
-        <file>arrow/arrow_circle.png</file>
-        <file>arrow/arrow_circle_filled.png</file>
-        <file>arrow/arrow_concave.png</file>
-        <file>arrow/arrow_concave_filled.png</file>
-        <file>arrow/arrow_diamond.png</file>
-        <file>arrow/arrow_diamond_filled.png</file>
-        <file>arrow/arrow_harpoon.png</file>
-        <file>arrow/arrow_harpoon_mirrored.png</file>
-        <file>arrow/arrow_none.png</file>
-        <file>arrow/arrow_normal.png</file>
-        <file>arrow/arrow_reverse.png</file>
-        <file>arrow/arrow_triangle.png</file>
-        <file>arrow/arrow_triangle_filled.png</file>
-        <file>arrow/arrow_x.png</file>
-        <file>oxygen/application-msword.png</file>
+        <file>document-properties.png</file>
     </qresource>
 </RCC>

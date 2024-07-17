@@ -1,4 +1,4 @@
-// File: main.cpp
+// File: OdgGluePoint.h
 // Copyright (C) 2023  Jason Allen
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,19 +14,37 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include <QApplication>
-#include "JadeWindow.h"
+#ifndef ODGGLUEPOINT_H
+#define ODGGLUEPOINT_H
 
-int main(int argc, char* argv[])
+#include <QList>
+#include <QPointF>
+
+class OdgControlPoint;
+class OdgItem;
+
+class OdgGluePoint
 {
-    QApplication app(argc, argv);
+    friend class OdgControlPoint;
+    friend class OdgItem;
 
-    JadeWindow window;
-    if (app.arguments().size() > 1)
-        window.openDrawing(app.arguments().at(1));
-    else
-        window.newDrawing();
-    window.show();
+private:
+    OdgItem* mItem;
 
-    return app.exec();
-}
+    QPointF mPosition;
+
+    QList<OdgControlPoint*> mConnections;
+
+public:
+    OdgGluePoint(const QPointF& position = QPointF());
+    ~OdgGluePoint();
+
+    OdgItem* item() const;
+
+    void setPosition(const QPointF& position);
+    QPointF position() const;
+
+    QList<OdgControlPoint*> connections() const;
+};
+
+#endif

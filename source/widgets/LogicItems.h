@@ -1,4 +1,4 @@
-// File: main.cpp
+// File: LogicItems.h
 // Copyright (C) 2023  Jason Allen
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,19 +14,35 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include <QApplication>
-#include "JadeWindow.h"
+#ifndef LOGICITEMS_H
+#define LOGICITEMS_H
 
-int main(int argc, char* argv[])
+#include <QList>
+
+class OdgPathItem;
+
+class LogicItems
 {
-    QApplication app(argc, argv);
 
-    JadeWindow window;
-    if (app.arguments().size() > 1)
-        window.openDrawing(app.arguments().at(1));
-    else
-        window.newDrawing();
-    window.show();
+public:
+    static QList<OdgPathItem*> items();
+    static QStringList icons();
 
-    return app.exec();
-}
+private:
+    static OdgPathItem* createAndGate();
+    static OdgPathItem* createOrGate();
+    static OdgPathItem* createXorGate();
+    static OdgPathItem* createXnorGate();
+    static OdgPathItem* createNandGate();
+    static OdgPathItem* createNorGate();
+
+    static OdgPathItem* createBuffer();
+    static OdgPathItem* createNotGate();
+
+    static OdgPathItem* createMultiplexer();
+    static OdgPathItem* createDemultiplexer();
+
+    static OdgPathItem* createFlipFlop();
+};
+
+#endif

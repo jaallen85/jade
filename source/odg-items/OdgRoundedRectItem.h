@@ -1,4 +1,4 @@
-// File: main.cpp
+// File: OdgRoundedRectItem.h
 // Copyright (C) 2023  Jason Allen
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,19 +14,32 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include <QApplication>
-#include "JadeWindow.h"
+#ifndef ODGROUNDEDRECTITEM_H
+#define ODGROUNDEDRECTITEM_H
 
-int main(int argc, char* argv[])
+#include "OdgRectItem.h"
+
+class OdgRoundedRectItem : public OdgRectItem
 {
-    QApplication app(argc, argv);
+protected:
+    double mCornerRadius;
 
-    JadeWindow window;
-    if (app.arguments().size() > 1)
-        window.openDrawing(app.arguments().at(1));
-    else
-        window.newDrawing();
-    window.show();
+public:
+    OdgRoundedRectItem();
 
-    return app.exec();
-}
+	virtual OdgItem* copy() const override;
+
+    void setCornerRadius(double radius);
+    double cornerRadius() const;
+
+	virtual void setProperty(const QString &name, const QVariant &value) override;
+	virtual QVariant property(const QString &name) const override;
+
+	virtual QPainterPath shape() const override;
+
+	virtual void paint(QPainter& painter) override;
+
+	virtual void scaleBy(double scale) override;
+};
+
+#endif

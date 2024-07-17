@@ -1,4 +1,4 @@
-// File: main.cpp
+// File: OdgPage.h
 // Copyright (C) 2023  Jason Allen
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,19 +14,37 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include <QApplication>
-#include "JadeWindow.h"
+#ifndef ODGPAGE_H
+#define ODGPAGE_H
 
-int main(int argc, char* argv[])
+#include <QList>
+#include <QString>
+#include <QVariant>
+
+class OdgItem;
+
+class OdgPage
 {
-    QApplication app(argc, argv);
+private:
+    QString mName;
 
-    JadeWindow window;
-    if (app.arguments().size() > 1)
-        window.openDrawing(app.arguments().at(1));
-    else
-        window.newDrawing();
-    window.show();
+    QList<OdgItem*> mItems;
 
-    return app.exec();
-}
+public:
+    OdgPage(const QString& name = QString());
+    ~OdgPage();
+
+    void setName(const QString& name);
+    QString name() const;
+
+    void setProperty(const QString& name, const QVariant& value);
+    QVariant property(const QString& name) const;
+
+    void addItem(OdgItem* item);
+    void insertItem(int index, OdgItem* item);
+    void removeItem(OdgItem* item);
+    void clearItems();
+    QList<OdgItem*> items() const;
+};
+
+#endif
