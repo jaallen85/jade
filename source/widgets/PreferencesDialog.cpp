@@ -64,7 +64,7 @@ PreferencesDialog::PreferencesDialog(QWidget* parent) : QDialog(parent)
     generalLayout->addWidget(new QWidget(), 100);
     generalWidget->setLayout(generalLayout);
 
-    QListWidgetItem* generalItem = new QListWidgetItem(QIcon(":/icons/configure.png"), "General");
+    QListWidgetItem* generalItem = new QListWidgetItem(QIcon(":/icons/oxygen/configure.png"), "General");
     generalItem->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     generalItem->setTextAlignment(Qt::AlignCenter);
     mListWidget->addItem(generalItem);
@@ -80,7 +80,7 @@ PreferencesDialog::PreferencesDialog(QWidget* parent) : QDialog(parent)
     drawingPropertiesLayout->setContentsMargins(0, 0, 0, 0);
     drawingPropertiesWidget->setLayout(drawingPropertiesLayout);
 
-    QListWidgetItem* drawingPropertiesItem = new QListWidgetItem(QIcon(":/icons/document-properties.png"), "Drawing Defaults");
+    QListWidgetItem* drawingPropertiesItem = new QListWidgetItem(QIcon(":/icons/oxygen/document-properties.png"), "Drawing Defaults");
     drawingPropertiesItem->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     drawingPropertiesItem->setTextAlignment(Qt::AlignCenter);
     mListWidget->addItem(drawingPropertiesItem);
@@ -98,7 +98,7 @@ PreferencesDialog::PreferencesDialog(QWidget* parent) : QDialog(parent)
     itemPropertiesLayout->setContentsMargins(0, 0, 0, 0);
     itemPropertiesWidget->setLayout(itemPropertiesLayout);
 
-    QListWidgetItem* itemPropertiesItem = new QListWidgetItem(QIcon(":/icons/text-rectangle.png"), "Item Defaults");
+    QListWidgetItem* itemPropertiesItem = new QListWidgetItem(QIcon(":/icons/items/text-rectangle.png"), "Item Defaults");
     itemPropertiesItem->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     itemPropertiesItem->setTextAlignment(Qt::AlignCenter);
     mListWidget->addItem(itemPropertiesItem);

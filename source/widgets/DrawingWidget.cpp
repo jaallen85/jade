@@ -99,50 +99,50 @@ void DrawingWidget::createActions()
     mModeActionGroup = new QActionGroup(this);
     connect(mModeActionGroup, SIGNAL(triggered(QAction*)), this, SLOT(setModeFromAction(QAction*)));
 
-    addNormalAction("Undo", this, SLOT(undo()), ":/icons/edit-undo.png", "Ctrl+Z");
-    addNormalAction("Redo", this, SLOT(redo()), ":/icons/edit-redo.png", "Ctrl+Shift+Z");
-    addNormalAction("Cut", this, SLOT(cut()), ":/icons/edit-cut.png", "Ctrl+X");
-    addNormalAction("Copy", this, SLOT(copy()), ":/icons/edit-copy.png", "Ctrl+C");
-    addNormalAction("Paste", this, SLOT(paste()), ":/icons/edit-paste.png", "Ctrl+V");
-    addNormalAction("Delete", this, SLOT(removeItems()), ":/icons/edit-delete.png", "Delete");
-    addNormalAction("Select All", this, SLOT(selectAll()), ":/icons/edit-select-all.png", "Ctrl+A");
+    addNormalAction("Undo", this, SLOT(undo()), ":/icons/oxygen/edit-undo.png", "Ctrl+Z");
+    addNormalAction("Redo", this, SLOT(redo()), ":/icons/oxygen/edit-redo.png", "Ctrl+Shift+Z");
+    addNormalAction("Cut", this, SLOT(cut()), ":/icons/oxygen/edit-cut.png", "Ctrl+X");
+    addNormalAction("Copy", this, SLOT(copy()), ":/icons/oxygen/edit-copy.png", "Ctrl+C");
+    addNormalAction("Paste", this, SLOT(paste()), ":/icons/oxygen/edit-paste.png", "Ctrl+V");
+    addNormalAction("Delete", this, SLOT(removeItems()), ":/icons/oxygen/edit-delete.png", "Delete");
+    addNormalAction("Select All", this, SLOT(selectAll()), ":/icons/oxygen/edit-select-all.png", "Ctrl+A");
     addNormalAction("Select None", this, SLOT(selectNone()));
 
-    addModeAction("Select Mode", ":/icons/edit-select.png", "Escape");
-    addModeAction("Scroll Mode", ":/icons/transform-move.png");
-    addModeAction("Zoom Mode", ":/icons/page-zoom.png");
-    addModeAction("Place Line", ":/icons/draw-line.png");
-    addModeAction("Place Curve", ":/icons/draw-curve.png");
-    addModeAction("Place Polyline", ":/icons/draw-polyline.png");
-    addModeAction("Place Rectangle", ":/icons/draw-rectangle.png");
-    addModeAction("Place Ellipse", ":/icons/draw-ellipse.png");
-    addModeAction("Place Polygon", ":/icons/draw-polygon.png");
-    addModeAction("Place Text", ":/icons/draw-text.png");
-    addModeAction("Place Text Rectangle", ":/icons/text-rectangle.png");
-    addModeAction("Place Text Ellipse", ":/icons/text-ellipse.png");
+    addModeAction("Select Mode", ":/icons/oxygen/edit-select.png", "Escape");
+    addModeAction("Scroll Mode", ":/icons/oxygen/transform-move.png");
+    addModeAction("Zoom Mode", ":/icons/oxygen/page-zoom.png");
+    addModeAction("Place Line", ":/icons/oxygen/draw-line.png");
+    addModeAction("Place Curve", ":/icons/oxygen/draw-curve.png");
+    addModeAction("Place Polyline", ":/icons/oxygen/draw-polyline.png");
+    addModeAction("Place Rectangle", ":/icons/oxygen/draw-rectangle.png");
+    addModeAction("Place Ellipse", ":/icons/oxygen/draw-ellipse.png");
+    addModeAction("Place Polygon", ":/icons/oxygen/draw-polygon.png");
+    addModeAction("Place Text", ":/icons/oxygen/draw-text.png");
+    addModeAction("Place Text Rectangle", ":/icons/items/text-rectangle.png");
+    addModeAction("Place Text Ellipse", ":/icons/items/text-ellipse.png");
     addPathItems("Electric Items", ElectricItems::items(), ElectricItems::icons());
     addPathItems("Logic Items", LogicItems::items(), LogicItems::icons());
 
-    addNormalAction("Rotate", this, SLOT(rotate()), ":/icons/object-rotate-right.png", "R");
-    addNormalAction("Rotate Back", this, SLOT(rotateBack()), ":/icons/object-rotate-left.png", "Shift+R");
-    addNormalAction("Flip Horizontal", this, SLOT(flipHorizontal()), ":/icons/object-flip-horizontal.png", "F");
-    addNormalAction("Flip Vertical", this, SLOT(flipVertical()), ":/icons/object-flip-vertical.png", "Shift+F");
-    addNormalAction("Bring Forward", this, SLOT(bringForward()), ":/icons/object-bring-forward.png");
-    addNormalAction("Send Backward", this, SLOT(sendBackward()), ":/icons/object-send-backward.png");
-    addNormalAction("Bring to Front", this, SLOT(bringToFront()), ":/icons/object-bring-to-front.png");
-    addNormalAction("Send to Back", this, SLOT(sendToBack()), ":/icons/object-send-to-back.png");
-    addNormalAction("Group", this, SLOT(group()), ":/icons/merge.png", "Ctrl+G");
-    addNormalAction("Ungroup", this, SLOT(ungroup()), ":/icons/split.png");
-    addNormalAction("Insert Point", this, SLOT(insertPoint()), ":/icons/format-add-node.png");
-    addNormalAction("Remove Point", this, SLOT(removePoint()), ":/icons/format-remove-node.png");
+    addNormalAction("Rotate", this, SLOT(rotate()), ":/icons/oxygen/object-rotate-right.png", "R");
+    addNormalAction("Rotate Back", this, SLOT(rotateBack()), ":/icons/oxygen/object-rotate-left.png", "Shift+R");
+    addNormalAction("Flip Horizontal", this, SLOT(flipHorizontal()), ":/icons/oxygen/object-flip-horizontal.png", "F");
+    addNormalAction("Flip Vertical", this, SLOT(flipVertical()), ":/icons/oxygen/object-flip-vertical.png", "Shift+F");
+    addNormalAction("Bring Forward", this, SLOT(bringForward()), ":/icons/oxygen/object-bring-forward.png");
+    addNormalAction("Send Backward", this, SLOT(sendBackward()), ":/icons/oxygen/object-send-backward.png");
+    addNormalAction("Bring to Front", this, SLOT(bringToFront()), ":/icons/oxygen/object-bring-to-front.png");
+    addNormalAction("Send to Back", this, SLOT(sendToBack()), ":/icons/oxygen/object-send-to-back.png");
+    addNormalAction("Group", this, SLOT(group()), ":/icons/oxygen/merge.png", "Ctrl+G");
+    addNormalAction("Ungroup", this, SLOT(ungroup()), ":/icons/oxygen/split.png");
+    addNormalAction("Insert Point", this, SLOT(insertPoint()), ":/icons/oxygen/format-add-node.png");
+    addNormalAction("Remove Point", this, SLOT(removePoint()), ":/icons/oxygen/format-remove-node.png");
 
-    addNormalAction("Insert Page", this, SLOT(insertPage()), ":/icons/archive-insert.png");
-    addNormalAction("Duplicate Page", this, SLOT(duplicatePage()), ":/icons/edit-copy.png");
-    addNormalAction("Remove Page", this, SLOT(removePage()), ":/icons/archive-remove.png");
+    addNormalAction("Insert Page", this, SLOT(insertPage()), ":/icons/oxygen/archive-insert.png");
+    addNormalAction("Duplicate Page", this, SLOT(duplicatePage()), ":/icons/oxygen/edit-copy.png");
+    addNormalAction("Remove Page", this, SLOT(removePage()), ":/icons/oxygen/archive-remove.png");
 
-    addNormalAction("Zoom In", this, SLOT(zoomIn()), ":/icons/zoom-in.png", ".");
-    addNormalAction("Zoom Out", this, SLOT(zoomOut()), ":/icons/zoom-out.png", ",");
-    addNormalAction("Zoom Fit", this, SLOT(zoomFit()), ":/icons/zoom-fit-best.png", "/");
+    addNormalAction("Zoom In", this, SLOT(zoomIn()), ":/icons/oxygen/zoom-in.png", ".");
+    addNormalAction("Zoom Out", this, SLOT(zoomOut()), ":/icons/oxygen/zoom-out.png", ",");
+    addNormalAction("Zoom Fit", this, SLOT(zoomFit()), ":/icons/oxygen/zoom-fit-best.png", "/");
 }
 
 void DrawingWidget::createContextMenu()

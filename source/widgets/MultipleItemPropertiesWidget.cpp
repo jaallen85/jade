@@ -219,22 +219,22 @@ QGroupBox* MultipleItemPropertiesWidget::createTextGroup(int labelWidth)
 void MultipleItemPropertiesWidget::createFontStyleWidget()
 {
     mFontBoldButton = new QToolButton();
-    mFontBoldButton->setIcon(QIcon(":/icons/format-text-bold.png"));
+    mFontBoldButton->setIcon(QIcon(":/icons/oxygen/format-text-bold.png"));
     mFontBoldButton->setToolTip("Bold");
     mFontBoldButton->setCheckable(true);
 
     mFontItalicButton = new QToolButton();
-    mFontItalicButton->setIcon(QIcon(":/icons/format-text-italic.png"));
+    mFontItalicButton->setIcon(QIcon(":/icons/oxygen/format-text-italic.png"));
     mFontItalicButton->setToolTip("Italic");
     mFontItalicButton->setCheckable(true);
 
     mFontUnderlineButton = new QToolButton();
-    mFontUnderlineButton->setIcon(QIcon(":/icons/format-text-underline.png"));
+    mFontUnderlineButton->setIcon(QIcon(":/icons/oxygen/format-text-underline.png"));
     mFontUnderlineButton->setToolTip("Underline");
     mFontUnderlineButton->setCheckable(true);
 
     mFontStrikeOutButton = new QToolButton();
-    mFontStrikeOutButton->setIcon(QIcon(":/icons/format-text-strikethrough.png"));
+    mFontStrikeOutButton->setIcon(QIcon(":/icons/oxygen/format-text-strikethrough.png"));
     mFontStrikeOutButton->setToolTip("Strike-Through");
     mFontStrikeOutButton->setCheckable(true);
 
@@ -253,37 +253,37 @@ void MultipleItemPropertiesWidget::createFontStyleWidget()
 void MultipleItemPropertiesWidget::createTextAlignmentWidget()
 {
     mTextAlignmentLeftButton = new QToolButton();
-    mTextAlignmentLeftButton->setIcon(QIcon(":/icons/align-horizontal-left.png"));
+    mTextAlignmentLeftButton->setIcon(QIcon(":/icons/oxygen/align-horizontal-left.png"));
     mTextAlignmentLeftButton->setToolTip("Align Left");
     mTextAlignmentLeftButton->setCheckable(true);
     mTextAlignmentLeftButton->setAutoExclusive(true);
 
     mTextAlignmentHCenterButton = new QToolButton();
-    mTextAlignmentHCenterButton->setIcon(QIcon(":/icons/align-horizontal-center.png"));
+    mTextAlignmentHCenterButton->setIcon(QIcon(":/icons/oxygen/align-horizontal-center.png"));
     mTextAlignmentHCenterButton->setToolTip("Align Center");
     mTextAlignmentHCenterButton->setCheckable(true);
     mTextAlignmentHCenterButton->setAutoExclusive(true);
 
     mTextAlignmentRightButton = new QToolButton();
-    mTextAlignmentRightButton->setIcon(QIcon(":/icons/align-horizontal-right.png"));
+    mTextAlignmentRightButton->setIcon(QIcon(":/icons/oxygen/align-horizontal-right.png"));
     mTextAlignmentRightButton->setToolTip("Align Right");
     mTextAlignmentRightButton->setCheckable(true);
     mTextAlignmentRightButton->setAutoExclusive(true);
 
     mTextAlignmentTopButton = new QToolButton();
-    mTextAlignmentTopButton->setIcon(QIcon(":/icons/align-vertical-top.png"));
+    mTextAlignmentTopButton->setIcon(QIcon(":/icons/oxygen/align-vertical-top.png"));
     mTextAlignmentTopButton->setToolTip("Align Top");
     mTextAlignmentTopButton->setCheckable(true);
     mTextAlignmentTopButton->setAutoExclusive(true);
 
     mTextAlignmentVCenterButton = new QToolButton();
-    mTextAlignmentVCenterButton->setIcon(QIcon(":/icons/align-vertical-center.png"));
+    mTextAlignmentVCenterButton->setIcon(QIcon(":/icons/oxygen/align-vertical-center.png"));
     mTextAlignmentVCenterButton->setToolTip("Align Center");
     mTextAlignmentVCenterButton->setCheckable(true);
     mTextAlignmentVCenterButton->setAutoExclusive(true);
 
     mTextAlignmentBottomButton = new QToolButton();
-    mTextAlignmentBottomButton->setIcon(QIcon(":/icons/align-vertical-bottom.png"));
+    mTextAlignmentBottomButton->setIcon(QIcon(":/icons/oxygen/align-vertical-bottom.png"));
     mTextAlignmentBottomButton->setToolTip("Align Bottom");
     mTextAlignmentBottomButton->setCheckable(true);
     mTextAlignmentBottomButton->setAutoExclusive(true);

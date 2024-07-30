@@ -53,10 +53,10 @@ QSize PagesWidget::sizeHint() const
 
 void PagesWidget::createContextMenu()
 {
-    QAction* insertAction = addAction("Insert", mDrawing, SLOT(insertPage()), ":/icons/archive-insert.png");
-    QAction* duplicateAction = addAction("Duplicate", mDrawing, SLOT(duplicatePage()), ":/icons/edit-copy.png");
+    QAction* insertAction = addAction("Insert", mDrawing, SLOT(insertPage()), ":/icons/oxygen/archive-insert.png");
+    QAction* duplicateAction = addAction("Duplicate", mDrawing, SLOT(duplicatePage()), ":/icons/oxygen/edit-copy.png");
     QAction* renameAction = addAction("Rename...", this, SLOT(renamePage()));
-    QAction* removeAction = addAction("Remove", mDrawing, SLOT(removePage()), ":/icons/archive-remove.png");
+    QAction* removeAction = addAction("Remove", mDrawing, SLOT(removePage()), ":/icons/oxygen/archive-remove.png");
 
     mContextMenu = new QMenu(this);
     mContextMenu->addAction(insertAction);

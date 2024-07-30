@@ -35,7 +35,7 @@ ExportDialog::ExportDialog(QWidget* parent) : QDialog(parent),
 {
     // Create path group
     mPathEdit = new QTextEdit();
-    mPathButton = new QPushButton(QIcon(":/icons/document-open.png"), "");
+    mPathButton = new QPushButton(QIcon(":/icons/oxygen/document-open.png"), "");
     connect(mPathButton, SIGNAL(clicked(bool)), this, SLOT(browseForPath()));
 
     QGroupBox* pathGroup = new QGroupBox("Path");

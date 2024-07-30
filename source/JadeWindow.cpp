@@ -98,28 +98,28 @@ QLabel* JadeWindow::addStatusBarLabel(const QString& text, const QString& minimu
 
 void JadeWindow::createActions()
 {
-    addAction("New", this, SLOT(newDrawing()), ":/icons/document-new.png", "Ctrl+N");
-    addAction("Open...", this, SLOT(openDrawing()), ":/icons/document-open.png", "Ctrl+O");
-    addAction("Save", this, SLOT(saveDrawing()), ":/icons/document-save.png", "Ctrl+S");
-    addAction("Save As...", this, SLOT(saveDrawingAs()), ":/icons/document-save-as.png", "Ctrl+Shift+S");
-    addAction("Close", this, SLOT(closeDrawing()), ":/icons/document-close.png", "Ctrl+W");
-    addAction("Export PNG...", this, SLOT(exportPng()), ":/icons/image-x-generic.png");
-    addAction("Export SVG...", this, SLOT(exportSvg()), ":/icons/image-svg+xml.png");
-    addAction("Preferences...", this, SLOT(preferences()), ":/icons/configure.png");
-    addAction("Exit", this, SLOT(close()), ":/icons/application-exit.png");
+    addAction("New", this, SLOT(newDrawing()), ":/icons/oxygen/document-new.png", "Ctrl+N");
+    addAction("Open...", this, SLOT(openDrawing()), ":/icons/oxygen/document-open.png", "Ctrl+O");
+    addAction("Save", this, SLOT(saveDrawing()), ":/icons/oxygen/document-save.png", "Ctrl+S");
+    addAction("Save As...", this, SLOT(saveDrawingAs()), ":/icons/oxygen/document-save-as.png", "Ctrl+Shift+S");
+    addAction("Close", this, SLOT(closeDrawing()), ":/icons/oxygen/document-close.png", "Ctrl+W");
+    addAction("Export PNG...", this, SLOT(exportPng()), ":/icons/oxygen/image-x-generic.png");
+    addAction("Export SVG...", this, SLOT(exportSvg()), ":/icons/oxygen/image-svg+xml.png");
+    addAction("Preferences...", this, SLOT(preferences()), ":/icons/oxygen/configure.png");
+    addAction("Exit", this, SLOT(close()), ":/icons/oxygen/application-exit.png");
 
     QAction* propertiesAction = addAction("Properties...", mPropertiesDock, SLOT(setVisible(bool)),
-                                          ":/icons/view-form.png");
+                                          ":/icons/oxygen/view-form.png");
     propertiesAction->setCheckable(true);
     propertiesAction->setChecked(true);
     connect(mPropertiesDock, SIGNAL(visibilityChanged(bool)), propertiesAction, SLOT(setChecked(bool)));
 
-    QAction* pagesAction = addAction("Pages...", mPagesDock, SLOT(setVisible(bool)), ":/icons/view-choose.png");
+    QAction* pagesAction = addAction("Pages...", mPagesDock, SLOT(setVisible(bool)), ":/icons/oxygen/view-choose.png");
     pagesAction->setCheckable(true);
     pagesAction->setChecked(true);
     connect(mPagesDock, SIGNAL(visibilityChanged(bool)), pagesAction, SLOT(setChecked(bool)));
 
-    addAction("About...", this, SLOT(about()), ":/icons/help-about.png");
+    addAction("About...", this, SLOT(about()), ":/icons/oxygen/help-about.png");
     addAction("About Qt...", qApp, SLOT(aboutQt()));
 }
 

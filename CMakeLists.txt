@@ -43,12 +43,10 @@ find_package(QuaZip-Qt6)
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     enable_language("RC")
-    set (WIN32_RESOURCES ${CMAKE_CURRENT_SOURCE_DIR}/icons/icons.rc)
+    set (WIN32_RESOURCES ${CMAKE_CURRENT_SOURCE_DIR}/icon.rc)
 endif()
 
 add_executable(${PROJECT_NAME} WIN32
-    icons/icons.qrc
-    license.qrc
     source/odg/OdgControlPoint.h
     source/odg/OdgControlPoint.cpp
     source/odg/OdgCurve.h
@@ -130,6 +128,7 @@ add_executable(${PROJECT_NAME} WIN32
     source/JadeWindow.h
     source/JadeWindow.cpp
     source/main.cpp
+    resources.qrc
     ${WIN32_RESOURCES}
 )
 
