@@ -416,7 +416,7 @@ void DrawingWidget::setGridSpacingMinor(int spacing)
 void DrawingWidget::setProperty(const QString& name, const QVariant& value)
 {
     OdgDrawing::setProperty(name, value);
-    if (name == "pageSize" || name == "pageMargins") zoomFit();
+    if (name == "units" || name == "pageSize" || name == "pageMargins") zoomFit();
     else viewport()->update();
 }
 
@@ -596,9 +596,10 @@ bool DrawingWidget::load(const QString& fileName)
     setGridSpacingMajor(reader.gridSpacingMajor());
     setGridSpacingMinor(reader.gridSpacingMinor());
     blockSignals(false);
-    emit propertiesChanged();
 
     setDefaultStyle(reader.takeDefaultStyle());
+
+    emit propertiesChanged();
 
     const QList<OdgPage*> pages = reader.takePages();
     for(auto& page : pages)
